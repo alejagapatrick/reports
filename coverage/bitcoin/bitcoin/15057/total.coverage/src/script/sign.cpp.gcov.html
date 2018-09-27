@@ -1,0 +1,815 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/script/sign.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/script</a> - sign.cpp<span style="font-size: 80%;"> (source / <a href="sign.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">346</td>
+            <td class="headerCovTableEntry">374</td>
+            <td class="headerCovTableEntryHi">92.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">48</td>
+            <td class="headerCovTableEntry">55</td>
+            <td class="headerCovTableEntryMed">87.3 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">294</td>
+            <td class="headerCovTableEntry">425</td>
+            <td class="headerCovTableEntryLo">69.2 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #include &lt;script/sign.h&gt;
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;key.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;policy/policy.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;primitives/transaction.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;script/standard.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;uint256.h&gt;
+<span class="lineNum">      13 </span>                :            : 
+<a name="14"><span class="lineNum">      14 </span>                :            : typedef std::vector&lt;unsigned char&gt; valtype;</a>
+<span class="lineNum">      15 </span>                :            : 
+<a name="16"><span class="lineNum">      16 </span>                :<span class="lineCov">      10610 : MutableTransactionSignatureCreator::MutableTransactionSignatureCreator(const CMutableTransaction* txToIn, unsigned int nInIn, const CAmount&amp; amountIn, int nHashTypeIn) : txTo(txToIn), nIn(nInIn), nHashType(nHashTypeIn), amount(amountIn), checker(txTo, nIn, amountIn) {}</span></a>
+<span class="lineNum">      17 </span>                :            : 
+<span class="lineNum">      18 </span>                :<span class="lineCov">      10779 : bool MutableTransactionSignatureCreator::CreateSig(const SigningProvider&amp; provider, std::vector&lt;unsigned char&gt;&amp; vchSig, const CKeyID&amp; address, const CScript&amp; scriptCode, SigVersion sigversion) const</span>
+<span class="lineNum">      19 </span>                :            : {
+<span class="lineNum">      20 </span>                :<span class="lineCov">      21558 :     CKey key;</span>
+<span class="lineNum">      21 </span>[<span class="branchCov" title="Branch 1 was taken 10779 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 10440 times"> + </span><span class="branchCov" title="Branch 4 was taken 339 times"> + </span>]:<span class="lineCov">      10779 :     if (!provider.GetKey(address, key))</span>
+<span class="lineNum">      22 </span>                :            :         return false;
+<span class="lineNum">      23 </span>                :            : 
+<span class="lineNum">      24 </span>                :            :     // Signing with uncompressed keys is disabled in witness scripts
+<span class="lineNum">      25 </span>[<span class="branchCov" title="Branch 0 was taken 7480 times"> + </span><span class="branchCov" title="Branch 1 was taken 2960 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 7476 times"> + </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">      10440 :     if (sigversion == SigVersion::WITNESS_V0 &amp;&amp; !key.IsCompressed())</span>
+<span class="lineNum">      26 </span>                :            :         return false;
+<span class="lineNum">      27 </span>                :            : 
+<span class="lineNum">      28 </span>        [<span class="branchCov" title="Branch 1 was taken 10436 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      10436 :     uint256 hash = SignatureHash(scriptCode, *txTo, nIn, nHashType, amount, sigversion);</span>
+<span class="lineNum">      29 </span>[<span class="branchCov" title="Branch 1 was taken 10436 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 10436 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">      10436 :     if (!key.Sign(hash, vchSig))</span>
+<span class="lineNum">      30 </span>                :            :         return false;
+<span class="lineNum">      31 </span>                :<span class="lineCov">      20872 :     vchSig.push_back((unsigned char)nHashType);</span>
+<span class="lineNum">      32 </span>                :<span class="lineCov">      10436 :     return true;</span>
+<a name="33"><span class="lineNum">      33 </span>                :            : }</a>
+<span class="lineNum">      34 </span>                :            : 
+<span class="lineNum">      35 </span>                :<span class="lineCov">      54149 : static bool GetCScript(const SigningProvider&amp; provider, const SignatureData&amp; sigdata, const CScriptID&amp; scriptid, CScript&amp; script)</span>
+<span class="lineNum">      36 </span>                :            : {
+<span class="lineNum">      37 </span>        [<span class="branchCov" title="Branch 1 was taken 189 times"> + </span><span class="branchCov" title="Branch 2 was taken 53960 times"> + </span>]:<span class="lineCov">      54149 :     if (provider.GetCScript(scriptid, script)) {</span>
+<span class="lineNum">      38 </span>                :            :         return true;
+<span class="lineNum">      39 </span>                :            :     }
+<span class="lineNum">      40 </span>                :            :     // Look for scripts in SignatureData
+<span class="lineNum">      41 </span>        [<span class="branchCov" title="Branch 1 was taken 20 times"> + </span><span class="branchCov" title="Branch 2 was taken 169 times"> + </span>]:<span class="lineCov">        189 :     if (CScriptID(sigdata.redeem_script) == scriptid) {</span>
+<span class="lineNum">      42 </span>                :<span class="lineCov">         20 :         script = sigdata.redeem_script;</span>
+<span class="lineNum">      43 </span>                :<span class="lineCov">         20 :         return true;</span>
+<span class="lineNum">      44 </span>        [<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchCov" title="Branch 2 was taken 161 times"> + </span>]:<span class="lineCov">        169 :     } else if (CScriptID(sigdata.witness_script) == scriptid) {</span>
+<span class="lineNum">      45 </span>                :<span class="lineCov">          8 :         script = sigdata.witness_script;</span>
+<span class="lineNum">      46 </span>                :<span class="lineCov">          8 :         return true;</span>
+<span class="lineNum">      47 </span>                :            :     }
+<span class="lineNum">      48 </span>                :            :     return false;
+<span class="lineNum">      49 </span>                :            : }
+<span class="lineNum">      50 </span>                :            : 
+<span class="lineNum">      51 </span>                :<span class="lineCov">     112700 : static bool GetPubKey(const SigningProvider&amp; provider, const SignatureData&amp; sigdata, const CKeyID&amp; address, CPubKey&amp; pubkey)</span>
+<span class="lineNum">      52 </span>                :            : {
+<span class="lineNum">      53 </span>                :            :     // Look for pubkey in all partial sigs
+<span class="lineNum">      54 </span>                :<span class="lineCov">     225400 :     const auto it = sigdata.signatures.find(address);</span>
+<span class="lineNum">      55 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 112700 times"> + </span>]:<span class="lineCov">     112700 :     if (it != sigdata.signatures.end()) {</span>
+<span class="lineNum">      56 </span>                :<span class="lineNoCov">          0 :         pubkey = it-&gt;second.first;</span>
+<span class="lineNum">      57 </span>                :<span class="lineNoCov">          0 :         return true;</span>
+<span class="lineNum">      58 </span>                :            :     }
+<span class="lineNum">      59 </span>                :            :     // Look for pubkey in pubkey list
+<span class="lineNum">      60 </span>                :<span class="lineCov">     225400 :     const auto&amp; pk_it = sigdata.misc_pubkeys.find(address);</span>
+<span class="lineNum">      61 </span>        [<span class="branchCov" title="Branch 0 was taken 12 times"> + </span><span class="branchCov" title="Branch 1 was taken 112688 times"> + </span>]:<span class="lineCov">     112700 :     if (pk_it != sigdata.misc_pubkeys.end()) {</span>
+<span class="lineNum">      62 </span>                :<span class="lineCov">         12 :         pubkey = pk_it-&gt;second.first;</span>
+<span class="lineNum">      63 </span>                :<span class="lineCov">         12 :         return true;</span>
+<span class="lineNum">      64 </span>                :            :     }
+<span class="lineNum">      65 </span>                :            :     // Query the underlying provider
+<span class="lineNum">      66 </span>                :<span class="lineCov">     112688 :     return provider.GetPubKey(address, pubkey);</span>
+<span class="lineNum">      67 </span>                :            : }
+<span class="lineNum">      68 </span>                :            : 
+<span class="lineNum">      69 </span>                :<span class="lineCov">     117594 : static bool CreateSig(const BaseSignatureCreator&amp; creator, SignatureData&amp; sigdata, const SigningProvider&amp; provider, std::vector&lt;unsigned char&gt;&amp; sig_out, const CPubKey&amp; pubkey, const CScript&amp; scriptcode, SigVersion sigversion)</span>
+<span class="lineNum">      70 </span>                :            : {
+<span class="lineNum">      71 </span>                :<span class="lineCov">     117594 :     CKeyID keyid = pubkey.GetID();</span>
+<span class="lineNum">      72 </span>                :<span class="lineCov">     235188 :     const auto it = sigdata.signatures.find(keyid);</span>
+<span class="lineNum">      73 </span>        [<span class="branchCov" title="Branch 0 was taken 388 times"> + </span><span class="branchCov" title="Branch 1 was taken 117206 times"> + </span>]:<span class="lineCov">     117594 :     if (it != sigdata.signatures.end()) {</span>
+<span class="lineNum">      74 </span>                :<span class="lineCov">        388 :         sig_out = it-&gt;second.second;</span>
+<span class="lineNum">      75 </span>                :            :         return true;
+<span class="lineNum">      76 </span>                :            :     }
+<span class="lineNum">      77 </span>                :<span class="lineCov">     117206 :     KeyOriginInfo info;</span>
+<span class="lineNum">      78 </span>[<span class="branchCov" title="Branch 1 was taken 117206 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 112382 times"> + </span><span class="branchCov" title="Branch 4 was taken 4824 times"> + </span>]:<span class="lineCov">     117206 :     if (provider.GetKeyOrigin(keyid, info)) {</span>
+<span class="lineNum">      79 </span>                :<span class="lineCov">     112382 :         sigdata.misc_pubkeys.emplace(keyid, std::make_pair(pubkey, std::move(info)));</span>
+<span class="lineNum">      80 </span>                :            :     }
+<span class="lineNum">      81 </span>[<span class="branchCov" title="Branch 1 was taken 117206 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 116863 times"> + </span><span class="branchCov" title="Branch 4 was taken 343 times"> + </span>]:<span class="lineCov">     117206 :     if (creator.CreateSig(provider, sig_out, keyid, scriptcode, sigversion)) {</span>
+<span class="lineNum">      82 </span>                :<span class="lineNoCov">          0 :         auto i = sigdata.signatures.emplace(keyid, SigPair(pubkey, sig_out));</span>
+<span class="lineNum">      83 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 116863 times"> + </span>]:<span class="lineCov">     116863 :         assert(i.second);</span>
+<span class="lineNum">      84 </span>                :            :         return true;
+<span class="lineNum">      85 </span>                :            :     }
+<span class="lineNum">      86 </span>                :            :     return false;
+<span class="lineNum">      87 </span>                :            : }
+<span class="lineNum">      88 </span>                :            : 
+<span class="lineNum">      89 </span>                :            : /**
+<span class="lineNum">      90 </span>                :            :  * Sign scriptPubKey using signature made with creator.
+<span class="lineNum">      91 </span>                :            :  * Signatures are returned in scriptSigRet (or returns false if scriptPubKey can't be signed),
+<span class="lineNum">      92 </span>                :            :  * unless whichTypeRet is TX_SCRIPTHASH, in which case scriptSigRet is the redemption script.
+<a name="93"><span class="lineNum">      93 </span>                :            :  * Returns false if scriptPubKey could not be completely satisfied.</a>
+<span class="lineNum">      94 </span>                :            :  */
+<span class="lineNum">      95 </span>                :<span class="lineCov">     338804 : static bool SignStep(const SigningProvider&amp; provider, const BaseSignatureCreator&amp; creator, const CScript&amp; scriptPubKey,</span>
+<span class="lineNum">      96 </span>                :            :                      std::vector&lt;valtype&gt;&amp; ret, txnouttype&amp; whichTypeRet, SigVersion sigversion, SignatureData&amp; sigdata)
+<span class="lineNum">      97 </span>                :            : {
+<span class="lineNum">      98 </span>                :<span class="lineCov">     338804 :     CScript scriptRet;</span>
+<span class="lineNum">      99 </span>                :<span class="lineCov">     338804 :     uint160 h160;</span>
+<span class="lineNum">     100 </span>                :<span class="lineCov">     338804 :     ret.clear();</span>
+<span class="lineNum">     101 </span>                :<span class="lineNoCov">          0 :     std::vector&lt;unsigned char&gt; sig;</span>
+<span class="lineNum">     102 </span>                :            : 
+<span class="lineNum">     103 </span>                :<span class="lineCov">     338804 :     std::vector&lt;valtype&gt; vSolutions;</span>
+<span class="lineNum">     104 </span>        [<span class="branchCov" title="Branch 1 was taken 338804 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     338804 :     whichTypeRet = Solver(scriptPubKey, vSolutions);</span>
+<span class="lineNum">     105 </span>                :            : 
+<span class="lineNum">     106 </span>  [<span class="branchCov" title="Branch 0 was taken 877 times"> + </span><span class="branchCov" title="Branch 1 was taken 112700 times"> + </span><span class="branchCov" title="Branch 2 was taken 52168 times"> + </span><span class="branchCov" title="Branch 3 was taken 2125 times"> + </span> :<span class="lineCov">     338804 :     switch (whichTypeRet)</span>
+<span class="lineNum">         </span>      <span class="branchCov" title="Branch 4 was taken 58911 times"> + </span><span class="branchCov" title="Branch 5 was taken 1981 times"> + </span><span class="branchCov" title="Branch 6 was taken 110042 times"> + </span>]
+<span class="lineNum">     107 </span>                :            :     {
+<span class="lineNum">     108 </span>                :            :     case TX_NONSTANDARD:
+<span class="lineNum">     109 </span>                :            :     case TX_NULL_DATA:
+<span class="lineNum">     110 </span>                :            :     case TX_WITNESS_UNKNOWN:
+<span class="lineNum">     111 </span>                :            :         return false;
+<span class="lineNum">     112 </span>                :<span class="lineCov">        877 :     case TX_PUBKEY:</span>
+<span class="lineNum">     113 </span>[<span class="branchCov" title="Branch 2 was taken 877 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 877 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        877 :         if (!CreateSig(creator, sigdata, provider, sig, CPubKey(vSolutions[0]), scriptPubKey, sigversion)) return false;</span>
+<span class="lineNum">     114 </span>                :<span class="lineCov">        877 :         ret.push_back(std::move(sig));</span>
+<span class="lineNum">     115 </span>                :            :         return true;
+<span class="lineNum">     116 </span>                :<span class="lineCov">     112700 :     case TX_PUBKEYHASH: {</span>
+<span class="lineNum">     117 </span>                :<span class="lineCov">     338100 :         CKeyID keyID = CKeyID(uint160(vSolutions[0]));</span>
+<span class="lineNum">     118 </span>                :<span class="lineCov">     112700 :         CPubKey pubkey;</span>
+<span class="lineNum">     119 </span>[<span class="branchCov" title="Branch 1 was taken 112700 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 112594 times"> + </span><span class="branchCov" title="Branch 4 was taken 106 times"> + </span>]:<span class="lineCov">     112700 :         if (!GetPubKey(provider, sigdata, keyID, pubkey)) return false;</span>
+<span class="lineNum">     120 </span>[<span class="branchCov" title="Branch 1 was taken 112594 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 112476 times"> + </span><span class="branchCov" title="Branch 4 was taken 118 times"> + </span>]:<span class="lineCov">     112594 :         if (!CreateSig(creator, sigdata, provider, sig, pubkey, scriptPubKey, sigversion)) return false;</span>
+<span class="lineNum">     121 </span>                :<span class="lineCov">     224952 :         ret.push_back(std::move(sig));</span>
+<span class="lineNum">     122 </span>        [<span class="branchCov" title="Branch 1 was taken 112476 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     112476 :         ret.push_back(ToByteVector(pubkey));</span>
+<span class="lineNum">     123 </span>                :<span class="lineCov">     112700 :         return true;</span>
+<span class="lineNum">     124 </span>                :            :     }
+<span class="lineNum">     125 </span>                :<span class="lineCov">      52168 :     case TX_SCRIPTHASH:</span>
+<span class="lineNum">     126 </span>[<span class="branchCov" title="Branch 1 was taken 52168 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 52048 times"> + </span><span class="branchCov" title="Branch 4 was taken 120 times"> + </span>]:<span class="lineCov">      52168 :         if (GetCScript(provider, sigdata, uint160(vSolutions[0]), scriptRet)) {</span>
+<span class="lineNum">     127 </span>        [<span class="branchCov" title="Branch 1 was taken 52048 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      52048 :             ret.push_back(std::vector&lt;unsigned char&gt;(scriptRet.begin(), scriptRet.end()));</span>
+<span class="lineNum">     128 </span>                :<span class="lineCov">      52048 :             return true;</span>
+<span class="lineNum">     129 </span>                :            :         }
+<span class="lineNum">     130 </span>                :            :         return false;
+<span class="lineNum">     131 </span>                :            : 
+<span class="lineNum">     132 </span>                :<span class="lineCov">       2125 :     case TX_MULTISIG: {</span>
+<span class="lineNum">     133 </span>                :<span class="lineCov">       4250 :         size_t required = vSolutions.front()[0];</span>
+<span class="lineNum">     134 </span>                :<span class="lineNoCov">          0 :         ret.push_back(valtype()); // workaround CHECKMULTISIG bug</span>
+<span class="lineNum">     135 </span>        [<span class="branchCov" title="Branch 0 was taken 4424 times"> + </span><span class="branchCov" title="Branch 1 was taken 2125 times"> + </span>]:<span class="lineCov">       6549 :         for (size_t i = 1; i &lt; vSolutions.size() - 1; ++i) {</span>
+<span class="lineNum">     136 </span>                :<span class="lineCov">       4424 :             CPubKey pubkey = CPubKey(vSolutions[i]);</span>
+<span class="lineNum">     137 </span>[<span class="branchCov" title="Branch 0 was taken 4123 times"> + </span><span class="branchCov" title="Branch 1 was taken 301 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 4123 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       4424 :             if (ret.size() &lt; required + 1 &amp;&amp; CreateSig(creator, sigdata, provider, sig, pubkey, scriptPubKey, sigversion)) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 5 was taken 3898 times"> + </span><span class="branchCov" title="Branch 6 was taken 225 times"> + </span>]
+<span class="lineNum">     138 </span>                :<span class="lineCov">       3898 :                 ret.push_back(std::move(sig));</span>
+<span class="lineNum">     139 </span>                :            :             }
+<span class="lineNum">     140 </span>                :            :         }
+<span class="lineNum">     141 </span>                :<span class="lineCov">       2125 :         bool ok = ret.size() == required + 1;</span>
+<span class="lineNum">     142 </span>        [<span class="branchCov" title="Branch 0 was taken 104 times"> + </span><span class="branchCov" title="Branch 1 was taken 2125 times"> + </span>]:<span class="lineCov">       2229 :         for (size_t i = 0; i + ret.size() &lt; required + 1; ++i) {</span>
+<span class="lineNum">     143 </span>                :<span class="lineNoCov">          0 :             ret.push_back(valtype());</span>
+<span class="lineNum">     144 </span>                :            :         }
+<span class="lineNum">     145 </span>                :            :         return ok;
+<span class="lineNum">     146 </span>                :            :     }
+<span class="lineNum">     147 </span>                :<span class="lineCov">      58911 :     case TX_WITNESS_V0_KEYHASH:</span>
+<span class="lineNum">     148 </span>        [<span class="branchCov" title="Branch 1 was taken 58911 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      58911 :         ret.push_back(vSolutions[0]);</span>
+<span class="lineNum">     149 </span>                :            :         return true;
+<span class="lineNum">     150 </span>                :            : 
+<span class="lineNum">     151 </span>                :<span class="lineCov">       1981 :     case TX_WITNESS_V0_SCRIPTHASH:</span>
+<span class="lineNum">     152 </span>[<span class="branchCov" title="Branch 1 was taken 1981 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1981 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1981 :         CRIPEMD160().Write(&amp;vSolutions[0][0], vSolutions[0].size()).Finalize(h160.begin());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 1981 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     153 </span>[<span class="branchCov" title="Branch 1 was taken 1981 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 1940 times"> + </span><span class="branchCov" title="Branch 4 was taken 41 times"> + </span>]:<span class="lineCov">       1981 :         if (GetCScript(provider, sigdata, h160, scriptRet)) {</span>
+<span class="lineNum">     154 </span>        [<span class="branchCov" title="Branch 1 was taken 1940 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1940 :             ret.push_back(std::vector&lt;unsigned char&gt;(scriptRet.begin(), scriptRet.end()));</span>
+<span class="lineNum">     155 </span>                :<span class="lineCov">       1940 :             return true;</span>
+<span class="lineNum">     156 </span>                :            :         }
+<span class="lineNum">     157 </span>                :            :         return false;
+<span class="lineNum">     158 </span>                :            : 
+<span class="lineNum">     159 </span>                :            :     default:
+<span class="lineNum">     160 </span>                :            :         return false;
+<span class="lineNum">     161 </span>                :            :     }
+<a name="162"><span class="lineNum">     162 </span>                :            : }</a>
+<span class="lineNum">     163 </span>                :            : 
+<span class="lineNum">     164 </span>                :<span class="lineCov">     225905 : static CScript PushAll(const std::vector&lt;valtype&gt;&amp; values)</span>
+<span class="lineNum">     165 </span>                :            : {
+<span class="lineNum">     166 </span>                :<span class="lineCov">     225905 :     CScript result;</span>
+<span class="lineNum">     167 </span>        [<span class="branchCov" title="Branch 0 was taken 161773 times"> + </span><span class="branchCov" title="Branch 1 was taken 225905 times"> + </span>]:<span class="lineCov">     387678 :     for (const valtype&amp; v : values) {</span>
+<span class="lineNum">     168 </span>        [<span class="branchCov" title="Branch 0 was taken 815 times"> + </span><span class="branchCov" title="Branch 1 was taken 160958 times"> + </span>]:<span class="lineCov">     161773 :         if (v.size() == 0) {</span>
+<span class="lineNum">     169 </span>        [<span class="branchCov" title="Branch 1 was taken 815 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        815 :             result &lt;&lt; OP_0;</span>
+<span class="lineNum">     170 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 160958 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">     160958 :         } else if (v.size() == 1 &amp;&amp; v[0] &gt;= 1 &amp;&amp; v[0] &lt;= 16) {</span>
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">     171 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             result &lt;&lt; CScript::EncodeOP_N(v[0]);</span>
+<span class="lineNum">     172 </span>                :            :         } else {
+<span class="lineNum">     173 </span>                :<span class="lineCov">     160958 :             result &lt;&lt; v;</span>
+<span class="lineNum">     174 </span>                :            :         }
+<span class="lineNum">     175 </span>                :            :     }
+<span class="lineNum">     176 </span>                :<span class="lineCov">     225905 :     return result;</span>
+<a name="177"><span class="lineNum">     177 </span>                :            : }</a>
+<span class="lineNum">     178 </span>                :            : 
+<span class="lineNum">     179 </span>                :<span class="lineCov">     225999 : bool ProduceSignature(const SigningProvider&amp; provider, const BaseSignatureCreator&amp; creator, const CScript&amp; fromPubKey, SignatureData&amp; sigdata)</span>
+<span class="lineNum">     180 </span>                :            : {
+<span class="lineNum">     181 </span>        [<span class="branchCov" title="Branch 0 was taken 225905 times"> + </span><span class="branchCov" title="Branch 1 was taken 94 times"> + </span>]:<span class="lineCov">     225999 :     if (sigdata.complete) return true;</span>
+<span class="lineNum">     182 </span>                :            : 
+<span class="lineNum">     183 </span>                :<span class="lineCov">     225999 :     std::vector&lt;valtype&gt; result;</span>
+<span class="lineNum">     184 </span>                :            :     txnouttype whichType;
+<span class="lineNum">     185 </span>        [<span class="branchCov" title="Branch 1 was taken 225905 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     225905 :     bool solved = SignStep(provider, creator, fromPubKey, result, whichType, SigVersion::BASE, sigdata);</span>
+<span class="lineNum">     186 </span>                :<span class="lineCov">     225905 :     bool P2SH = false;</span>
+<span class="lineNum">     187 </span>                :<span class="lineNoCov">          0 :     CScript subscript;</span>
+<span class="lineNum">     188 </span>                :<span class="lineCov">     225905 :     sigdata.scriptWitness.stack.clear();</span>
+<span class="lineNum">     189 </span>                :            : 
+<span class="lineNum">     190 </span>[<span class="branchCov" title="Branch 0 was taken 115645 times"> + </span><span class="branchCov" title="Branch 1 was taken 110260 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 52048 times"> + </span><span class="branchCov" title="Branch 3 was taken 63597 times"> + </span>]:<span class="lineCov">     225905 :     if (solved &amp;&amp; whichType == TX_SCRIPTHASH)</span>
+<span class="lineNum">     191 </span>                :            :     {
+<span class="lineNum">     192 </span>                :            :         // Solver returns the subscript that needs to be evaluated;
+<span class="lineNum">     193 </span>                :            :         // the final scriptSig is the signatures from that
+<span class="lineNum">     194 </span>                :            :         // and then the serialized subscript:
+<span class="lineNum">     195 </span>                :<span class="lineCov">     416384 :         subscript = CScript(result[0].begin(), result[0].end());</span>
+<span class="lineNum">     196 </span>                :<span class="lineCov">     104096 :         sigdata.redeem_script = subscript;</span>
+<span class="lineNum">     197 </span>[<span class="branchCov" title="Branch 1 was taken 52048 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 52015 times"> + </span><span class="branchCov" title="Branch 4 was taken 33 times"> + </span>]:<span class="lineCov">      52048 :         solved = solved &amp;&amp; SignStep(provider, creator, subscript, result, whichType, SigVersion::BASE, sigdata) &amp;&amp; whichType != TX_SCRIPTHASH;</span>
+<span class="lineNum">         </span>        [<span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchCov" title="Branch 6 was taken 52015 times"> + </span>]
+<span class="lineNum">     198 </span>                :            :         P2SH = true;
+<span class="lineNum">     199 </span>                :            :     }
+<span class="lineNum">     200 </span>                :            : 
+<span class="lineNum">     201 </span>[<span class="branchCov" title="Branch 0 was taken 115612 times"> + </span><span class="branchCov" title="Branch 1 was taken 110293 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 58911 times"> + </span><span class="branchCov" title="Branch 3 was taken 56701 times"> + </span>]:<span class="lineCov">     225905 :     if (solved &amp;&amp; whichType == TX_WITNESS_V0_KEYHASH)</span>
+<span class="lineNum">     202 </span>                :            :     {
+<span class="lineNum">     203 </span>                :<span class="lineNoCov">          0 :         CScript witnessscript;</span>
+<span class="lineNum">     204 </span>[<span class="branchCov" title="Branch 1 was taken 58911 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 58911 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      58911 :         witnessscript &lt;&lt; OP_DUP &lt;&lt; OP_HASH160 &lt;&lt; ToByteVector(result[0]) &lt;&lt; OP_EQUALVERIFY &lt;&lt; OP_CHECKSIG;</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 58911 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 58911 times"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 14 was taken 58911 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>]
+<span class="lineNum">     205 </span>                :            :         txnouttype subType;
+<span class="lineNum">     206 </span>[<span class="branchCov" title="Branch 1 was taken 58911 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 120 times"> + </span><span class="branchCov" title="Branch 4 was taken 58791 times"> + </span>]:<span class="lineCov">      58911 :         solved = solved &amp;&amp; SignStep(provider, creator, witnessscript, result, subType, SigVersion::WITNESS_V0, sigdata);</span>
+<span class="lineNum">     207 </span>        [<span class="branchCov" title="Branch 1 was taken 58911 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      58911 :         sigdata.scriptWitness.stack = result;</span>
+<span class="lineNum">     208 </span>                :<span class="lineCov">      58911 :         sigdata.witness = true;</span>
+<span class="lineNum">     209 </span>                :<span class="lineCov">     117822 :         result.clear();</span>
+<span class="lineNum">     210 </span>                :            :     }
+<span class="lineNum">     211 </span>[<span class="branchCov" title="Branch 0 was taken 56701 times"> + </span><span class="branchCov" title="Branch 1 was taken 110293 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1940 times"> + </span><span class="branchCov" title="Branch 3 was taken 54761 times"> + </span>]:<span class="lineCov">     166994 :     else if (solved &amp;&amp; whichType == TX_WITNESS_V0_SCRIPTHASH)</span>
+<span class="lineNum">     212 </span>                :            :     {
+<span class="lineNum">     213 </span>                :<span class="lineNoCov">          0 :         CScript witnessscript(result[0].begin(), result[0].end());</span>
+<span class="lineNum">     214 </span>                :<span class="lineCov">       3880 :         sigdata.witness_script = witnessscript;</span>
+<span class="lineNum">     215 </span>                :            :         txnouttype subType;
+<span class="lineNum">     216 </span>[<span class="branchCov" title="Branch 1 was taken 1940 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 1822 times"> + </span><span class="branchCov" title="Branch 4 was taken 118 times"> + </span>]:<span class="lineCov">       1940 :         solved = solved &amp;&amp; SignStep(provider, creator, witnessscript, result, subType, SigVersion::WITNESS_V0, sigdata) &amp;&amp; subType != TX_SCRIPTHASH &amp;&amp; subType != TX_WITNESS_V0_SCRIPTHASH &amp;&amp; subType != TX_WITNESS_V0_KEYHASH;</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 5 was taken 1822 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>][<span class="branchCov" title="Branch 7 was taken 1822 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchNoCov" title="Branch 9 was not taken"> - </span><span class="branchCov" title="Branch 10 was taken 1822 times"> + </span>]
+<span class="lineNum">     217 </span>        [<span class="branchCov" title="Branch 1 was taken 1940 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1940 :         result.push_back(std::vector&lt;unsigned char&gt;(witnessscript.begin(), witnessscript.end()));</span>
+<span class="lineNum">     218 </span>        [<span class="branchCov" title="Branch 1 was taken 1940 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1940 :         sigdata.scriptWitness.stack = result;</span>
+<span class="lineNum">     219 </span>                :<span class="lineCov">       1940 :         sigdata.witness = true;</span>
+<span class="lineNum">     220 </span>                :<span class="lineCov">       3880 :         result.clear();</span>
+<span class="lineNum">     221 </span>[<span class="branchCov" title="Branch 0 was taken 54761 times"> + </span><span class="branchCov" title="Branch 1 was taken 110293 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 54761 times"> + </span>]:<span class="lineCov">     165054 :     } else if (solved &amp;&amp; whichType == TX_WITNESS_UNKNOWN) {</span>
+<span class="lineNum">     222 </span>                :<span class="lineNoCov">          0 :         sigdata.witness = true;</span>
+<span class="lineNum">     223 </span>                :            :     }
+<span class="lineNum">     224 </span>                :            : 
+<span class="lineNum">     225 </span>        [<span class="branchCov" title="Branch 0 was taken 52048 times"> + </span><span class="branchCov" title="Branch 1 was taken 173857 times"> + </span>]:<span class="lineCov">     225905 :     if (P2SH) {</span>
+<span class="lineNum">     226 </span>        [<span class="branchCov" title="Branch 1 was taken 52048 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     104096 :         result.push_back(std::vector&lt;unsigned char&gt;(subscript.begin(), subscript.end()));</span>
+<span class="lineNum">     227 </span>                :            :     }
+<span class="lineNum">     228 </span>        [<span class="branchCov" title="Branch 1 was taken 225905 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     225905 :     sigdata.scriptSig = PushAll(result);</span>
+<span class="lineNum">     229 </span>                :            : 
+<span class="lineNum">     230 </span>                :            :     // Test solution
+<span class="lineNum">     231 </span>[<span class="branchCov" title="Branch 0 was taken 115374 times"> + </span><span class="branchCov" title="Branch 1 was taken 110531 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 115374 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">     225905 :     sigdata.complete = solved &amp;&amp; VerifyScript(sigdata.scriptSig, fromPubKey, &amp;sigdata.scriptWitness, STANDARD_SCRIPT_VERIFY_FLAGS, creator.Checker());</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 6 was taken 115374 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>][<span class="branchCov" title="Branch 8 was taken 9 times"> + </span><span class="branchCov" title="Branch 9 was taken 115365 times"> + </span>]
+<span class="lineNum">     232 </span>                :<span class="lineCov">     225905 :     return sigdata.complete;</span>
+<a name="233"><span class="lineNum">     233 </span>                :            : }</a>
+<span class="lineNum">     234 </span>                :            : 
+<span class="lineNum">     235 </span>                :<span class="lineCov">        252 : bool PSBTInputSigned(PSBTInput&amp; input)</span>
+<span class="lineNum">     236 </span>                :            : {
+<span class="lineNum">     237 </span>[<span class="branchCov" title="Branch 0 was taken 240 times"> + </span><span class="branchCov" title="Branch 1 was taken 12 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchCov" title="Branch 3 was taken 238 times"> + </span>]:<span class="lineCov">        252 :     return !input.final_script_sig.empty() || !input.final_script_witness.IsNull();</span>
+<span class="lineNum">     238 </span>                :            : }
+<span class="lineNum">     239 </span>                :            : 
+<span class="lineNum">     240 </span>                :<span class="lineCov">        132 : bool SignPSBTInput(const SigningProvider&amp; provider, PartiallySignedTransaction&amp; psbt, int index, int sighash)</span>
+<span class="lineNum">     241 </span>                :            : {
+<span class="lineNum">     242 </span>                :<span class="lineCov">        264 :     PSBTInput&amp; input = psbt.inputs.at(index);</span>
+<span class="lineNum">     243 </span>                :<span class="lineCov">        264 :     const CMutableTransaction&amp; tx = *psbt.tx;</span>
+<span class="lineNum">     244 </span>                :            : 
+<span class="lineNum">     245 </span>        [<span class="branchCov" title="Branch 0 was taken 120 times"> + </span><span class="branchCov" title="Branch 1 was taken 12 times"> + </span>]:<span class="lineCov">        132 :     if (PSBTInputSigned(input)) {</span>
+<span class="lineNum">     246 </span>                :            :         return true;
+<span class="lineNum">     247 </span>                :            :     }
+<span class="lineNum">     248 </span>                :            : 
+<span class="lineNum">     249 </span>                :            :     // Fill SignatureData with input info
+<span class="lineNum">     250 </span>                :<span class="lineCov">        132 :     SignatureData sigdata;</span>
+<span class="lineNum">     251 </span>        [<span class="branchCov" title="Branch 1 was taken 120 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        120 :     input.FillSignatureData(sigdata);</span>
+<span class="lineNum">     252 </span>                :            : 
+<span class="lineNum">     253 </span>                :            :     // Get UTXO
+<span class="lineNum">     254 </span>                :<span class="lineCov">        120 :     bool require_witness_sig = false;</span>
+<span class="lineNum">     255 </span>                :<span class="lineNoCov">          0 :     CTxOut utxo;</span>
+<span class="lineNum">     256 </span>                :            : 
+<span class="lineNum">     257 </span>                :            :     // Verify input sanity, which checks that at most one of witness or non-witness utxos is provided.
+<span class="lineNum">     258 </span>        [<span class="branchCov" title="Branch 0 was taken 120 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        120 :     if (!input.IsSane()) {</span>
+<span class="lineNum">     259 </span>                :            :         return false;
+<span class="lineNum">     260 </span>                :            :     }
+<span class="lineNum">     261 </span>                :            : 
+<span class="lineNum">     262 </span>        [<span class="branchCov" title="Branch 0 was taken 102 times"> + </span><span class="branchCov" title="Branch 1 was taken 18 times"> + </span>]:<span class="lineCov">        120 :     if (input.non_witness_utxo) {</span>
+<span class="lineNum">     263 </span>                :            :         // If we're taking our information from a non-witness UTXO, verify that it matches the prevout.
+<span class="lineNum">     264 </span>                :<span class="lineCov">        204 :         COutPoint prevout = tx.vin[index].prevout;</span>
+<span class="lineNum">     265 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 102 times"> + </span>]:<span class="lineCov">        102 :         if (input.non_witness_utxo-&gt;GetHash() != prevout.hash) {</span>
+<span class="lineNum">     266 </span>                :<span class="lineNoCov">          0 :             return false;</span>
+<span class="lineNum">     267 </span>                :            :         }
+<span class="lineNum">     268 </span>                :<span class="lineCov">        102 :         utxo = input.non_witness_utxo-&gt;vout[prevout.n];</span>
+<span class="lineNum">     269 </span>        [<span class="branchCov" title="Branch 0 was taken 15 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">         18 :     } else if (!input.witness_utxo.IsNull()) {</span>
+<span class="lineNum">     270 </span>                :<span class="lineCov">         30 :         utxo = input.witness_utxo;</span>
+<span class="lineNum">     271 </span>                :            :         // When we're taking our information from a witness UTXO, we can't verify it is actually data from
+<span class="lineNum">     272 </span>                :            :         // the output being spent. This is safe in case a witness signature is produced (which includes this
+<span class="lineNum">     273 </span>                :            :         // information directly in the hash), but not for non-witness signatures. Remember that we require
+<span class="lineNum">     274 </span>                :            :         // a witness signature in this situation.
+<span class="lineNum">     275 </span>                :<span class="lineCov">         15 :         require_witness_sig = true;</span>
+<span class="lineNum">     276 </span>                :            :     } else {
+<span class="lineNum">     277 </span>                :            :         return false;
+<span class="lineNum">     278 </span>                :            :     }
+<span class="lineNum">     279 </span>                :            : 
+<span class="lineNum">     280 </span>                :<span class="lineCov">        117 :     MutableTransactionSignatureCreator creator(&amp;tx, index, utxo.nValue, sighash);</span>
+<span class="lineNum">     281 </span>                :<span class="lineCov">        117 :     sigdata.witness = false;</span>
+<span class="lineNum">     282 </span>        [<span class="branchCov" title="Branch 1 was taken 117 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        117 :     bool sig_complete = ProduceSignature(provider, creator, utxo.scriptPubKey, sigdata);</span>
+<span class="lineNum">     283 </span>                :            :     // Verify that a witness signature was produced in case one was required.
+<span class="lineNum">     284 </span>[<span class="branchCov" title="Branch 0 was taken 15 times"> + </span><span class="branchCov" title="Branch 1 was taken 102 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 12 times"> + </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">        117 :     if (require_witness_sig &amp;&amp; !sigdata.witness) return false;</span>
+<span class="lineNum">     285 </span>        [<span class="branchCov" title="Branch 1 was taken 114 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        114 :     input.FromSignatureData(sigdata);</span>
+<span class="lineNum">     286 </span>                :            : 
+<span class="lineNum">     287 </span>                :            :     // If we have a witness signature, use the smaller witness UTXO.
+<span class="lineNum">     288 </span>        [<span class="branchCov" title="Branch 0 was taken 76 times"> + </span><span class="branchCov" title="Branch 1 was taken 38 times"> + </span>]:<span class="lineCov">        114 :     if (sigdata.witness) {</span>
+<span class="lineNum">     289 </span>                :<span class="lineCov">        152 :         input.witness_utxo = utxo;</span>
+<span class="lineNum">     290 </span>                :<span class="lineCov">         76 :         input.non_witness_utxo = nullptr;</span>
+<span class="lineNum">     291 </span>                :            :     }
+<span class="lineNum">     292 </span>                :            : 
+<span class="lineNum">     293 </span>                :            :     return sig_complete;
+<a name="294"><span class="lineNum">     294 </span>                :            : }</a>
+<span class="lineNum">     295 </span>                :            : 
+<span class="lineNum">     296 </span>                :<span class="lineNoCov">          0 : class SignatureExtractorChecker final : public BaseSignatureChecker</span>
+<span class="lineNum">     297 </span>                :            : {
+<span class="lineNum">     298 </span>                :            : private:
+<span class="lineNum">     299 </span>                :            :     SignatureData&amp; sigdata;
+<span class="lineNum">     300 </span>                :            :     BaseSignatureChecker&amp; checker;
+<span class="lineNum">     301 </span>                :            : 
+<span class="lineNum">     302 </span>                :            : public:
+<span class="lineNum">     303 </span>                :<span class="lineCov">       3425 :     SignatureExtractorChecker(SignatureData&amp; sigdata, BaseSignatureChecker&amp; checker) : sigdata(sigdata), checker(checker) {}</span>
+<span class="lineNum">     304 </span>                :            :     bool CheckSig(const std::vector&lt;unsigned char&gt;&amp; scriptSig, const std::vector&lt;unsigned char&gt;&amp; vchPubKey, const CScript&amp; scriptCode, SigVersion sigversion) const override;
+<a name="305"><span class="lineNum">     305 </span>                :            : };</a>
+<span class="lineNum">     306 </span>                :            : 
+<span class="lineNum">     307 </span>                :<span class="lineCov">        436 : bool SignatureExtractorChecker::CheckSig(const std::vector&lt;unsigned char&gt;&amp; scriptSig, const std::vector&lt;unsigned char&gt;&amp; vchPubKey, const CScript&amp; scriptCode, SigVersion sigversion) const</span>
+<span class="lineNum">     308 </span>                :            : {
+<span class="lineNum">     309 </span>        [<span class="branchCov" title="Branch 1 was taken 119 times"> + </span><span class="branchCov" title="Branch 2 was taken 317 times"> + </span>]:<span class="lineCov">        436 :     if (checker.CheckSig(scriptSig, vchPubKey, scriptCode, sigversion)) {</span>
+<span class="lineNum">     310 </span>                :<span class="lineCov">        119 :         CPubKey pubkey(vchPubKey);</span>
+<span class="lineNum">     311 </span>        [<span class="branchCov" title="Branch 1 was taken 119 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        555 :         sigdata.signatures.emplace(pubkey.GetID(), SigPair(pubkey, scriptSig));</span>
+<span class="lineNum">     312 </span>                :            :         return true;
+<span class="lineNum">     313 </span>                :            :     }
+<span class="lineNum">     314 </span>                :            :     return false;
+<span class="lineNum">     315 </span>                :            : }
+<span class="lineNum">     316 </span>                :            : 
+<span class="lineNum">     317 </span>                :            : namespace
+<span class="lineNum">     318 </span>                :            : {
+<span class="lineNum">     319 </span>                :<span class="lineCov">       3425 : struct Stacks</span>
+<span class="lineNum">     320 </span>                :            : {
+<span class="lineNum">     321 </span>                :            :     std::vector&lt;valtype&gt; script;
+<span class="lineNum">     322 </span>                :            :     std::vector&lt;valtype&gt; witness;
+<span class="lineNum">     323 </span>                :            : 
+<a name="324"><span class="lineNum">     324 </span>                :            :     Stacks() = delete;</a>
+<span class="lineNum">     325 </span>                :            :     Stacks(const Stacks&amp;) = delete;
+<span class="lineNum">     326 </span>        [<span class="branchCov" title="Branch 1 was taken 3425 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       6850 :     explicit Stacks(const SignatureData&amp; data) : witness(data.scriptWitness.stack) {</span>
+<span class="lineNum">     327 </span>        [<span class="branchCov" title="Branch 1 was taken 3425 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3425 :         EvalScript(script, data.scriptSig, SCRIPT_VERIFY_STRICTENC, BaseSignatureChecker(), SigVersion::BASE);</span>
+<span class="lineNum">     328 </span>                :<span class="lineCov">       3425 :     }</span>
+<span class="lineNum">     329 </span>                :            : };
+<span class="lineNum">     330 </span>                :            : }
+<span class="lineNum">     331 </span>                :            : 
+<span class="lineNum">     332 </span>                :            : // Extracts signatures and scripts from incomplete scriptSigs. Please do not extend this, use PSBT instead
+<span class="lineNum">     333 </span>                :<span class="lineCov">       3425 : SignatureData DataFromTransaction(const CMutableTransaction&amp; tx, unsigned int nIn, const CTxOut&amp; txout)</span>
+<span class="lineNum">     334 </span>                :            : {
+<span class="lineNum">     335 </span>                :<span class="lineCov">       3425 :     SignatureData data;</span>
+<span class="lineNum">     336 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 3425 times"> + </span>]:<span class="lineCov">       3425 :     assert(tx.vin.size() &gt; nIn);</span>
+<span class="lineNum">     337 </span>                :<span class="lineCov">      10275 :     data.scriptSig = tx.vin[nIn].scriptSig;</span>
+<span class="lineNum">     338 </span>                :<span class="lineCov">      10275 :     data.scriptWitness = tx.vin[nIn].scriptWitness;</span>
+<span class="lineNum">     339 </span>        [<span class="branchCov" title="Branch 1 was taken 3425 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       6850 :     Stacks stack(data);</span>
+<span class="lineNum">     340 </span>                :            : 
+<span class="lineNum">     341 </span>                :            :     // Get signatures
+<span class="lineNum">     342 </span>                :<span class="lineNoCov">          0 :     MutableTransactionSignatureChecker tx_checker(&amp;tx, nIn, txout.nValue);</span>
+<span class="lineNum">     343 </span>                :<span class="lineCov">       6850 :     SignatureExtractorChecker extractor_checker(data, tx_checker);</span>
+<span class="lineNum">     344 </span>[<span class="branchCov" title="Branch 1 was taken 3425 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 91 times"> + </span><span class="branchCov" title="Branch 4 was taken 3334 times"> + </span>]:<span class="lineCov">       3425 :     if (VerifyScript(data.scriptSig, txout.scriptPubKey, &amp;data.scriptWitness, STANDARD_SCRIPT_VERIFY_FLAGS, extractor_checker)) {</span>
+<span class="lineNum">     345 </span>                :<span class="lineCov">         91 :         data.complete = true;</span>
+<span class="lineNum">     346 </span>                :<span class="lineCov">         91 :         return data;</span>
+<span class="lineNum">     347 </span>                :            :     }
+<span class="lineNum">     348 </span>                :            : 
+<span class="lineNum">     349 </span>                :            :     // Get scripts
+<span class="lineNum">     350 </span>                :<span class="lineCov">       3334 :     std::vector&lt;std::vector&lt;unsigned char&gt;&gt; solutions;</span>
+<span class="lineNum">     351 </span>        [<span class="branchCov" title="Branch 1 was taken 3334 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3334 :     txnouttype script_type = Solver(txout.scriptPubKey, solutions);</span>
+<span class="lineNum">     352 </span>                :<span class="lineCov">       3334 :     SigVersion sigversion = SigVersion::BASE;</span>
+<span class="lineNum">     353 </span>                :<span class="lineNoCov">          0 :     CScript next_script = txout.scriptPubKey;</span>
+<span class="lineNum">     354 </span>                :            : 
+<span class="lineNum">     355 </span>[<span class="branchCov" title="Branch 0 was taken 1852 times"> + </span><span class="branchCov" title="Branch 1 was taken 1482 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 17 times"> + </span><span class="branchCov" title="Branch 3 was taken 1835 times"> + </span>]:<span class="lineCov">       3334 :     if (script_type == TX_SCRIPTHASH &amp;&amp; !stack.script.empty() &amp;&amp; !stack.script.back().empty()) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 17 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
+<span class="lineNum">     356 </span>                :            :         // Get the redeemScript
+<span class="lineNum">     357 </span>                :<span class="lineCov">         17 :         CScript redeem_script(stack.script.back().begin(), stack.script.back().end());</span>
+<span class="lineNum">     358 </span>                :<span class="lineCov">         34 :         data.redeem_script = redeem_script;</span>
+<span class="lineNum">     359 </span>                :<span class="lineCov">         34 :         next_script = std::move(redeem_script);</span>
+<span class="lineNum">     360 </span>                :            : 
+<span class="lineNum">     361 </span>                :            :         // Get redeemScript type
+<span class="lineNum">     362 </span>        [<span class="branchCov" title="Branch 1 was taken 17 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         17 :         script_type = Solver(next_script, solutions);</span>
+<span class="lineNum">     363 </span>                :<span class="lineCov">         17 :         stack.script.pop_back();</span>
+<span class="lineNum">     364 </span>                :            :     }
+<span class="lineNum">     365 </span>[<span class="branchCov" title="Branch 0 was taken 37 times"> + </span><span class="branchCov" title="Branch 1 was taken 3297 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 12 times"> + </span><span class="branchCov" title="Branch 3 was taken 25 times"> + </span>]:<span class="lineCov">       3334 :     if (script_type == TX_WITNESS_V0_SCRIPTHASH &amp;&amp; !stack.witness.empty() &amp;&amp; !stack.witness.back().empty()) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
+<span class="lineNum">     366 </span>                :            :         // Get the witnessScript
+<span class="lineNum">     367 </span>                :<span class="lineCov">         12 :         CScript witness_script(stack.witness.back().begin(), stack.witness.back().end());</span>
+<span class="lineNum">     368 </span>                :<span class="lineCov">         24 :         data.witness_script = witness_script;</span>
+<span class="lineNum">     369 </span>                :<span class="lineCov">         24 :         next_script = std::move(witness_script);</span>
+<span class="lineNum">     370 </span>                :            : 
+<span class="lineNum">     371 </span>                :            :         // Get witnessScript type
+<span class="lineNum">     372 </span>        [<span class="branchCov" title="Branch 1 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         12 :         script_type = Solver(next_script, solutions);</span>
+<span class="lineNum">     373 </span>                :<span class="lineCov">         12 :         stack.witness.pop_back();</span>
+<span class="lineNum">     374 </span>                :<span class="lineCov">         24 :         stack.script = std::move(stack.witness);</span>
+<span class="lineNum">     375 </span>                :<span class="lineCov">         12 :         stack.witness.clear();</span>
+<span class="lineNum">     376 </span>                :<span class="lineCov">         12 :         sigversion = SigVersion::WITNESS_V0;</span>
+<span class="lineNum">     377 </span>                :            :     }
+<span class="lineNum">     378 </span>[<span class="branchCov" title="Branch 0 was taken 34 times"> + </span><span class="branchCov" title="Branch 1 was taken 3300 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 22 times"> + </span><span class="branchCov" title="Branch 3 was taken 12 times"> + </span>]:<span class="lineCov">       3334 :     if (script_type == TX_MULTISIG &amp;&amp; !stack.script.empty()) {</span>
+<span class="lineNum">     379 </span>                :            :         // Build a map of pubkey -&gt; signature by matching sigs to pubkeys:
+<span class="lineNum">     380 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 22 times"> + </span>]:<span class="lineCov">         22 :         assert(solutions.size() &gt; 1);</span>
+<span class="lineNum">     381 </span>                :<span class="lineCov">         22 :         unsigned int num_pubkeys = solutions.size()-2;</span>
+<span class="lineNum">     382 </span>                :<span class="lineCov">         22 :         unsigned int last_success_key = 0;</span>
+<span class="lineNum">     383 </span>        [<span class="branchCov" title="Branch 0 was taken 72 times"> + </span><span class="branchCov" title="Branch 1 was taken 22 times"> + </span>]:<span class="lineCov">         94 :         for (const valtype&amp; sig : stack.script) {</span>
+<span class="lineNum">     384 </span>        [<span class="branchCov" title="Branch 0 was taken 136 times"> + </span><span class="branchCov" title="Branch 1 was taken 44 times"> + </span>]:<span class="lineCov">        180 :             for (unsigned int i = last_success_key; i &lt; num_pubkeys; ++i) {</span>
+<span class="lineNum">     385 </span>                :<span class="lineCov">        272 :                 const valtype&amp; pubkey = solutions[i+1];</span>
+<span class="lineNum">     386 </span>                :            :                 // We either have a signature for this pubkey, or we have found a signature and it is valid
+<span class="lineNum">     387 </span>[<span class="branchCov" title="Branch 2 was taken 136 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 136 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        272 :                 if (data.signatures.count(CPubKey(pubkey).GetID()) || extractor_checker.CheckSig(sig, pubkey, next_script, sigversion)) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 108 times"> + </span><span class="branchCov" title="Branch 8 was taken 28 times"> + </span>]
+<span class="lineNum">     388 </span>                :<span class="lineCov">         28 :                     last_success_key = i + 1;</span>
+<span class="lineNum">     389 </span>                :<span class="lineCov">         28 :                     break;</span>
+<span class="lineNum">     390 </span>                :            :                 }
+<span class="lineNum">     391 </span>                :            :             }
+<span class="lineNum">     392 </span>                :            :         }
+<span class="lineNum">     393 </span>                :            :     }
+<span class="lineNum">     394 </span>                :            : 
+<span class="lineNum">     395 </span>                :            :     return data;
+<a name="396"><span class="lineNum">     396 </span>                :            : }</a>
+<span class="lineNum">     397 </span>                :            : 
+<span class="lineNum">     398 </span>                :<span class="lineCov">      62553 : void UpdateInput(CTxIn&amp; input, const SignatureData&amp; data)</span>
+<span class="lineNum">     399 </span>                :            : {
+<span class="lineNum">     400 </span>                :<span class="lineCov">     125106 :     input.scriptSig = data.scriptSig;</span>
+<span class="lineNum">     401 </span>                :<span class="lineCov">     125106 :     input.scriptWitness = data.scriptWitness;</span>
+<span class="lineNum">     402 </span>                :<span class="lineCov">      62553 : }</span>
+<span class="lineNum">     403 </span>                :            : 
+<span class="lineNum">     404 </span>                :<span class="lineCov">         40 : void SignatureData::MergeSignatureData(SignatureData sigdata)</span>
+<span class="lineNum">     405 </span>                :            : {
+<span class="lineNum">     406 </span>        [<span class="branchCov" title="Branch 0 was taken 35 times"> + </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>]:<span class="lineCov">         40 :     if (complete) return;</span>
+<span class="lineNum">     407 </span>        [<span class="branchCov" title="Branch 0 was taken 8 times"> + </span><span class="branchCov" title="Branch 1 was taken 27 times"> + </span>]:<span class="lineCov">         35 :     if (sigdata.complete) {</span>
+<span class="lineNum">     408 </span>                :<span class="lineCov">          8 :         *this = std::move(sigdata);</span>
+<span class="lineNum">     409 </span>                :<span class="lineCov">          8 :         return;</span>
+<span class="lineNum">     410 </span>                :            :     }
+<span class="lineNum">     411 </span>[<span class="branchCov" title="Branch 0 was taken 24 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 23 times"> + </span>]:<span class="lineCov">         51 :     if (redeem_script.empty() &amp;&amp; !sigdata.redeem_script.empty()) {</span>
+<span class="lineNum">     412 </span>                :<span class="lineCov">          1 :         redeem_script = sigdata.redeem_script;</span>
+<span class="lineNum">     413 </span>                :            :     }
+<span class="lineNum">     414 </span>[<span class="branchCov" title="Branch 0 was taken 25 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 25 times"> + </span>]:<span class="lineCov">         52 :     if (witness_script.empty() &amp;&amp; !sigdata.witness_script.empty()) {</span>
+<span class="lineNum">     415 </span>                :<span class="lineNoCov">          0 :         witness_script = sigdata.witness_script;</span>
+<span class="lineNum">     416 </span>                :            :     }
+<span class="lineNum">     417 </span>                :<span class="lineCov">        135 :     signatures.insert(std::make_move_iterator(sigdata.signatures.begin()), std::make_move_iterator(sigdata.signatures.end()));</span>
+<span class="lineNum">     418 </span>                :            : }
+<span class="lineNum">     419 </span>                :            : 
+<span class="lineNum">     420 </span>                :<span class="lineCov">       4751 : bool SignSignature(const SigningProvider &amp;provider, const CScript&amp; fromPubKey, CMutableTransaction&amp; txTo, unsigned int nIn, const CAmount&amp; amount, int nHashType)</span>
+<span class="lineNum">     421 </span>                :            : {
+<span class="lineNum">     422 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 4751 times"> + </span>]:<span class="lineCov">       4751 :     assert(nIn &lt; txTo.vin.size());</span>
+<span class="lineNum">     423 </span>                :            : 
+<span class="lineNum">     424 </span>                :<span class="lineCov">       4751 :     MutableTransactionSignatureCreator creator(&amp;txTo, nIn, amount, nHashType);</span>
+<span class="lineNum">     425 </span>                :            : 
+<span class="lineNum">     426 </span>                :<span class="lineCov">       4751 :     SignatureData sigdata;</span>
+<span class="lineNum">     427 </span>        [<span class="branchCov" title="Branch 1 was taken 4751 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       4751 :     bool ret = ProduceSignature(provider, creator, fromPubKey, sigdata);</span>
+<span class="lineNum">     428 </span>        [<span class="branchCov" title="Branch 1 was taken 4751 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       4751 :     UpdateInput(txTo.vin.at(nIn), sigdata);</span>
+<span class="lineNum">     429 </span>                :<span class="lineCov">       4751 :     return ret;</span>
+<a name="430"><span class="lineNum">     430 </span>                :            : }</a>
+<span class="lineNum">     431 </span>                :            : 
+<span class="lineNum">     432 </span>                :<span class="lineCov">        107 : bool SignSignature(const SigningProvider &amp;provider, const CTransaction&amp; txFrom, CMutableTransaction&amp; txTo, unsigned int nIn, int nHashType)</span>
+<span class="lineNum">     433 </span>                :            : {
+<span class="lineNum">     434 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 107 times"> + </span>]:<span class="lineCov">        107 :     assert(nIn &lt; txTo.vin.size());</span>
+<span class="lineNum">     435 </span>                :<span class="lineCov">        214 :     CTxIn&amp; txin = txTo.vin[nIn];</span>
+<span class="lineNum">     436 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 107 times"> + </span>]:<span class="lineCov">        107 :     assert(txin.prevout.n &lt; txFrom.vout.size());</span>
+<span class="lineNum">     437 </span>                :<span class="lineCov">        214 :     const CTxOut&amp; txout = txFrom.vout[txin.prevout.n];</span>
+<span class="lineNum">     438 </span>                :            : 
+<span class="lineNum">     439 </span>                :<span class="lineCov">        107 :     return SignSignature(provider, txout.scriptPubKey, txTo, nIn, txout.nValue, nHashType);</span>
+<span class="lineNum">     440 </span>                :            : }
+<span class="lineNum">     441 </span>                :            : 
+<a name="442"><span class="lineNum">     442 </span>                :            : namespace {</a>
+<span class="lineNum">     443 </span>                :            : /** Dummy signature checker which accepts all signatures. */
+<span class="lineNum">     444 </span>                :<span class="lineCov">        546 : class DummySignatureChecker final : public BaseSignatureChecker</span>
+<span class="lineNum">     445 </span>                :            : {
+<a name="446"><span class="lineNum">     446 </span>                :            : public:</a>
+<span class="lineNum">     447 </span>                :<span class="lineCov">        546 :     DummySignatureChecker() {}</span>
+<span class="lineNum">     448 </span>                :<span class="lineCov">     160949 :     bool CheckSig(const std::vector&lt;unsigned char&gt;&amp; scriptSig, const std::vector&lt;unsigned char&gt;&amp; vchPubKey, const CScript&amp; scriptCode, SigVersion sigversion) const override { return true; }</span>
+<span class="lineNum">     449 </span>                :            : };
+<a name="450"><span class="lineNum">     450 </span>                :<span class="lineCov">        546 : const DummySignatureChecker DUMMY_CHECKER;</span></a>
+<span class="lineNum">     451 </span>                :            : 
+<span class="lineNum">     452 </span>                :<span class="lineCov">       1092 : class DummySignatureCreator final : public BaseSignatureCreator {</span>
+<span class="lineNum">     453 </span>                :            : private:
+<span class="lineNum">     454 </span>                :            :     char m_r_len = 32;
+<span class="lineNum">     455 </span>                :            :     char m_s_len = 32;
+<a name="456"><span class="lineNum">     456 </span>                :            : public:</a>
+<a name="457"><span class="lineNum">     457 </span>                :<span class="lineCov">       1092 :     DummySignatureCreator(char r_len, char s_len) : m_r_len(r_len), m_s_len(s_len) {}</span></a>
+<span class="lineNum">     458 </span>                :<span class="lineCov">     105109 :     const BaseSignatureChecker&amp; Checker() const override { return DUMMY_CHECKER; }</span>
+<span class="lineNum">     459 </span>                :<span class="lineCov">     106427 :     bool CreateSig(const SigningProvider&amp; provider, std::vector&lt;unsigned char&gt;&amp; vchSig, const CKeyID&amp; keyid, const CScript&amp; scriptCode, SigVersion sigversion) const override</span>
+<span class="lineNum">     460 </span>                :            :     {
+<span class="lineNum">     461 </span>                :            :         // Create a dummy signature that is a valid DER-encoding
+<span class="lineNum">     462 </span>                :<span class="lineCov">     212854 :         vchSig.assign(m_r_len + m_s_len + 7, '\000');</span>
+<span class="lineNum">     463 </span>                :<span class="lineCov">     106427 :         vchSig[0] = 0x30;</span>
+<span class="lineNum">     464 </span>                :<span class="lineCov">     212854 :         vchSig[1] = m_r_len + m_s_len + 4;</span>
+<span class="lineNum">     465 </span>                :<span class="lineCov">     106427 :         vchSig[2] = 0x02;</span>
+<span class="lineNum">     466 </span>                :<span class="lineCov">     212854 :         vchSig[3] = m_r_len;</span>
+<span class="lineNum">     467 </span>                :<span class="lineCov">     106427 :         vchSig[4] = 0x01;</span>
+<span class="lineNum">     468 </span>                :<span class="lineCov">     212854 :         vchSig[4 + m_r_len] = 0x02;</span>
+<span class="lineNum">     469 </span>                :<span class="lineCov">     212854 :         vchSig[5 + m_r_len] = m_s_len;</span>
+<span class="lineNum">     470 </span>                :<span class="lineCov">     212854 :         vchSig[6 + m_r_len] = 0x01;</span>
+<span class="lineNum">     471 </span>                :<span class="lineCov">     212854 :         vchSig[6 + m_r_len + m_s_len] = SIGHASH_ALL;</span>
+<span class="lineNum">     472 </span>                :<span class="lineCov">     106427 :         return true;</span>
+<span class="lineNum">     473 </span>                :            :     }
+<span class="lineNum">     474 </span>                :            : };
+<span class="lineNum">     475 </span>                :            : 
+<span class="lineNum">     476 </span>                :            : template&lt;typename M, typename K, typename V&gt;
+<span class="lineNum">     477 </span>                :<span class="lineCov">     157082 : bool LookupHelper(const M&amp; map, const K&amp; key, V&amp; value)</span>
+<span class="lineNum">     478 </span>                :            : {
+<span class="lineNum">     479 </span>                :<span class="lineCov">     157082 :     auto it = map.find(key);</span>
+<span class="lineNum">     480 </span>  [<span class="branchCov" title="Branch 0 was taken 10856 times"> + </span><span class="branchCov" title="Branch 1 was taken 48 times"> + </span><span class="branchCov" title="Branch 2 was taken 73253 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">     157082 :     if (it != map.end()) {</span>
+<span class="lineNum">         </span>   <span class="branchCov" title="Branch 4 was taken 54513 times"> + </span><span class="branchCov" title="Branch 5 was taken 3 times"> + </span><span class="branchCov" title="Branch 6 was taken 18407 times"> + </span><span class="branchCov" title="Branch 7 was taken 2 times"> + </span>]
+<span class="lineNum">     481 </span>                :<span class="lineCov">      18407 :         value = it-&gt;second;</span>
+<span class="lineNum">     482 </span>                :<span class="lineCov">      72920 :         return true;</span>
+<span class="lineNum">     483 </span>                :            :     }
+<span class="lineNum">     484 </span>                :            :     return false;
+<span class="lineNum">     485 </span>                :            : }
+<span class="lineNum">     486 </span>                :            : 
+<span class="lineNum">     487 </span>                :            : }
+<span class="lineNum">     488 </span>                :            : 
+<span class="lineNum">     489 </span>                :<span class="lineCov">        546 : const BaseSignatureCreator&amp; DUMMY_SIGNATURE_CREATOR = DummySignatureCreator(32, 32);</span>
+<span class="lineNum">     490 </span>                :<span class="lineCov">        546 : const BaseSignatureCreator&amp; DUMMY_MAXIMUM_SIGNATURE_CREATOR = DummySignatureCreator(33, 32);</span>
+<span class="lineNum">     491 </span>                :<span class="lineCov">        546 : const SigningProvider&amp; DUMMY_SIGNING_PROVIDER = SigningProvider();</span>
+<span class="lineNum">     492 </span>                :            : 
+<span class="lineNum">     493 </span>                :<span class="lineCov">      53205 : bool IsSolvable(const SigningProvider&amp; provider, const CScript&amp; script)</span>
+<span class="lineNum">     494 </span>                :            : {
+<span class="lineNum">     495 </span>                :            :     // This check is to make sure that the script we created can actually be solved for and signed by us
+<span class="lineNum">     496 </span>                :            :     // if we were to have the private keys. This is just to make sure that the script is valid and that,
+<span class="lineNum">     497 </span>                :            :     // if found in a transaction, we would still accept and relay that transaction. In particular,
+<span class="lineNum">     498 </span>                :            :     // it will reject witness outputs that require signing with an uncompressed public key.
+<span class="lineNum">     499 </span>                :<span class="lineCov">      53205 :     SignatureData sigs;</span>
+<span class="lineNum">     500 </span>                :            :     // Make sure that STANDARD_SCRIPT_VERIFY_FLAGS includes SCRIPT_VERIFY_WITNESS_PUBKEYTYPE, the most
+<span class="lineNum">     501 </span>                :            :     // important property this function is designed to test for.
+<span class="lineNum">     502 </span>                :            :     static_assert(STANDARD_SCRIPT_VERIFY_FLAGS &amp; SCRIPT_VERIFY_WITNESS_PUBKEYTYPE, &quot;IsSolvable requires standard script flags to include WITNESS_PUBKEYTYPE&quot;);
+<span class="lineNum">     503 </span>[<span class="branchCov" title="Branch 1 was taken 53205 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 52908 times"> + </span><span class="branchCov" title="Branch 4 was taken 297 times"> + </span>]:<span class="lineCov">      53205 :     if (ProduceSignature(provider, DUMMY_SIGNATURE_CREATOR, script, sigs)) {</span>
+<span class="lineNum">     504 </span>                :            :         // VerifyScript check is just defensive, and should never fail.
+<span class="lineNum">     505 </span>        [<span class="branchCov" title="Branch 1 was taken 52908 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      52908 :         bool verified = VerifyScript(sigs.scriptSig, script, &amp;sigs.scriptWitness, STANDARD_SCRIPT_VERIFY_FLAGS, DUMMY_CHECKER);</span>
+<span class="lineNum">     506 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 52908 times"> + </span>]:<span class="lineCov">      52908 :         assert(verified);</span>
+<span class="lineNum">     507 </span>                :            :         return true;
+<span class="lineNum">     508 </span>                :            :     }
+<span class="lineNum">     509 </span>                :            :     return false;
+<span class="lineNum">     510 </span>                :            : }
+<span class="lineNum">     511 </span>                :            : 
+<span class="lineNum">     512 </span>                :<span class="lineCov">          9 : PartiallySignedTransaction::PartiallySignedTransaction(const CTransaction&amp; tx) : tx(tx)</span>
+<span class="lineNum">     513 </span>                :            : {
+<span class="lineNum">     514 </span>        [<span class="branchCov" title="Branch 1 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          9 :     inputs.resize(tx.vin.size());</span>
+<span class="lineNum">     515 </span>        [<span class="branchCov" title="Branch 1 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          9 :     outputs.resize(tx.vout.size());</span>
+<span class="lineNum">     516 </span>                :<span class="lineCov">          9 : }</span>
+<span class="lineNum">     517 </span>                :            : 
+<span class="lineNum">     518 </span>                :<span class="lineNoCov">          0 : bool PartiallySignedTransaction::IsNull() const</span>
+<span class="lineNum">     519 </span>                :            : {
+<span class="lineNum">     520 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return !tx &amp;&amp; inputs.empty() &amp;&amp; outputs.empty() &amp;&amp; unknown.empty();</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">     521 </span>                :            : }
+<span class="lineNum">     522 </span>                :            : 
+<span class="lineNum">     523 </span>                :<span class="lineCov">          3 : void PartiallySignedTransaction::Merge(const PartiallySignedTransaction&amp; psbt)</span>
+<span class="lineNum">     524 </span>                :            : {
+<span class="lineNum">     525 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>]:<span class="lineCov">          8 :     for (unsigned int i = 0; i &lt; inputs.size(); ++i) {</span>
+<span class="lineNum">     526 </span>                :<span class="lineCov">          5 :         inputs[i].Merge(psbt.inputs[i]);</span>
+<span class="lineNum">     527 </span>                :            :     }
+<span class="lineNum">     528 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">          7 :     for (unsigned int i = 0; i &lt; outputs.size(); ++i) {</span>
+<span class="lineNum">     529 </span>                :<span class="lineCov">          4 :         outputs[i].Merge(psbt.outputs[i]);</span>
+<span class="lineNum">     530 </span>                :            :     }
+<span class="lineNum">     531 </span>                :<span class="lineCov">         12 :     unknown.insert(psbt.unknown.begin(), psbt.unknown.end());</span>
+<a name="532"><span class="lineNum">     532 </span>                :<span class="lineCov">          3 : }</span></a>
+<span class="lineNum">     533 </span>                :            : 
+<span class="lineNum">     534 </span>                :<span class="lineCov">        180 : bool PartiallySignedTransaction::IsSane() const</span>
+<span class="lineNum">     535 </span>                :            : {
+<span class="lineNum">     536 </span>        [<span class="branchCov" title="Branch 0 was taken 219 times"> + </span><span class="branchCov" title="Branch 1 was taken 180 times"> + </span>]:<span class="lineCov">        618 :     for (PSBTInput input : inputs) {</span>
+<span class="lineNum">     537 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 219 times"> + </span>]:<span class="lineCov">        219 :         if (!input.IsSane()) return false;</span>
+<span class="lineNum">     538 </span>                :            :     }
+<span class="lineNum">     539 </span>                :<span class="lineCov">        180 :     return true;</span>
+<span class="lineNum">     540 </span>                :            : }
+<span class="lineNum">     541 </span>                :            : 
+<span class="lineNum">     542 </span>                :<span class="lineNoCov">          0 : bool PSBTInput::IsNull() const</span>
+<span class="lineNum">     543 </span>                :            : {
+<span class="lineNum">     544 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return !non_witness_utxo &amp;&amp; witness_utxo.IsNull() &amp;&amp; partial_sigs.empty() &amp;&amp; unknown.empty() &amp;&amp; hd_keypaths.empty() &amp;&amp; redeem_script.empty() &amp;&amp; witness_script.empty();</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
+<span class="lineNum">     545 </span>                :            : }
+<span class="lineNum">     546 </span>                :            : 
+<span class="lineNum">     547 </span>                :<span class="lineCov">        120 : void PSBTInput::FillSignatureData(SignatureData&amp; sigdata) const</span>
+<span class="lineNum">     548 </span>                :            : {
+<span class="lineNum">     549 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 120 times"> + </span>]:<span class="lineCov">        120 :     if (!final_script_sig.empty()) {</span>
+<span class="lineNum">     550 </span>                :<span class="lineNoCov">          0 :         sigdata.scriptSig = final_script_sig;</span>
+<span class="lineNum">     551 </span>                :<span class="lineNoCov">          0 :         sigdata.complete = true;</span>
+<span class="lineNum">     552 </span>                :            :     }
+<span class="lineNum">     553 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 120 times"> + </span>]:<span class="lineCov">        120 :     if (!final_script_witness.IsNull()) {</span>
+<span class="lineNum">     554 </span>                :<span class="lineNoCov">          0 :         sigdata.scriptWitness = final_script_witness;</span>
+<span class="lineNum">     555 </span>                :<span class="lineNoCov">          0 :         sigdata.complete = true;</span>
+<span class="lineNum">     556 </span>                :            :     }
+<span class="lineNum">     557 </span>        [<span class="branchCov" title="Branch 0 was taken 120 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        120 :     if (sigdata.complete) {</span>
+<span class="lineNum">     558 </span>                :            :         return;
+<span class="lineNum">     559 </span>                :            :     }
+<span class="lineNum">     560 </span>                :            : 
+<span class="lineNum">     561 </span>                :<span class="lineCov">        480 :     sigdata.signatures.insert(partial_sigs.begin(), partial_sigs.end());</span>
+<span class="lineNum">     562 </span>        [<span class="branchCov" title="Branch 0 was taken 19 times"> + </span><span class="branchCov" title="Branch 1 was taken 101 times"> + </span>]:<span class="lineCov">        120 :     if (!redeem_script.empty()) {</span>
+<span class="lineNum">     563 </span>                :<span class="lineCov">         19 :         sigdata.redeem_script = redeem_script;</span>
+<span class="lineNum">     564 </span>                :            :     }
+<span class="lineNum">     565 </span>        [<span class="branchCov" title="Branch 0 was taken 10 times"> + </span><span class="branchCov" title="Branch 1 was taken 110 times"> + </span>]:<span class="lineCov">        120 :     if (!witness_script.empty()) {</span>
+<span class="lineNum">     566 </span>                :<span class="lineCov">         10 :         sigdata.witness_script = witness_script;</span>
+<span class="lineNum">     567 </span>                :            :     }
+<span class="lineNum">     568 </span>        [<span class="branchCov" title="Branch 0 was taken 24 times"> + </span><span class="branchCov" title="Branch 1 was taken 120 times"> + </span>]:<span class="lineCov">        144 :     for (const auto&amp; key_pair : hd_keypaths) {</span>
+<span class="lineNum">     569 </span>                :<span class="lineCov">         24 :         sigdata.misc_pubkeys.emplace(key_pair.first.GetID(), key_pair);</span>
+<span class="lineNum">     570 </span>                :            :     }
+<span class="lineNum">     571 </span>                :            : }
+<span class="lineNum">     572 </span>                :            : 
+<span class="lineNum">     573 </span>                :<span class="lineCov">        114 : void PSBTInput::FromSignatureData(const SignatureData&amp; sigdata)</span>
+<span class="lineNum">     574 </span>                :            : {
+<span class="lineNum">     575 </span>        [<span class="branchCov" title="Branch 0 was taken 14 times"> + </span><span class="branchCov" title="Branch 1 was taken 100 times"> + </span>]:<span class="lineCov">        114 :     if (sigdata.complete) {</span>
+<span class="lineNum">     576 </span>                :<span class="lineCov">         28 :         partial_sigs.clear();</span>
+<span class="lineNum">     577 </span>                :<span class="lineCov">         28 :         hd_keypaths.clear();</span>
+<span class="lineNum">     578 </span>                :<span class="lineCov">         14 :         redeem_script.clear();</span>
+<span class="lineNum">     579 </span>                :<span class="lineCov">         14 :         witness_script.clear();</span>
+<span class="lineNum">     580 </span>                :            : 
+<span class="lineNum">     581 </span>        [<span class="branchCov" title="Branch 0 was taken 12 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">         14 :         if (!sigdata.scriptSig.empty()) {</span>
+<span class="lineNum">     582 </span>                :<span class="lineCov">         12 :             final_script_sig = sigdata.scriptSig;</span>
+<span class="lineNum">     583 </span>                :            :         }
+<span class="lineNum">     584 </span>        [<span class="branchCov" title="Branch 0 was taken 9 times"> + </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>]:<span class="lineCov">         14 :         if (!sigdata.scriptWitness.IsNull()) {</span>
+<span class="lineNum">     585 </span>                :<span class="lineCov">          9 :             final_script_witness = sigdata.scriptWitness;</span>
+<span class="lineNum">     586 </span>                :            :         }
+<span class="lineNum">     587 </span>                :            :         return;
+<span class="lineNum">     588 </span>                :            :     }
+<span class="lineNum">     589 </span>                :            : 
+<span class="lineNum">     590 </span>                :<span class="lineCov">        400 :     partial_sigs.insert(sigdata.signatures.begin(), sigdata.signatures.end());</span>
+<span class="lineNum">     591 </span>[<span class="branchCov" title="Branch 0 was taken 89 times"> + </span><span class="branchCov" title="Branch 1 was taken 11 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 52 times"> + </span><span class="branchCov" title="Branch 3 was taken 37 times"> + </span>]:<span class="lineCov">        189 :     if (redeem_script.empty() &amp;&amp; !sigdata.redeem_script.empty()) {</span>
+<span class="lineNum">     592 </span>                :<span class="lineCov">         52 :         redeem_script = sigdata.redeem_script;</span>
+<span class="lineNum">     593 </span>                :            :     }
+<span class="lineNum">     594 </span>[<span class="branchCov" title="Branch 0 was taken 95 times"> + </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 27 times"> + </span><span class="branchCov" title="Branch 3 was taken 68 times"> + </span>]:<span class="lineCov">        195 :     if (witness_script.empty() &amp;&amp; !sigdata.witness_script.empty()) {</span>
+<span class="lineNum">     595 </span>                :<span class="lineCov">         27 :         witness_script = sigdata.witness_script;</span>
+<span class="lineNum">     596 </span>                :            :     }
+<span class="lineNum">     597 </span>        [<span class="branchCov" title="Branch 0 was taken 121 times"> + </span><span class="branchCov" title="Branch 1 was taken 100 times"> + </span>]:<span class="lineCov">        221 :     for (const auto&amp; entry : sigdata.misc_pubkeys) {</span>
+<span class="lineNum">     598 </span>                :<span class="lineCov">        242 :         hd_keypaths.emplace(entry.second);</span>
+<span class="lineNum">     599 </span>                :            :     }
+<span class="lineNum">     600 </span>                :            : }
+<span class="lineNum">     601 </span>                :            : 
+<span class="lineNum">     602 </span>                :<span class="lineCov">          5 : void PSBTInput::Merge(const PSBTInput&amp; input)</span>
+<span class="lineNum">     603 </span>                :            : {
+<span class="lineNum">     604 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          5 :     if (!non_witness_utxo &amp;&amp; input.non_witness_utxo) non_witness_utxo = input.non_witness_utxo;</span>
+<span class="lineNum">     605 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          5 :     if (witness_utxo.IsNull() &amp;&amp; !input.witness_utxo.IsNull()) {</span>
+<span class="lineNum">     606 </span>                :<span class="lineCov">          2 :         witness_utxo = input.witness_utxo;</span>
+<span class="lineNum">     607 </span>                :<span class="lineCov">          1 :         non_witness_utxo = nullptr; // Clear out any non-witness utxo when we set a witness one.</span>
+<span class="lineNum">     608 </span>                :            :     }
+<span class="lineNum">     609 </span>                :            : 
+<span class="lineNum">     610 </span>                :<span class="lineCov">         20 :     partial_sigs.insert(input.partial_sigs.begin(), input.partial_sigs.end());</span>
+<span class="lineNum">     611 </span>                :<span class="lineCov">         20 :     hd_keypaths.insert(input.hd_keypaths.begin(), input.hd_keypaths.end());</span>
+<span class="lineNum">     612 </span>                :<span class="lineCov">         20 :     unknown.insert(input.unknown.begin(), input.unknown.end());</span>
+<span class="lineNum">     613 </span>                :            : 
+<span class="lineNum">     614 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">          8 :     if (redeem_script.empty() &amp;&amp; !input.redeem_script.empty()) redeem_script = input.redeem_script;</span>
+<span class="lineNum">     615 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          9 :     if (witness_script.empty() &amp;&amp; !input.witness_script.empty()) witness_script = input.witness_script;</span>
+<span class="lineNum">     616 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">          9 :     if (final_script_sig.empty() &amp;&amp; !input.final_script_sig.empty()) final_script_sig = input.final_script_sig;</span>
+<span class="lineNum">     617 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">          5 :     if (final_script_witness.IsNull() &amp;&amp; !input.final_script_witness.IsNull()) final_script_witness = input.final_script_witness;</span>
+<a name="618"><span class="lineNum">     618 </span>                :<span class="lineCov">          5 : }</span></a>
+<span class="lineNum">     619 </span>                :            : 
+<span class="lineNum">     620 </span>                :<span class="lineCov">        457 : bool PSBTInput::IsSane() const</span>
+<span class="lineNum">     621 </span>                :            : {
+<span class="lineNum">     622 </span>                :            :     // Cannot have both witness and non-witness utxos
+<span class="lineNum">     623 </span>[<span class="branchCov" title="Branch 0 was taken 121 times"> + </span><span class="branchCov" title="Branch 1 was taken 336 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 121 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        457 :     if (!witness_utxo.IsNull() &amp;&amp; non_witness_utxo) return false;</span>
+<span class="lineNum">     624 </span>                :            : 
+<span class="lineNum">     625 </span>                :            :     // If we have a witness_script or a scriptWitness, we must also have a witness utxo
+<span class="lineNum">     626 </span>[<span class="branchCov" title="Branch 0 was taken 57 times"> + </span><span class="branchCov" title="Branch 1 was taken 400 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 57 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        457 :     if (!witness_script.empty() &amp;&amp; witness_utxo.IsNull()) return false;</span>
+<span class="lineNum">     627 </span>[<span class="branchCov" title="Branch 0 was taken 17 times"> + </span><span class="branchCov" title="Branch 1 was taken 440 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 17 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        457 :     if (!final_script_witness.IsNull() &amp;&amp; witness_utxo.IsNull()) return false;</span>
+<span class="lineNum">     628 </span>                :            : 
+<span class="lineNum">     629 </span>                :            :     return true;
+<span class="lineNum">     630 </span>                :            : }
+<span class="lineNum">     631 </span>                :            : 
+<span class="lineNum">     632 </span>                :<span class="lineCov">        115 : void PSBTOutput::FillSignatureData(SignatureData&amp; sigdata) const</span>
+<span class="lineNum">     633 </span>                :            : {
+<span class="lineNum">     634 </span>        [<span class="branchCov" title="Branch 0 was taken 11 times"> + </span><span class="branchCov" title="Branch 1 was taken 104 times"> + </span>]:<span class="lineCov">        115 :     if (!redeem_script.empty()) {</span>
+<span class="lineNum">     635 </span>                :<span class="lineCov">         11 :         sigdata.redeem_script = redeem_script;</span>
+<span class="lineNum">     636 </span>                :            :     }
+<span class="lineNum">     637 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 115 times"> + </span>]:<span class="lineCov">        115 :     if (!witness_script.empty()) {</span>
+<span class="lineNum">     638 </span>                :<span class="lineNoCov">          0 :         sigdata.witness_script = witness_script;</span>
+<span class="lineNum">     639 </span>                :            :     }
+<span class="lineNum">     640 </span>        [<span class="branchCov" title="Branch 0 was taken 12 times"> + </span><span class="branchCov" title="Branch 1 was taken 115 times"> + </span>]:<span class="lineCov">        127 :     for (const auto&amp; key_pair : hd_keypaths) {</span>
+<span class="lineNum">     641 </span>                :<span class="lineCov">         12 :         sigdata.misc_pubkeys.emplace(key_pair.first.GetID(), key_pair);</span>
+<span class="lineNum">     642 </span>                :            :     }
+<span class="lineNum">     643 </span>                :<span class="lineCov">        115 : }</span>
+<span class="lineNum">     644 </span>                :            : 
+<span class="lineNum">     645 </span>                :<span class="lineCov">        115 : void PSBTOutput::FromSignatureData(const SignatureData&amp; sigdata)</span>
+<span class="lineNum">     646 </span>                :            : {
+<span class="lineNum">     647 </span>[<span class="branchCov" title="Branch 0 was taken 104 times"> + </span><span class="branchCov" title="Branch 1 was taken 11 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 50 times"> + </span><span class="branchCov" title="Branch 3 was taken 54 times"> + </span>]:<span class="lineCov">        219 :     if (redeem_script.empty() &amp;&amp; !sigdata.redeem_script.empty()) {</span>
+<span class="lineNum">     648 </span>                :<span class="lineCov">         50 :         redeem_script = sigdata.redeem_script;</span>
+<span class="lineNum">     649 </span>                :            :     }
+<span class="lineNum">     650 </span>[<span class="branchCov" title="Branch 0 was taken 115 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 24 times"> + </span><span class="branchCov" title="Branch 3 was taken 91 times"> + </span>]:<span class="lineCov">        230 :     if (witness_script.empty() &amp;&amp; !sigdata.witness_script.empty()) {</span>
+<span class="lineNum">     651 </span>                :<span class="lineCov">         24 :         witness_script = sigdata.witness_script;</span>
+<span class="lineNum">     652 </span>                :            :     }
+<span class="lineNum">     653 </span>        [<span class="branchCov" title="Branch 0 was taken 112 times"> + </span><span class="branchCov" title="Branch 1 was taken 115 times"> + </span>]:<span class="lineCov">        227 :     for (const auto&amp; entry : sigdata.misc_pubkeys) {</span>
+<span class="lineNum">     654 </span>                :<span class="lineCov">        224 :         hd_keypaths.emplace(entry.second);</span>
+<span class="lineNum">     655 </span>                :            :     }
+<span class="lineNum">     656 </span>                :<span class="lineCov">        115 : }</span>
+<span class="lineNum">     657 </span>                :            : 
+<span class="lineNum">     658 </span>                :<span class="lineNoCov">          0 : bool PSBTOutput::IsNull() const</span>
+<span class="lineNum">     659 </span>                :            : {
+<span class="lineNum">     660 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return redeem_script.empty() &amp;&amp; witness_script.empty() &amp;&amp; hd_keypaths.empty() &amp;&amp; unknown.empty();</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">     661 </span>                :            : }
+<span class="lineNum">     662 </span>                :            : 
+<span class="lineNum">     663 </span>                :<span class="lineCov">          4 : void PSBTOutput::Merge(const PSBTOutput&amp; output)</span>
+<span class="lineNum">     664 </span>                :            : {
+<span class="lineNum">     665 </span>                :<span class="lineCov">         16 :     hd_keypaths.insert(output.hd_keypaths.begin(), output.hd_keypaths.end());</span>
+<span class="lineNum">     666 </span>                :<span class="lineCov">         16 :     unknown.insert(output.unknown.begin(), output.unknown.end());</span>
+<span class="lineNum">     667 </span>                :            : 
+<span class="lineNum">     668 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          8 :     if (redeem_script.empty() &amp;&amp; !output.redeem_script.empty()) redeem_script = output.redeem_script;</span>
+<span class="lineNum">     669 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          8 :     if (witness_script.empty() &amp;&amp; !output.witness_script.empty()) witness_script = output.witness_script;</span>
+<a name="670"><span class="lineNum">     670 </span>                :<span class="lineCov">          4 : }</span></a>
+<span class="lineNum">     671 </span>                :            : 
+<span class="lineNum">     672 </span>                :<span class="lineCov">        206 : bool HidingSigningProvider::GetCScript(const CScriptID&amp; scriptid, CScript&amp; script) const</span>
+<span class="lineNum">     673 </span>                :            : {
+<span class="lineNum">     674 </span>                :<span class="lineCov">        206 :     return m_provider-&gt;GetCScript(scriptid, script);</span>
+<a name="675"><span class="lineNum">     675 </span>                :            : }</a>
+<span class="lineNum">     676 </span>                :            : 
+<span class="lineNum">     677 </span>                :<span class="lineCov">        118 : bool HidingSigningProvider::GetPubKey(const CKeyID&amp; keyid, CPubKey&amp; pubkey) const</span>
+<span class="lineNum">     678 </span>                :            : {
+<span class="lineNum">     679 </span>                :<span class="lineCov">        118 :     return m_provider-&gt;GetPubKey(keyid, pubkey);</span>
+<a name="680"><span class="lineNum">     680 </span>                :            : }</a>
+<span class="lineNum">     681 </span>                :            : 
+<span class="lineNum">     682 </span>                :<span class="lineCov">        290 : bool HidingSigningProvider::GetKey(const CKeyID&amp; keyid, CKey&amp; key) const</span>
+<span class="lineNum">     683 </span>                :            : {
+<span class="lineNum">     684 </span>        [<span class="branchCov" title="Branch 0 was taken 36 times"> + </span><span class="branchCov" title="Branch 1 was taken 254 times"> + </span>]:<span class="lineCov">        290 :     if (m_hide_secret) return false;</span>
+<span class="lineNum">     685 </span>                :<span class="lineCov">         36 :     return m_provider-&gt;GetKey(keyid, key);</span>
+<a name="686"><span class="lineNum">     686 </span>                :            : }</a>
+<span class="lineNum">     687 </span>                :            : 
+<span class="lineNum">     688 </span>                :<span class="lineCov">        290 : bool HidingSigningProvider::GetKeyOrigin(const CKeyID&amp; keyid, KeyOriginInfo&amp; info) const</span>
+<span class="lineNum">     689 </span>                :            : {
+<span class="lineNum">     690 </span>        [<span class="branchCov" title="Branch 0 was taken 205 times"> + </span><span class="branchCov" title="Branch 1 was taken 85 times"> + </span>]:<span class="lineCov">        290 :     if (m_hide_origin) return false;</span>
+<span class="lineNum">     691 </span>                :<span class="lineCov">        205 :     return m_provider-&gt;GetKeyOrigin(keyid, info);</span>
+<a name="692"><span class="lineNum">     692 </span>                :            : }</a>
+<a name="693"><span class="lineNum">     693 </span>                :            : </a>
+<a name="694"><span class="lineNum">     694 </span>                :<span class="lineCov">      36818 : bool FlatSigningProvider::GetCScript(const CScriptID&amp; scriptid, CScript&amp; script) const { return LookupHelper(scripts, scriptid, script); }</span></a>
+<a name="695"><span class="lineNum">     695 </span>                :<span class="lineCov">     109032 : bool FlatSigningProvider::GetPubKey(const CKeyID&amp; keyid, CPubKey&amp; pubkey) const { return LookupHelper(pubkeys, keyid, pubkey); }</span></a>
+<span class="lineNum">     696 </span>                :<span class="lineCov">     146506 : bool FlatSigningProvider::GetKeyOrigin(const CKeyID&amp; keyid, KeyOriginInfo&amp; info) const { return LookupHelper(origins, keyid, info); }</span>
+<span class="lineNum">     697 </span>                :<span class="lineCov">      21808 : bool FlatSigningProvider::GetKey(const CKeyID&amp; keyid, CKey&amp; key) const { return LookupHelper(keys, keyid, key); }</span>
+<span class="lineNum">     698 </span>                :            : 
+<span class="lineNum">     699 </span>                :<span class="lineCov">      18402 : FlatSigningProvider Merge(const FlatSigningProvider&amp; a, const FlatSigningProvider&amp; b)</span>
+<span class="lineNum">     700 </span>                :            : {
+<span class="lineNum">     701 </span>                :<span class="lineCov">      18402 :     FlatSigningProvider ret;</span>
+<span class="lineNum">     702 </span>                :<span class="lineCov">      36804 :     ret.scripts = a.scripts;</span>
+<span class="lineNum">     703 </span>                :<span class="lineCov">      73608 :     ret.scripts.insert(b.scripts.begin(), b.scripts.end());</span>
+<span class="lineNum">     704 </span>                :<span class="lineCov">      36804 :     ret.pubkeys = a.pubkeys;</span>
+<span class="lineNum">     705 </span>                :<span class="lineCov">      73608 :     ret.pubkeys.insert(b.pubkeys.begin(), b.pubkeys.end());</span>
+<span class="lineNum">     706 </span>                :<span class="lineCov">      36804 :     ret.keys = a.keys;</span>
+<span class="lineNum">     707 </span>                :<span class="lineCov">      73608 :     ret.keys.insert(b.keys.begin(), b.keys.end());</span>
+<span class="lineNum">     708 </span>                :<span class="lineCov">      36804 :     ret.origins = a.origins;</span>
+<a name="709"><span class="lineNum">     709 </span>                :<span class="lineCov">      73608 :     ret.origins.insert(b.origins.begin(), b.origins.end());</span></a>
+<span class="lineNum">     710 </span>                :<span class="lineCov">      18402 :     return ret;</span>
+<span class="lineNum">     711 </span>[<span class="branchCov" title="Branch 1 was taken 546 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 546 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       2184 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

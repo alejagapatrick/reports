@@ -1,0 +1,340 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/core_write.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - core_write.cpp<span style="font-size: 80%;"> (source / <a href="core_write.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">127</td>
+            <td class="headerCovTableEntry">133</td>
+            <td class="headerCovTableEntryHi">95.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">190</td>
+            <td class="headerCovTableEntry">344</td>
+            <td class="headerCovTableEntryLo">55.2 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #include &lt;core_io.h&gt;
+<span class="lineNum">       6 </span>                :            : 
+<span class="lineNum">       7 </span>                :            : #include &lt;consensus/consensus.h&gt;
+<span class="lineNum">       8 </span>                :            : #include &lt;consensus/validation.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;key_io.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;script/script.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;script/standard.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;serialize.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;streams.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;univalue.h&gt;
+<span class="lineNum">      15 </span>                :            : #include &lt;util/system.h&gt;
+<span class="lineNum">      16 </span>                :            : #include &lt;util/moneystr.h&gt;
+<span class="lineNum">      17 </span>                :            : #include &lt;util/strencodings.h&gt;
+<span class="lineNum">      18 </span>                :            : 
+<span class="lineNum">      19 </span>                :<span class="lineCov">      34843 : UniValue ValueFromAmount(const CAmount&amp; amount)</span>
+<span class="lineNum">      20 </span>                :            : {
+<span class="lineNum">      21 </span>                :<span class="lineCov">      34843 :     bool sign = amount &lt; 0;</span>
+<span class="lineNum">      22 </span>        [<span class="branchCov" title="Branch 0 was taken 967 times"> + </span><span class="branchCov" title="Branch 1 was taken 33876 times"> + </span>]:<span class="lineCov">      34843 :     int64_t n_abs = (sign ? -amount : amount);</span>
+<span class="lineNum">      23 </span>                :<span class="lineCov">      34843 :     int64_t quotient = n_abs / COIN;</span>
+<span class="lineNum">      24 </span>                :<span class="lineCov">      34843 :     int64_t remainder = n_abs % COIN;</span>
+<span class="lineNum">      25 </span>                :            :     return UniValue(UniValue::VNUM,
+<span class="lineNum">      26 </span>[<span class="branchCov" title="Branch 0 was taken 33876 times"> + </span><span class="branchCov" title="Branch 1 was taken 967 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 34843 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">      69686 :             strprintf(&quot;%s%d.%08d&quot;, sign ? &quot;-&quot; : &quot;&quot;, quotient, remainder));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 34843 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">      27 </span>                :            : }
+<span class="lineNum">      28 </span>                :            : 
+<span class="lineNum">      29 </span>                :<span class="lineCov">        268 : std::string FormatScript(const CScript&amp; script)</span>
+<span class="lineNum">      30 </span>                :            : {
+<span class="lineNum">      31 </span>                :<span class="lineCov">        536 :     std::string ret;</span>
+<span class="lineNum">      32 </span>                :<span class="lineCov">        268 :     CScript::const_iterator it = script.begin();</span>
+<span class="lineNum">      33 </span>                :            :     opcodetype op;
+<span class="lineNum">      34 </span>        [<span class="branchCov" title="Branch 0 was taken 599 times"> + </span><span class="branchCov" title="Branch 1 was taken 268 times"> + </span>]:<span class="lineCov">        867 :     while (it != script.end()) {</span>
+<span class="lineNum">      35 </span>                :<span class="lineCov">        599 :         CScript::const_iterator it2 = it;</span>
+<span class="lineNum">      36 </span>                :<span class="lineNoCov">          0 :         std::vector&lt;unsigned char&gt; vch;</span>
+<span class="lineNum">      37 </span>[<span class="branchCov" title="Branch 1 was taken 599 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 599 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        599 :         if (script.GetOp(it, op, vch)) {</span>
+<span class="lineNum">      38 </span>        [<span class="branchCov" title="Branch 0 was taken 63 times"> + </span><span class="branchCov" title="Branch 1 was taken 536 times"> + </span>]:<span class="lineCov">        599 :             if (op == OP_0) {</span>
+<span class="lineNum">      39 </span>                :<span class="lineCov">         63 :                 ret += &quot;0 &quot;;</span>
+<span class="lineNum">      40 </span>                :<span class="lineCov">        662 :                 continue;</span>
+<span class="lineNum">      41 </span>[<span class="branchCov" title="Branch 0 was taken 473 times"> + </span><span class="branchCov" title="Branch 1 was taken 63 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 473 times"> + </span>]:<span class="lineCov">        536 :             } else if ((op &gt;= OP_1 &amp;&amp; op &lt;= OP_16) || op == OP_1NEGATE) {</span>
+<span class="lineNum">      42 </span>        [<span class="branchCov" title="Branch 1 was taken 63 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         63 :                 ret += strprintf(&quot;%i &quot;, op - OP_1NEGATE - 1);</span>
+<span class="lineNum">      43 </span>                :<span class="lineCov">         63 :                 continue;</span>
+<span class="lineNum">      44 </span>        [<span class="branchCov" title="Branch 0 was taken 178 times"> + </span><span class="branchCov" title="Branch 1 was taken 295 times"> + </span>]:<span class="lineCov">        473 :             } else if (op &gt;= OP_NOP &amp;&amp; op &lt;= OP_NOP10) {</span>
+<span class="lineNum">      45 </span>[<span class="branchCov" title="Branch 1 was taken 178 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 178 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        178 :                 std::string str(GetOpName(op));</span>
+<span class="lineNum">      46 </span>[<span class="branchCov" title="Branch 1 was taken 178 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 178 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        356 :                 if (str.substr(0, 3) == std::string(&quot;OP_&quot;)) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 178 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">      47 </span>[<span class="branchCov" title="Branch 1 was taken 178 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 178 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        178 :                     ret += str.substr(3, std::string::npos) + &quot; &quot;;</span>
+<span class="lineNum">      48 </span>                :<span class="lineCov">        178 :                     continue;</span>
+<span class="lineNum">      49 </span>                :            :                 }
+<span class="lineNum">      50 </span>                :            :             }
+<span class="lineNum">      51 </span>        [<span class="branchCov" title="Branch 0 was taken 295 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        295 :             if (vch.size() &gt; 0) {</span>
+<span class="lineNum">      52 </span>[<span class="branchCov" title="Branch 1 was taken 295 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 295 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        590 :                 ret += strprintf(&quot;0x%x 0x%x &quot;, HexStr(it2, it - vch.size()), HexStr(it - vch.size(), it));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 295 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">      53 </span>                :            :             } else {
+<span class="lineNum">      54 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 ret += strprintf(&quot;0x%x &quot;, HexStr(it2, it));</span>
+<span class="lineNum">      55 </span>                :            :             }
+<span class="lineNum">      56 </span>                :<span class="lineCov">        295 :             continue;</span>
+<span class="lineNum">      57 </span>                :            :         }
+<span class="lineNum">      58 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         ret += strprintf(&quot;0x%x &quot;, HexStr(it2, script.end()));</span>
+<span class="lineNum">      59 </span>                :<span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">      60 </span>                :            :     }
+<span class="lineNum">      61 </span>        [<span class="branchCov" title="Branch 1 was taken 268 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        536 :     return ret.substr(0, ret.size() - 1);</span>
+<span class="lineNum">      62 </span>                :            : }
+<span class="lineNum">      63 </span>                :            : 
+<span class="lineNum">      64 </span>[<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 546 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 3276 times"> + </span><span class="branchCov" title="Branch 4 was taken 546 times"> + </span>]:<span class="lineCov">       4368 : const std::map&lt;unsigned char, std::string&gt; mapSigHashTypes = {</span>
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">      65 </span>        [<span class="branchCov" title="Branch 1 was taken 546 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        546 :     {static_cast&lt;unsigned char&gt;(SIGHASH_ALL), std::string(&quot;ALL&quot;)},</span>
+<span class="lineNum">      66 </span>        [<span class="branchCov" title="Branch 1 was taken 546 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        546 :     {static_cast&lt;unsigned char&gt;(SIGHASH_ALL|SIGHASH_ANYONECANPAY), std::string(&quot;ALL|ANYONECANPAY&quot;)},</span>
+<span class="lineNum">      67 </span>        [<span class="branchCov" title="Branch 1 was taken 546 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        546 :     {static_cast&lt;unsigned char&gt;(SIGHASH_NONE), std::string(&quot;NONE&quot;)},</span>
+<span class="lineNum">      68 </span>        [<span class="branchCov" title="Branch 1 was taken 546 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        546 :     {static_cast&lt;unsigned char&gt;(SIGHASH_NONE|SIGHASH_ANYONECANPAY), std::string(&quot;NONE|ANYONECANPAY&quot;)},</span>
+<span class="lineNum">      69 </span>        [<span class="branchCov" title="Branch 1 was taken 546 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        546 :     {static_cast&lt;unsigned char&gt;(SIGHASH_SINGLE), std::string(&quot;SINGLE&quot;)},</span>
+<span class="lineNum">      70 </span>        [<span class="branchCov" title="Branch 1 was taken 546 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        546 :     {static_cast&lt;unsigned char&gt;(SIGHASH_SINGLE|SIGHASH_ANYONECANPAY), std::string(&quot;SINGLE|ANYONECANPAY&quot;)},</span>
+<span class="lineNum">      71 </span>                :            : };
+<span class="lineNum">      72 </span>                :            : 
+<span class="lineNum">      73 </span>                :<span class="lineCov">          1 : std::string SighashToStr(unsigned char sighash_type)</span>
+<span class="lineNum">      74 </span>                :            : {
+<span class="lineNum">      75 </span>                :<span class="lineCov">          1 :     const auto&amp; it = mapSigHashTypes.find(sighash_type);</span>
+<span class="lineNum">      76 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :     if (it == mapSigHashTypes.end()) return &quot;&quot;;</span>
+<span class="lineNum">      77 </span>                :<span class="lineCov">          1 :     return it-&gt;second;</span>
+<span class="lineNum">      78 </span>                :            : }
+<span class="lineNum">      79 </span>                :            : 
+<span class="lineNum">      80 </span>                :            : /**
+<span class="lineNum">      81 </span>                :            :  * Create the assembly string representation of a CScript object.
+<span class="lineNum">      82 </span>                :            :  * @param[in] script    CScript object to convert into the asm string representation.
+<span class="lineNum">      83 </span>                :            :  * @param[in] fAttemptSighashDecode    Whether to attempt to decode sighash types on data within the script that matches the format
+<span class="lineNum">      84 </span>                :            :  *                                     of a signature. Only pass true for scripts you believe could contain signatures. For example,
+<span class="lineNum">      85 </span>                :            :  *                                     pass false, or omit the this argument (defaults to false), for scriptPubKeys.
+<span class="lineNum">      86 </span>                :            :  */
+<span class="lineNum">      87 </span>                :<span class="lineCov">       1762 : std::string ScriptToAsmStr(const CScript&amp; script, const bool fAttemptSighashDecode)</span>
+<span class="lineNum">      88 </span>                :            : {
+<span class="lineNum">      89 </span>                :<span class="lineCov">       1762 :     std::string str;</span>
+<span class="lineNum">      90 </span>                :            :     opcodetype opcode;
+<span class="lineNum">      91 </span>                :<span class="lineCov">       1762 :     std::vector&lt;unsigned char&gt; vch;</span>
+<span class="lineNum">      92 </span>                :<span class="lineCov">       5952 :     CScript::const_iterator pc = script.begin();</span>
+<span class="lineNum">      93 </span>        [<span class="branchCov" title="Branch 0 was taken 4190 times"> + </span><span class="branchCov" title="Branch 1 was taken 1762 times"> + </span>]:<span class="lineCov">       5952 :     while (pc &lt; script.end()) {</span>
+<span class="lineNum">      94 </span>        [<span class="branchCov" title="Branch 0 was taken 2619 times"> + </span><span class="branchCov" title="Branch 1 was taken 1571 times"> + </span>]:<span class="lineCov">       4190 :         if (!str.empty()) {</span>
+<span class="lineNum">      95 </span>                :            :             str += &quot; &quot;;
+<span class="lineNum">      96 </span>                :            :         }
+<span class="lineNum">      97 </span>[<span class="branchCov" title="Branch 1 was taken 4190 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 4190 times"> + </span>]:<span class="lineCov">       4190 :         if (!script.GetOp(pc, opcode, vch)) {</span>
+<span class="lineNum">      98 </span>                :            :             str += &quot;[error]&quot;;
+<span class="lineNum">      99 </span>                :            :             return str;
+<span class="lineNum">     100 </span>                :            :         }
+<span class="lineNum">     101 </span>        [<span class="branchCov" title="Branch 0 was taken 2234 times"> + </span><span class="branchCov" title="Branch 1 was taken 1956 times"> + </span>]:<span class="lineCov">       4190 :         if (0 &lt;= opcode &amp;&amp; opcode &lt;= OP_PUSHDATA4) {</span>
+<span class="lineNum">     102 </span>        [<span class="branchCov" title="Branch 0 was taken 197 times"> + </span><span class="branchCov" title="Branch 1 was taken 2037 times"> + </span>]:<span class="lineCov">       2234 :             if (vch.size() &lt;= static_cast&lt;std::vector&lt;unsigned char&gt;::size_type&gt;(4)) {</span>
+<span class="lineNum">     103 </span>[<span class="branchCov" title="Branch 1 was taken 197 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 197 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        591 :                 str += strprintf(&quot;%d&quot;, CScriptNum(vch, false).getint());</span>
+<span class="lineNum">     104 </span>                :            :             } else {
+<span class="lineNum">     105 </span>                :            :                 // the IsUnspendable check makes sure not to try to decode OP_RETURN data that may match the format of a signature
+<span class="lineNum">     106 </span>        [<span class="branchCov" title="Branch 0 was taken 933 times"> + </span><span class="branchCov" title="Branch 1 was taken 1104 times"> + </span>]:<span class="lineCov">       2037 :                 if (fAttemptSighashDecode &amp;&amp; !script.IsUnspendable()) {</span>
+<span class="lineNum">     107 </span>                :<span class="lineCov">        932 :                     std::string strSigHashDecode;</span>
+<span class="lineNum">     108 </span>                :            :                     // goal: only attempt to decode a defined sighash type from data that looks like a signature within a scriptSig.
+<span class="lineNum">     109 </span>                :            :                     // this won't decode correctly formatted public keys in Pubkey or Multisig scripts due to
+<span class="lineNum">     110 </span>                :            :                     // the restrictions on the pubkey formats (see IsCompressedOrUncompressedPubKey) being incongruous with the
+<span class="lineNum">     111 </span>                :            :                     // checks in CheckSignatureEncoding.
+<span class="lineNum">     112 </span>[<span class="branchCov" title="Branch 1 was taken 932 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 398 times"> + </span><span class="branchCov" title="Branch 4 was taken 534 times"> + </span>]:<span class="lineCov">        932 :                     if (CheckSignatureEncoding(vch, SCRIPT_VERIFY_STRICTENC, nullptr)) {</span>
+<span class="lineNum">     113 </span>                :<span class="lineCov">        398 :                         const unsigned char chSigHashType = vch.back();</span>
+<span class="lineNum">     114 </span>                :<span class="lineNoCov">          0 :                         if (mapSigHashTypes.count(chSigHashType)) {</span>
+<span class="lineNum">     115 </span>[<span class="branchCov" title="Branch 1 was taken 398 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 398 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        398 :                             strSigHashDecode = &quot;[&quot; + mapSigHashTypes.find(chSigHashType)-&gt;second + &quot;]&quot;;</span>
+<span class="lineNum">     116 </span>                :            :                             vch.pop_back(); // remove the sighash type byte. it will be replaced by the decode.
+<span class="lineNum">     117 </span>                :            :                         }
+<span class="lineNum">     118 </span>                :            :                     }
+<span class="lineNum">     119 </span>[<span class="branchCov" title="Branch 1 was taken 932 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 932 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        932 :                     str += HexStr(vch) + strSigHashDecode;</span>
+<span class="lineNum">     120 </span>                :            :                 } else {
+<span class="lineNum">     121 </span>        [<span class="branchCov" title="Branch 1 was taken 1105 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2210 :                     str += HexStr(vch);</span>
+<span class="lineNum">     122 </span>                :            :                 }
+<span class="lineNum">     123 </span>                :            :             }
+<span class="lineNum">     124 </span>                :            :         } else {
+<span class="lineNum">     125 </span>        [<span class="branchCov" title="Branch 1 was taken 1956 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1956 :             str += GetOpName(opcode);</span>
+<span class="lineNum">     126 </span>                :            :         }
+<span class="lineNum">     127 </span>                :            :     }
+<span class="lineNum">     128 </span>                :            :     return str;
+<span class="lineNum">     129 </span>                :            : }
+<span class="lineNum">     130 </span>                :            : 
+<span class="lineNum">     131 </span>                :<span class="lineCov">       3188 : std::string EncodeHexTx(const CTransaction&amp; tx, const int serializeFlags)</span>
+<span class="lineNum">     132 </span>                :            : {
+<span class="lineNum">     133 </span>                :<span class="lineCov">       9564 :     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION | serializeFlags);</span>
+<span class="lineNum">     134 </span>                :<span class="lineCov">       3188 :     ssTx &lt;&lt; tx;</span>
+<span class="lineNum">     135 </span>        [<span class="branchCov" title="Branch 1 was taken 3188 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       6376 :     return HexStr(ssTx.begin(), ssTx.end());</span>
+<span class="lineNum">     136 </span>                :            : }
+<span class="lineNum">     137 </span>                :            : 
+<span class="lineNum">     138 </span>                :<span class="lineCov">        204 : void ScriptToUniv(const CScript&amp; script, UniValue&amp; out, bool include_address)</span>
+<span class="lineNum">     139 </span>                :            : {
+<span class="lineNum">     140 </span>[<span class="branchCov" title="Branch 2 was taken 204 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 204 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        204 :     out.pushKV(&quot;asm&quot;, ScriptToAsmStr(script));</span>
+<span class="lineNum">     141 </span>[<span class="branchCov" title="Branch 2 was taken 204 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 204 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        204 :     out.pushKV(&quot;hex&quot;, HexStr(script.begin(), script.end()));</span>
+<span class="lineNum">     142 </span>                :            : 
+<span class="lineNum">     143 </span>                :<span class="lineCov">        204 :     std::vector&lt;std::vector&lt;unsigned char&gt;&gt; solns;</span>
+<span class="lineNum">     144 </span>        [<span class="branchCov" title="Branch 1 was taken 204 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        204 :     txnouttype type = Solver(script, solns);</span>
+<span class="lineNum">     145 </span>[<span class="branchCov" title="Branch 1 was taken 204 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 204 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        204 :     out.pushKV(&quot;type&quot;, GetTxnOutputType(type));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 204 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     146 </span>                :            : 
+<span class="lineNum">     147 </span>                :<span class="lineNoCov">          0 :     CTxDestination address;</span>
+<span class="lineNum">     148 </span>[<span class="branchCov" title="Branch 0 was taken 61 times"> + </span><span class="branchCov" title="Branch 1 was taken 143 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 61 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        204 :     if (include_address &amp;&amp; ExtractDestination(script, address)) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 5 was taken 61 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]
+<span class="lineNum">     149 </span>[<span class="branchCov" title="Branch 1 was taken 61 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 61 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        122 :         out.pushKV(&quot;address&quot;, EncodeDestination(address));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 61 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     150 </span>                :            :     }
+<span class="lineNum">     151 </span>                :<span class="lineCov">        204 : }</span>
+<span class="lineNum">     152 </span>                :            : 
+<span class="lineNum">     153 </span>                :<span class="lineCov">        821 : void ScriptPubKeyToUniv(const CScript&amp; scriptPubKey,</span>
+<span class="lineNum">     154 </span>                :            :                         UniValue&amp; out, bool fIncludeHex)
+<span class="lineNum">     155 </span>                :            : {
+<span class="lineNum">     156 </span>                :            :     txnouttype type;
+<span class="lineNum">     157 </span>                :<span class="lineCov">        821 :     std::vector&lt;CTxDestination&gt; addresses;</span>
+<span class="lineNum">     158 </span>                :            :     int nRequired;
+<span class="lineNum">     159 </span>                :            : 
+<span class="lineNum">     160 </span>[<span class="branchCov" title="Branch 1 was taken 821 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 821 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        821 :     out.pushKV(&quot;asm&quot;, ScriptToAsmStr(scriptPubKey));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 821 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     161 </span>        [<span class="branchCov" title="Branch 0 was taken 807 times"> + </span><span class="branchCov" title="Branch 1 was taken 14 times"> + </span>]:<span class="lineCov">        821 :     if (fIncludeHex)</span>
+<span class="lineNum">     162 </span>[<span class="branchCov" title="Branch 1 was taken 807 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 807 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1614 :         out.pushKV(&quot;hex&quot;, HexStr(scriptPubKey.begin(), scriptPubKey.end()));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 807 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     163 </span>                :            : 
+<span class="lineNum">     164 </span>[<span class="branchCov" title="Branch 1 was taken 821 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 24 times"> + </span><span class="branchCov" title="Branch 4 was taken 797 times"> + </span>]:<span class="lineCov">        821 :     if (!ExtractDestinations(scriptPubKey, type, addresses, nRequired)) {</span>
+<span class="lineNum">     165 </span>[<span class="branchCov" title="Branch 1 was taken 24 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 24 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         24 :         out.pushKV(&quot;type&quot;, GetTxnOutputType(type));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 24 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     166 </span>                :<span class="lineCov">         24 :         return;</span>
+<span class="lineNum">     167 </span>                :            :     }
+<span class="lineNum">     168 </span>                :            : 
+<span class="lineNum">     169 </span>[<span class="branchCov" title="Branch 1 was taken 797 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 797 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        797 :     out.pushKV(&quot;reqSigs&quot;, nRequired);</span>
+<span class="lineNum">     170 </span>[<span class="branchCov" title="Branch 1 was taken 797 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 797 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        797 :     out.pushKV(&quot;type&quot;, GetTxnOutputType(type));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 797 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     171 </span>                :            : 
+<span class="lineNum">     172 </span>[<span class="branchCov" title="Branch 1 was taken 797 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 797 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1594 :     UniValue a(UniValue::VARR);</span>
+<span class="lineNum">     173 </span>        [<span class="branchCov" title="Branch 0 was taken 802 times"> + </span><span class="branchCov" title="Branch 1 was taken 797 times"> + </span>]:<span class="lineCov">       1599 :     for (const CTxDestination&amp; addr : addresses) {</span>
+<span class="lineNum">     174 </span>[<span class="branchCov" title="Branch 1 was taken 802 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 802 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        802 :         a.push_back(EncodeDestination(addr));</span>
+<span class="lineNum">     175 </span>                :            :     }
+<span class="lineNum">     176 </span>[<span class="branchCov" title="Branch 1 was taken 797 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 797 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        797 :     out.pushKV(&quot;addresses&quot;, a);</span>
+<span class="lineNum">     177 </span>                :            : }
+<span class="lineNum">     178 </span>                :            : 
+<span class="lineNum">     179 </span>                :<span class="lineCov">        350 : void TxToUniv(const CTransaction&amp; tx, const uint256&amp; hashBlock, UniValue&amp; entry, bool include_hex, int serialize_flags)</span>
+<span class="lineNum">     180 </span>                :            : {
+<span class="lineNum">     181 </span>[<span class="branchCov" title="Branch 2 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        350 :     entry.pushKV(&quot;txid&quot;, tx.GetHash().GetHex());</span>
+<span class="lineNum">     182 </span>[<span class="branchCov" title="Branch 2 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        350 :     entry.pushKV(&quot;hash&quot;, tx.GetWitnessHash().GetHex());</span>
+<span class="lineNum">     183 </span>[<span class="branchCov" title="Branch 1 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        350 :     entry.pushKV(&quot;version&quot;, tx.nVersion);</span>
+<span class="lineNum">     184 </span>[<span class="branchCov" title="Branch 2 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        350 :     entry.pushKV(&quot;size&quot;, (int)::GetSerializeSize(tx, PROTOCOL_VERSION));</span>
+<span class="lineNum">     185 </span>[<span class="branchCov" title="Branch 2 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        350 :     entry.pushKV(&quot;vsize&quot;, (GetTransactionWeight(tx) + WITNESS_SCALE_FACTOR - 1) / WITNESS_SCALE_FACTOR);</span>
+<span class="lineNum">     186 </span>[<span class="branchCov" title="Branch 2 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        350 :     entry.pushKV(&quot;weight&quot;, GetTransactionWeight(tx));</span>
+<span class="lineNum">     187 </span>[<span class="branchCov" title="Branch 1 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        350 :     entry.pushKV(&quot;locktime&quot;, (int64_t)tx.nLockTime);</span>
+<span class="lineNum">     188 </span>                :            : 
+<span class="lineNum">     189 </span>[<span class="branchCov" title="Branch 1 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        700 :     UniValue vin(UniValue::VARR);</span>
+<span class="lineNum">     190 </span>        [<span class="branchCov" title="Branch 0 was taken 718 times"> + </span><span class="branchCov" title="Branch 1 was taken 350 times"> + </span>]:<span class="lineCov">       1068 :     for (unsigned int i = 0; i &lt; tx.vin.size(); i++) {</span>
+<span class="lineNum">     191 </span>                :<span class="lineCov">       1436 :         const CTxIn&amp; txin = tx.vin[i];</span>
+<span class="lineNum">     192 </span>[<span class="branchCov" title="Branch 1 was taken 718 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 718 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1436 :         UniValue in(UniValue::VOBJ);</span>
+<span class="lineNum">     193 </span>                :<span class="lineCov">          7 :         if (tx.IsCoinBase())</span>
+<span class="lineNum">     194 </span>[<span class="branchCov" title="Branch 1 was taken 7 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 7 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         14 :             in.pushKV(&quot;coinbase&quot;, HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 7 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     195 </span>                :            :         else {
+<span class="lineNum">     196 </span>[<span class="branchCov" title="Branch 1 was taken 711 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 711 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        711 :             in.pushKV(&quot;txid&quot;, txin.prevout.hash.GetHex());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 711 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     197 </span>[<span class="branchCov" title="Branch 1 was taken 711 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 711 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        711 :             in.pushKV(&quot;vout&quot;, (int64_t)txin.prevout.n);</span>
+<span class="lineNum">     198 </span>[<span class="branchCov" title="Branch 1 was taken 711 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 711 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1422 :             UniValue o(UniValue::VOBJ);</span>
+<span class="lineNum">     199 </span>[<span class="branchCov" title="Branch 1 was taken 711 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 711 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        711 :             o.pushKV(&quot;asm&quot;, ScriptToAsmStr(txin.scriptSig, true));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 711 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     200 </span>[<span class="branchCov" title="Branch 1 was taken 711 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 711 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        711 :             o.pushKV(&quot;hex&quot;, HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 711 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     201 </span>[<span class="branchCov" title="Branch 1 was taken 711 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 711 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        711 :             in.pushKV(&quot;scriptSig&quot;, o);</span>
+<span class="lineNum">     202 </span>        [<span class="branchCov" title="Branch 0 was taken 131 times"> + </span><span class="branchCov" title="Branch 1 was taken 580 times"> + </span>]:<span class="lineCov">        711 :             if (!tx.vin[i].scriptWitness.IsNull()) {</span>
+<span class="lineNum">     203 </span>[<span class="branchCov" title="Branch 1 was taken 131 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 131 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        262 :                 UniValue txinwitness(UniValue::VARR);</span>
+<span class="lineNum">     204 </span>        [<span class="branchCov" title="Branch 0 was taken 280 times"> + </span><span class="branchCov" title="Branch 1 was taken 131 times"> + </span>]:<span class="lineCov">        411 :                 for (const auto&amp; item : tx.vin[i].scriptWitness.stack) {</span>
+<span class="lineNum">     205 </span>[<span class="branchCov" title="Branch 1 was taken 280 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 280 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        280 :                     txinwitness.push_back(HexStr(item.begin(), item.end()));</span>
+<span class="lineNum">     206 </span>                :            :                 }
+<span class="lineNum">     207 </span>[<span class="branchCov" title="Branch 1 was taken 131 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 131 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        131 :                 in.pushKV(&quot;txinwitness&quot;, txinwitness);</span>
+<span class="lineNum">     208 </span>                :            :             }
+<span class="lineNum">     209 </span>                :            :         }
+<span class="lineNum">     210 </span>[<span class="branchCov" title="Branch 1 was taken 718 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 718 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        718 :         in.pushKV(&quot;sequence&quot;, (int64_t)txin.nSequence);</span>
+<span class="lineNum">     211 </span>        [<span class="branchCov" title="Branch 1 was taken 718 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        718 :         vin.push_back(in);</span>
+<span class="lineNum">     212 </span>                :            :     }
+<span class="lineNum">     213 </span>[<span class="branchCov" title="Branch 1 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        350 :     entry.pushKV(&quot;vin&quot;, vin);</span>
+<span class="lineNum">     214 </span>                :            : 
+<span class="lineNum">     215 </span>[<span class="branchCov" title="Branch 1 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        700 :     UniValue vout(UniValue::VARR);</span>
+<span class="lineNum">     216 </span>        [<span class="branchCov" title="Branch 0 was taken 785 times"> + </span><span class="branchCov" title="Branch 1 was taken 350 times"> + </span>]:<span class="lineCov">       1135 :     for (unsigned int i = 0; i &lt; tx.vout.size(); i++) {</span>
+<span class="lineNum">     217 </span>                :<span class="lineCov">       1570 :         const CTxOut&amp; txout = tx.vout[i];</span>
+<span class="lineNum">     218 </span>                :            : 
+<span class="lineNum">     219 </span>[<span class="branchCov" title="Branch 1 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1570 :         UniValue out(UniValue::VOBJ);</span>
+<span class="lineNum">     220 </span>                :            : 
+<span class="lineNum">     221 </span>[<span class="branchCov" title="Branch 1 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1570 :         out.pushKV(&quot;value&quot;, ValueFromAmount(txout.nValue));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     222 </span>[<span class="branchCov" title="Branch 1 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        785 :         out.pushKV(&quot;n&quot;, (int64_t)i);</span>
+<span class="lineNum">     223 </span>                :            : 
+<span class="lineNum">     224 </span>[<span class="branchCov" title="Branch 1 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1570 :         UniValue o(UniValue::VOBJ);</span>
+<span class="lineNum">     225 </span>        [<span class="branchCov" title="Branch 1 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        785 :         ScriptPubKeyToUniv(txout.scriptPubKey, o, true);</span>
+<span class="lineNum">     226 </span>[<span class="branchCov" title="Branch 1 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        785 :         out.pushKV(&quot;scriptPubKey&quot;, o);</span>
+<span class="lineNum">     227 </span>        [<span class="branchCov" title="Branch 1 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        785 :         vout.push_back(out);</span>
+<span class="lineNum">     228 </span>                :            :     }
+<span class="lineNum">     229 </span>[<span class="branchCov" title="Branch 1 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 350 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        350 :     entry.pushKV(&quot;vout&quot;, vout);</span>
+<span class="lineNum">     230 </span>                :            : 
+<span class="lineNum">     231 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 348 times"> + </span>]:<span class="lineCov">        700 :     if (!hashBlock.IsNull())</span>
+<span class="lineNum">     232 </span>[<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          4 :         entry.pushKV(&quot;blockhash&quot;, hashBlock.GetHex());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     233 </span>                :            : 
+<span class="lineNum">     234 </span>        [<span class="branchCov" title="Branch 0 was taken 161 times"> + </span><span class="branchCov" title="Branch 1 was taken 189 times"> + </span>]:<span class="lineCov">        350 :     if (include_hex) {</span>
+<a name="235"><span class="lineNum">     235 </span>[<span class="branchCov" title="Branch 1 was taken 161 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 161 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        322 :         entry.pushKV(&quot;hex&quot;, EncodeHexTx(tx, serialize_flags)); // The hex-encoded transaction. Used the name &quot;hex&quot; to be consistent with the verbose output of &quot;getrawtransaction&quot;.</span></a>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 161 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     236 </span>                :            :     }
+<span class="lineNum">     237 </span>[<span class="branchCov" title="Branch 1 was taken 546 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 546 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       2534 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

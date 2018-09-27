@@ -1,0 +1,700 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/rpc/misc.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/rpc</a> - misc.cpp<span style="font-size: 80%;"> (source / <a href="misc.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">138</td>
+            <td class="headerCovTableEntry">196</td>
+            <td class="headerCovTableEntryLo">70.4 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">13</td>
+            <td class="headerCovTableEntry">15</td>
+            <td class="headerCovTableEntryMed">86.7 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">418</td>
+            <td class="headerCovTableEntry">946</td>
+            <td class="headerCovTableEntryLo">44.2 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #include &lt;chain.h&gt;
+<span class="lineNum">       7 </span>                :            : #include &lt;clientversion.h&gt;
+<span class="lineNum">       8 </span>                :            : #include &lt;core_io.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;crypto/ripemd160.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;key_io.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;validation.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;httpserver.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;net.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;netbase.h&gt;
+<span class="lineNum">      15 </span>                :            : #include &lt;outputtype.h&gt;
+<span class="lineNum">      16 </span>                :            : #include &lt;rpc/blockchain.h&gt;
+<span class="lineNum">      17 </span>                :            : #include &lt;rpc/server.h&gt;
+<span class="lineNum">      18 </span>                :            : #include &lt;rpc/util.h&gt;
+<span class="lineNum">      19 </span>                :            : #include &lt;timedata.h&gt;
+<span class="lineNum">      20 </span>                :            : #include &lt;util/system.h&gt;
+<span class="lineNum">      21 </span>                :            : #include &lt;util/strencodings.h&gt;
+<span class="lineNum">      22 </span>                :            : #include &lt;warnings.h&gt;
+<span class="lineNum">      23 </span>                :            : 
+<span class="lineNum">      24 </span>                :            : #include &lt;stdint.h&gt;
+<span class="lineNum">      25 </span>                :            : #ifdef HAVE_MALLOC_INFO
+<span class="lineNum">      26 </span>                :            : #include &lt;malloc.h&gt;
+<span class="lineNum">      27 </span>                :            : #endif
+<span class="lineNum">      28 </span>                :            : 
+<span class="lineNum">      29 </span>                :            : #include &lt;univalue.h&gt;
+<span class="lineNum">      30 </span>                :            : 
+<span class="lineNum">      31 </span>                :<span class="lineCov">        166 : static UniValue validateaddress(const JSONRPCRequest&amp; request)</span>
+<span class="lineNum">      32 </span>                :            : {
+<span class="lineNum">      33 </span>[<span class="branchCov" title="Branch 0 was taken 163 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 163 times"> + </span>]:<span class="lineCov">        166 :     if (request.fHelp || request.params.size() != 1)</span>
+<span class="lineNum">      34 </span>                :            :         throw std::runtime_error(
+<span class="lineNum">      35 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          9 :             RPCHelpMan{&quot;validateaddress&quot;,</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 13 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchCov" title="Branch 16 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 19 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>][<span class="branchCov" title="Branch 22 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 25 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span>][<span class="branchCov" title="Branch 29 was taken 3 times"> + </span><span class="branchCov" title="Branch 30 was taken 3 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>]
+<span class="lineNum">      36 </span>                :            :                 &quot;\nReturn information about the given bitcoin address.\n&quot;
+<span class="lineNum">      37 </span>                :            :                 &quot;DEPRECATION WARNING: Parts of this command have been deprecated and moved to getaddressinfo. Clients must\n&quot;
+<span class="lineNum">      38 </span>                :            :                 &quot;transition to using getaddressinfo to access this information before upgrading to v0.18. The following deprecated\n&quot;
+<span class="lineNum">      39 </span>                :            :                 &quot;fields have moved to getaddressinfo and will only be shown here with -deprecatedrpc=validateaddress: ismine, iswatchonly,\n&quot;
+<span class="lineNum">      40 </span>                :            :                 &quot;script, hex, pubkeys, sigsrequired, pubkey, addresses, embedded, iscompressed, account, timestamp, hdkeypath, kdmasterkeyid.\n&quot;,
+<span class="lineNum">      41 </span>                :            :                 {
+<span class="lineNum">      42 </span>                :            :                     {&quot;address&quot;, RPCArg::Type::STR, /* opt */ false, /* default_val */ &quot;&quot;, &quot;The bitcoin address to validate&quot;},
+<span class="lineNum">      43 </span>                :<span class="lineCov">          3 :                 }}</span>
+<span class="lineNum">      44 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          3 :                 .ToString() +</span>
+<span class="lineNum">      45 </span>                :            :             &quot;\nResult:\n&quot;
+<span class="lineNum">      46 </span>                :            :             &quot;{\n&quot;
+<span class="lineNum">      47 </span>                :            :             &quot;  \&quot;isvalid\&quot; : true|false,       (boolean) If the address is valid or not. If not, this is the only property returned.\n&quot;
+<span class="lineNum">      48 </span>                :            :             &quot;  \&quot;address\&quot; : \&quot;address\&quot;,        (string) The bitcoin address validated\n&quot;
+<span class="lineNum">      49 </span>                :            :             &quot;  \&quot;scriptPubKey\&quot; : \&quot;hex\&quot;,       (string) The hex-encoded scriptPubKey generated by the address\n&quot;
+<span class="lineNum">      50 </span>                :            :             &quot;  \&quot;isscript\&quot; : true|false,      (boolean) If the key is a script\n&quot;
+<span class="lineNum">      51 </span>                :            :             &quot;  \&quot;iswitness\&quot; : true|false,     (boolean) If the address is a witness address\n&quot;
+<span class="lineNum">      52 </span>                :            :             &quot;  \&quot;witness_version\&quot; : version   (numeric, optional) The version number of the witness program\n&quot;
+<span class="lineNum">      53 </span>                :            :             &quot;  \&quot;witness_program\&quot; : \&quot;hex\&quot;     (string, optional) The hex value of the witness program\n&quot;
+<span class="lineNum">      54 </span>                :            :             &quot;}\n&quot;
+<span class="lineNum">      55 </span>                :            :             &quot;\nExamples:\n&quot;
+<span class="lineNum">      56 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :             + HelpExampleCli(&quot;validateaddress&quot;, &quot;\&quot;1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\&quot;&quot;)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">      57 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :             + HelpExampleRpc(&quot;validateaddress&quot;, &quot;\&quot;1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\&quot;&quot;)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">      58 </span>        [<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          9 :         );</span>
+<span class="lineNum">      59 </span>                :            : 
+<span class="lineNum">      60 </span>                :<span class="lineCov">        163 :     CTxDestination dest = DecodeDestination(request.params[0].get_str());</span>
+<span class="lineNum">      61 </span>        [<span class="branchCov" title="Branch 1 was taken 163 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        163 :     bool isValid = IsValidDestination(dest);</span>
+<span class="lineNum">      62 </span>                :            : 
+<span class="lineNum">      63 </span>[<span class="branchCov" title="Branch 1 was taken 163 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 163 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        163 :     UniValue ret(UniValue::VOBJ);</span>
+<span class="lineNum">      64 </span>[<span class="branchCov" title="Branch 1 was taken 163 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 163 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        163 :     ret.pushKV(&quot;isvalid&quot;, isValid);</span>
+<span class="lineNum">      65 </span>        [<span class="branchCov" title="Branch 0 was taken 162 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">        163 :     if (isValid)</span>
+<span class="lineNum">      66 </span>                :            :     {
+<span class="lineNum">      67 </span>        [<span class="branchCov" title="Branch 1 was taken 162 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        324 :         std::string currentAddress = EncodeDestination(dest);</span>
+<span class="lineNum">      68 </span>[<span class="branchCov" title="Branch 1 was taken 162 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 162 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        162 :         ret.pushKV(&quot;address&quot;, currentAddress);</span>
+<span class="lineNum">      69 </span>                :            : 
+<span class="lineNum">      70 </span>        [<span class="branchCov" title="Branch 1 was taken 162 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        162 :         CScript scriptPubKey = GetScriptForDestination(dest);</span>
+<span class="lineNum">      71 </span>[<span class="branchCov" title="Branch 1 was taken 162 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 162 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        162 :         ret.pushKV(&quot;scriptPubKey&quot;, HexStr(scriptPubKey.begin(), scriptPubKey.end()));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 162 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">      72 </span>                :            : 
+<span class="lineNum">      73 </span>        [<span class="branchCov" title="Branch 1 was taken 162 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        324 :         UniValue detail = DescribeAddress(dest);</span>
+<span class="lineNum">      74 </span>        [<span class="branchCov" title="Branch 1 was taken 162 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        162 :         ret.pushKVs(detail);</span>
+<span class="lineNum">      75 </span>                :            :     }
+<span class="lineNum">      76 </span>                :<span class="lineCov">        163 :     return ret;</span>
+<span class="lineNum">      77 </span>                :            : }
+<span class="lineNum">      78 </span>                :            : 
+<span class="lineNum">      79 </span>                :<span class="lineCov">         19 : static UniValue createmultisig(const JSONRPCRequest&amp; request)</span>
+<span class="lineNum">      80 </span>                :            : {
+<span class="lineNum">      81 </span>[<span class="branchCov" title="Branch 0 was taken 16 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 16 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">         19 :     if (request.fHelp || request.params.size() &lt; 2 || request.params.size() &gt; 3)</span>
+<span class="lineNum">         </span>        [<span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 16 times"> + </span>]
+<span class="lineNum">      82 </span>                :            :     {
+<span class="lineNum">      83 </span>                :            :         std::string msg =
+<span class="lineNum">      84 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         27 :             RPCHelpMan{&quot;createmultisig&quot;,</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 13 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchCov" title="Branch 16 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 19 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>][<span class="branchCov" title="Branch 22 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 25 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span>][<span class="branchCov" title="Branch 28 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchCov" title="Branch 40 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 43 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 44 was not taken"> - </span>][<span class="branchCov" title="Branch 46 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 47 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 49 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 50 was not taken"> - </span>][<span class="branchCov" title="Branch 52 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 53 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 55 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 56 was not taken"> - </span>][<span class="branchCov" title="Branch 58 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 59 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 61 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 62 was not taken"> - </span>][<span class="branchCov" title="Branch 64 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 65 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 67 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 68 was not taken"> - </span>][<span class="branchCov" title="Branch 70 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 71 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 73 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 74 was not taken"> - </span>][<span class="branchCov" title="Branch 76 was taken 9 times"> + </span><span class="branchCov" title="Branch 77 was taken 3 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 81 was taken 3 times"> + </span><span class="branchCov" title="Branch 82 was taken 3 times"> + </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 86 was not executed"> # </span><span class="branchNoExec" title="Branch 87 was not executed"> # </span><span class="branchNoExec" title="Branch 91 was not executed"> # </span><span class="branchNoExec" title="Branch 92 was not executed"> # </span>]
+<span class="lineNum">      85 </span>                :            :                 &quot;\nCreates a multi-signature address with n signature of m keys required.\n&quot;
+<span class="lineNum">      86 </span>                :            :                 &quot;It returns a json object with the address and redeemScript.\n&quot;,
+<span class="lineNum">      87 </span>                :            :                 {
+<span class="lineNum">      88 </span>                :            :                     {&quot;nrequired&quot;, RPCArg::Type::NUM, /* opt */ false, /* default_val */ &quot;&quot;, &quot;The number of required signatures out of the n keys.&quot;},
+<span class="lineNum">      89 </span>                :            :                     {&quot;keys&quot;, RPCArg::Type::ARR, /* opt */ false, /* default_val */ &quot;&quot;, &quot;A json array of hex-encoded public keys.&quot;,
+<span class="lineNum">      90 </span>                :            :                         {
+<span class="lineNum">      91 </span>                :            :                             {&quot;key&quot;, RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ &quot;&quot;, &quot;The hex-encoded public key&quot;},
+<span class="lineNum">      92 </span>                :            :                         }},
+<span class="lineNum">      93 </span>                :            :                     {&quot;address_type&quot;, RPCArg::Type::STR, /* opt */ true, /* default_val */ &quot;legacy&quot;, &quot;The address type to use. Options are \&quot;legacy\&quot;, \&quot;p2sh-segwit\&quot;, and \&quot;bech32\&quot;.&quot;},
+<span class="lineNum">      94 </span>                :<span class="lineCov">         12 :                 }}</span>
+<span class="lineNum">      95 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :                 .ToString() +</span>
+<span class="lineNum">      96 </span>                :            :             &quot;\nResult:\n&quot;
+<span class="lineNum">      97 </span>                :            :             &quot;{\n&quot;
+<span class="lineNum">      98 </span>                :            :             &quot;  \&quot;address\&quot;:\&quot;multisigaddress\&quot;,  (string) The value of the new multisig address.\n&quot;
+<span class="lineNum">      99 </span>                :            :             &quot;  \&quot;redeemScript\&quot;:\&quot;script\&quot;       (string) The string value of the hex-encoded redemption script.\n&quot;
+<span class="lineNum">     100 </span>                :            :             &quot;}\n&quot;
+<span class="lineNum">     101 </span>                :            : 
+<span class="lineNum">     102 </span>                :            :             &quot;\nExamples:\n&quot;
+<span class="lineNum">     103 </span>                :            :             &quot;\nCreate a multisig address from 2 public keys\n&quot;
+<span class="lineNum">     104 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :             + HelpExampleCli(&quot;createmultisig&quot;, &quot;2 \&quot;[\\\&quot;03789ed0bb717d88f7d321a368d905e7430207ebbd82bd342cf11ae157a7ace5fd\\\&quot;,\\\&quot;03dbc6764b8884a92e871274b87583e6d5c2a58819473e17e107ef3f6aa5a61626\\\&quot;]\&quot;&quot;) +</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 13 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>]
+<span class="lineNum">     105 </span>                :            :             &quot;\nAs a JSON-RPC call\n&quot;
+<span class="lineNum">     106 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          9 :             + HelpExampleRpc(&quot;createmultisig&quot;, &quot;2, \&quot;[\\\&quot;03789ed0bb717d88f7d321a368d905e7430207ebbd82bd342cf11ae157a7ace5fd\\\&quot;,\\\&quot;03dbc6764b8884a92e871274b87583e6d5c2a58819473e17e107ef3f6aa5a61626\\\&quot;]\&quot;&quot;)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">     107 </span>                :            :         ;
+<span class="lineNum">     108 </span>        [<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          3 :         throw std::runtime_error(msg);</span>
+<span class="lineNum">     109 </span>                :            :     }
+<span class="lineNum">     110 </span>                :            : 
+<span class="lineNum">     111 </span>                :<span class="lineCov">         16 :     int required = request.params[0].get_int();</span>
+<span class="lineNum">     112 </span>                :            : 
+<span class="lineNum">     113 </span>                :            :     // Get the public keys
+<span class="lineNum">     114 </span>                :<span class="lineCov">         16 :     const UniValue&amp; keys = request.params[1].get_array();</span>
+<span class="lineNum">     115 </span>                :<span class="lineCov">         32 :     std::vector&lt;CPubKey&gt; pubkeys;</span>
+<span class="lineNum">     116 </span>        [<span class="branchCov" title="Branch 0 was taken 54 times"> + </span><span class="branchCov" title="Branch 1 was taken 14 times"> + </span>]:<span class="lineCov">         68 :     for (unsigned int i = 0; i &lt; keys.size(); ++i) {</span>
+<span class="lineNum">     117 </span>[<span class="branchCov" title="Branch 1 was taken 54 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 54 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         54 :         if (IsHex(keys[i].get_str()) &amp;&amp; (keys[i].get_str().length() == 66 || keys[i].get_str().length() == 130)) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 54 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 9 was taken 53 times"> + </span><span class="branchCov" title="Branch 10 was taken 1 time"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 12 was taken 53 times"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>][<span class="branchCov" title="Branch 15 was taken 53 times"> + </span><span class="branchNoCov" title="Branch 16 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 17 was taken 1 time"> + </span><span class="branchCov" title="Branch 18 was taken 52 times"> + </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 23 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 24 was not taken"> - </span>][<span class="branchNoCov" title="Branch 25 was not taken"> - </span><span class="branchCov" title="Branch 26 was taken 1 time"> + </span>]
+<span class="lineNum">     118 </span>[<span class="branchCov" title="Branch 1 was taken 52 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 52 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         52 :             pubkeys.push_back(HexToPubKey(keys[i].get_str()));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 52 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     119 </span>                :            :         } else {
+<span class="lineNum">     120 </span>[<span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          4 :             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf(&quot;Invalid public key: %s\n.&quot;, keys[i].get_str()));</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">     121 </span>                :            :         }
+<span class="lineNum">     122 </span>                :            :     }
+<span class="lineNum">     123 </span>                :            : 
+<span class="lineNum">     124 </span>                :            :     // Get the output type
+<span class="lineNum">     125 </span>                :<span class="lineCov">         14 :     OutputType output_type = OutputType::LEGACY;</span>
+<span class="lineNum">     126 </span>[<span class="branchCov" title="Branch 1 was taken 14 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 12 times"> + </span><span class="branchCov" title="Branch 4 was taken 2 times"> + </span>]:<span class="lineCov">         14 :     if (!request.params[2].isNull()) {</span>
+<span class="lineNum">     127 </span>[<span class="branchCov" title="Branch 1 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         12 :         if (!ParseOutputType(request.params[2].get_str(), output_type)) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchNoCov" title="Branch 9 was not taken"> - </span><span class="branchCov" title="Branch 10 was taken 12 times"> + </span>]
+<span class="lineNum">     128 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf(&quot;Unknown address type '%s'&quot;, request.params[2].get_str()));</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>][<span class="branchNoExec" title="Branch 11 was not executed"> # </span><span class="branchNoExec" title="Branch 12 was not executed"> # </span>]
+<span class="lineNum">     129 </span>                :            :         }
+<span class="lineNum">     130 </span>                :            :     }
+<span class="lineNum">     131 </span>                :            : 
+<span class="lineNum">     132 </span>                :            :     // Construct using pay-to-script-hash:
+<span class="lineNum">     133 </span>        [<span class="branchCov" title="Branch 1 was taken 14 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         14 :     const CScript inner = CreateMultisigRedeemscript(required, pubkeys);</span>
+<span class="lineNum">     134 </span>                :<span class="lineCov">         14 :     CBasicKeyStore keystore;</span>
+<span class="lineNum">     135 </span>        [<span class="branchCov" title="Branch 1 was taken 14 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         14 :     const CTxDestination dest = AddAndGetDestinationForScript(keystore, inner, output_type);</span>
+<span class="lineNum">     136 </span>                :            : 
+<span class="lineNum">     137 </span>[<span class="branchCov" title="Branch 1 was taken 14 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 14 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         14 :     UniValue result(UniValue::VOBJ);</span>
+<span class="lineNum">     138 </span>[<span class="branchCov" title="Branch 1 was taken 14 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 14 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         14 :     result.pushKV(&quot;address&quot;, EncodeDestination(dest));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 14 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     139 </span>[<span class="branchCov" title="Branch 1 was taken 14 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 14 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         14 :     result.pushKV(&quot;redeemScript&quot;, HexStr(inner.begin(), inner.end()));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 14 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     140 </span>                :            : 
+<span class="lineNum">     141 </span>                :<span class="lineCov">         14 :     return result;</span>
+<span class="lineNum">     142 </span>                :            : }
+<span class="lineNum">     143 </span>                :            : 
+<span class="lineNum">     144 </span>                :<span class="lineCov">          7 : static UniValue verifymessage(const JSONRPCRequest&amp; request)</span>
+<span class="lineNum">     145 </span>                :            : {
+<span class="lineNum">     146 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          7 :     if (request.fHelp || request.params.size() != 3)</span>
+<span class="lineNum">     147 </span>                :            :         throw std::runtime_error(
+<span class="lineNum">     148 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         21 :             RPCHelpMan{&quot;verifymessage&quot;,</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 13 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchCov" title="Branch 16 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 19 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>][<span class="branchCov" title="Branch 22 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 25 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span>][<span class="branchCov" title="Branch 28 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchCov" title="Branch 40 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 43 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 44 was not taken"> - </span>][<span class="branchCov" title="Branch 46 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 47 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 49 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 50 was not taken"> - </span>][<span class="branchCov" title="Branch 52 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 53 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 55 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 56 was not taken"> - </span>][<span class="branchCov" title="Branch 59 was taken 9 times"> + </span><span class="branchCov" title="Branch 60 was taken 3 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 66 was not executed"> # </span><span class="branchNoExec" title="Branch 67 was not executed"> # </span>]
+<span class="lineNum">     149 </span>                :            :                 &quot;\nVerify a signed message\n&quot;,
+<span class="lineNum">     150 </span>                :            :                 {
+<span class="lineNum">     151 </span>                :            :                     {&quot;address&quot;, RPCArg::Type::STR, /* opt */ false, /* default_val */ &quot;&quot;, &quot;The bitcoin address to use for the signature.&quot;},
+<span class="lineNum">     152 </span>                :            :                     {&quot;signature&quot;, RPCArg::Type::STR, /* opt */ false, /* default_val */ &quot;&quot;, &quot;The signature provided by the signer in base 64 encoding (see signmessage).&quot;},
+<span class="lineNum">     153 </span>                :            :                     {&quot;message&quot;, RPCArg::Type::STR, /* opt */ false, /* default_val */ &quot;&quot;, &quot;The message that was signed.&quot;},
+<span class="lineNum">     154 </span>                :<span class="lineCov">          9 :                 }}</span>
+<span class="lineNum">     155 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          3 :                 .ToString() +</span>
+<span class="lineNum">     156 </span>                :            :             &quot;\nResult:\n&quot;
+<span class="lineNum">     157 </span>                :            :             &quot;true|false   (boolean) If the signature is verified or not.\n&quot;
+<span class="lineNum">     158 </span>                :            :             &quot;\nExamples:\n&quot;
+<span class="lineNum">     159 </span>                :            :             &quot;\nUnlock the wallet for 30 seconds\n&quot;
+<span class="lineNum">     160 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :             + HelpExampleCli(&quot;walletpassphrase&quot;, &quot;\&quot;mypassphrase\&quot; 30&quot;) +</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 13 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>]
+<span class="lineNum">     161 </span>                :            :             &quot;\nCreate the signature\n&quot;
+<span class="lineNum">     162 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :             + HelpExampleCli(&quot;signmessage&quot;, &quot;\&quot;1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\&quot; \&quot;my message\&quot;&quot;) +</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 13 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>]
+<span class="lineNum">     163 </span>                :            :             &quot;\nVerify the signature\n&quot;
+<span class="lineNum">     164 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :             + HelpExampleCli(&quot;verifymessage&quot;, &quot;\&quot;1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\&quot; \&quot;signature\&quot; \&quot;my message\&quot;&quot;) +</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 13 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>]
+<span class="lineNum">     165 </span>                :            :             &quot;\nAs a JSON-RPC call\n&quot;
+<span class="lineNum">     166 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :             + HelpExampleRpc(&quot;verifymessage&quot;, &quot;\&quot;1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\&quot;, \&quot;signature\&quot;, \&quot;my message\&quot;&quot;)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">     167 </span>        [<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          9 :         );</span>
+<span class="lineNum">     168 </span>                :            : 
+<span class="lineNum">     169 </span>                :<span class="lineCov">          8 :     LOCK(cs_main);</span>
+<span class="lineNum">     170 </span>                :            : 
+<span class="lineNum">     171 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          4 :     std::string strAddress  = request.params[0].get_str();</span>
+<span class="lineNum">     172 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          4 :     std::string strSign     = request.params[1].get_str();</span>
+<span class="lineNum">     173 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          4 :     std::string strMessage  = request.params[2].get_str();</span>
+<span class="lineNum">     174 </span>                :            : 
+<span class="lineNum">     175 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :     CTxDestination destination = DecodeDestination(strAddress);</span>
+<span class="lineNum">     176 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 4 times"> + </span>]:<span class="lineCov">          4 :     if (!IsValidDestination(destination)) {</span>
+<span class="lineNum">     177 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw JSONRPCError(RPC_TYPE_ERROR, &quot;Invalid address&quot;);</span>
+<span class="lineNum">     178 </span>                :            :     }
+<span class="lineNum">     179 </span>                :            : 
+<span class="lineNum">     180 </span>                :<span class="lineCov">          4 :     const CKeyID *keyID = boost::get&lt;CKeyID&gt;(&amp;destination);</span>
+<span class="lineNum">     181 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">          4 :     if (!keyID) {</span>
+<span class="lineNum">     182 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw JSONRPCError(RPC_TYPE_ERROR, &quot;Address does not refer to key&quot;);</span>
+<span class="lineNum">     183 </span>                :            :     }
+<span class="lineNum">     184 </span>                :            : 
+<span class="lineNum">     185 </span>                :<span class="lineCov">          4 :     bool fInvalid = false;</span>
+<span class="lineNum">     186 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :     std::vector&lt;unsigned char&gt; vchSig = DecodeBase64(strSign.c_str(), &amp;fInvalid);</span>
+<span class="lineNum">     187 </span>                :            : 
+<span class="lineNum">     188 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">          4 :     if (fInvalid)</span>
+<span class="lineNum">     189 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, &quot;Malformed base64 encoding&quot;);</span>
+<span class="lineNum">     190 </span>                :            : 
+<span class="lineNum">     191 </span>                :<span class="lineCov">          4 :     CHashWriter ss(SER_GETHASH, 0);</span>
+<span class="lineNum">     192 </span>                :<span class="lineCov">          4 :     ss &lt;&lt; strMessageMagic;</span>
+<span class="lineNum">     193 </span>                :<span class="lineCov">          4 :     ss &lt;&lt; strMessage;</span>
+<span class="lineNum">     194 </span>                :            : 
+<span class="lineNum">     195 </span>                :<span class="lineCov">          4 :     CPubKey pubkey;</span>
+<span class="lineNum">     196 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 4 times"> + </span>]:<span class="lineCov">          4 :     if (!pubkey.RecoverCompact(ss.GetHash(), vchSig))</span>
+<span class="lineNum">     197 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         return false;</span>
+<span class="lineNum">     198 </span>                :            : 
+<span class="lineNum">     199 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          4 :     return (pubkey.GetID() == *keyID);</span>
+<span class="lineNum">     200 </span>                :            : }
+<span class="lineNum">     201 </span>                :            : 
+<span class="lineNum">     202 </span>                :<span class="lineCov">          4 : static UniValue signmessagewithprivkey(const JSONRPCRequest&amp; request)</span>
+<span class="lineNum">     203 </span>                :            : {
+<span class="lineNum">     204 </span>[<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">          4 :     if (request.fHelp || request.params.size() != 2)</span>
+<span class="lineNum">     205 </span>                :            :         throw std::runtime_error(
+<span class="lineNum">     206 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         15 :             RPCHelpMan{&quot;signmessagewithprivkey&quot;,</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 13 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchCov" title="Branch 16 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 19 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>][<span class="branchCov" title="Branch 22 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 25 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span>][<span class="branchCov" title="Branch 28 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchCov" title="Branch 40 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 44 was taken 6 times"> + </span><span class="branchCov" title="Branch 45 was taken 3 times"> + </span>][<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>]
+<span class="lineNum">     207 </span>                :            :                 &quot;\nSign a message with the private key of an address\n&quot;,
+<span class="lineNum">     208 </span>                :            :                 {
+<span class="lineNum">     209 </span>                :            :                     {&quot;privkey&quot;, RPCArg::Type::STR, /* opt */ false, /* default_val */ &quot;&quot;, &quot;The private key to sign the message with.&quot;},
+<span class="lineNum">     210 </span>                :            :                     {&quot;message&quot;, RPCArg::Type::STR, /* opt */ false, /* default_val */ &quot;&quot;, &quot;The message to create a signature of.&quot;},
+<span class="lineNum">     211 </span>                :<span class="lineCov">          6 :                 }}</span>
+<span class="lineNum">     212 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          3 :                 .ToString() +</span>
+<span class="lineNum">     213 </span>                :            :             &quot;\nResult:\n&quot;
+<span class="lineNum">     214 </span>                :            :             &quot;\&quot;signature\&quot;          (string) The signature of the message encoded in base 64\n&quot;
+<span class="lineNum">     215 </span>                :            :             &quot;\nExamples:\n&quot;
+<span class="lineNum">     216 </span>                :            :             &quot;\nCreate the signature\n&quot;
+<span class="lineNum">     217 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :             + HelpExampleCli(&quot;signmessagewithprivkey&quot;, &quot;\&quot;privkey\&quot; \&quot;my message\&quot;&quot;) +</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 13 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>]
+<span class="lineNum">     218 </span>                :            :             &quot;\nVerify the signature\n&quot;
+<span class="lineNum">     219 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :             + HelpExampleCli(&quot;verifymessage&quot;, &quot;\&quot;1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\&quot; \&quot;signature\&quot; \&quot;my message\&quot;&quot;) +</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 13 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>]
+<span class="lineNum">     220 </span>                :            :             &quot;\nAs a JSON-RPC call\n&quot;
+<span class="lineNum">     221 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :             + HelpExampleRpc(&quot;signmessagewithprivkey&quot;, &quot;\&quot;privkey\&quot;, \&quot;my message\&quot;&quot;)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">     222 </span>        [<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          9 :         );</span>
+<span class="lineNum">     223 </span>                :            : 
+<span class="lineNum">     224 </span>                :<span class="lineCov">          1 :     std::string strPrivkey = request.params[0].get_str();</span>
+<span class="lineNum">     225 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     std::string strMessage = request.params[1].get_str();</span>
+<span class="lineNum">     226 </span>                :            : 
+<span class="lineNum">     227 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     CKey key = DecodeSecret(strPrivkey);</span>
+<span class="lineNum">     228 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :     if (!key.IsValid()) {</span>
+<span class="lineNum">     229 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, &quot;Invalid private key&quot;);</span>
+<span class="lineNum">     230 </span>                :            :     }
+<span class="lineNum">     231 </span>                :            : 
+<span class="lineNum">     232 </span>                :<span class="lineCov">          1 :     CHashWriter ss(SER_GETHASH, 0);</span>
+<span class="lineNum">     233 </span>                :<span class="lineCov">          1 :     ss &lt;&lt; strMessageMagic;</span>
+<span class="lineNum">     234 </span>                :<span class="lineCov">          1 :     ss &lt;&lt; strMessage;</span>
+<span class="lineNum">     235 </span>                :            : 
+<span class="lineNum">     236 </span>                :<span class="lineNoCov">          0 :     std::vector&lt;unsigned char&gt; vchSig;</span>
+<span class="lineNum">     237 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 1 time"> + </span>]:<span class="lineCov">          1 :     if (!key.SignCompact(ss.GetHash(), vchSig))</span>
+<span class="lineNum">     238 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, &quot;Sign failed&quot;);</span>
+<span class="lineNum">     239 </span>                :            : 
+<span class="lineNum">     240 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          2 :     return EncodeBase64(vchSig.data(), vchSig.size());</span>
+<span class="lineNum">     241 </span>                :            : }
+<span class="lineNum">     242 </span>                :            : 
+<span class="lineNum">     243 </span>                :<span class="lineCov">       1634 : static UniValue setmocktime(const JSONRPCRequest&amp; request)</span>
+<span class="lineNum">     244 </span>                :            : {
+<span class="lineNum">     245 </span>[<span class="branchCov" title="Branch 0 was taken 1634 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 1634 times"> + </span>]:<span class="lineCov">       1634 :     if (request.fHelp || request.params.size() != 1)</span>
+<span class="lineNum">     246 </span>                :            :         throw std::runtime_error(
+<span class="lineNum">     247 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             RPCHelpMan{&quot;setmocktime&quot;,</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>][<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 19 was not executed"> # </span><span class="branchNoExec" title="Branch 20 was not executed"> # </span>][<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 25 was not executed"> # </span><span class="branchNoExec" title="Branch 26 was not executed"> # </span>][<span class="branchNoExec" title="Branch 29 was not executed"> # </span><span class="branchNoExec" title="Branch 30 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>]
+<span class="lineNum">     248 </span>                :            :                 &quot;\nSet the local time to given timestamp (-regtest only)\n&quot;,
+<span class="lineNum">     249 </span>                :            :                 {
+<span class="lineNum">     250 </span>                :            :                     {&quot;timestamp&quot;, RPCArg::Type::NUM, /* opt */ false, /* default_val */ &quot;&quot;, &quot;Unix seconds-since-epoch timestamp\n&quot;
+<span class="lineNum">     251 </span>                :            :             &quot;   Pass 0 to go back to using the system time.&quot;},
+<span class="lineNum">     252 </span>                :<span class="lineNoCov">          0 :                 }}</span>
+<span class="lineNum">     253 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 .ToString()</span>
+<span class="lineNum">     254 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         );</span>
+<span class="lineNum">     255 </span>                :            : 
+<span class="lineNum">     256 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 1634 times"> + </span>]:<span class="lineCov">       1634 :     if (!Params().MineBlocksOnDemand())</span>
+<span class="lineNum">     257 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw std::runtime_error(&quot;setmocktime for regression testing (-regtest mode) only&quot;);</span>
+<span class="lineNum">     258 </span>                :            : 
+<span class="lineNum">     259 </span>                :            :     // For now, don't change mocktime if we're in the middle of validation, as
+<span class="lineNum">     260 </span>                :            :     // this could have an effect on mempool time-based eviction, as well as
+<span class="lineNum">     261 </span>                :            :     // IsCurrentForFeeEstimation() and IsInitialBlockDownload().
+<span class="lineNum">     262 </span>                :            :     // TODO: figure out the right way to synchronize around mocktime, and
+<span class="lineNum">     263 </span>                :            :     // ensure all call sites of GetTime() are accessing this safely.
+<span class="lineNum">     264 </span>                :<span class="lineCov">       1634 :     LOCK(cs_main);</span>
+<span class="lineNum">     265 </span>                :            : 
+<span class="lineNum">     266 </span>[<span class="branchCov" title="Branch 1 was taken 1634 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1634 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1634 :     RPCTypeCheck(request.params, {UniValue::VNUM});</span>
+<span class="lineNum">     267 </span>[<span class="branchCov" title="Branch 1 was taken 1634 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1634 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1634 :     SetMockTime(request.params[0].get_int64());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 1634 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     268 </span>                :            : 
+<span class="lineNum">     269 </span>        [<span class="branchCov" title="Branch 1 was taken 1634 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3268 :     return NullUniValue;</span>
+<span class="lineNum">     270 </span>                :            : }
+<span class="lineNum">     271 </span>                :            : 
+<span class="lineNum">     272 </span>                :<span class="lineCov">          2 : static UniValue RPCLockedMemoryInfo()</span>
+<span class="lineNum">     273 </span>                :            : {
+<span class="lineNum">     274 </span>                :<span class="lineCov">          2 :     LockedPool::Stats stats = LockedPoolManager::Instance().stats();</span>
+<span class="lineNum">     275 </span>[<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          2 :     UniValue obj(UniValue::VOBJ);</span>
+<span class="lineNum">     276 </span>[<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          2 :     obj.pushKV(&quot;used&quot;, uint64_t(stats.used));</span>
+<span class="lineNum">     277 </span>[<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          2 :     obj.pushKV(&quot;free&quot;, uint64_t(stats.free));</span>
+<span class="lineNum">     278 </span>[<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          2 :     obj.pushKV(&quot;total&quot;, uint64_t(stats.total));</span>
+<span class="lineNum">     279 </span>[<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          2 :     obj.pushKV(&quot;locked&quot;, uint64_t(stats.locked));</span>
+<span class="lineNum">     280 </span>[<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          2 :     obj.pushKV(&quot;chunks_used&quot;, uint64_t(stats.chunks_used));</span>
+<span class="lineNum">     281 </span>[<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          2 :     obj.pushKV(&quot;chunks_free&quot;, uint64_t(stats.chunks_free));</span>
+<span class="lineNum">     282 </span>                :<span class="lineCov">          2 :     return obj;</span>
+<span class="lineNum">     283 </span>                :            : }
+<a name="284"><span class="lineNum">     284 </span>                :            : </a>
+<span class="lineNum">     285 </span>                :            : #ifdef HAVE_MALLOC_INFO
+<span class="lineNum">     286 </span>                :<span class="lineNoCov">          0 : static std::string RPCMallocInfo()</span>
+<span class="lineNum">     287 </span>                :            : {
+<span class="lineNum">     288 </span>                :<span class="lineNoCov">          0 :     char *ptr = nullptr;</span>
+<span class="lineNum">     289 </span>                :<span class="lineNoCov">          0 :     size_t size = 0;</span>
+<span class="lineNum">     290 </span>                :<span class="lineNoCov">          0 :     FILE *f = open_memstream(&amp;ptr, &amp;size);</span>
+<span class="lineNum">     291 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (f) {</span>
+<span class="lineNum">     292 </span>                :<span class="lineNoCov">          0 :         malloc_info(0, f);</span>
+<span class="lineNum">     293 </span>                :<span class="lineNoCov">          0 :         fclose(f);</span>
+<span class="lineNum">     294 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (ptr) {</span>
+<span class="lineNum">     295 </span>                :<span class="lineNoCov">          0 :             std::string rv(ptr, size);</span>
+<span class="lineNum">     296 </span>                :<span class="lineNoCov">          0 :             free(ptr);</span>
+<span class="lineNum">     297 </span>                :<span class="lineNoCov">          0 :             return rv;</span>
+<span class="lineNum">     298 </span>                :            :         }
+<span class="lineNum">     299 </span>                :            :     }
+<span class="lineNum">     300 </span>                :<span class="lineNoCov">          0 :     return &quot;&quot;;</span>
+<span class="lineNum">     301 </span>                :            : }
+<span class="lineNum">     302 </span>                :            : #endif
+<span class="lineNum">     303 </span>                :            : 
+<span class="lineNum">     304 </span>                :<span class="lineCov">          5 : static UniValue getmemoryinfo(const JSONRPCRequest&amp; request)</span>
+<span class="lineNum">     305 </span>                :            : {
+<span class="lineNum">     306 </span>                :            :     /* Please, avoid using the word &quot;pool&quot; here in the RPC interface or help,
+<span class="lineNum">     307 </span>                :            :      * as users will undoubtedly confuse it with the other &quot;memory pool&quot;
+<span class="lineNum">     308 </span>                :            :      */
+<span class="lineNum">     309 </span>[<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          5 :     if (request.fHelp || request.params.size() &gt; 1)</span>
+<span class="lineNum">     310 </span>                :            :         throw std::runtime_error(
+<span class="lineNum">     311 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          9 :             RPCHelpMan{&quot;getmemoryinfo&quot;,</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 13 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchCov" title="Branch 16 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 19 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>][<span class="branchCov" title="Branch 22 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 25 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span>][<span class="branchCov" title="Branch 29 was taken 3 times"> + </span><span class="branchCov" title="Branch 30 was taken 3 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>]
+<span class="lineNum">     312 </span>                :            :                 &quot;Returns an object containing information about memory usage.\n&quot;,
+<span class="lineNum">     313 </span>                :            :                 {
+<span class="lineNum">     314 </span>                :            :                     {&quot;mode&quot;, RPCArg::Type::STR, /* opt */ true, /* default_val */ &quot;\&quot;stats\&quot;&quot;, &quot;determines what kind of information is returned.\n&quot;
+<span class="lineNum">     315 </span>                :            :             &quot;  - \&quot;stats\&quot; returns general statistics about memory usage in the daemon.\n&quot;
+<span class="lineNum">     316 </span>                :            :             &quot;  - \&quot;mallocinfo\&quot; returns an XML string describing low-level heap state (only available if compiled with glibc 2.10+).&quot;},
+<span class="lineNum">     317 </span>                :<span class="lineCov">          3 :                 }}</span>
+<span class="lineNum">     318 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          3 :                 .ToString() +</span>
+<span class="lineNum">     319 </span>                :            :             &quot;\nResult (mode \&quot;stats\&quot;):\n&quot;
+<span class="lineNum">     320 </span>                :            :             &quot;{\n&quot;
+<span class="lineNum">     321 </span>                :            :             &quot;  \&quot;locked\&quot;: {               (json object) Information about locked memory manager\n&quot;
+<span class="lineNum">     322 </span>                :            :             &quot;    \&quot;used\&quot;: xxxxx,          (numeric) Number of bytes used\n&quot;
+<span class="lineNum">     323 </span>                :            :             &quot;    \&quot;free\&quot;: xxxxx,          (numeric) Number of bytes available in current arenas\n&quot;
+<span class="lineNum">     324 </span>                :            :             &quot;    \&quot;total\&quot;: xxxxxxx,       (numeric) Total number of bytes managed\n&quot;
+<span class="lineNum">     325 </span>                :            :             &quot;    \&quot;locked\&quot;: xxxxxx,       (numeric) Amount of bytes that succeeded locking. If this number is smaller than total, locking pages failed at some point and key data could be swapped to disk.\n&quot;
+<span class="lineNum">     326 </span>                :            :             &quot;    \&quot;chunks_used\&quot;: xxxxx,   (numeric) Number allocated chunks\n&quot;
+<span class="lineNum">     327 </span>                :            :             &quot;    \&quot;chunks_free\&quot;: xxxxx,   (numeric) Number unused chunks\n&quot;
+<span class="lineNum">     328 </span>                :            :             &quot;  }\n&quot;
+<span class="lineNum">     329 </span>                :            :             &quot;}\n&quot;
+<span class="lineNum">     330 </span>                :            :             &quot;\nResult (mode \&quot;mallocinfo\&quot;):\n&quot;
+<span class="lineNum">     331 </span>                :            :             &quot;\&quot;&lt;malloc version=\&quot;1\&quot;&gt;...\&quot;\n&quot;
+<span class="lineNum">     332 </span>                :            :             &quot;\nExamples:\n&quot;
+<span class="lineNum">     333 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :             + HelpExampleCli(&quot;getmemoryinfo&quot;, &quot;&quot;)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">     334 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :             + HelpExampleRpc(&quot;getmemoryinfo&quot;, &quot;&quot;)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">     335 </span>        [<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          9 :         );</span>
+<span class="lineNum">     336 </span>                :            : 
+<span class="lineNum">     337 </span>[<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          4 :     std::string mode = request.params[0].isNull() ? &quot;stats&quot; : request.params[0].get_str();</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">     338 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :     if (mode == &quot;stats&quot;) {</span>
+<span class="lineNum">     339 </span>[<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          4 :         UniValue obj(UniValue::VOBJ);</span>
+<span class="lineNum">     340 </span>[<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          4 :         obj.pushKV(&quot;locked&quot;, RPCLockedMemoryInfo());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     341 </span>        [<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :         return obj;</span>
+<span class="lineNum">     342 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     } else if (mode == &quot;mallocinfo&quot;) {</span>
+<span class="lineNum">     343 </span>                :            : #ifdef HAVE_MALLOC_INFO
+<span class="lineNum">     344 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         return RPCMallocInfo();</span>
+<span class="lineNum">     345 </span>                :            : #else
+<span class="lineNum">     346 </span>                :            :         throw JSONRPCError(RPC_INVALID_PARAMETER, &quot;mallocinfo is only available when compiled with glibc 2.10+&quot;);
+<span class="lineNum">     347 </span>                :            : #endif
+<span class="lineNum">     348 </span>                :            :     } else {
+<span class="lineNum">     349 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw JSONRPCError(RPC_INVALID_PARAMETER, &quot;unknown mode &quot; + mode);</span>
+<span class="lineNum">     350 </span>                :            :     }
+<span class="lineNum">     351 </span>                :            : }
+<span class="lineNum">     352 </span>                :            : 
+<span class="lineNum">     353 </span>                :<span class="lineNoCov">          0 : static void EnableOrDisableLogCategories(UniValue cats, bool enable) {</span>
+<span class="lineNum">     354 </span>                :<span class="lineNoCov">          0 :     cats = cats.get_array();</span>
+<span class="lineNum">     355 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     for (unsigned int i = 0; i &lt; cats.size(); ++i) {</span>
+<span class="lineNum">     356 </span>                :<span class="lineNoCov">          0 :         std::string cat = cats[i].get_str();</span>
+<span class="lineNum">     357 </span>                :            : 
+<span class="lineNum">     358 </span>                :            :         bool success;
+<span class="lineNum">     359 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (enable) {</span>
+<span class="lineNum">     360 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             success = g_logger-&gt;EnableCategory(cat);</span>
+<span class="lineNum">     361 </span>                :            :         } else {
+<span class="lineNum">     362 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             success = g_logger-&gt;DisableCategory(cat);</span>
+<span class="lineNum">     363 </span>                :            :         }
+<span class="lineNum">     364 </span>                :            : 
+<span class="lineNum">     365 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!success) {</span>
+<span class="lineNum">     366 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw JSONRPCError(RPC_INVALID_PARAMETER, &quot;unknown logging category &quot; + cat);</span>
+<span class="lineNum">     367 </span>                :            :         }
+<span class="lineNum">     368 </span>                :            :     }
+<span class="lineNum">     369 </span>                :<span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     370 </span>                :            : 
+<span class="lineNum">     371 </span>                :<span class="lineCov">          3 : UniValue logging(const JSONRPCRequest&amp; request)</span>
+<span class="lineNum">     372 </span>                :            : {
+<span class="lineNum">     373 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">          3 :     if (request.fHelp || request.params.size() &gt; 2) {</span>
+<span class="lineNum">     374 </span>                :            :         throw std::runtime_error(
+<span class="lineNum">     375 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         30 :             RPCHelpMan{&quot;logging&quot;,</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 13 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchCov" title="Branch 16 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 19 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>][<span class="branchCov" title="Branch 22 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 25 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span>][<span class="branchCov" title="Branch 28 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchCov" title="Branch 40 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 43 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 44 was not taken"> - </span>][<span class="branchCov" title="Branch 46 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 47 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 49 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 50 was not taken"> - </span>][<span class="branchCov" title="Branch 52 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 53 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 55 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 56 was not taken"> - </span>][<span class="branchCov" title="Branch 58 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 59 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 61 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 62 was not taken"> - </span>][<span class="branchCov" title="Branch 64 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 65 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 67 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 68 was not taken"> - </span>][<span class="branchCov" title="Branch 70 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 71 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 73 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 74 was not taken"> - </span>][<span class="branchCov" title="Branch 77 was taken 6 times"> + </span><span class="branchCov" title="Branch 78 was taken 3 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 81 was taken 3 times"> + </span><span class="branchCov" title="Branch 82 was taken 3 times"> + </span>][<span class="branchCov" title="Branch 86 was taken 3 times"> + </span><span class="branchCov" title="Branch 87 was taken 3 times"> + </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 91 was not executed"> # </span><span class="branchNoExec" title="Branch 92 was not executed"> # </span><span class="branchNoExec" title="Branch 95 was not executed"> # </span><span class="branchNoExec" title="Branch 96 was not executed"> # </span> 
+<span class="lineNum">         </span>         <span class="branchNoExec" title="Branch 100 was not executed"> # </span><span class="branchNoExec" title="Branch 101 was not executed"> # </span>]
+<span class="lineNum">     376 </span>                :            :             &quot;Gets and sets the logging configuration.\n&quot;
+<span class="lineNum">     377 </span>                :            :             &quot;When called without an argument, returns the list of categories with status that are currently being debug logged or not.\n&quot;
+<span class="lineNum">     378 </span>                :            :             &quot;When called with arguments, adds or removes categories from debug logging and return the lists above.\n&quot;
+<span class="lineNum">     379 </span>                :            :             &quot;The arguments are evaluated in order \&quot;include\&quot;, \&quot;exclude\&quot;.\n&quot;
+<span class="lineNum">     380 </span>                :            :             &quot;If an item is both included and excluded, it will thus end up being excluded.\n&quot;
+<span class="lineNum">     381 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          3 :             &quot;The valid logging categories are: &quot; + ListLogCategories() + &quot;\n&quot;</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     382 </span>                :            :             &quot;In addition, the following are available as category names with special meanings:\n&quot;
+<span class="lineNum">     383 </span>                :            :             &quot;  - \&quot;all\&quot;,  \&quot;1\&quot; : represent all logging categories.\n&quot;
+<span class="lineNum">     384 </span>                :            :             &quot;  - \&quot;none\&quot;, \&quot;0\&quot; : even if other logging categories are specified, ignore all of them.\n&quot;
+<span class="lineNum">     385 </span>                :            :             ,
+<span class="lineNum">     386 </span>                :            :                 {
+<span class="lineNum">     387 </span>                :            :                     {&quot;include&quot;, RPCArg::Type::ARR, /* opt */ true, /* default_val */ &quot;null&quot;, &quot;A json array of categories to add debug logging&quot;,
+<span class="lineNum">     388 </span>                :            :                         {
+<span class="lineNum">     389 </span>                :            :                             {&quot;include_category&quot;, RPCArg::Type::STR, /* opt */ false, /* default_val */ &quot;&quot;, &quot;the valid logging category&quot;},
+<span class="lineNum">     390 </span>                :            :                         }},
+<span class="lineNum">     391 </span>                :            :                     {&quot;exclude&quot;, RPCArg::Type::ARR, /* opt */ true, /* default_val */ &quot;null&quot;, &quot;A json array of categories to remove debug logging&quot;,
+<span class="lineNum">     392 </span>                :            :                         {
+<span class="lineNum">     393 </span>                :            :                             {&quot;exclude_category&quot;, RPCArg::Type::STR, /* opt */ false, /* default_val */ &quot;&quot;, &quot;the valid logging category&quot;},
+<span class="lineNum">     394 </span>                :            :                         }},
+<span class="lineNum">     395 </span>                :<span class="lineCov">         12 :                 }}</span>
+<span class="lineNum">     396 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          3 :                 .ToString() +</span>
+<span class="lineNum">     397 </span>                :            :             &quot;\nResult:\n&quot;
+<span class="lineNum">     398 </span>                :            :             &quot;{                   (json object where keys are the logging categories, and values indicates its status\n&quot;
+<span class="lineNum">     399 </span>                :            :             &quot;  \&quot;category\&quot;: 0|1,  (numeric) if being debug logged or not. 0:inactive, 1:active\n&quot;
+<span class="lineNum">     400 </span>                :            :             &quot;  ...\n&quot;
+<span class="lineNum">     401 </span>                :            :             &quot;}\n&quot;
+<span class="lineNum">     402 </span>                :            :             &quot;\nExamples:\n&quot;
+<span class="lineNum">     403 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :             + HelpExampleCli(&quot;logging&quot;, &quot;\&quot;[\\\&quot;all\\\&quot;]\&quot; \&quot;[\\\&quot;http\\\&quot;]\&quot;&quot;)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">     404 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :             + HelpExampleRpc(&quot;logging&quot;, &quot;[\&quot;all\&quot;], \&quot;[libevent]\&quot;&quot;)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">     405 </span>        [<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          9 :         );</span>
+<span class="lineNum">     406 </span>                :            :     }
+<span class="lineNum">     407 </span>                :            : 
+<span class="lineNum">     408 </span>                :<span class="lineNoCov">          0 :     uint32_t original_log_categories = g_logger-&gt;GetCategoryMask();</span>
+<span class="lineNum">     409 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (request.params[0].isArray()) {</span>
+<span class="lineNum">     410 </span>        [<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :         EnableOrDisableLogCategories(request.params[0], true);</span>
+<span class="lineNum">     411 </span>                :            :     }
+<span class="lineNum">     412 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (request.params[1].isArray()) {</span>
+<span class="lineNum">     413 </span>        [<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :         EnableOrDisableLogCategories(request.params[1], false);</span>
+<span class="lineNum">     414 </span>                :            :     }
+<span class="lineNum">     415 </span>                :<span class="lineNoCov">          0 :     uint32_t updated_log_categories = g_logger-&gt;GetCategoryMask();</span>
+<span class="lineNum">     416 </span>                :<span class="lineNoCov">          0 :     uint32_t changed_log_categories = original_log_categories ^ updated_log_categories;</span>
+<span class="lineNum">     417 </span>                :            : 
+<span class="lineNum">     418 </span>                :            :     // Update libevent logging if BCLog::LIBEVENT has changed.
+<span class="lineNum">     419 </span>                :            :     // If the library version doesn't allow it, UpdateHTTPServerLogging() returns false,
+<span class="lineNum">     420 </span>                :            :     // in which case we should clear the BCLog::LIBEVENT flag.
+<span class="lineNum">     421 </span>                :            :     // Throw an error if the user has explicitly asked to change only the libevent
+<span class="lineNum">     422 </span>                :            :     // flag and it failed.
+<span class="lineNum">     423 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (changed_log_categories &amp; BCLog::LIBEVENT) {</span>
+<span class="lineNum">     424 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!UpdateHTTPServerLogging(g_logger-&gt;WillLogCategory(BCLog::LIBEVENT))) {</span>
+<span class="lineNum">     425 </span>                :<span class="lineNoCov">          0 :             g_logger-&gt;DisableCategory(BCLog::LIBEVENT);</span>
+<span class="lineNum">     426 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (changed_log_categories == BCLog::LIBEVENT) {</span>
+<span class="lineNum">     427 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw JSONRPCError(RPC_INVALID_PARAMETER, &quot;libevent logging cannot be updated when using libevent before v2.1.1.&quot;);</span>
+<span class="lineNum">     428 </span>                :            :             }
+<span class="lineNum">     429 </span>                :            :         }
+<span class="lineNum">     430 </span>                :            :     }
+<span class="lineNum">     431 </span>                :            : 
+<span class="lineNum">     432 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :     UniValue result(UniValue::VOBJ);</span>
+<span class="lineNum">     433 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     std::vector&lt;CLogCategoryActive&gt; vLogCatActive = ListActiveLogCategories();</span>
+<span class="lineNum">     434 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     for (const auto&amp; logCatActive : vLogCatActive) {</span>
+<span class="lineNum">     435 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         result.pushKV(logCatActive.category, logCatActive.active);</span>
+<span class="lineNum">     436 </span>                :            :     }
+<span class="lineNum">     437 </span>                :            : 
+<span class="lineNum">     438 </span>                :<span class="lineNoCov">          0 :     return result;</span>
+<span class="lineNum">     439 </span>                :            : }
+<span class="lineNum">     440 </span>                :            : 
+<span class="lineNum">     441 </span>                :<span class="lineCov">          6 : static UniValue echo(const JSONRPCRequest&amp; request)</span>
+<span class="lineNum">     442 </span>                :            : {
+<span class="lineNum">     443 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>]:<span class="lineCov">          6 :     if (request.fHelp)</span>
+<span class="lineNum">     444 </span>                :            :         throw std::runtime_error(
+<span class="lineNum">     445 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             RPCHelpMan{&quot;echo|echojson ...&quot;,</span>
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>]
+<span class="lineNum">     446 </span>                :            :                 &quot;\nSimply echo back the input arguments. This command is for testing.\n&quot;
+<span class="lineNum">     447 </span>                :            :                 &quot;\nThe difference between echo and echojson is that echojson has argument conversion enabled in the client-side table in &quot;
+<span class="lineNum">     448 </span>                :            :                 &quot;bitcoin-cli and the GUI. There is no server-side difference.&quot;,
+<span class="lineNum">     449 </span>                :            :                 {}}
+<span class="lineNum">     450 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 .ToString() +</span>
+<span class="lineNum">     451 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             &quot;&quot;);</span>
+<span class="lineNum">     452 </span>                :            : 
+<span class="lineNum">     453 </span>                :<span class="lineCov">          6 :     return request.params;</span>
+<span class="lineNum">     454 </span>                :            : }
+<a name="455"><span class="lineNum">     455 </span>                :            : </a>
+<span class="lineNum">     456 </span>                :            : // clang-format off
+<span class="lineNum">     457 </span>        [<span class="branchCov" title="Branch 1 was taken 4248 times"> + </span><span class="branchCov" title="Branch 2 was taken 472 times"> + </span>]:<span class="lineCov">       5664 : static const CRPCCommand commands[] =</span>
+<span class="lineNum">     458 </span>                :            : { //  category              name                      actor (function)         argNames
+<span class="lineNum">     459 </span>                :            :   //  --------------------- ------------------------  -----------------------  ----------
+<span class="lineNum">     460 </span>                :            :     { &quot;control&quot;,            &quot;getmemoryinfo&quot;,          &amp;getmemoryinfo,          {&quot;mode&quot;} },
+<span class="lineNum">     461 </span>                :            :     { &quot;control&quot;,            &quot;logging&quot;,                &amp;logging,                {&quot;include&quot;, &quot;exclude&quot;}},
+<span class="lineNum">     462 </span>                :            :     { &quot;util&quot;,               &quot;validateaddress&quot;,        &amp;validateaddress,        {&quot;address&quot;} },
+<span class="lineNum">     463 </span>                :            :     { &quot;util&quot;,               &quot;createmultisig&quot;,         &amp;createmultisig,         {&quot;nrequired&quot;,&quot;keys&quot;,&quot;address_type&quot;} },
+<span class="lineNum">     464 </span>                :            :     { &quot;util&quot;,               &quot;verifymessage&quot;,          &amp;verifymessage,          {&quot;address&quot;,&quot;signature&quot;,&quot;message&quot;} },
+<span class="lineNum">     465 </span>                :            :     { &quot;util&quot;,               &quot;signmessagewithprivkey&quot;, &amp;signmessagewithprivkey, {&quot;privkey&quot;,&quot;message&quot;} },
+<span class="lineNum">     466 </span>                :            : 
+<span class="lineNum">     467 </span>                :            :     /* Not shown in help */
+<span class="lineNum">     468 </span>                :            :     { &quot;hidden&quot;,             &quot;setmocktime&quot;,            &amp;setmocktime,            {&quot;timestamp&quot;}},
+<span class="lineNum">     469 </span>                :            :     { &quot;hidden&quot;,             &quot;echo&quot;,                   &amp;echo,                   {&quot;arg0&quot;,&quot;arg1&quot;,&quot;arg2&quot;,&quot;arg3&quot;,&quot;arg4&quot;,&quot;arg5&quot;,&quot;arg6&quot;,&quot;arg7&quot;,&quot;arg8&quot;,&quot;arg9&quot;}},
+<span class="lineNum">     470 </span>                :            :     { &quot;hidden&quot;,             &quot;echojson&quot;,               &amp;echo,                   {&quot;arg0&quot;,&quot;arg1&quot;,&quot;arg2&quot;,&quot;arg3&quot;,&quot;arg4&quot;,&quot;arg5&quot;,&quot;arg6&quot;,&quot;arg7&quot;,&quot;arg8&quot;,&quot;arg9&quot;}},
+<span class="lineNum">     471 </span>[<span class="branchCov" title="Branch 1 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      16048 : };</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchNoCov" title="Branch 10 was not taken"> - </span><span class="branchCov" title="Branch 11 was taken 472 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 12 was taken 472 times"> + </span><span class="branchCov" title="Branch 13 was taken 472 times"> + </span>][<span class="branchCov" title="Branch 15 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 16 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 18 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span>][<span class="branchCov" title="Branch 21 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 22 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchNoCov" title="Branch 27 was not taken"> - </span><span class="branchCov" title="Branch 28 was taken 472 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 29 was taken 944 times"> + </span><span class="branchCov" title="Branch 30 was taken 472 times"> + </span>][<span class="branchCov" title="Branch 32 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 33 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 35 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 36 was not taken"> - </span>][<span class="branchCov" title="Branch 38 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 39 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 41 was not taken"> - </span><span class="branchCov" title="Branch 42 was taken 472 times"> + </span>][<span class="branchCov" title="Branch 43 was taken 472 times"> + </span><span class="branchCov" title="Branch 44 was taken 472 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 46 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 47 was not taken"> - </span>][<span class="branchCov" title="Branch 49 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 50 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 52 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 53 was not taken"> - </span>][<span class="branchCov" title="Branch 55 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 56 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 58 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 59 was not taken"> - </span>][<span class="branchNoCov" title="Branch 61 was not taken"> - </span><span class="branchCov" title="Branch 62 was taken 472 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 63 was taken 1416 times"> + </span><span class="branchCov" title="Branch 64 was taken 472 times"> + </span>][<span class="branchCov" title="Branch 66 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 67 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 69 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 70 was not taken"> - </span>][<span class="branchCov" title="Branch 72 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 73 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 75 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 76 was not taken"> - </span>][<span class="branchCov" title="Branch 78 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 79 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 81 was not taken"> - </span><span class="branchCov" title="Branch 82 was taken 472 times"> + </span>][<span class="branchCov" title="Branch 83 was taken 1416 times"> + </span><span class="branchCov" title="Branch 84 was taken 472 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 86 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 87 was not taken"> - </span>][<span class="branchCov" title="Branch 89 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 90 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 92 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 93 was not taken"> - </span>][<span class="branchCov" title="Branch 95 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 96 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 98 was not taken"> - </span><span class="branchCov" title="Branch 99 was taken 472 times"> + </span>][<span class="branchCov" title="Branch 100 was taken 944 times"> + </span><span class="branchCov" title="Branch 101 was taken 472 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 103 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 104 was not taken"> - </span>][<span class="branchCov" title="Branch 106 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 107 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 109 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 110 was not taken"> - </span>][<span class="branchNoCov" title="Branch 112 was not taken"> - </span><span class="branchCov" title="Branch 113 was taken 472 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 114 was taken 472 times"> + </span><span class="branchCov" title="Branch 115 was taken 472 times"> + </span>][<span class="branchCov" title="Branch 117 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 118 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 120 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 121 was not taken"> - </span>][<span class="branchCov" title="Branch 123 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 124 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 126 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 127 was not taken"> - </span>][<span class="branchCov" title="Branch 129 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 130 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 132 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 133 was not taken"> - </span>][<span class="branchCov" title="Branch 135 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 136 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 138 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 139 was not taken"> - </span>][<span class="branchCov" title="Branch 141 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 142 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 144 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 145 was not taken"> - </span>][<span class="branchCov" title="Branch 147 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 148 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 150 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 151 was not taken"> - </span>][<span class="branchNoCov" title="Branch 153 was not taken"> - </span><span class="branchCov" title="Branch 154 was taken 472 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 155 was taken 4720 times"> + </span><span class="branchCov" title="Branch 156 was taken 472 times"> + </span>][<span class="branchCov" title="Branch 158 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 159 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 161 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 162 was not taken"> - </span>][<span class="branchCov" title="Branch 164 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 165 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 167 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 168 was not taken"> - </span>][<span class="branchCov" title="Branch 170 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 171 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 173 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 174 was not taken"> - </span>][<span class="branchCov" title="Branch 176 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 177 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 179 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 180 was not taken"> - </span>][<span class="branchCov" title="Branch 182 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 183 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 185 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 186 was not taken"> - </span>][<span class="branchCov" title="Branch 188 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 189 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 191 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 192 was not taken"> - </span>][<span class="branchNoCov" title="Branch 194 was not taken"> - </span><span class="branchCov" title="Branch 195 was taken 472 times"> + </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 196 was taken 4720 times"> + </span><span class="branchCov" title="Branch 197 was taken 472 times"> + </span><span class="branchNoExec" title="Branch 198 was not executed"> # </span><span class="branchNoExec" title="Branch 199 was not executed"> # </span> 
+<span class="lineNum">         </span><span class="branchNoExec" title="Branch 200 was not executed"> # </span><span class="branchNoExec" title="Branch 201 was not executed"> # </span><span class="branchNoExec" title="Branch 202 was not executed"> # </span><span class="branchNoExec" title="Branch 203 was not executed"> # </span><span class="branchNoExec" title="Branch 204 was not executed"> # </span> 
+<span class="lineNum">         </span><span class="branchNoExec" title="Branch 205 was not executed"> # </span><span class="branchNoExec" title="Branch 206 was not executed"> # </span><span class="branchNoExec" title="Branch 207 was not executed"> # </span><span class="branchNoExec" title="Branch 208 was not executed"> # </span><span class="branchNoExec" title="Branch 209 was not executed"> # </span> 
+<span class="lineNum">         </span><span class="branchNoExec" title="Branch 210 was not executed"> # </span><span class="branchNoExec" title="Branch 211 was not executed"> # </span><span class="branchNoExec" title="Branch 212 was not executed"> # </span><span class="branchNoExec" title="Branch 213 was not executed"> # </span><span class="branchNoExec" title="Branch 214 was not executed"> # </span> 
+<span class="lineNum">         </span>      <span class="branchNoExec" title="Branch 215 was not executed"> # </span><span class="branchNoExec" title="Branch 216 was not executed"> # </span><span class="branchNoExec" title="Branch 217 was not executed"> # </span>]
+<a name="472"><span class="lineNum">     472 </span>                :            : // clang-format on</a>
+<span class="lineNum">     473 </span>                :            : 
+<span class="lineNum">     474 </span>                :<span class="lineCov">        439 : void RegisterMiscRPCCommands(CRPCTable &amp;t)</span>
+<span class="lineNum">     475 </span>                :            : {
+<a name="476"><span class="lineNum">     476 </span>        [<span class="branchCov" title="Branch 0 was taken 3951 times"> + </span><span class="branchCov" title="Branch 1 was taken 439 times"> + </span>]:<span class="lineCov">       4390 :     for (unsigned int vcidx = 0; vcidx &lt; ARRAYLEN(commands); vcidx++)</span></a>
+<span class="lineNum">     477 </span>                :<span class="lineCov">       3951 :         t.appendCommand(commands[vcidx].name, &amp;commands[vcidx]);</span>
+<span class="lineNum">     478 </span>[<span class="branchCov" title="Branch 1 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1888 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

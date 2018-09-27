@@ -1,0 +1,414 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/wallet/coinselection.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/wallet</a> - coinselection.cpp<span style="font-size: 80%;"> (source / <a href="coinselection.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">136</td>
+            <td class="headerCovTableEntry">139</td>
+            <td class="headerCovTableEntryHi">97.8 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">121</td>
+            <td class="headerCovTableEntry">154</td>
+            <td class="headerCovTableEntryMed">78.6 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2017-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #include &lt;wallet/coinselection.h&gt;
+<span class="lineNum">       6 </span>                :            : 
+<span class="lineNum">       7 </span>                :            : #include &lt;util/system.h&gt;
+<span class="lineNum">       8 </span>                :            : #include &lt;util/moneystr.h&gt;
+<span class="lineNum">       9 </span>                :            : 
+<span class="lineNum">      10 </span>                :            : #include &lt;boost/optional.hpp&gt;
+<span class="lineNum">      11 </span>                :            : 
+<span class="lineNum">      12 </span>                :            : // Descending order comparator
+<span class="lineNum">      13 </span>                :            : struct {
+<span class="lineNum">      14 </span>                :            :     bool operator()(const OutputGroup&amp; a, const OutputGroup&amp; b) const
+<span class="lineNum">      15 </span>                :            :     {
+<span class="lineNum">      16 </span>                :<span class="lineCov">    4035644 :         return a.effective_value &gt; b.effective_value;</span>
+<span class="lineNum">      17 </span>                :            :     }
+<span class="lineNum">      18 </span>                :            : } descending;
+<span class="lineNum">      19 </span>                :            : 
+<span class="lineNum">      20 </span>                :            : /*
+<span class="lineNum">      21 </span>                :            :  * This is the Branch and Bound Coin Selection algorithm designed by Murch. It searches for an input
+<span class="lineNum">      22 </span>                :            :  * set that can pay for the spending target and does not exceed the spending target by more than the
+<span class="lineNum">      23 </span>                :            :  * cost of creating and spending a change output. The algorithm uses a depth-first search on a binary
+<span class="lineNum">      24 </span>                :            :  * tree. In the binary tree, each node corresponds to the inclusion or the omission of a UTXO. UTXOs
+<span class="lineNum">      25 </span>                :            :  * are sorted by their effective values and the trees is explored deterministically per the inclusion
+<span class="lineNum">      26 </span>                :            :  * branch first. At each node, the algorithm checks whether the selection is within the target range.
+<span class="lineNum">      27 </span>                :            :  * While the selection has not reached the target range, more UTXOs are included. When a selection's
+<span class="lineNum">      28 </span>                :            :  * value exceeds the target range, the complete subtree deriving from this selection can be omitted.
+<span class="lineNum">      29 </span>                :            :  * At that point, the last included UTXO is deselected and the corresponding omission branch explored
+<span class="lineNum">      30 </span>                :            :  * instead. The search ends after the complete tree has been searched or after a limited number of tries.
+<span class="lineNum">      31 </span>                :            :  *
+<span class="lineNum">      32 </span>                :            :  * The search continues to search for better solutions after one solution has been found. The best
+<span class="lineNum">      33 </span>                :            :  * solution is chosen by minimizing the waste metric. The waste metric is defined as the cost to
+<span class="lineNum">      34 </span>                :            :  * spend the current inputs at the given fee rate minus the long term expected cost to spend the
+<span class="lineNum">      35 </span>                :            :  * inputs, plus the amount the selection exceeds the spending target:
+<span class="lineNum">      36 </span>                :            :  *
+<span class="lineNum">      37 </span>                :            :  * waste = selectionTotal - target + inputs × (currentFeeRate - longTermFeeRate)
+<span class="lineNum">      38 </span>                :            :  *
+<span class="lineNum">      39 </span>                :            :  * The algorithm uses two additional optimizations. A lookahead keeps track of the total value of
+<span class="lineNum">      40 </span>                :            :  * the unexplored UTXOs. A subtree is not explored if the lookahead indicates that the target range
+<span class="lineNum">      41 </span>                :            :  * cannot be reached. Further, it is unnecessary to test equivalent combinations. This allows us
+<span class="lineNum">      42 </span>                :            :  * to skip testing the inclusion of UTXOs that match the effective value and waste of an omitted
+<span class="lineNum">      43 </span>                :            :  * predecessor.
+<span class="lineNum">      44 </span>                :            :  *
+<span class="lineNum">      45 </span>                :            :  * The Branch and Bound algorithm is described in detail in Murch's Master Thesis:
+<span class="lineNum">      46 </span>                :            :  * https://murch.one/wp-content/uploads/2016/11/erhardt2016coinselection.pdf
+<span class="lineNum">      47 </span>                :            :  *
+<span class="lineNum">      48 </span>                :            :  * @param const std::vector&lt;CInputCoin&gt;&amp; utxo_pool The set of UTXOs that we are choosing from.
+<span class="lineNum">      49 </span>                :            :  *        These UTXOs will be sorted in descending order by effective value and the CInputCoins'
+<span class="lineNum">      50 </span>                :            :  *        values are their effective values.
+<span class="lineNum">      51 </span>                :            :  * @param const CAmount&amp; target_value This is the value that we want to select. It is the lower
+<span class="lineNum">      52 </span>                :            :  *        bound of the range.
+<span class="lineNum">      53 </span>                :            :  * @param const CAmount&amp; cost_of_change This is the cost of creating and spending a change output.
+<span class="lineNum">      54 </span>                :            :  *        This plus target_value is the upper bound of the range.
+<span class="lineNum">      55 </span>                :            :  * @param std::set&lt;CInputCoin&gt;&amp; out_set -&gt; This is an output parameter for the set of CInputCoins
+<span class="lineNum">      56 </span>                :            :  *        that have been selected.
+<span class="lineNum">      57 </span>                :            :  * @param CAmount&amp; value_ret -&gt; This is an output parameter for the total value of the CInputCoins
+<span class="lineNum">      58 </span>                :            :  *        that were selected.
+<span class="lineNum">      59 </span>                :            :  * @param CAmount not_input_fees -&gt; The fees that need to be paid for the outputs and fixed size
+<span class="lineNum">      60 </span>                :            :  *        overhead (version, locktime, marker and flag)
+<span class="lineNum">      61 </span>                :            :  */
+<span class="lineNum">      62 </span>                :            : 
+<span class="lineNum">      63 </span>                :            : static const size_t TOTAL_TRIES = 100000;
+<span class="lineNum">      64 </span>                :            : 
+<span class="lineNum">      65 </span>                :<span class="lineCov">       4377 : bool SelectCoinsBnB(std::vector&lt;OutputGroup&gt;&amp; utxo_pool, const CAmount&amp; target_value, const CAmount&amp; cost_of_change, std::set&lt;CInputCoin&gt;&amp; out_set, CAmount&amp; value_ret, CAmount not_input_fees)</span>
+<span class="lineNum">      66 </span>                :            : {
+<span class="lineNum">      67 </span>                :<span class="lineCov">       4377 :     out_set.clear();</span>
+<span class="lineNum">      68 </span>                :<span class="lineCov">       4377 :     CAmount curr_value = 0;</span>
+<span class="lineNum">      69 </span>                :            : 
+<span class="lineNum">      70 </span>                :<span class="lineCov">       4377 :     std::vector&lt;bool&gt; curr_selection; // select the utxo at this index</span>
+<span class="lineNum">      71 </span>        [<span class="branchCov" title="Branch 1 was taken 4377 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       4377 :     curr_selection.reserve(utxo_pool.size());</span>
+<span class="lineNum">      72 </span>                :<span class="lineCov">       4377 :     CAmount actual_target = not_input_fees + target_value;</span>
+<span class="lineNum">      73 </span>                :            : 
+<span class="lineNum">      74 </span>                :            :     // Calculate curr_available_value
+<span class="lineNum">      75 </span>                :<span class="lineCov">       4377 :     CAmount curr_available_value = 0;</span>
+<span class="lineNum">      76 </span>        [<span class="branchCov" title="Branch 0 was taken 260261 times"> + </span><span class="branchCov" title="Branch 1 was taken 4377 times"> + </span>]:<span class="lineCov">     264638 :     for (const OutputGroup&amp; utxo : utxo_pool) {</span>
+<span class="lineNum">      77 </span>                :            :         // Assert that this utxo is not negative. It should never be negative, effective value calculation should have removed it
+<span class="lineNum">      78 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 260261 times"> + </span>]:<span class="lineCov">     260261 :         assert(utxo.effective_value &gt; 0);</span>
+<span class="lineNum">      79 </span>                :<span class="lineCov">     260261 :         curr_available_value += utxo.effective_value;</span>
+<span class="lineNum">      80 </span>                :            :     }
+<span class="lineNum">      81 </span>        [<span class="branchCov" title="Branch 0 was taken 3859 times"> + </span><span class="branchCov" title="Branch 1 was taken 518 times"> + </span>]:<span class="lineCov">       4377 :     if (curr_available_value &lt; actual_target) {</span>
+<span class="lineNum">      82 </span>                :            :         return false;
+<span class="lineNum">      83 </span>                :            :     }
+<span class="lineNum">      84 </span>                :            : 
+<span class="lineNum">      85 </span>                :            :     // Sort the utxo_pool
+<span class="lineNum">      86 </span>                :<span class="lineCov">       7718 :     std::sort(utxo_pool.begin(), utxo_pool.end(), descending);</span>
+<span class="lineNum">      87 </span>                :            : 
+<span class="lineNum">      88 </span>                :<span class="lineCov">       3859 :     CAmount curr_waste = 0;</span>
+<span class="lineNum">      89 </span>                :<span class="lineNoCov">          0 :     std::vector&lt;bool&gt; best_selection;</span>
+<span class="lineNum">      90 </span>                :<span class="lineCov">       3859 :     CAmount best_waste = MAX_MONEY;</span>
+<span class="lineNum">      91 </span>                :            : 
+<span class="lineNum">      92 </span>                :            :     // Depth First search loop for choosing the UTXOs
+<span class="lineNum">      93 </span>        [<span class="branchCov" title="Branch 0 was taken 19581268 times"> + </span><span class="branchCov" title="Branch 1 was taken 193 times"> + </span>]:<span class="lineCov">   19581461 :     for (size_t i = 0; i &lt; TOTAL_TRIES; ++i) {</span>
+<span class="lineNum">      94 </span>                :            :         // Conditions for starting a backtrack
+<span class="lineNum">      95 </span>                :<span class="lineCov">   19581268 :         bool backtrack = false;</span>
+<span class="lineNum">      96 </span>        [<span class="branchCov" title="Branch 0 was taken 14644798 times"> + </span><span class="branchCov" title="Branch 1 was taken 2069697 times"> + </span>]:<span class="lineCov">   16714495 :         if (curr_value + curr_available_value &lt; actual_target ||                // Cannot possibly reach target with the amount remaining in the curr_available_value.</span>
+<span class="lineNum">      97 </span>[<span class="branchCov" title="Branch 0 was taken 16714495 times"> + </span><span class="branchCov" title="Branch 1 was taken 2866773 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 14644798 times"> + </span>]:<span class="lineCov">   34226066 :             curr_value &gt; actual_target + cost_of_change ||    // Selected value is out of range, go back and try other branch</span>
+<span class="lineNum">      98 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             (curr_waste &gt; best_waste &amp;&amp; (utxo_pool.at(0).fee - utxo_pool.at(0).long_term_fee) &gt; 0)) { // Don't select things which we know will be more wasteful if the waste is increasing</span>
+<span class="lineNum">      99 </span>                :            :             backtrack = true;
+<span class="lineNum">     100 </span>        [<span class="branchCov" title="Branch 0 was taken 2733624 times"> + </span><span class="branchCov" title="Branch 1 was taken 11911174 times"> + </span>]:<span class="lineCov">   14644798 :         } else if (curr_value &gt;= actual_target) {       // Selected value is within range</span>
+<span class="lineNum">     101 </span>                :<span class="lineCov">    2733624 :             curr_waste += (curr_value - actual_target); // This is the excess value which is added to the waste for the below comparison</span>
+<span class="lineNum">     102 </span>                :            :             // Adding another UTXO after this check could bring the waste down if the long term fee is higher than the current fee.
+<span class="lineNum">     103 </span>                :            :             // However we are not going to explore that because this optimization for the waste is only done when we have hit our target
+<span class="lineNum">     104 </span>                :            :             // value. Adding any more UTXOs will be just burning the UTXO; it will go entirely to fees. Thus we aren't going to
+<span class="lineNum">     105 </span>                :            :             // explore any more UTXOs to avoid burning money like that.
+<span class="lineNum">     106 </span>        [<span class="branchCov" title="Branch 0 was taken 13958 times"> + </span><span class="branchCov" title="Branch 1 was taken 2719666 times"> + </span>]:<span class="lineCov">    2733624 :             if (curr_waste &lt;= best_waste) {</span>
+<span class="lineNum">     107 </span>        [<span class="branchCov" title="Branch 1 was taken 13958 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      13958 :                 best_selection = curr_selection;</span>
+<span class="lineNum">     108 </span>        [<span class="branchCov" title="Branch 1 was taken 13958 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      13958 :                 best_selection.resize(utxo_pool.size());</span>
+<span class="lineNum">     109 </span>                :            :                 best_waste = curr_waste;
+<span class="lineNum">     110 </span>                :            :             }
+<span class="lineNum">     111 </span>                :            :             curr_waste -= (curr_value - actual_target); // Remove the excess value as we will be selecting different coins now
+<span class="lineNum">     112 </span>                :            :             backtrack = true;
+<span class="lineNum">     113 </span>                :            :         }
+<span class="lineNum">     114 </span>                :            : 
+<span class="lineNum">     115 </span>                :            :         // Backtracking, moving backwards
+<span class="lineNum">     116 </span>        [<span class="branchCov" title="Branch 0 was taken 7670094 times"> + </span><span class="branchCov" title="Branch 1 was taken 11911174 times"> + </span>]:<span class="lineCov">   19581268 :         if (backtrack) {</span>
+<span class="lineNum">     117 </span>                :            :             // Walk backwards to find the last included UTXO that still needs to have its omission branch traversed.
+<span class="lineNum">     118 </span>        [<span class="branchCov" title="Branch 1 was taken 7666428 times"> + </span><span class="branchCov" title="Branch 2 was taken 11749930 times"> + </span>]:<span class="lineCov">   31166288 :             while (!curr_selection.empty() &amp;&amp; !curr_selection.back()) {</span>
+<span class="lineNum">     119 </span>                :<span class="lineCov">   11749930 :                 curr_selection.pop_back();</span>
+<span class="lineNum">     120 </span>                :<span class="lineCov">   23499860 :                 curr_available_value += utxo_pool.at(curr_selection.size()).effective_value;</span>
+<span class="lineNum">     121 </span>                :            :             }
+<span class="lineNum">     122 </span>                :            : 
+<span class="lineNum">     123 </span>                :<span class="lineCov">    7666428 :             if (curr_selection.empty()) { // We have walked back to the first utxo and no branch is untraversed. All solutions searched</span>
+<span class="lineNum">     124 </span>                :            :                 break;
+<span class="lineNum">     125 </span>                :            :             }
+<span class="lineNum">     126 </span>                :            : 
+<span class="lineNum">     127 </span>                :            :             // Output was included on previous iterations, try excluding now.
+<span class="lineNum">     128 </span>                :<span class="lineCov">    7666428 :             curr_selection.back() = false;</span>
+<span class="lineNum">     129 </span>                :<span class="lineCov">   15332856 :             OutputGroup&amp; utxo = utxo_pool.at(curr_selection.size() - 1);</span>
+<span class="lineNum">     130 </span>                :<span class="lineCov">    7666428 :             curr_value -= utxo.effective_value;</span>
+<span class="lineNum">     131 </span>                :<span class="lineCov">    7666428 :             curr_waste -= utxo.fee - utxo.long_term_fee;</span>
+<span class="lineNum">     132 </span>                :            :         } else { // Moving forwards, continuing down this branch
+<span class="lineNum">     133 </span>                :<span class="lineCov">   23822348 :             OutputGroup&amp; utxo = utxo_pool.at(curr_selection.size());</span>
+<span class="lineNum">     134 </span>                :            : 
+<span class="lineNum">     135 </span>                :            :             // Remove this utxo from the curr_available_value utxo amount
+<span class="lineNum">     136 </span>                :<span class="lineCov">   11911174 :             curr_available_value -= utxo.effective_value;</span>
+<span class="lineNum">     137 </span>                :            : 
+<span class="lineNum">     138 </span>                :            :             // Avoid searching a branch if the previous UTXO has the same value and same waste and was excluded. Since the ratio of fee to
+<span class="lineNum">     139 </span>                :            :             // long term fee is the same, we only need to check if one of those values match in order to know that the waste is the same.
+<span class="lineNum">     140 </span>[<span class="branchCov" title="Branch 1 was taken 9016535 times"> + </span><span class="branchCov" title="Branch 2 was taken 2890780 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 4217002 times"> + </span><span class="branchCov" title="Branch 4 was taken 4799533 times"> + </span>]:<span class="lineCov">   20923850 :             if (!curr_selection.empty() &amp;&amp; !curr_selection.back() &amp;&amp;</span>
+<span class="lineNum">     141 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 4217002 times"> + </span>]:<span class="lineCov">    4217002 :                 utxo.effective_value == utxo_pool.at(curr_selection.size() - 1).effective_value &amp;&amp;</span>
+<span class="lineNum">     142 </span>                :<span class="lineCov">   12651006 :                 utxo.fee == utxo_pool.at(curr_selection.size() - 1).fee) {</span>
+<span class="lineNum">     143 </span>        [<span class="branchCov" title="Branch 1 was taken 4217002 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    4217002 :                 curr_selection.push_back(false);</span>
+<span class="lineNum">     144 </span>                :            :             } else {
+<span class="lineNum">     145 </span>                :            :                 // Inclusion branch first (Largest First Exploration)
+<span class="lineNum">     146 </span>        [<span class="branchCov" title="Branch 1 was taken 7694172 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    7694172 :                 curr_selection.push_back(true);</span>
+<span class="lineNum">     147 </span>                :<span class="lineCov">    7694172 :                 curr_value += utxo.effective_value;</span>
+<span class="lineNum">     148 </span>                :<span class="lineCov">    7694172 :                 curr_waste += utxo.fee - utxo.long_term_fee;</span>
+<span class="lineNum">     149 </span>                :            :             }
+<span class="lineNum">     150 </span>                :            :         }
+<span class="lineNum">     151 </span>                :            :     }
+<span class="lineNum">     152 </span>                :            : 
+<span class="lineNum">     153 </span>                :            :     // Check for solution
+<span class="lineNum">     154 </span>                :<span class="lineCov">        110 :     if (best_selection.empty()) {</span>
+<span class="lineNum">     155 </span>                :            :         return false;
+<span class="lineNum">     156 </span>                :            :     }
+<span class="lineNum">     157 </span>                :            : 
+<span class="lineNum">     158 </span>                :            :     // Set output set
+<span class="lineNum">     159 </span>                :<span class="lineCov">        110 :     value_ret = 0;</span>
+<span class="lineNum">     160 </span>        [<span class="branchCov" title="Branch 0 was taken 150059 times"> + </span><span class="branchCov" title="Branch 1 was taken 110 times"> + </span>]:<span class="lineCov">     150169 :     for (size_t i = 0; i &lt; best_selection.size(); ++i) {</span>
+<span class="lineNum">     161 </span>[<span class="branchCov" title="Branch 1 was taken 150059 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 25673 times"> + </span><span class="branchCov" title="Branch 4 was taken 124386 times"> + </span>]:<span class="lineCov">     150059 :         if (best_selection.at(i)) {</span>
+<span class="lineNum">     162 </span>        [<span class="branchCov" title="Branch 1 was taken 25673 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      25673 :             util::insert(out_set, utxo_pool.at(i).m_outputs);</span>
+<span class="lineNum">     163 </span>                :<span class="lineCov">      25673 :             value_ret += utxo_pool.at(i).m_value;</span>
+<span class="lineNum">     164 </span>                :            :         }
+<span class="lineNum">     165 </span>                :            :     }
+<span class="lineNum">     166 </span>                :            : 
+<span class="lineNum">     167 </span>                :            :     return true;
+<a name="168"><span class="lineNum">     168 </span>                :            : }</a>
+<span class="lineNum">     169 </span>                :            : 
+<span class="lineNum">     170 </span>                :<span class="lineCov">       3049 : static void ApproximateBestSubset(const std::vector&lt;OutputGroup&gt;&amp; groups, const CAmount&amp; nTotalLower, const CAmount&amp; nTargetValue,</span>
+<span class="lineNum">     171 </span>                :            :                                   std::vector&lt;char&gt;&amp; vfBest, CAmount&amp; nBest, int iterations = 1000)
+<span class="lineNum">     172 </span>                :            : {
+<span class="lineNum">     173 </span>                :<span class="lineCov">       6098 :     std::vector&lt;char&gt; vfIncluded;</span>
+<span class="lineNum">     174 </span>                :            : 
+<span class="lineNum">     175 </span>                :<span class="lineCov">       9147 :     vfBest.assign(groups.size(), true);</span>
+<span class="lineNum">     176 </span>                :<span class="lineCov">       3049 :     nBest = nTotalLower;</span>
+<span class="lineNum">     177 </span>                :            : 
+<span class="lineNum">     178 </span>        [<span class="branchCov" title="Branch 1 was taken 3049 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3049 :     FastRandomContext insecure_rand;</span>
+<span class="lineNum">     179 </span>                :            : 
+<span class="lineNum">     180 </span>[<span class="branchCov" title="Branch 0 was taken 1927183 times"> + </span><span class="branchCov" title="Branch 1 was taken 1924 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1926058 times"> + </span><span class="branchCov" title="Branch 3 was taken 1125 times"> + </span>]:<span class="lineCov">    1929107 :     for (int nRep = 0; nRep &lt; iterations &amp;&amp; nBest != nTargetValue; nRep++)</span>
+<span class="lineNum">     181 </span>                :            :     {
+<span class="lineNum">     182 </span>                :<span class="lineCov">    5778174 :         vfIncluded.assign(groups.size(), false);</span>
+<span class="lineNum">     183 </span>                :<span class="lineCov">    1926058 :         CAmount nTotal = 0;</span>
+<span class="lineNum">     184 </span>                :<span class="lineCov">    1926058 :         bool fReachedTarget = false;</span>
+<span class="lineNum">     185 </span>        [<span class="branchCov" title="Branch 0 was taken 2891024 times"> + </span><span class="branchCov" title="Branch 1 was taken 1926058 times"> + </span>]:<span class="lineCov">    4817082 :         for (int nPass = 0; nPass &lt; 2 &amp;&amp; !fReachedTarget; nPass++)</span>
+<span class="lineNum">     186 </span>                :            :         {
+<span class="lineNum">     187 </span>        [<span class="branchCov" title="Branch 0 was taken 355966751 times"> + </span><span class="branchCov" title="Branch 1 was taken 2891024 times"> + </span>]:<span class="lineCov">  358857775 :             for (unsigned int i = 0; i &lt; groups.size(); i++)</span>
+<span class="lineNum">     188 </span>                :            :             {
+<span class="lineNum">     189 </span>                :            :                 //The solver here uses a randomized algorithm,
+<span class="lineNum">     190 </span>                :            :                 //the randomness serves no real security purpose but is just
+<span class="lineNum">     191 </span>                :            :                 //needed to prevent degenerate behavior and it is important
+<span class="lineNum">     192 </span>                :            :                 //that the rng is fast. We do not use a constant random sequence,
+<span class="lineNum">     193 </span>                :            :                 //because there may be some privacy improvement by making
+<span class="lineNum">     194 </span>                :            :                 //the selection random.
+<span class="lineNum">     195 </span>[<span class="branchCov" title="Branch 0 was taken 349716074 times"> + </span><span class="branchCov" title="Branch 1 was taken 6250677 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 178376212 times"> + </span><span class="branchCov" title="Branch 3 was taken 177590539 times"> + </span>]:<span class="lineCov">  705682825 :                 if (nPass == 0 ? insecure_rand.randbool() : !vfIncluded[i])</span>
+<span class="lineNum">     196 </span>                :            :                 {
+<span class="lineNum">     197 </span>                :<span class="lineCov">  356752424 :                     nTotal += groups[i].m_value;</span>
+<span class="lineNum">     198 </span>                :<span class="lineCov">  356752424 :                     vfIncluded[i] = true;</span>
+<span class="lineNum">     199 </span>        [<span class="branchCov" title="Branch 0 was taken 165505127 times"> + </span><span class="branchCov" title="Branch 1 was taken 12871085 times"> + </span>]:<span class="lineCov">  178376212 :                     if (nTotal &gt;= nTargetValue)</span>
+<span class="lineNum">     200 </span>                :            :                     {
+<span class="lineNum">     201 </span>                :<span class="lineCov">  165505127 :                         fReachedTarget = true;</span>
+<span class="lineNum">     202 </span>        [<span class="branchCov" title="Branch 0 was taken 5003 times"> + </span><span class="branchCov" title="Branch 1 was taken 165500124 times"> + </span>]:<span class="lineCov">  165505127 :                         if (nTotal &lt; nBest)</span>
+<span class="lineNum">     203 </span>                :            :                         {
+<span class="lineNum">     204 </span>                :<span class="lineCov">       5003 :                             nBest = nTotal;</span>
+<span class="lineNum">     205 </span>        [<span class="branchCov" title="Branch 1 was taken 5003 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       5003 :                             vfBest = vfIncluded;</span>
+<span class="lineNum">     206 </span>                :            :                         }
+<span class="lineNum">     207 </span>                :<span class="lineCov">  331010254 :                         nTotal -= groups[i].m_value;</span>
+<span class="lineNum">     208 </span>                :<span class="lineCov">  165505127 :                         vfIncluded[i] = false;</span>
+<span class="lineNum">     209 </span>                :            :                     }
+<span class="lineNum">     210 </span>                :            :                 }
+<span class="lineNum">     211 </span>                :            :             }
+<span class="lineNum">     212 </span>                :            :         }
+<span class="lineNum">     213 </span>                :            :     }
+<span class="lineNum">     214 </span>                :<span class="lineCov">       3049 : }</span>
+<span class="lineNum">     215 </span>                :            : 
+<span class="lineNum">     216 </span>                :<span class="lineCov">       7038 : bool KnapsackSolver(const CAmount&amp; nTargetValue, std::vector&lt;OutputGroup&gt;&amp; groups, std::set&lt;CInputCoin&gt;&amp; setCoinsRet, CAmount&amp; nValueRet)</span>
+<span class="lineNum">     217 </span>                :            : {
+<span class="lineNum">     218 </span>                :<span class="lineCov">       7038 :     setCoinsRet.clear();</span>
+<span class="lineNum">     219 </span>                :<span class="lineCov">       7038 :     nValueRet = 0;</span>
+<span class="lineNum">     220 </span>                :            : 
+<span class="lineNum">     221 </span>                :            :     // List of values less than target
+<span class="lineNum">     222 </span>                :<span class="lineCov">       7038 :     boost::optional&lt;OutputGroup&gt; lowest_larger;</span>
+<span class="lineNum">     223 </span>                :<span class="lineCov">       7038 :     std::vector&lt;OutputGroup&gt; applicable_groups;</span>
+<span class="lineNum">     224 </span>                :<span class="lineCov">       7038 :     CAmount nTotalLower = 0;</span>
+<span class="lineNum">     225 </span>                :            : 
+<span class="lineNum">     226 </span>[<span class="branchCov" title="Branch 1 was taken 7038 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 7038 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       7038 :     Shuffle(groups.begin(), groups.end(), FastRandomContext());</span>
+<span class="lineNum">     227 </span>                :            : 
+<span class="lineNum">     228 </span>        [<span class="branchCov" title="Branch 0 was taken 497878 times"> + </span><span class="branchCov" title="Branch 1 was taken 5865 times"> + </span>]:<span class="lineCov">     503743 :     for (const OutputGroup&amp; group : groups) {</span>
+<span class="lineNum">     229 </span>        [<span class="branchCov" title="Branch 0 was taken 1173 times"> + </span><span class="branchCov" title="Branch 1 was taken 496705 times"> + </span>]:<span class="lineCov">     497878 :         if (group.m_value == nTargetValue) {</span>
+<span class="lineNum">     230 </span>        [<span class="branchCov" title="Branch 1 was taken 1173 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1173 :             util::insert(setCoinsRet, group.m_outputs);</span>
+<span class="lineNum">     231 </span>                :<span class="lineCov">       1173 :             nValueRet += group.m_value;</span>
+<span class="lineNum">     232 </span>                :<span class="lineCov">       1173 :             return true;</span>
+<span class="lineNum">     233 </span>        [<span class="branchCov" title="Branch 0 was taken 247321 times"> + </span><span class="branchCov" title="Branch 1 was taken 249384 times"> + </span>]:<span class="lineCov">     496705 :         } else if (group.m_value &lt; nTargetValue + MIN_CHANGE) {</span>
+<span class="lineNum">     234 </span>        [<span class="branchCov" title="Branch 1 was taken 247321 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     247321 :             applicable_groups.push_back(group);</span>
+<span class="lineNum">     235 </span>                :<span class="lineCov">     247321 :             nTotalLower += group.m_value;</span>
+<span class="lineNum">     236 </span>[<span class="branchCov" title="Branch 0 was taken 246284 times"> + </span><span class="branchCov" title="Branch 1 was taken 3100 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1054 times"> + </span><span class="branchCov" title="Branch 3 was taken 245230 times"> + </span>]:<span class="lineCov">     249384 :         } else if (!lowest_larger || group.m_value &lt; lowest_larger-&gt;m_value) {</span>
+<span class="lineNum">     237 </span>                :            :             lowest_larger = group;
+<span class="lineNum">     238 </span>                :            :         }
+<span class="lineNum">     239 </span>                :            :     }
+<span class="lineNum">     240 </span>                :            : 
+<span class="lineNum">     241 </span>        [<span class="branchCov" title="Branch 0 was taken 505 times"> + </span><span class="branchCov" title="Branch 1 was taken 5360 times"> + </span>]:<span class="lineCov">       5865 :     if (nTotalLower == nTargetValue) {</span>
+<span class="lineNum">     242 </span>        [<span class="branchCov" title="Branch 0 was taken 1922 times"> + </span><span class="branchCov" title="Branch 1 was taken 505 times"> + </span>]:<span class="lineCov">       2427 :         for (const auto&amp; group : applicable_groups) {</span>
+<span class="lineNum">     243 </span>        [<span class="branchCov" title="Branch 1 was taken 1922 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1922 :             util::insert(setCoinsRet, group.m_outputs);</span>
+<span class="lineNum">     244 </span>                :<span class="lineCov">       1922 :             nValueRet += group.m_value;</span>
+<span class="lineNum">     245 </span>                :            :         }
+<span class="lineNum">     246 </span>                :<span class="lineCov">        505 :         return true;</span>
+<span class="lineNum">     247 </span>                :            :     }
+<span class="lineNum">     248 </span>                :            : 
+<span class="lineNum">     249 </span>        [<span class="branchCov" title="Branch 0 was taken 3321 times"> + </span><span class="branchCov" title="Branch 1 was taken 2039 times"> + </span>]:<span class="lineCov">       5360 :     if (nTotalLower &lt; nTargetValue) {</span>
+<span class="lineNum">     250 </span>        [<span class="branchCov" title="Branch 0 was taken 1991 times"> + </span><span class="branchCov" title="Branch 1 was taken 1330 times"> + </span>]:<span class="lineCov">       3321 :         if (!lowest_larger) return false;</span>
+<span class="lineNum">     251 </span>        [<span class="branchCov" title="Branch 1 was taken 1991 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1991 :         util::insert(setCoinsRet, lowest_larger-&gt;m_outputs);</span>
+<span class="lineNum">     252 </span>                :<span class="lineCov">       1991 :         nValueRet += lowest_larger-&gt;m_value;</span>
+<span class="lineNum">     253 </span>                :<span class="lineCov">       1991 :         return true;</span>
+<span class="lineNum">     254 </span>                :            :     }
+<span class="lineNum">     255 </span>                :            : 
+<span class="lineNum">     256 </span>                :            :     // Solve subset sum by stochastic approximation
+<span class="lineNum">     257 </span>                :<span class="lineCov">       6117 :     std::sort(applicable_groups.begin(), applicable_groups.end(), descending);</span>
+<span class="lineNum">     258 </span>                :<span class="lineNoCov">          0 :     std::vector&lt;char&gt; vfBest;</span>
+<span class="lineNum">     259 </span>                :            :     CAmount nBest;
+<span class="lineNum">     260 </span>                :            : 
+<span class="lineNum">     261 </span>        [<span class="branchCov" title="Branch 1 was taken 2039 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2039 :     ApproximateBestSubset(applicable_groups, nTotalLower, nTargetValue, vfBest, nBest);</span>
+<span class="lineNum">     262 </span>[<span class="branchCov" title="Branch 0 was taken 1115 times"> + </span><span class="branchCov" title="Branch 1 was taken 924 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1010 times"> + </span><span class="branchCov" title="Branch 3 was taken 105 times"> + </span>]:<span class="lineCov">       2039 :     if (nBest != nTargetValue &amp;&amp; nTotalLower &gt;= nTargetValue + MIN_CHANGE) {</span>
+<span class="lineNum">     263 </span>        [<span class="branchCov" title="Branch 1 was taken 1010 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1010 :         ApproximateBestSubset(applicable_groups, nTotalLower, nTargetValue + MIN_CHANGE, vfBest, nBest);</span>
+<span class="lineNum">     264 </span>                :            :     }
+<span class="lineNum">     265 </span>                :            : 
+<span class="lineNum">     266 </span>                :            :     // If we have a bigger coin and (either the stochastic approximation didn't find a good solution,
+<span class="lineNum">     267 </span>                :            :     //                                   or the next bigger coin is closer), return the bigger coin
+<span class="lineNum">     268 </span>[<span class="branchCov" title="Branch 0 was taken 984 times"> + </span><span class="branchCov" title="Branch 1 was taken 1055 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 471 times"> + </span><span class="branchCov" title="Branch 3 was taken 513 times"> + </span>]:<span class="lineCov">       2039 :     if (lowest_larger &amp;&amp;</span>
+<span class="lineNum">     269 </span>[<span class="branchCov" title="Branch 0 was taken 371 times"> + </span><span class="branchCov" title="Branch 1 was taken 100 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 203 times"> + </span><span class="branchCov" title="Branch 3 was taken 681 times"> + </span>]:<span class="lineCov">        984 :         ((nBest != nTargetValue &amp;&amp; nBest &lt; nTargetValue + MIN_CHANGE) || lowest_larger-&gt;m_value &lt;= nBest)) {</span>
+<span class="lineNum">     270 </span>        [<span class="branchCov" title="Branch 1 was taken 303 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        303 :         util::insert(setCoinsRet, lowest_larger-&gt;m_outputs);</span>
+<span class="lineNum">     271 </span>                :<span class="lineCov">       2039 :         nValueRet += lowest_larger-&gt;m_value;</span>
+<span class="lineNum">     272 </span>                :            :     } else {
+<span class="lineNum">     273 </span>        [<span class="branchCov" title="Branch 0 was taken 235894 times"> + </span><span class="branchCov" title="Branch 1 was taken 1736 times"> + </span>]:<span class="lineCov">     237630 :         for (unsigned int i = 0; i &lt; applicable_groups.size(); i++) {</span>
+<span class="lineNum">     274 </span>        [<span class="branchCov" title="Branch 0 was taken 89918 times"> + </span><span class="branchCov" title="Branch 1 was taken 145976 times"> + </span>]:<span class="lineCov">     235894 :             if (vfBest[i]) {</span>
+<span class="lineNum">     275 </span>        [<span class="branchCov" title="Branch 1 was taken 89918 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      89918 :                 util::insert(setCoinsRet, applicable_groups[i].m_outputs);</span>
+<span class="lineNum">     276 </span>                :<span class="lineCov">      89918 :                 nValueRet += applicable_groups[i].m_value;</span>
+<span class="lineNum">     277 </span>                :            :             }
+<span class="lineNum">     278 </span>                :            :         }
+<span class="lineNum">     279 </span>                :            : 
+<span class="lineNum">     280 </span>        [<span class="branchCov" title="Branch 0 was taken 135 times"> + </span><span class="branchCov" title="Branch 1 was taken 1601 times"> + </span>]:<span class="lineCov">       1736 :         if (LogAcceptCategory(BCLog::SELECTCOINS)) {</span>
+<span class="lineNum">     281 </span>        [<span class="branchCov" title="Branch 1 was taken 135 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        135 :             LogPrint(BCLog::SELECTCOINS, &quot;SelectCoins() best subset: &quot;); /* Continued */</span>
+<span class="lineNum">     282 </span>        [<span class="branchCov" title="Branch 0 was taken 5893 times"> + </span><span class="branchCov" title="Branch 1 was taken 135 times"> + </span>]:<span class="lineCov">       6028 :             for (unsigned int i = 0; i &lt; applicable_groups.size(); i++) {</span>
+<span class="lineNum">     283 </span>        [<span class="branchCov" title="Branch 0 was taken 2100 times"> + </span><span class="branchCov" title="Branch 1 was taken 3793 times"> + </span>]:<span class="lineCov">       5893 :                 if (vfBest[i]) {</span>
+<span class="lineNum">     284 </span>[<span class="branchCov" title="Branch 1 was taken 2100 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2100 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       4200 :                     LogPrint(BCLog::SELECTCOINS, &quot;%s &quot;, FormatMoney(applicable_groups[i].m_value)); /* Continued */</span>
+<span class="lineNum">     285 </span>                :            :                 }
+<span class="lineNum">     286 </span>                :            :             }
+<span class="lineNum">     287 </span>[<span class="branchCov" title="Branch 1 was taken 135 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 135 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        270 :             LogPrint(BCLog::SELECTCOINS, &quot;total %s\n&quot;, FormatMoney(nBest));</span>
+<span class="lineNum">     288 </span>                :            :         }
+<span class="lineNum">     289 </span>                :            :     }
+<span class="lineNum">     290 </span>                :            : 
+<span class="lineNum">     291 </span>                :<span class="lineCov">       2039 :     return true;</span>
+<span class="lineNum">     292 </span>                :            : }
+<span class="lineNum">     293 </span>                :            : 
+<span class="lineNum">     294 </span>                :            : /******************************************************************************
+<span class="lineNum">     295 </span>                :            : 
+<span class="lineNum">     296 </span>                :            :  OutputGroup
+<span class="lineNum">     297 </span>                :            : 
+<a name="298"><span class="lineNum">     298 </span>                :            :  ******************************************************************************/</a>
+<span class="lineNum">     299 </span>                :            : 
+<span class="lineNum">     300 </span>                :<span class="lineCov">     797286 : void OutputGroup::Insert(const CInputCoin&amp; output, int depth, bool from_me, size_t ancestors, size_t descendants) {</span>
+<span class="lineNum">     301 </span>                :<span class="lineCov">     797286 :     m_outputs.push_back(output);</span>
+<span class="lineNum">     302 </span>                :<span class="lineCov">     797286 :     m_from_me &amp;= from_me;</span>
+<span class="lineNum">     303 </span>                :<span class="lineCov">     797286 :     m_value += output.effective_value;</span>
+<span class="lineNum">     304 </span>                :<span class="lineCov">    1594572 :     m_depth = std::min(m_depth, depth);</span>
+<span class="lineNum">     305 </span>                :            :     // ancestors here express the number of ancestors the new coin will end up having, which is
+<span class="lineNum">     306 </span>                :            :     // the sum, rather than the max; this will overestimate in the cases where multiple inputs
+<span class="lineNum">     307 </span>                :            :     // have common ancestors
+<span class="lineNum">     308 </span>                :<span class="lineCov">     797286 :     m_ancestors += ancestors;</span>
+<span class="lineNum">     309 </span>                :            :     // descendants is the count as seen from the top ancestor, not the descendants as seen from the
+<span class="lineNum">     310 </span>                :            :     // coin itself; thus, this value is counted as the max, not the sum
+<span class="lineNum">     311 </span>                :<span class="lineCov">    1594572 :     m_descendants = std::max(m_descendants, descendants);</span>
+<span class="lineNum">     312 </span>                :<span class="lineCov">     797286 :     effective_value = m_value;</span>
+<span class="lineNum">     313 </span>                :<span class="lineCov">     797286 : }</span>
+<span class="lineNum">     314 </span>                :            : 
+<span class="lineNum">     315 </span>                :<span class="lineCov">          3 : std::vector&lt;CInputCoin&gt;::iterator OutputGroup::Discard(const CInputCoin&amp; output) {</span>
+<span class="lineNum">     316 </span>                :<span class="lineCov">          3 :     auto it = m_outputs.begin();</span>
+<span class="lineNum">     317 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          3 :     while (it != m_outputs.end() &amp;&amp; it-&gt;outpoint != output.outpoint) ++it;</span>
+<span class="lineNum">     318 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">          3 :     if (it == m_outputs.end()) return it;</span>
+<span class="lineNum">     319 </span>                :<span class="lineCov">          3 :     m_value -= output.effective_value;</span>
+<span class="lineNum">     320 </span>                :<span class="lineCov">          3 :     effective_value -= output.effective_value;</span>
+<span class="lineNum">     321 </span>                :<span class="lineCov">          3 :     return m_outputs.erase(it);</span>
+<a name="322"><span class="lineNum">     322 </span>                :            : }</a>
+<span class="lineNum">     323 </span>                :            : 
+<span class="lineNum">     324 </span>                :<span class="lineCov">     832007 : bool OutputGroup::EligibleForSpending(const CoinEligibilityFilter&amp; eligibility_filter) const</span>
+<span class="lineNum">     325 </span>                :            : {
+<span class="lineNum">     326 </span>        [<span class="branchCov" title="Branch 0 was taken 63412 times"> + </span><span class="branchCov" title="Branch 1 was taken 768595 times"> + </span>]:<span class="lineCov">     832007 :     return m_depth &gt;= (m_from_me ? eligibility_filter.conf_mine : eligibility_filter.conf_theirs)</span>
+<a name="327"><span class="lineNum">     327 </span>        [<span class="branchCov" title="Branch 0 was taken 807082 times"> + </span><span class="branchCov" title="Branch 1 was taken 2751 times"> + </span>]:<span class="lineCov">     809833 :         &amp;&amp; m_ancestors &lt;= eligibility_filter.max_ancestors</span></a>
+<span class="lineNum">     328 </span>[<span class="branchCov" title="Branch 0 was taken 809833 times"> + </span><span class="branchCov" title="Branch 1 was taken 22174 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1019 times"> + </span><span class="branchCov" title="Branch 3 was taken 806063 times"> + </span>]:<span class="lineCov">    1641840 :         &amp;&amp; m_descendants &lt;= eligibility_filter.max_descendants;</span>
+<span class="lineNum">     329 </span>[<span class="branchCov" title="Branch 1 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1888 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

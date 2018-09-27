@@ -1,0 +1,358 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/test/prevector_tests.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/test</a> - prevector_tests.cpp<span style="font-size: 80%;"> (source / <a href="prevector_tests.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">157</td>
+            <td class="headerCovTableEntry">158</td>
+            <td class="headerCovTableEntryHi">99.4 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">19</td>
+            <td class="headerCovTableEntry">19</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">94</td>
+            <td class="headerCovTableEntry">132</td>
+            <td class="headerCovTableEntryLo">71.2 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2015-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">       6 </span>                :            : #include &lt;prevector.h&gt;
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;reverse_iterator.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;serialize.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;streams.h&gt;
+<span class="lineNum">      11 </span>                :            : 
+<span class="lineNum">      12 </span>                :            : #include &lt;test/test_bitcoin.h&gt;
+<span class="lineNum">      13 </span>                :            : 
+<span class="lineNum">      14 </span>                :            : #include &lt;boost/test/unit_test.hpp&gt;
+<span class="lineNum">      15 </span>                :            : 
+<span class="lineNum">      16 </span>                :<span class="lineCov">        144 : BOOST_FIXTURE_TEST_SUITE(prevector_tests, TestingSetup)</span>
+<span class="lineNum">      17 </span>                :            : 
+<span class="lineNum">      18 </span>                :            : template&lt;unsigned int N, typename T&gt;
+<span class="lineNum">      19 </span>                :            : class prevector_tester {
+<span class="lineNum">      20 </span>                :            :     typedef std::vector&lt;T&gt; realtype;
+<span class="lineNum">      21 </span>                :            :     realtype real_vector;
+<span class="lineNum">      22 </span>                :            :     realtype real_vector_alt;
+<span class="lineNum">      23 </span>                :            : 
+<span class="lineNum">      24 </span>                :            :     typedef prevector&lt;N, T&gt; pretype;
+<span class="lineNum">      25 </span>                :            :     pretype pre_vector;
+<span class="lineNum">      26 </span>                :            :     pretype pre_vector_alt;
+<span class="lineNum">      27 </span>                :            : 
+<span class="lineNum">      28 </span>                :            :     typedef typename pretype::size_type Size;
+<span class="lineNum">      29 </span>                :            :     bool passed = true;
+<span class="lineNum">      30 </span>                :            :     FastRandomContext rand_cache;
+<span class="lineNum">      31 </span>                :            :     uint256 rand_seed;
+<span class="lineNum">      32 </span>                :            : 
+<span class="lineNum">      33 </span>                :            : 
+<span class="lineNum">      34 </span>                :            :     template &lt;typename A, typename B&gt;
+<span class="lineNum">      35 </span>                :            :         void local_check_equal(A a, B b)
+<span class="lineNum">      36 </span>                :            :         {
+<span class="lineNum">      37 </span>                :<span class="lineCov">   12288236 :             local_check(a == b);</span>
+<span class="lineNum">      38 </span>                :            :         }
+<span class="lineNum">      39 </span>                :            :     void local_check(bool b)
+<span class="lineNum">      40 </span>                :            :     {
+<span class="lineNum">      41 </span>                :<span class="lineCov">   14295756 :         passed &amp;= b;</span>
+<span class="lineNum">      42 </span>                :            :     }
+<span class="lineNum">      43 </span>                :<span class="lineCov">     255744 :     void test() {</span>
+<span class="lineNum">      44 </span>                :<span class="lineCov">     255744 :         const pretype&amp; const_pre_vector = pre_vector;</span>
+<span class="lineNum">      45 </span>                :<span class="lineCov">    1022976 :         local_check_equal(real_vector.size(), pre_vector.size());</span>
+<span class="lineNum">      46 </span>                :<span class="lineCov">    1022976 :         local_check_equal(real_vector.empty(), pre_vector.empty());</span>
+<span class="lineNum">      47 </span>        [<span class="branchCov" title="Branch 0 was taken 1272023 times"> + </span><span class="branchCov" title="Branch 1 was taken 255744 times"> + </span>]:<span class="lineCov">    1527767 :         for (Size s = 0; s &lt; real_vector.size(); s++) {</span>
+<span class="lineNum">      48 </span>                :<span class="lineCov">    5088092 :              local_check(real_vector[s] == pre_vector[s]);</span>
+<span class="lineNum">      49 </span>                :<span class="lineCov">    5088092 :              local_check(&amp;(pre_vector[s]) == &amp;(pre_vector.begin()[s]));</span>
+<span class="lineNum">      50 </span>                :<span class="lineCov">    5088092 :              local_check(&amp;(pre_vector[s]) == &amp;*(pre_vector.begin() + s));</span>
+<span class="lineNum">      51 </span>                :<span class="lineCov">    7632138 :              local_check(&amp;(pre_vector[s]) == &amp;*((pre_vector.end() + s) - real_vector.size()));</span>
+<span class="lineNum">      52 </span>                :            :         }
+<span class="lineNum">      53 </span>                :            :         // local_check(realtype(pre_vector) == real_vector);
+<span class="lineNum">      54 </span>                :<span class="lineCov">     255744 :         local_check(pretype(real_vector.begin(), real_vector.end()) == pre_vector);</span>
+<span class="lineNum">      55 </span>                :<span class="lineCov">     255744 :         local_check(pretype(pre_vector.begin(), pre_vector.end()) == pre_vector);</span>
+<span class="lineNum">      56 </span>                :<span class="lineCov">     255744 :         size_t pos = 0;</span>
+<span class="lineNum">      57 </span>        [<span class="branchCov" title="Branch 0 was taken 1272023 times"> + </span><span class="branchCov" title="Branch 1 was taken 255744 times"> + </span>]:<span class="lineCov">    1527767 :         for (const T&amp; v : pre_vector) {</span>
+<span class="lineNum">      58 </span>                :<span class="lineCov">    3816069 :              local_check(v == real_vector[pos++]);</span>
+<span class="lineNum">      59 </span>                :            :         }
+<span class="lineNum">      60 </span>        [<span class="branchCov" title="Branch 2 was taken 1272023 times"> + </span><span class="branchCov" title="Branch 3 was taken 255744 times"> + </span>]:<span class="lineCov">    1783511 :         for (const T&amp; v : reverse_iterate(pre_vector)) {</span>
+<span class="lineNum">      61 </span>                :<span class="lineCov">    3816069 :              local_check(v == real_vector[--pos]);</span>
+<span class="lineNum">      62 </span>                :            :         }
+<span class="lineNum">      63 </span>        [<span class="branchCov" title="Branch 0 was taken 1272023 times"> + </span><span class="branchCov" title="Branch 1 was taken 255744 times"> + </span>]:<span class="lineCov">    1527767 :         for (const T&amp; v : const_pre_vector) {</span>
+<span class="lineNum">      64 </span>                :<span class="lineCov">    3816069 :              local_check(v == real_vector[pos++]);</span>
+<span class="lineNum">      65 </span>                :            :         }
+<span class="lineNum">      66 </span>        [<span class="branchCov" title="Branch 2 was taken 1272023 times"> + </span><span class="branchCov" title="Branch 3 was taken 255744 times"> + </span>]:<span class="lineCov">    1783511 :         for (const T&amp; v : reverse_iterate(const_pre_vector)) {</span>
+<span class="lineNum">      67 </span>                :<span class="lineCov">    3816069 :              local_check(v == real_vector[--pos]);</span>
+<span class="lineNum">      68 </span>                :            :         }
+<span class="lineNum">      69 </span>                :<span class="lineCov">     511488 :         CDataStream ss1(SER_DISK, 0);</span>
+<span class="lineNum">      70 </span>                :<span class="lineNoCov">          0 :         CDataStream ss2(SER_DISK, 0);</span>
+<span class="lineNum">      71 </span>                :<span class="lineCov">     511488 :         ss1 &lt;&lt; real_vector;</span>
+<span class="lineNum">      72 </span>                :<span class="lineCov">     511488 :         ss2 &lt;&lt; pre_vector;</span>
+<span class="lineNum">      73 </span>                :<span class="lineCov">     767232 :         local_check_equal(ss1.size(), ss2.size());</span>
+<span class="lineNum">      74 </span>        [<span class="branchCov" title="Branch 0 was taken 5343836 times"> + </span><span class="branchCov" title="Branch 1 was taken 255744 times"> + </span>]:<span class="lineCov">    5599580 :         for (Size s = 0; s &lt; ss1.size(); s++) {</span>
+<span class="lineNum">      75 </span>                :<span class="lineCov">   21375344 :             local_check_equal(ss1[s], ss2[s]);</span>
+<span class="lineNum">      76 </span>                :            :         }
+<span class="lineNum">      77 </span>                :<span class="lineCov">     255744 :     }</span>
+<span class="lineNum">      78 </span>                :            : 
+<span class="lineNum">      79 </span>                :            : public:
+<span class="lineNum">      80 </span>                :<span class="lineCov">      16525 :     void resize(Size s) {</span>
+<span class="lineNum">      81 </span>                :<span class="lineCov">      16525 :         real_vector.resize(s);</span>
+<span class="lineNum">      82 </span>                :<span class="lineCov">      49575 :         local_check_equal(real_vector.size(), s);</span>
+<span class="lineNum">      83 </span>                :<span class="lineCov">      16525 :         pre_vector.resize(s);</span>
+<span class="lineNum">      84 </span>                :<span class="lineCov">      49575 :         local_check_equal(pre_vector.size(), s);</span>
+<span class="lineNum">      85 </span>                :<span class="lineCov">      16525 :         test();</span>
+<span class="lineNum">      86 </span>                :<span class="lineCov">      16525 :     }</span>
+<span class="lineNum">      87 </span>                :            : 
+<span class="lineNum">      88 </span>                :<span class="lineCov">       4006 :     void reserve(Size s) {</span>
+<span class="lineNum">      89 </span>                :<span class="lineCov">       4006 :         real_vector.reserve(s);</span>
+<span class="lineNum">      90 </span>                :<span class="lineCov">      12018 :         local_check(real_vector.capacity() &gt;= s);</span>
+<span class="lineNum">      91 </span>                :<span class="lineCov">       8012 :         pre_vector.reserve(s);</span>
+<span class="lineNum">      92 </span>                :<span class="lineCov">      12018 :         local_check(pre_vector.capacity() &gt;= s);</span>
+<span class="lineNum">      93 </span>                :<span class="lineCov">       4006 :         test();</span>
+<span class="lineNum">      94 </span>                :<span class="lineCov">       4006 :     }</span>
+<span class="lineNum">      95 </span>                :            : 
+<span class="lineNum">      96 </span>                :<span class="lineCov">      32899 :     void insert(Size position, const T&amp; value) {</span>
+<span class="lineNum">      97 </span>                :<span class="lineCov">      32899 :         real_vector.insert(real_vector.begin() + position, value);</span>
+<span class="lineNum">      98 </span>                :<span class="lineCov">      32899 :         pre_vector.insert(pre_vector.begin() + position, value);</span>
+<span class="lineNum">      99 </span>                :<span class="lineCov">      32899 :         test();</span>
+<span class="lineNum">     100 </span>                :<span class="lineCov">      32899 :     }</span>
+<span class="lineNum">     101 </span>                :            : 
+<span class="lineNum">     102 </span>                :<span class="lineCov">      16502 :     void insert(Size position, Size count, const T&amp; value) {</span>
+<span class="lineNum">     103 </span>                :<span class="lineCov">      16502 :         real_vector.insert(real_vector.begin() + position, count, value);</span>
+<span class="lineNum">     104 </span>                :<span class="lineCov">      16502 :         pre_vector.insert(pre_vector.begin() + position, count, value);</span>
+<span class="lineNum">     105 </span>                :<span class="lineCov">      16502 :         test();</span>
+<span class="lineNum">     106 </span>                :<span class="lineCov">      16502 :     }</span>
+<span class="lineNum">     107 </span>                :            : 
+<span class="lineNum">     108 </span>                :            :     template&lt;typename I&gt;
+<span class="lineNum">     109 </span>                :<span class="lineCov">       4108 :     void insert_range(Size position, I first, I last) {</span>
+<span class="lineNum">     110 </span>                :<span class="lineCov">       4108 :         real_vector.insert(real_vector.begin() + position, first, last);</span>
+<span class="lineNum">     111 </span>                :<span class="lineCov">       4108 :         pre_vector.insert(pre_vector.begin() + position, first, last);</span>
+<span class="lineNum">     112 </span>                :<span class="lineCov">       4108 :         test();</span>
+<span class="lineNum">     113 </span>                :<span class="lineCov">       4108 :     }</span>
+<span class="lineNum">     114 </span>                :            : 
+<span class="lineNum">     115 </span>                :<span class="lineCov">      26527 :     void erase(Size position) {</span>
+<span class="lineNum">     116 </span>                :<span class="lineCov">     132635 :         real_vector.erase(real_vector.begin() + position);</span>
+<span class="lineNum">     117 </span>                :<span class="lineCov">     106108 :         pre_vector.erase(pre_vector.begin() + position);</span>
+<span class="lineNum">     118 </span>                :<span class="lineCov">      26527 :         test();</span>
+<span class="lineNum">     119 </span>                :<span class="lineCov">      26527 :     }</span>
+<span class="lineNum">     120 </span>                :            : 
+<span class="lineNum">     121 </span>                :<span class="lineCov">      20550 :     void erase(Size first, Size last) {</span>
+<span class="lineNum">     122 </span>                :<span class="lineCov">      20550 :         real_vector.erase(real_vector.begin() + first, real_vector.begin() + last);</span>
+<span class="lineNum">     123 </span>                :<span class="lineCov">      20550 :         pre_vector.erase(pre_vector.begin() + first, pre_vector.begin() + last);</span>
+<span class="lineNum">     124 </span>                :<span class="lineCov">      20550 :         test();</span>
+<span class="lineNum">     125 </span>                :<span class="lineCov">      20550 :     }</span>
+<span class="lineNum">     126 </span>                :            : 
+<span class="lineNum">     127 </span>                :<span class="lineCov">     101496 :     void update(Size pos, const T&amp; value) {</span>
+<span class="lineNum">     128 </span>                :<span class="lineCov">     202992 :         real_vector[pos] = value;</span>
+<span class="lineNum">     129 </span>                :<span class="lineCov">     202992 :         pre_vector[pos] = value;</span>
+<span class="lineNum">     130 </span>                :<span class="lineCov">     101496 :         test();</span>
+<a name="131"><span class="lineNum">     131 </span>                :<span class="lineCov">     101496 :     }</span></a>
+<span class="lineNum">     132 </span>                :            : 
+<span class="lineNum">     133 </span>                :<span class="lineCov">       8187 :     void push_back(const T&amp; value) {</span>
+<span class="lineNum">     134 </span>                :<span class="lineCov">       8187 :         real_vector.push_back(value);</span>
+<span class="lineNum">     135 </span>                :<span class="lineCov">       8187 :         pre_vector.push_back(value);</span>
+<span class="lineNum">     136 </span>                :<span class="lineCov">       8187 :         test();</span>
+<span class="lineNum">     137 </span>                :<span class="lineCov">       8187 :     }</span>
+<span class="lineNum">     138 </span>                :            : 
+<span class="lineNum">     139 </span>                :            :     void pop_back() {
+<span class="lineNum">     140 </span>                :<span class="lineCov">      13006 :         real_vector.pop_back();</span>
+<span class="lineNum">     141 </span>                :<span class="lineCov">       6503 :         pre_vector.pop_back();</span>
+<span class="lineNum">     142 </span>        [<span class="branchCov" title="Branch 1 was taken 6503 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       6503 :         test();</span>
+<span class="lineNum">     143 </span>                :            :     }
+<span class="lineNum">     144 </span>                :            : 
+<span class="lineNum">     145 </span>                :            :     void clear() {
+<span class="lineNum">     146 </span>                :<span class="lineCov">        276 :         real_vector.clear();</span>
+<span class="lineNum">     147 </span>                :<span class="lineCov">        138 :         pre_vector.clear();</span>
+<span class="lineNum">     148 </span>                :            :     }
+<span class="lineNum">     149 </span>                :            : 
+<span class="lineNum">     150 </span>                :            :     void assign(Size n, const T&amp; value) {
+<span class="lineNum">     151 </span>                :<span class="lineCov">        542 :         real_vector.assign(n, value);</span>
+<span class="lineNum">     152 </span>                :<span class="lineCov">        271 :         pre_vector.assign(n, value);</span>
+<span class="lineNum">     153 </span>                :            :     }
+<span class="lineNum">     154 </span>                :            : 
+<span class="lineNum">     155 </span>                :            :     Size size() const {
+<span class="lineNum">     156 </span>                :<span class="lineCov">    1244196 :         return real_vector.size();</span>
+<span class="lineNum">     157 </span>                :            :     }
+<span class="lineNum">     158 </span>                :            : 
+<span class="lineNum">     159 </span>                :            :     Size capacity() const {
+<span class="lineNum">     160 </span>                :            :         return pre_vector.capacity();
+<a name="161"><span class="lineNum">     161 </span>                :            :     }</a>
+<span class="lineNum">     162 </span>                :            : 
+<span class="lineNum">     163 </span>                :<span class="lineCov">       2034 :     void shrink_to_fit() {</span>
+<span class="lineNum">     164 </span>                :<span class="lineCov">       4068 :         pre_vector.shrink_to_fit();</span>
+<span class="lineNum">     165 </span>                :<span class="lineCov">       2034 :         test();</span>
+<span class="lineNum">     166 </span>                :<span class="lineCov">       2034 :     }</span>
+<span class="lineNum">     167 </span>                :            : 
+<span class="lineNum">     168 </span>                :<span class="lineCov">      16407 :     void swap() {</span>
+<span class="lineNum">     169 </span>                :<span class="lineCov">      32814 :         real_vector.swap(real_vector_alt);</span>
+<span class="lineNum">     170 </span>                :<span class="lineCov">      32814 :         pre_vector.swap(pre_vector_alt);</span>
+<span class="lineNum">     171 </span>                :<span class="lineCov">      16407 :         test();</span>
+<span class="lineNum">     172 </span>                :<span class="lineCov">      16407 :     }</span>
+<span class="lineNum">     173 </span>                :            : 
+<span class="lineNum">     174 </span>                :<span class="lineCov">       4090 :     void move() {</span>
+<span class="lineNum">     175 </span>                :<span class="lineCov">       8180 :         real_vector = std::move(real_vector_alt);</span>
+<span class="lineNum">     176 </span>                :<span class="lineCov">       8180 :         real_vector_alt.clear();</span>
+<span class="lineNum">     177 </span>                :<span class="lineCov">       8180 :         pre_vector = std::move(pre_vector_alt);</span>
+<span class="lineNum">     178 </span>                :<span class="lineCov">       8180 :         pre_vector_alt.clear();</span>
+<span class="lineNum">     179 </span>                :<span class="lineCov">       4090 :     }</span>
+<span class="lineNum">     180 </span>                :            : 
+<span class="lineNum">     181 </span>                :            :     void copy() {
+<span class="lineNum">     182 </span>        [<span class="branchCov" title="Branch 1 was taken 8117 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       8117 :         real_vector = real_vector_alt;</span>
+<span class="lineNum">     183 </span>                :<span class="lineCov">       8117 :         pre_vector = pre_vector_alt;</span>
+<span class="lineNum">     184 </span>                :            :     }
+<span class="lineNum">     185 </span>                :            : 
+<span class="lineNum">     186 </span>                :<span class="lineCov">         64 :     ~prevector_tester() {</span>
+<span class="lineNum">     187 </span>                :<span class="lineCov">         64 :         BOOST_CHECK_MESSAGE(passed, &quot;insecure_rand: &quot; + rand_seed.ToString());</span>
+<span class="lineNum">     188 </span>                :<span class="lineCov">        320 :     }</span>
+<span class="lineNum">     189 </span>                :            : 
+<span class="lineNum">     190 </span>        [<span class="branchCov" title="Branch 1 was taken 64 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        128 :     prevector_tester() {</span>
+<span class="lineNum">     191 </span>                :<span class="lineCov">         64 :         SeedInsecureRand();</span>
+<span class="lineNum">     192 </span>                :<span class="lineCov">         64 :         rand_seed = InsecureRand256();</span>
+<span class="lineNum">     193 </span>        [<span class="branchCov" title="Branch 1 was taken 64 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         64 :         rand_cache = FastRandomContext(rand_seed);</span>
+<span class="lineNum">     194 </span>                :<span class="lineCov">         64 :     }</span>
+<a name="195"><span class="lineNum">     195 </span>                :            : };</a>
+<span class="lineNum">     196 </span>                :            : 
+<span class="lineNum">     197 </span>[<span class="branchCov" title="Branch 2 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        150 : BOOST_AUTO_TEST_CASE(PrevectorTestInt)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>][<span class="branchCov" title="Branch 19 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 23 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 24 was not taken"> - </span>][<span class="branchCov" title="Branch 26 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 27 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 30 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 31 was not taken"> - </span>][<span class="branchCov" title="Branch 33 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 34 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 36 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 37 was not taken"> - </span>][<span class="branchCov" title="Branch 40 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 43 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 44 was not taken"> - </span>]
+<span class="lineNum">     198 </span>                :            : {
+<span class="lineNum">     199 </span>        [<span class="branchCov" title="Branch 0 was taken 64 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">         65 :     for (int j = 0; j &lt; 64; j++) {</span>
+<span class="lineNum">     200 </span>                :<span class="lineCov">        128 :         prevector_tester&lt;8, int&gt; test;</span>
+<span class="lineNum">     201 </span>        [<span class="branchCov" title="Branch 0 was taken 131072 times"> + </span><span class="branchCov" title="Branch 1 was taken 64 times"> + </span>]:<span class="lineCov">     131136 :         for (int i = 0; i &lt; 2048; i++) {</span>
+<span class="lineNum">     202 </span>        [<span class="branchCov" title="Branch 0 was taken 32899 times"> + </span><span class="branchCov" title="Branch 1 was taken 98173 times"> + </span>]:<span class="lineCov">     131072 :             if (InsecureRandBits(2) == 0) {</span>
+<span class="lineNum">     203 </span>[<span class="branchCov" title="Branch 1 was taken 32899 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 32899 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      32899 :                 test.insert(InsecureRandRange(test.size() + 1), InsecureRand32());</span>
+<span class="lineNum">     204 </span>                :            :             }
+<span class="lineNum">     205 </span>[<span class="branchCov" title="Branch 0 was taken 105923 times"> + </span><span class="branchCov" title="Branch 1 was taken 25149 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 26527 times"> + </span><span class="branchCov" title="Branch 3 was taken 79396 times"> + </span>]:<span class="lineCov">     236995 :             if (test.size() &gt; 0 &amp;&amp; InsecureRandBits(2) == 1) {</span>
+<span class="lineNum">     206 </span>[<span class="branchCov" title="Branch 1 was taken 26527 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 26527 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      26527 :                 test.erase(InsecureRandRange(test.size()));</span>
+<span class="lineNum">     207 </span>                :            :             }
+<span class="lineNum">     208 </span>        [<span class="branchCov" title="Branch 0 was taken 16525 times"> + </span><span class="branchCov" title="Branch 1 was taken 114547 times"> + </span>]:<span class="lineCov">     131072 :             if (InsecureRandBits(3) == 2) {</span>
+<span class="lineNum">     209 </span>                :<span class="lineCov">      66100 :                 int new_size = std::max(0, std::min(30, (int)test.size() + (int)InsecureRandRange(5) - 2));</span>
+<span class="lineNum">     210 </span>        [<span class="branchCov" title="Branch 1 was taken 16525 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      16525 :                 test.resize(new_size);</span>
+<span class="lineNum">     211 </span>                :            :             }
+<span class="lineNum">     212 </span>        [<span class="branchCov" title="Branch 0 was taken 16502 times"> + </span><span class="branchCov" title="Branch 1 was taken 114570 times"> + </span>]:<span class="lineCov">     131072 :             if (InsecureRandBits(3) == 3) {</span>
+<span class="lineNum">     213 </span>[<span class="branchCov" title="Branch 1 was taken 16502 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 16502 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      16502 :                 test.insert(InsecureRandRange(test.size() + 1), 1 + InsecureRandBool(), InsecureRand32());</span>
+<span class="lineNum">     214 </span>                :            :             }
+<span class="lineNum">     215 </span>        [<span class="branchCov" title="Branch 0 was taken 16467 times"> + </span><span class="branchCov" title="Branch 1 was taken 114605 times"> + </span>]:<span class="lineCov">     131072 :             if (InsecureRandBits(3) == 4) {</span>
+<span class="lineNum">     216 </span>                :<span class="lineCov">      49401 :                 int del = std::min&lt;int&gt;(test.size(), 1 + (InsecureRandBool()));</span>
+<span class="lineNum">     217 </span>        [<span class="branchCov" title="Branch 1 was taken 16467 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      16467 :                 int beg = InsecureRandRange(test.size() + 1 - del);</span>
+<span class="lineNum">     218 </span>        [<span class="branchCov" title="Branch 1 was taken 16467 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      16467 :                 test.erase(beg, beg + del);</span>
+<span class="lineNum">     219 </span>                :            :             }
+<span class="lineNum">     220 </span>        [<span class="branchCov" title="Branch 0 was taken 8187 times"> + </span><span class="branchCov" title="Branch 1 was taken 122885 times"> + </span>]:<span class="lineCov">     131072 :             if (InsecureRandBits(4) == 5) {</span>
+<span class="lineNum">     221 </span>        [<span class="branchCov" title="Branch 1 was taken 8187 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       8187 :                 test.push_back(InsecureRand32());</span>
+<span class="lineNum">     222 </span>                :            :             }
+<span class="lineNum">     223 </span>[<span class="branchCov" title="Branch 0 was taken 103050 times"> + </span><span class="branchCov" title="Branch 1 was taken 28022 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 6503 times"> + </span><span class="branchCov" title="Branch 3 was taken 96547 times"> + </span>]:<span class="lineCov">     234122 :             if (test.size() &gt; 0 &amp;&amp; InsecureRandBits(4) == 6) {</span>
+<span class="lineNum">     224 </span>                :            :                 test.pop_back();
+<span class="lineNum">     225 </span>                :            :             }
+<span class="lineNum">     226 </span>        [<span class="branchCov" title="Branch 0 was taken 4108 times"> + </span><span class="branchCov" title="Branch 1 was taken 126964 times"> + </span>]:<span class="lineCov">     131072 :             if (InsecureRandBits(5) == 7) {</span>
+<span class="lineNum">     227 </span>                :            :                 int values[4];
+<span class="lineNum">     228 </span>                :<span class="lineCov">       4108 :                 int num = 1 + (InsecureRandBits(2));</span>
+<span class="lineNum">     229 </span>        [<span class="branchCov" title="Branch 0 was taken 10349 times"> + </span><span class="branchCov" title="Branch 1 was taken 4108 times"> + </span>]:<span class="lineCov">      14457 :                 for (int k = 0; k &lt; num; k++) {</span>
+<span class="lineNum">     230 </span>                :<span class="lineCov">      10349 :                     values[k] = InsecureRand32();</span>
+<span class="lineNum">     231 </span>                :            :                 }
+<span class="lineNum">     232 </span>[<span class="branchCov" title="Branch 1 was taken 4108 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 4108 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       4108 :                 test.insert_range(InsecureRandRange(test.size() + 1), values, values + num);</span>
+<span class="lineNum">     233 </span>                :            :             }
+<span class="lineNum">     234 </span>        [<span class="branchCov" title="Branch 0 was taken 4083 times"> + </span><span class="branchCov" title="Branch 1 was taken 126989 times"> + </span>]:<span class="lineCov">     131072 :             if (InsecureRandBits(5) == 8) {</span>
+<span class="lineNum">     235 </span>                :<span class="lineCov">      12249 :                 int del = std::min&lt;int&gt;(test.size(), 1 + (InsecureRandBits(2)));</span>
+<span class="lineNum">     236 </span>        [<span class="branchCov" title="Branch 1 was taken 4083 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       4083 :                 int beg = InsecureRandRange(test.size() + 1 - del);</span>
+<span class="lineNum">     237 </span>        [<span class="branchCov" title="Branch 1 was taken 4083 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       4083 :                 test.erase(beg, beg + del);</span>
+<span class="lineNum">     238 </span>                :            :             }
+<span class="lineNum">     239 </span>        [<span class="branchCov" title="Branch 0 was taken 4006 times"> + </span><span class="branchCov" title="Branch 1 was taken 127066 times"> + </span>]:<span class="lineCov">     131072 :             if (InsecureRandBits(5) == 9) {</span>
+<span class="lineNum">     240 </span>        [<span class="branchCov" title="Branch 1 was taken 4006 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       4006 :                 test.reserve(InsecureRandBits(5));</span>
+<span class="lineNum">     241 </span>                :            :             }
+<span class="lineNum">     242 </span>        [<span class="branchCov" title="Branch 0 was taken 2034 times"> + </span><span class="branchCov" title="Branch 1 was taken 129038 times"> + </span>]:<span class="lineCov">     131072 :             if (InsecureRandBits(6) == 10) {</span>
+<span class="lineNum">     243 </span>        [<span class="branchCov" title="Branch 1 was taken 2034 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2034 :                 test.shrink_to_fit();</span>
+<span class="lineNum">     244 </span>                :            :             }
+<span class="lineNum">     245 </span>        [<span class="branchCov" title="Branch 0 was taken 101496 times"> + </span><span class="branchCov" title="Branch 1 was taken 29576 times"> + </span>]:<span class="lineCov">     131072 :             if (test.size() &gt; 0) {</span>
+<span class="lineNum">     246 </span>[<span class="branchCov" title="Branch 1 was taken 101496 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 101496 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     101496 :                 test.update(InsecureRandRange(test.size()), InsecureRand32());</span>
+<span class="lineNum">     247 </span>                :            :             }
+<span class="lineNum">     248 </span>        [<span class="branchCov" title="Branch 0 was taken 138 times"> + </span><span class="branchCov" title="Branch 1 was taken 130934 times"> + </span>]:<span class="lineCov">     131072 :             if (InsecureRandBits(10) == 11) {</span>
+<span class="lineNum">     249 </span>                :            :                 test.clear();
+<span class="lineNum">     250 </span>                :            :             }
+<span class="lineNum">     251 </span>        [<span class="branchCov" title="Branch 0 was taken 271 times"> + </span><span class="branchCov" title="Branch 1 was taken 130801 times"> + </span>]:<span class="lineCov">     131072 :             if (InsecureRandBits(9) == 12) {</span>
+<span class="lineNum">     252 </span>                :<span class="lineCov">        271 :                 test.assign(InsecureRandBits(5), InsecureRand32());</span>
+<span class="lineNum">     253 </span>                :            :             }
+<span class="lineNum">     254 </span>        [<span class="branchCov" title="Branch 0 was taken 16407 times"> + </span><span class="branchCov" title="Branch 1 was taken 114665 times"> + </span>]:<span class="lineCov">     131072 :             if (InsecureRandBits(3) == 3) {</span>
+<span class="lineNum">     255 </span>        [<span class="branchCov" title="Branch 1 was taken 16407 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      16407 :                 test.swap();</span>
+<span class="lineNum">     256 </span>                :            :             }
+<span class="lineNum">     257 </span>        [<span class="branchCov" title="Branch 0 was taken 8117 times"> + </span><span class="branchCov" title="Branch 1 was taken 122955 times"> + </span>]:<span class="lineCov">     131072 :             if (InsecureRandBits(4) == 8) {</span>
+<span class="lineNum">     258 </span>                :            :                 test.copy();
+<span class="lineNum">     259 </span>                :            :             }
+<span class="lineNum">     260 </span>        [<span class="branchCov" title="Branch 0 was taken 4090 times"> + </span><span class="branchCov" title="Branch 1 was taken 126982 times"> + </span>]:<span class="lineCov">     131072 :             if (InsecureRandBits(5) == 18) {</span>
+<span class="lineNum">     261 </span>                :<span class="lineCov">       4090 :                 test.move();</span>
+<span class="lineNum">     262 </span>                :            :             }
+<span class="lineNum">     263 </span>                :            :         }
+<span class="lineNum">     264 </span>                :            :     }
+<a name="265"><span class="lineNum">     265 </span>                :<span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     266 </span>                :            : 
+<span class="lineNum">     267 </span>[<span class="branchCov" title="Branch 1 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        288 : BOOST_AUTO_TEST_SUITE_END()</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

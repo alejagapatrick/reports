@@ -1,0 +1,568 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/cuckoocache.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - cuckoocache.h<span style="font-size: 80%;"> (source / <a href="cuckoocache.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">80</td>
+            <td class="headerCovTableEntry">82</td>
+            <td class="headerCovTableEntryHi">97.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">9</td>
+            <td class="headerCovTableEntry">9</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">39</td>
+            <td class="headerCovTableEntry">48</td>
+            <td class="headerCovTableEntryMed">81.2 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2016 Jeremy Rubin</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #ifndef BITCOIN_CUCKOOCACHE_H
+<span class="lineNum">       6 </span>                :            : #define BITCOIN_CUCKOOCACHE_H
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;array&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;algorithm&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;atomic&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;cstring&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;cmath&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;memory&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">      15 </span>                :            : 
+<span class="lineNum">      16 </span>                :            : 
+<span class="lineNum">      17 </span>                :            : /** namespace CuckooCache provides high performance cache primitives
+<span class="lineNum">      18 </span>                :            :  *
+<span class="lineNum">      19 </span>                :            :  * Summary:
+<span class="lineNum">      20 </span>                :            :  *
+<span class="lineNum">      21 </span>                :            :  * 1) bit_packed_atomic_flags is bit-packed atomic flags for garbage collection
+<span class="lineNum">      22 </span>                :            :  *
+<span class="lineNum">      23 </span>                :            :  * 2) cache is a cache which is performant in memory usage and lookup speed. It
+<span class="lineNum">      24 </span>                :            :  * is lockfree for erase operations. Elements are lazily erased on the next
+<span class="lineNum">      25 </span>                :            :  * insert.
+<span class="lineNum">      26 </span>                :            :  */
+<span class="lineNum">      27 </span>                :            : namespace CuckooCache
+<span class="lineNum">      28 </span>                :            : {
+<span class="lineNum">      29 </span>                :            : /** bit_packed_atomic_flags implements a container for garbage collection flags
+<span class="lineNum">      30 </span>                :            :  * that is only thread unsafe on calls to setup. This class bit-packs collection
+<span class="lineNum">      31 </span>                :            :  * flags for memory efficiency.
+<span class="lineNum">      32 </span>                :            :  *
+<span class="lineNum">      33 </span>                :            :  * All operations are std::memory_order_relaxed so external mechanisms must
+<span class="lineNum">      34 </span>                :            :  * ensure that writes and reads are properly synchronized.
+<span class="lineNum">      35 </span>                :            :  *
+<span class="lineNum">      36 </span>                :            :  * On setup(n), all bits up to n are marked as collected.
+<span class="lineNum">      37 </span>                :            :  *
+<span class="lineNum">      38 </span>                :            :  * Under the hood, because it is an 8-bit type, it makes sense to use a multiple
+<span class="lineNum">      39 </span>                :            :  * of 8 for setup, but it will be safe if that is not the case as well.
+<span class="lineNum">      40 </span>                :            :  *
+<span class="lineNum">      41 </span>                :            :  */
+<span class="lineNum">      42 </span>                :<span class="lineCov">       4814 : class bit_packed_atomic_flags</span>
+<span class="lineNum">      43 </span>                :            : {
+<span class="lineNum">      44 </span>                :            :     std::unique_ptr&lt;std::atomic&lt;uint8_t&gt;[]&gt; mem;
+<span class="lineNum">      45 </span>                :            : 
+<span class="lineNum">      46 </span>                :            : public:
+<span class="lineNum">      47 </span>                :            :     /** No default constructor as there must be some size */
+<span class="lineNum">      48 </span>                :            :     bit_packed_atomic_flags() = delete;
+<span class="lineNum">      49 </span>                :            : 
+<span class="lineNum">      50 </span>                :            :     /**
+<span class="lineNum">      51 </span>                :            :      * bit_packed_atomic_flags constructor creates memory to sufficiently
+<span class="lineNum">      52 </span>                :            :      * keep track of garbage collection information for size entries.
+<span class="lineNum">      53 </span>                :            :      *
+<span class="lineNum">      54 </span>                :            :      * @param size the number of elements to allocate space for
+<span class="lineNum">      55 </span>                :            :      *
+<span class="lineNum">      56 </span>                :            :      * @post bit_set, bit_unset, and bit_is_set function properly forall x. x &lt;
+<span class="lineNum">      57 </span>                :            :      * size
+<span class="lineNum">      58 </span>                :            :      * @post All calls to bit_is_set (without subsequent bit_unset) will return
+<a name="59"><span class="lineNum">      59 </span>                :            :      * true.</a>
+<span class="lineNum">      60 </span>                :            :      */
+<span class="lineNum">      61 </span>                :<span class="lineCov">       2407 :     explicit bit_packed_atomic_flags(uint32_t size)</span>
+<span class="lineNum">      62 </span>                :<span class="lineCov">       4814 :     {</span>
+<span class="lineNum">      63 </span>                :            :         // pad out the size if needed
+<span class="lineNum">      64 </span>                :<span class="lineCov">       2407 :         size = (size + 7) / 8;</span>
+<span class="lineNum">      65 </span>[<span class="branchCov" title="Branch 1 was taken 2407 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 94846976 times"> + </span><span class="branchCov" title="Branch 4 was taken 2407 times"> + </span>]:<span class="lineCov">   94849383 :         mem.reset(new std::atomic&lt;uint8_t&gt;[size]);</span>
+<span class="lineNum">      66 </span>        [<span class="branchCov" title="Branch 0 was taken 94846976 times"> + </span><span class="branchCov" title="Branch 1 was taken 2407 times"> + </span>]:<span class="lineCov">   94849383 :         for (uint32_t i = 0; i &lt; size; ++i)</span>
+<span class="lineNum">      67 </span>                :<span class="lineCov">  284540928 :             mem[i].store(0xFF);</span>
+<span class="lineNum">      68 </span>                :<span class="lineCov">       2407 :     };</span>
+<span class="lineNum">      69 </span>                :            : 
+<span class="lineNum">      70 </span>                :            :     /** setup marks all entries and ensures that bit_packed_atomic_flags can store
+<span class="lineNum">      71 </span>                :            :      * at least size entries
+<span class="lineNum">      72 </span>                :            :      *
+<span class="lineNum">      73 </span>                :            :      * @param b the number of elements to allocate space for
+<span class="lineNum">      74 </span>                :            :      * @post bit_set, bit_unset, and bit_is_set function properly forall x. x &lt;
+<span class="lineNum">      75 </span>                :            :      * b
+<span class="lineNum">      76 </span>                :            :      * @post All calls to bit_is_set (without subsequent bit_unset) will return
+<a name="77"><span class="lineNum">      77 </span>                :            :      * true.</a>
+<span class="lineNum">      78 </span>                :            :      */
+<span class="lineNum">      79 </span>                :<span class="lineCov">       1454 :     inline void setup(uint32_t b)</span>
+<span class="lineNum">      80 </span>                :            :     {
+<span class="lineNum">      81 </span>                :<span class="lineCov">       1454 :         bit_packed_atomic_flags d(b);</span>
+<span class="lineNum">      82 </span>                :<span class="lineCov">       2908 :         std::swap(mem, d.mem);</span>
+<span class="lineNum">      83 </span>                :<span class="lineCov">       1454 :     }</span>
+<span class="lineNum">      84 </span>                :            : 
+<span class="lineNum">      85 </span>                :            :     /** bit_set sets an entry as discardable.
+<span class="lineNum">      86 </span>                :            :      *
+<span class="lineNum">      87 </span>                :            :      * @param s the index of the entry to bit_set.
+<span class="lineNum">      88 </span>                :            :      * @post immediately subsequent call (assuming proper external memory
+<span class="lineNum">      89 </span>                :            :      * ordering) to bit_is_set(s) == true.
+<span class="lineNum">      90 </span>                :            :      *
+<span class="lineNum">      91 </span>                :            :      */
+<span class="lineNum">      92 </span>                :            :     inline void bit_set(uint32_t s)
+<span class="lineNum">      93 </span>                :            :     {
+<span class="lineNum">      94 </span>                :<span class="lineCov">    6657879 :         mem[s &gt;&gt; 3].fetch_or(1 &lt;&lt; (s &amp; 7), std::memory_order_relaxed);</span>
+<span class="lineNum">      95 </span>                :            :     }
+<span class="lineNum">      96 </span>                :            : 
+<span class="lineNum">      97 </span>                :            :     /**  bit_unset marks an entry as something that should not be overwritten
+<span class="lineNum">      98 </span>                :            :      *
+<span class="lineNum">      99 </span>                :            :      * @param s the index of the entry to bit_unset.
+<span class="lineNum">     100 </span>                :            :      * @post immediately subsequent call (assuming proper external memory
+<span class="lineNum">     101 </span>                :            :      * ordering) to bit_is_set(s) == false.
+<span class="lineNum">     102 </span>                :            :      */
+<span class="lineNum">     103 </span>                :            :     inline void bit_unset(uint32_t s)
+<span class="lineNum">     104 </span>                :            :     {
+<span class="lineNum">     105 </span>                :<span class="lineCov">    6491457 :         mem[s &gt;&gt; 3].fetch_and(~(1 &lt;&lt; (s &amp; 7)), std::memory_order_relaxed);</span>
+<span class="lineNum">     106 </span>                :            :     }
+<span class="lineNum">     107 </span>                :            : 
+<span class="lineNum">     108 </span>                :            :     /** bit_is_set queries the table for discardability at s
+<span class="lineNum">     109 </span>                :            :      *
+<span class="lineNum">     110 </span>                :            :      * @param s the index of the entry to read.
+<span class="lineNum">     111 </span>                :            :      * @returns if the bit at index s was set.
+<span class="lineNum">     112 </span>                :            :      * */
+<span class="lineNum">     113 </span>                :            :     inline bool bit_is_set(uint32_t s) const
+<span class="lineNum">     114 </span>                :            :     {
+<span class="lineNum">     115 </span>                :<span class="lineCov">   32802162 :         return (1 &lt;&lt; (s &amp; 7)) &amp; mem[s &gt;&gt; 3].load(std::memory_order_relaxed);</span>
+<span class="lineNum">     116 </span>                :            :     }
+<span class="lineNum">     117 </span>                :            : };
+<span class="lineNum">     118 </span>                :            : 
+<span class="lineNum">     119 </span>                :            : /** cache implements a cache with properties similar to a cuckoo-set
+<span class="lineNum">     120 </span>                :            :  *
+<span class="lineNum">     121 </span>                :            :  *  The cache is able to hold up to (~(uint32_t)0) - 1 elements.
+<span class="lineNum">     122 </span>                :            :  *
+<span class="lineNum">     123 </span>                :            :  *  Read Operations:
+<span class="lineNum">     124 </span>                :            :  *      - contains(*, false)
+<span class="lineNum">     125 </span>                :            :  *
+<span class="lineNum">     126 </span>                :            :  *  Read+Erase Operations:
+<span class="lineNum">     127 </span>                :            :  *      - contains(*, true)
+<span class="lineNum">     128 </span>                :            :  *
+<span class="lineNum">     129 </span>                :            :  *  Erase Operations:
+<span class="lineNum">     130 </span>                :            :  *      - allow_erase()
+<span class="lineNum">     131 </span>                :            :  *
+<span class="lineNum">     132 </span>                :            :  *  Write Operations:
+<span class="lineNum">     133 </span>                :            :  *      - setup()
+<span class="lineNum">     134 </span>                :            :  *      - setup_bytes()
+<span class="lineNum">     135 </span>                :            :  *      - insert()
+<span class="lineNum">     136 </span>                :            :  *      - please_keep()
+<span class="lineNum">     137 </span>                :            :  *
+<span class="lineNum">     138 </span>                :            :  *  Synchronization Free Operations:
+<span class="lineNum">     139 </span>                :            :  *      - invalid()
+<span class="lineNum">     140 </span>                :            :  *      - compute_hashes()
+<span class="lineNum">     141 </span>                :            :  *
+<span class="lineNum">     142 </span>                :            :  * User Must Guarantee:
+<span class="lineNum">     143 </span>                :            :  *
+<span class="lineNum">     144 </span>                :            :  * 1) Write Requires synchronized access (e.g., a lock)
+<span class="lineNum">     145 </span>                :            :  * 2) Read Requires no concurrent Write, synchronized with the last insert.
+<span class="lineNum">     146 </span>                :            :  * 3) Erase requires no concurrent Write, synchronized with last insert.
+<span class="lineNum">     147 </span>                :            :  * 4) An Erase caller must release all memory before allowing a new Writer.
+<span class="lineNum">     148 </span>                :            :  *
+<span class="lineNum">     149 </span>                :            :  *
+<span class="lineNum">     150 </span>                :            :  * Note on function names:
+<span class="lineNum">     151 </span>                :            :  *   - The name &quot;allow_erase&quot; is used because the real discard happens later.
+<span class="lineNum">     152 </span>                :            :  *   - The name &quot;please_keep&quot; is used because elements may be erased anyways on insert.
+<span class="lineNum">     153 </span>                :            :  *
+<span class="lineNum">     154 </span>                :            :  * @tparam Element should be a movable and copyable type
+<span class="lineNum">     155 </span>                :            :  * @tparam Hash should be a function/callable which takes a template parameter
+<span class="lineNum">     156 </span>                :            :  * hash_select and an Element and extracts a hash from it. Should return
+<span class="lineNum">     157 </span>                :            :  * high-entropy uint32_t hashes for `Hash h; h&lt;0&gt;(e) ... h&lt;7&gt;(e)`.
+<a name="158"><span class="lineNum">     158 </span>                :            :  */</a>
+<span class="lineNum">     159 </span>                :            : template &lt;typename Element, typename Hash&gt;
+<span class="lineNum">     160 </span>                :<span class="lineCov">        953 : class cache</span>
+<span class="lineNum">     161 </span>                :            : {
+<span class="lineNum">     162 </span>                :            : private:
+<span class="lineNum">     163 </span>                :            :     /** table stores all the elements */
+<span class="lineNum">     164 </span>                :            :     std::vector&lt;Element&gt; table;
+<span class="lineNum">     165 </span>                :            : 
+<span class="lineNum">     166 </span>                :            :     /** size stores the total available slots in the hash table */
+<span class="lineNum">     167 </span>                :            :     uint32_t size;
+<span class="lineNum">     168 </span>                :            : 
+<span class="lineNum">     169 </span>                :            :     /** The bit_packed_atomic_flags array is marked mutable because we want
+<span class="lineNum">     170 </span>                :            :      * garbage collection to be allowed to occur from const methods */
+<span class="lineNum">     171 </span>                :            :     mutable bit_packed_atomic_flags collection_flags;
+<span class="lineNum">     172 </span>                :            : 
+<span class="lineNum">     173 </span>                :            :     /** epoch_flags tracks how recently an element was inserted into
+<span class="lineNum">     174 </span>                :            :      * the cache. true denotes recent, false denotes not-recent. See insert()
+<span class="lineNum">     175 </span>                :            :      * method for full semantics.
+<span class="lineNum">     176 </span>                :            :      */
+<span class="lineNum">     177 </span>                :            :     mutable std::vector&lt;bool&gt; epoch_flags;
+<span class="lineNum">     178 </span>                :            : 
+<span class="lineNum">     179 </span>                :            :     /** epoch_heuristic_counter is used to determine when an epoch might be aged
+<span class="lineNum">     180 </span>                :            :      * &amp; an expensive scan should be done.  epoch_heuristic_counter is
+<span class="lineNum">     181 </span>                :            :      * decremented on insert and reset to the new number of inserts which would
+<span class="lineNum">     182 </span>                :            :      * cause the epoch to reach epoch_size when it reaches zero.
+<span class="lineNum">     183 </span>                :            :      */
+<span class="lineNum">     184 </span>                :            :     uint32_t epoch_heuristic_counter;
+<span class="lineNum">     185 </span>                :            : 
+<span class="lineNum">     186 </span>                :            :     /** epoch_size is set to be the number of elements supposed to be in a
+<span class="lineNum">     187 </span>                :            :      * epoch. When the number of non-erased elements in an epoch
+<span class="lineNum">     188 </span>                :            :      * exceeds epoch_size, a new epoch should be started and all
+<span class="lineNum">     189 </span>                :            :      * current entries demoted. epoch_size is set to be 45% of size because
+<span class="lineNum">     190 </span>                :            :      * we want to keep load around 90%, and we support 3 epochs at once --
+<span class="lineNum">     191 </span>                :            :      * one &quot;dead&quot; which has been erased, one &quot;dying&quot; which has been marked to be
+<span class="lineNum">     192 </span>                :            :      * erased next, and one &quot;living&quot; which new inserts add to.
+<span class="lineNum">     193 </span>                :            :      */
+<span class="lineNum">     194 </span>                :            :     uint32_t epoch_size;
+<span class="lineNum">     195 </span>                :            : 
+<span class="lineNum">     196 </span>                :            :     /** depth_limit determines how many elements insert should try to replace.
+<span class="lineNum">     197 </span>                :            :      * Should be set to log2(n)*/
+<span class="lineNum">     198 </span>                :            :     uint8_t depth_limit;
+<span class="lineNum">     199 </span>                :            : 
+<span class="lineNum">     200 </span>                :            :     /** hash_function is a const instance of the hash function. It cannot be
+<span class="lineNum">     201 </span>                :            :      * static or initialized at call time as it may have internal state (such as
+<span class="lineNum">     202 </span>                :            :      * a nonce).
+<span class="lineNum">     203 </span>                :            :      * */
+<span class="lineNum">     204 </span>                :            :     const Hash hash_function;
+<span class="lineNum">     205 </span>                :            : 
+<span class="lineNum">     206 </span>                :            :     /** compute_hashes is convenience for not having to write out this
+<span class="lineNum">     207 </span>                :            :      * expression everywhere we use the hash values of an Element.
+<span class="lineNum">     208 </span>                :            :      *
+<span class="lineNum">     209 </span>                :            :      * We need to map the 32-bit input hash onto a hash bucket in a range [0, size) in a
+<span class="lineNum">     210 </span>                :            :      *  manner which preserves as much of the hash's uniformity as possible.  Ideally
+<span class="lineNum">     211 </span>                :            :      *  this would be done by bitmasking but the size is usually not a power of two.
+<span class="lineNum">     212 </span>                :            :      *
+<span class="lineNum">     213 </span>                :            :      * The naive approach would be to use a mod -- which isn't perfectly uniform but so
+<span class="lineNum">     214 </span>                :            :      *  long as the hash is much larger than size it is not that bad.  Unfortunately,
+<span class="lineNum">     215 </span>                :            :      *  mod/division is fairly slow on ordinary microprocessors (e.g. 90-ish cycles on
+<span class="lineNum">     216 </span>                :            :      *  haswell, ARM doesn't even have an instruction for it.); when the divisor is a
+<span class="lineNum">     217 </span>                :            :      *  constant the compiler will do clever tricks to turn it into a multiply+add+shift,
+<span class="lineNum">     218 </span>                :            :      *  but size is a run-time value so the compiler can't do that here.
+<span class="lineNum">     219 </span>                :            :      *
+<span class="lineNum">     220 </span>                :            :      * One option would be to implement the same trick the compiler uses and compute the
+<span class="lineNum">     221 </span>                :            :      *  constants for exact division based on the size, as described in &quot;{N}-bit Unsigned
+<span class="lineNum">     222 </span>                :            :      *  Division via {N}-bit Multiply-Add&quot; by Arch D. Robison in 2005. But that code is
+<span class="lineNum">     223 </span>                :            :      *  somewhat complicated and the result is still slower than other options:
+<span class="lineNum">     224 </span>                :            :      *
+<span class="lineNum">     225 </span>                :            :      * Instead we treat the 32-bit random number as a Q32 fixed-point number in the range
+<span class="lineNum">     226 </span>                :            :      *  [0,1) and simply multiply it by the size.  Then we just shift the result down by
+<span class="lineNum">     227 </span>                :            :      *  32-bits to get our bucket number.  The result has non-uniformity the same as a
+<span class="lineNum">     228 </span>                :            :      *  mod, but it is much faster to compute. More about this technique can be found at
+<span class="lineNum">     229 </span>                :            :      *  http://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/
+<span class="lineNum">     230 </span>                :            :      *
+<span class="lineNum">     231 </span>                :            :      * The resulting non-uniformity is also more equally distributed which would be
+<span class="lineNum">     232 </span>                :            :      *  advantageous for something like linear probing, though it shouldn't matter
+<span class="lineNum">     233 </span>                :            :      *  one way or the other for a cuckoo table.
+<span class="lineNum">     234 </span>                :            :      *
+<span class="lineNum">     235 </span>                :            :      * The primary disadvantage of this approach is increased intermediate precision is
+<span class="lineNum">     236 </span>                :            :      *  required but for a 32-bit random number we only need the high 32 bits of a
+<span class="lineNum">     237 </span>                :            :      *  32*32-&gt;64 multiply, which means the operation is reasonably fast even on a
+<span class="lineNum">     238 </span>                :            :      *  typical 32-bit processor.
+<span class="lineNum">     239 </span>                :            :      *
+<span class="lineNum">     240 </span>                :            :      * @param e the element whose hashes will be returned
+<a name="241"><span class="lineNum">     241 </span>                :            :      * @returns std::array&lt;uint32_t, 8&gt; of deterministic hashes derived from e</a>
+<span class="lineNum">     242 </span>                :            :      */
+<span class="lineNum">     243 </span>                :<span class="lineCov">    4217175 :     inline std::array&lt;uint32_t, 8&gt; compute_hashes(const Element&amp; e) const</span>
+<span class="lineNum">     244 </span>                :            :     {
+<span class="lineNum">     245 </span>                :<span class="lineCov">    8434350 :         return {{(uint32_t)(((uint64_t)hash_function.template operator()&lt;0&gt;(e) * (uint64_t)size) &gt;&gt; 32),</span>
+<span class="lineNum">     246 </span>                :<span class="lineCov">    8434350 :                  (uint32_t)(((uint64_t)hash_function.template operator()&lt;1&gt;(e) * (uint64_t)size) &gt;&gt; 32),</span>
+<span class="lineNum">     247 </span>                :<span class="lineCov">    8434350 :                  (uint32_t)(((uint64_t)hash_function.template operator()&lt;2&gt;(e) * (uint64_t)size) &gt;&gt; 32),</span>
+<span class="lineNum">     248 </span>                :<span class="lineCov">    8434350 :                  (uint32_t)(((uint64_t)hash_function.template operator()&lt;3&gt;(e) * (uint64_t)size) &gt;&gt; 32),</span>
+<span class="lineNum">     249 </span>                :<span class="lineCov">    8434350 :                  (uint32_t)(((uint64_t)hash_function.template operator()&lt;4&gt;(e) * (uint64_t)size) &gt;&gt; 32),</span>
+<span class="lineNum">     250 </span>                :<span class="lineCov">    8434350 :                  (uint32_t)(((uint64_t)hash_function.template operator()&lt;5&gt;(e) * (uint64_t)size) &gt;&gt; 32),</span>
+<span class="lineNum">     251 </span>                :<span class="lineCov">    8434350 :                  (uint32_t)(((uint64_t)hash_function.template operator()&lt;6&gt;(e) * (uint64_t)size) &gt;&gt; 32),</span>
+<span class="lineNum">     252 </span>                :<span class="lineCov">   33737400 :                  (uint32_t)(((uint64_t)hash_function.template operator()&lt;7&gt;(e) * (uint64_t)size) &gt;&gt; 32)}};</span>
+<span class="lineNum">     253 </span>                :            :     }
+<span class="lineNum">     254 </span>                :            : 
+<span class="lineNum">     255 </span>                :            :     /* end
+<span class="lineNum">     256 </span>                :            :      * @returns a constexpr index that can never be inserted to */
+<span class="lineNum">     257 </span>                :            :     constexpr uint32_t invalid() const
+<span class="lineNum">     258 </span>                :            :     {
+<span class="lineNum">     259 </span>                :            :         return ~(uint32_t)0;
+<span class="lineNum">     260 </span>                :            :     }
+<span class="lineNum">     261 </span>                :            : 
+<span class="lineNum">     262 </span>                :            :     /** allow_erase marks the element at index n as discardable. Threadsafe
+<span class="lineNum">     263 </span>                :            :      * without any concurrent insert.
+<span class="lineNum">     264 </span>                :            :      * @param n the index to allow erasure of
+<span class="lineNum">     265 </span>                :            :      */
+<span class="lineNum">     266 </span>                :            :     inline void allow_erase(uint32_t n) const
+<span class="lineNum">     267 </span>                :            :     {
+<span class="lineNum">     268 </span>                :<span class="lineCov">    2219293 :         collection_flags.bit_set(n);</span>
+<span class="lineNum">     269 </span>                :            :     }
+<span class="lineNum">     270 </span>                :            : 
+<span class="lineNum">     271 </span>                :            :     /** please_keep marks the element at index n as an entry that should be kept.
+<span class="lineNum">     272 </span>                :            :      * Threadsafe without any concurrent insert.
+<span class="lineNum">     273 </span>                :            :      * @param n the index to prioritize keeping
+<span class="lineNum">     274 </span>                :            :      */
+<span class="lineNum">     275 </span>                :            :     inline void please_keep(uint32_t n) const
+<span class="lineNum">     276 </span>                :            :     {
+<span class="lineNum">     277 </span>                :<span class="lineCov">    4327638 :         collection_flags.bit_unset(n);</span>
+<span class="lineNum">     278 </span>                :            :     }
+<span class="lineNum">     279 </span>                :            : 
+<span class="lineNum">     280 </span>                :            :     /** epoch_check handles the changing of epochs for elements stored in the
+<span class="lineNum">     281 </span>                :            :      * cache. epoch_check should be run before every insert.
+<span class="lineNum">     282 </span>                :            :      *
+<span class="lineNum">     283 </span>                :            :      * First, epoch_check decrements and checks the cheap heuristic, and then does
+<span class="lineNum">     284 </span>                :            :      * a more expensive scan if the cheap heuristic runs out. If the expensive
+<span class="lineNum">     285 </span>                :            :      * scan succeeds, the epochs are aged and old elements are allow_erased. The
+<span class="lineNum">     286 </span>                :            :      * cheap heuristic is reset to retrigger after the worst case growth of the
+<a name="287"><span class="lineNum">     287 </span>                :            :      * current epoch's elements would exceed the epoch_size.</a>
+<span class="lineNum">     288 </span>                :            :      */
+<span class="lineNum">     289 </span>                :<span class="lineCov">    2163819 :     void epoch_check()</span>
+<span class="lineNum">     290 </span>                :            :     {
+<span class="lineNum">     291 </span>        [<span class="branchCov" title="Branch 0 was taken 84 times"> + </span><span class="branchCov" title="Branch 1 was taken 2163735 times"> + </span>]:<span class="lineCov">    2163819 :         if (epoch_heuristic_counter != 0) {</span>
+<span class="lineNum">     292 </span>                :<span class="lineCov">    2163735 :             --epoch_heuristic_counter;</span>
+<span class="lineNum">     293 </span>                :<span class="lineCov">    2163735 :             return;</span>
+<span class="lineNum">     294 </span>                :            :         }
+<span class="lineNum">     295 </span>                :            :         // count the number of elements from the latest epoch which
+<span class="lineNum">     296 </span>                :            :         // have not been erased.
+<span class="lineNum">     297 </span>                :            :         uint32_t epoch_unused_count = 0;
+<span class="lineNum">     298 </span>        [<span class="branchCov" title="Branch 0 was taken 11010048 times"> + </span><span class="branchCov" title="Branch 1 was taken 84 times"> + </span>]:<span class="lineCov">   11010132 :         for (uint32_t i = 0; i &lt; size; ++i)</span>
+<span class="lineNum">     299 </span>[<span class="branchCov" title="Branch 0 was taken 5501054 times"> + </span><span class="branchCov" title="Branch 1 was taken 5508994 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 920375 times"> + </span><span class="branchCov" title="Branch 3 was taken 4580679 times"> + </span>]:<span class="lineCov">   11010048 :             epoch_unused_count += epoch_flags[i] &amp;&amp;</span>
+<span class="lineNum">     300 </span>                :<span class="lineCov">   11002108 :                                   !collection_flags.bit_is_set(i);</span>
+<span class="lineNum">     301 </span>                :            :         // If there are more non-deleted entries in the current epoch than the
+<span class="lineNum">     302 </span>                :            :         // epoch size, then allow_erase on all elements in the old epoch (marked
+<span class="lineNum">     303 </span>                :            :         // false) and move all elements in the current epoch to the old epoch
+<span class="lineNum">     304 </span>                :            :         // but do not call allow_erase on their indices.
+<span class="lineNum">     305 </span>        [<span class="branchCov" title="Branch 0 was taken 24 times"> + </span><span class="branchCov" title="Branch 1 was taken 60 times"> + </span>]:<span class="lineCov">         84 :         if (epoch_unused_count &gt;= epoch_size) {</span>
+<span class="lineNum">     306 </span>        [<span class="branchCov" title="Branch 0 was taken 3145728 times"> + </span><span class="branchCov" title="Branch 1 was taken 24 times"> + </span>]:<span class="lineCov">    3145752 :             for (uint32_t i = 0; i &lt; size; ++i)</span>
+<span class="lineNum">     307 </span>        [<span class="branchCov" title="Branch 0 was taken 1622326 times"> + </span><span class="branchCov" title="Branch 1 was taken 1523402 times"> + </span>]:<span class="lineCov">    3145728 :                 if (epoch_flags[i])</span>
+<span class="lineNum">     308 </span>                :<span class="lineCov">    1622326 :                     epoch_flags[i] = false;</span>
+<span class="lineNum">     309 </span>                :            :                 else
+<span class="lineNum">     310 </span>                :            :                     allow_erase(i);
+<span class="lineNum">     311 </span>                :<span class="lineCov">         24 :             epoch_heuristic_counter = epoch_size;</span>
+<span class="lineNum">     312 </span>                :            :         } else
+<span class="lineNum">     313 </span>                :            :             // reset the epoch_heuristic_counter to next do a scan when worst
+<span class="lineNum">     314 </span>                :            :             // case behavior (no intermittent erases) would exceed epoch size,
+<span class="lineNum">     315 </span>                :            :             // with a reasonable minimum scan size.
+<span class="lineNum">     316 </span>                :            :             // Ordinarily, we would have to sanity check std::min(epoch_size,
+<span class="lineNum">     317 </span>                :            :             // epoch_unused_count), but we already know that `epoch_unused_count
+<span class="lineNum">     318 </span>                :            :             // &lt; epoch_size` in this branch
+<span class="lineNum">     319 </span>                :<span class="lineCov">        180 :             epoch_heuristic_counter = std::max(1u, std::max(epoch_size / 16,</span>
+<span class="lineNum">     320 </span>                :<span class="lineCov">         60 :                         epoch_size - epoch_unused_count));</span>
+<span class="lineNum">     321 </span>                :            :     }
+<span class="lineNum">     322 </span>                :            : 
+<span class="lineNum">     323 </span>                :            : public:
+<span class="lineNum">     324 </span>                :            :     /** You must always construct a cache with some elements via a subsequent
+<a name="325"><span class="lineNum">     325 </span>                :            :      * call to setup or setup_bytes, otherwise operations may segfault.</a>
+<span class="lineNum">     326 </span>                :            :      */
+<span class="lineNum">     327 </span>                :<span class="lineCov">        953 :     cache() : table(), size(), collection_flags(0), epoch_flags(),</span>
+<span class="lineNum">     328 </span>        [<span class="branchCov" title="Branch 1 was taken 953 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        953 :     epoch_heuristic_counter(), epoch_size(), depth_limit(0), hash_function()</span>
+<span class="lineNum">     329 </span>                :            :     {
+<span class="lineNum">     330 </span>                :<span class="lineCov">        953 :     }</span>
+<span class="lineNum">     331 </span>                :            : 
+<span class="lineNum">     332 </span>                :            :     /** setup initializes the container to store no more than new_size
+<span class="lineNum">     333 </span>                :            :      * elements.
+<span class="lineNum">     334 </span>                :            :      *
+<span class="lineNum">     335 </span>                :            :      * setup should only be called once.
+<span class="lineNum">     336 </span>                :            :      *
+<span class="lineNum">     337 </span>                :            :      * @param new_size the desired number of elements to store
+<a name="338"><span class="lineNum">     338 </span>                :            :      * @returns the maximum number of elements storable</a>
+<span class="lineNum">     339 </span>                :            :      **/
+<span class="lineNum">     340 </span>                :<span class="lineCov">       1454 :     uint32_t setup(uint32_t new_size)</span>
+<span class="lineNum">     341 </span>                :            :     {
+<span class="lineNum">     342 </span>                :            :         // depth_limit must be at least one otherwise errors can occur.
+<span class="lineNum">     343 </span>                :<span class="lineCov">       4362 :         depth_limit = static_cast&lt;uint8_t&gt;(std::log2(static_cast&lt;float&gt;(std::max((uint32_t)2, new_size))));</span>
+<span class="lineNum">     344 </span>                :<span class="lineCov">       2908 :         size = std::max&lt;uint32_t&gt;(2, new_size);</span>
+<span class="lineNum">     345 </span>                :<span class="lineCov">       1454 :         table.resize(size);</span>
+<span class="lineNum">     346 </span>                :<span class="lineCov">       1454 :         collection_flags.setup(size);</span>
+<span class="lineNum">     347 </span>                :<span class="lineCov">       1454 :         epoch_flags.resize(size);</span>
+<span class="lineNum">     348 </span>                :            :         // Set to 45% as described above
+<span class="lineNum">     349 </span>                :<span class="lineCov">       2908 :         epoch_size = std::max((uint32_t)1, (45 * size) / 100);</span>
+<span class="lineNum">     350 </span>                :            :         // Initially set to wait for a whole epoch
+<span class="lineNum">     351 </span>                :<span class="lineCov">       1454 :         epoch_heuristic_counter = epoch_size;</span>
+<span class="lineNum">     352 </span>                :<span class="lineCov">       1454 :         return size;</span>
+<span class="lineNum">     353 </span>                :            :     }
+<span class="lineNum">     354 </span>                :            : 
+<span class="lineNum">     355 </span>                :            :     /** setup_bytes is a convenience function which accounts for internal memory
+<span class="lineNum">     356 </span>                :            :      * usage when deciding how many elements to store. It isn't perfect because
+<span class="lineNum">     357 </span>                :            :      * it doesn't account for any overhead (struct size, MallocUsage, collection
+<span class="lineNum">     358 </span>                :            :      * and epoch flags). This was done to simplify selecting a power of two
+<span class="lineNum">     359 </span>                :            :      * size. In the expected use case, an extra two bits per entry should be
+<span class="lineNum">     360 </span>                :            :      * negligible compared to the size of the elements.
+<span class="lineNum">     361 </span>                :            :      *
+<span class="lineNum">     362 </span>                :            :      * @param bytes the approximate number of bytes to use for this data
+<span class="lineNum">     363 </span>                :            :      * structure.
+<span class="lineNum">     364 </span>                :            :      * @returns the maximum number of elements storable (see setup()
+<span class="lineNum">     365 </span>                :            :      * documentation for more detail)
+<span class="lineNum">     366 </span>                :            :      */
+<span class="lineNum">     367 </span>                :            :     uint32_t setup_bytes(size_t bytes)
+<span class="lineNum">     368 </span>                :            :     {
+<span class="lineNum">     369 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1454 :         return setup(bytes/sizeof(Element));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 10 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span><span class="branchCov" title="Branch 13 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>]
+<span class="lineNum">     370 </span>                :            :     }
+<span class="lineNum">     371 </span>                :            : 
+<span class="lineNum">     372 </span>                :            :     /** insert loops at most depth_limit times trying to insert a hash
+<span class="lineNum">     373 </span>                :            :      * at various locations in the table via a variant of the Cuckoo Algorithm
+<span class="lineNum">     374 </span>                :            :      * with eight hash locations.
+<span class="lineNum">     375 </span>                :            :      *
+<span class="lineNum">     376 </span>                :            :      * It drops the last tried element if it runs out of depth before
+<span class="lineNum">     377 </span>                :            :      * encountering an open slot.
+<span class="lineNum">     378 </span>                :            :      *
+<span class="lineNum">     379 </span>                :            :      * Thus
+<span class="lineNum">     380 </span>                :            :      *
+<span class="lineNum">     381 </span>                :            :      * insert(x);
+<span class="lineNum">     382 </span>                :            :      * return contains(x, false);
+<span class="lineNum">     383 </span>                :            :      *
+<span class="lineNum">     384 </span>                :            :      * is not guaranteed to return true.
+<span class="lineNum">     385 </span>                :            :      *
+<span class="lineNum">     386 </span>                :            :      * @param e the element to insert
+<span class="lineNum">     387 </span>                :            :      * @post one of the following: All previously inserted elements and e are
+<span class="lineNum">     388 </span>                :            :      * now in the table, one previously inserted element is evicted from the
+<span class="lineNum">     389 </span>                :            :      * table, the entry attempted to be inserted is evicted.
+<a name="390"><span class="lineNum">     390 </span>                :            :      *</a>
+<span class="lineNum">     391 </span>                :            :      */
+<span class="lineNum">     392 </span>                :<span class="lineCov">    2163819 :     inline void insert(Element e)</span>
+<span class="lineNum">     393 </span>                :            :     {
+<span class="lineNum">     394 </span>                :<span class="lineCov">    2163819 :         epoch_check();</span>
+<span class="lineNum">     395 </span>                :<span class="lineCov">    2163819 :         uint32_t last_loc = invalid();</span>
+<span class="lineNum">     396 </span>                :<span class="lineCov">    2163819 :         bool last_epoch = true;</span>
+<span class="lineNum">     397 </span>                :<span class="lineCov">    2163819 :         std::array&lt;uint32_t, 8&gt; locs = compute_hashes(e);</span>
+<span class="lineNum">     398 </span>                :            :         // Make sure we have not already inserted this element
+<span class="lineNum">     399 </span>                :            :         // If we have, make sure that it does not get deleted
+<span class="lineNum">     400 </span>        [<span class="branchCov" title="Branch 0 was taken 17310552 times"> + </span><span class="branchCov" title="Branch 1 was taken 2163819 times"> + </span>]:<span class="lineCov">   19474371 :         for (const uint32_t loc : locs)</span>
+<span class="lineNum">     401 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 17310552 times"> + </span>]:<span class="lineCov">   17310552 :             if (table[loc] == e) {</span>
+<span class="lineNum">     402 </span>                :<span class="lineNoCov">          0 :                 please_keep(loc);</span>
+<span class="lineNum">     403 </span>                :<span class="lineNoCov">          0 :                 epoch_flags[loc] = last_epoch;</span>
+<span class="lineNum">     404 </span>                :<span class="lineCov">    2163819 :                 return;</span>
+<span class="lineNum">     405 </span>                :            :             }
+<span class="lineNum">     406 </span>        [<span class="branchCov" title="Branch 0 was taken 2249621 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">    2249621 :         for (uint8_t depth = 0; depth &lt; depth_limit; ++depth) {</span>
+<span class="lineNum">     407 </span>                :            :             // First try to insert to an empty slot, if one exists
+<span class="lineNum">     408 </span>        [<span class="branchCov" title="Branch 0 was taken 5433000 times"> + </span><span class="branchCov" title="Branch 1 was taken 85802 times"> + </span>]:<span class="lineCov">    5518802 :             for (const uint32_t loc : locs) {</span>
+<span class="lineNum">     409 </span>        [<span class="branchCov" title="Branch 0 was taken 3269181 times"> + </span><span class="branchCov" title="Branch 1 was taken 2163819 times"> + </span>]:<span class="lineCov">    5433000 :                 if (!collection_flags.bit_is_set(loc))</span>
+<span class="lineNum">     410 </span>                :            :                     continue;
+<span class="lineNum">     411 </span>                :<span class="lineCov">    4327638 :                 table[loc] = std::move(e);</span>
+<span class="lineNum">     412 </span>                :<span class="lineCov">    2163819 :                 please_keep(loc);</span>
+<span class="lineNum">     413 </span>                :<span class="lineCov">    6491457 :                 epoch_flags[loc] = last_epoch;</span>
+<span class="lineNum">     414 </span>                :<span class="lineCov">    2163819 :                 return;</span>
+<span class="lineNum">     415 </span>                :            :             }
+<span class="lineNum">     416 </span>                :            :             /** Swap with the element at the location that was
+<span class="lineNum">     417 </span>                :            :             * not the last one looked at. Example:
+<span class="lineNum">     418 </span>                :            :             *
+<span class="lineNum">     419 </span>                :            :             * 1) On first iteration, last_loc == invalid(), find returns last, so
+<span class="lineNum">     420 </span>                :            :             *    last_loc defaults to locs[0].
+<span class="lineNum">     421 </span>                :            :             * 2) On further iterations, where last_loc == locs[k], last_loc will
+<span class="lineNum">     422 </span>                :            :             *    go to locs[k+1 % 8], i.e., next of the 8 indices wrapping around
+<span class="lineNum">     423 </span>                :            :             *    to 0 if needed.
+<span class="lineNum">     424 </span>                :            :             *
+<span class="lineNum">     425 </span>                :            :             * This prevents moving the element we just put in.
+<span class="lineNum">     426 </span>                :            :             *
+<span class="lineNum">     427 </span>                :            :             * The swap is not a move -- we must switch onto the evicted element
+<span class="lineNum">     428 </span>                :            :             * for the next iteration.
+<span class="lineNum">     429 </span>                :            :             */
+<span class="lineNum">     430 </span>                :<span class="lineCov">      85802 :             last_loc = locs[(1 + (std::find(locs.begin(), locs.end(), last_loc) - locs.begin())) &amp; 7];</span>
+<span class="lineNum">     431 </span>                :<span class="lineCov">     257406 :             std::swap(table[last_loc], e);</span>
+<span class="lineNum">     432 </span>                :            :             // Can't std::swap a std::vector&lt;bool&gt;::reference and a bool&amp;.
+<span class="lineNum">     433 </span>                :<span class="lineCov">      85802 :             bool epoch = last_epoch;</span>
+<span class="lineNum">     434 </span>                :<span class="lineCov">     257406 :             last_epoch = epoch_flags[last_loc];</span>
+<span class="lineNum">     435 </span>                :<span class="lineCov">     257406 :             epoch_flags[last_loc] = epoch;</span>
+<span class="lineNum">     436 </span>                :            : 
+<span class="lineNum">     437 </span>                :            :             // Recompute the locs -- unfortunately happens one too many times!
+<span class="lineNum">     438 </span>                :<span class="lineCov">      85802 :             locs = compute_hashes(e);</span>
+<span class="lineNum">     439 </span>                :            :         }
+<span class="lineNum">     440 </span>                :            :     }
+<span class="lineNum">     441 </span>                :            : 
+<span class="lineNum">     442 </span>                :            :     /* contains iterates through the hash locations for a given element
+<span class="lineNum">     443 </span>                :            :      * and checks to see if it is present.
+<span class="lineNum">     444 </span>                :            :      *
+<span class="lineNum">     445 </span>                :            :      * contains does not check garbage collected state (in other words,
+<span class="lineNum">     446 </span>                :            :      * garbage is only collected when the space is needed), so:
+<span class="lineNum">     447 </span>                :            :      *
+<span class="lineNum">     448 </span>                :            :      * insert(x);
+<span class="lineNum">     449 </span>                :            :      * if (contains(x, true))
+<span class="lineNum">     450 </span>                :            :      *     return contains(x, false);
+<span class="lineNum">     451 </span>                :            :      * else
+<span class="lineNum">     452 </span>                :            :      *     return true;
+<span class="lineNum">     453 </span>                :            :      *
+<span class="lineNum">     454 </span>                :            :      * executed on a single thread will always return true!
+<span class="lineNum">     455 </span>                :            :      *
+<span class="lineNum">     456 </span>                :            :      * This is a great property for re-org performance for example.
+<span class="lineNum">     457 </span>                :            :      *
+<span class="lineNum">     458 </span>                :            :      * contains returns a bool set true if the element was found.
+<span class="lineNum">     459 </span>                :            :      *
+<span class="lineNum">     460 </span>                :            :      * @param e the element to check
+<span class="lineNum">     461 </span>                :            :      * @param erase
+<span class="lineNum">     462 </span>                :            :      *
+<span class="lineNum">     463 </span>                :            :      * @post if erase is true and the element is found, then the garbage collect
+<span class="lineNum">     464 </span>                :            :      * flag is set
+<a name="465"><span class="lineNum">     465 </span>                :            :      * @returns true if the element is found, false otherwise</a>
+<span class="lineNum">     466 </span>                :            :      */
+<span class="lineNum">     467 </span>                :<span class="lineCov">    1967554 :     inline bool contains(const Element&amp; e, const bool erase) const</span>
+<span class="lineNum">     468 </span>                :            :     {
+<span class="lineNum">     469 </span>                :<span class="lineCov">    1967554 :         std::array&lt;uint32_t, 8&gt; locs = compute_hashes(e);</span>
+<span class="lineNum">     470 </span>        [<span class="branchCov" title="Branch 0 was taken 7221395 times"> + </span><span class="branchCov" title="Branch 1 was taken 555760 times"> + </span>]:<span class="lineCov">    7777155 :         for (const uint32_t loc : locs)</span>
+<span class="lineNum">     471 </span>        [<span class="branchCov" title="Branch 0 was taken 1411794 times"> + </span><span class="branchCov" title="Branch 1 was taken 5809601 times"> + </span>]:<span class="lineCov">    7221395 :             if (table[loc] == e) {</span>
+<span class="lineNum">     472 </span>        [<span class="branchCov" title="Branch 0 was taken 695891 times"> + </span><span class="branchCov" title="Branch 1 was taken 715903 times"> + </span>]:<span class="lineCov">    1411794 :                 if (erase)</span>
+<span class="lineNum">     473 </span>                :            :                     allow_erase(loc);
+<span class="lineNum">     474 </span>                :            :                 return true;
+<span class="lineNum">     475 </span>                :            :             }
+<span class="lineNum">     476 </span>                :            :         return false;
+<span class="lineNum">     477 </span>                :            :     }
+<span class="lineNum">     478 </span>                :            : };
+<span class="lineNum">     479 </span>                :            : } // namespace CuckooCache
+<span class="lineNum">     480 </span>                :            : 
+<span class="lineNum">     481 </span>                :            : #endif // BITCOIN_CUCKOOCACHE_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

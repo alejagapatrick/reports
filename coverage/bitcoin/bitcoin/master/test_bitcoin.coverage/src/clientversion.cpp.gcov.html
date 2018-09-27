@@ -1,0 +1,187 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/clientversion.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - clientversion.cpp<span style="font-size: 80%;"> (source / <a href="clientversion.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">18</td>
+            <td class="headerCovTableEntry">21</td>
+            <td class="headerCovTableEntryMed">85.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryMed">80.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntry">18</td>
+            <td class="headerCovTableEntryLo">61.1 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2012-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #include &lt;clientversion.h&gt;
+<span class="lineNum">       6 </span>                :            : 
+<span class="lineNum">       7 </span>                :            : #include &lt;tinyformat.h&gt;
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : 
+<span class="lineNum">      10 </span>                :            : /**
+<span class="lineNum">      11 </span>                :            :  * Name of client reported in the 'version' message. Report the same name
+<span class="lineNum">      12 </span>                :            :  * for both bitcoind and bitcoin-qt, to make it harder for attackers to
+<span class="lineNum">      13 </span>                :            :  * target servers or GUI users specifically.
+<span class="lineNum">      14 </span>                :            :  */
+<span class="lineNum">      15 </span>                :<span class="lineCov">        146 : const std::string CLIENT_NAME(&quot;Satoshi&quot;);</span>
+<span class="lineNum">      16 </span>                :            : 
+<span class="lineNum">      17 </span>                :            : /**
+<span class="lineNum">      18 </span>                :            :  * Client version number
+<span class="lineNum">      19 </span>                :            :  */
+<span class="lineNum">      20 </span>                :            : #define CLIENT_VERSION_SUFFIX &quot;&quot;
+<span class="lineNum">      21 </span>                :            : 
+<span class="lineNum">      22 </span>                :            : 
+<span class="lineNum">      23 </span>                :            : /**
+<span class="lineNum">      24 </span>                :            :  * The following part of the code determines the CLIENT_BUILD variable.
+<span class="lineNum">      25 </span>                :            :  * Several mechanisms are used for this:
+<span class="lineNum">      26 </span>                :            :  * * first, if HAVE_BUILD_INFO is defined, include build.h, a file that is
+<span class="lineNum">      27 </span>                :            :  *   generated by the build environment, possibly containing the output
+<span class="lineNum">      28 </span>                :            :  *   of git-describe in a macro called BUILD_DESC
+<span class="lineNum">      29 </span>                :            :  * * secondly, if this is an exported version of the code, GIT_ARCHIVE will
+<span class="lineNum">      30 </span>                :            :  *   be defined (automatically using the export-subst git attribute), and
+<span class="lineNum">      31 </span>                :            :  *   GIT_COMMIT will contain the commit id.
+<span class="lineNum">      32 </span>                :            :  * * then, three options exist for determining CLIENT_BUILD:
+<span class="lineNum">      33 </span>                :            :  *   * if BUILD_DESC is defined, use that literally (output of git-describe)
+<span class="lineNum">      34 </span>                :            :  *   * if not, but GIT_COMMIT is defined, use v[maj].[min].[rev].[build]-g[commit]
+<span class="lineNum">      35 </span>                :            :  *   * otherwise, use v[maj].[min].[rev].[build]-unk
+<span class="lineNum">      36 </span>                :            :  * finally CLIENT_VERSION_SUFFIX is added
+<span class="lineNum">      37 </span>                :            :  */
+<span class="lineNum">      38 </span>                :            : 
+<span class="lineNum">      39 </span>                :            : //! First, include build.h if requested
+<span class="lineNum">      40 </span>                :            : #ifdef HAVE_BUILD_INFO
+<span class="lineNum">      41 </span>                :            : #include &lt;obj/build.h&gt;
+<span class="lineNum">      42 </span>                :            : #endif
+<span class="lineNum">      43 </span>                :            : 
+<span class="lineNum">      44 </span>                :            : //! git will put &quot;#define GIT_ARCHIVE 1&quot; on the next line inside archives. $Format:%n#define GIT_ARCHIVE 1$
+<span class="lineNum">      45 </span>                :            : #ifdef GIT_ARCHIVE
+<span class="lineNum">      46 </span>                :            : #define GIT_COMMIT_ID &quot;$Format:%H$&quot;
+<span class="lineNum">      47 </span>                :            : #define GIT_COMMIT_DATE &quot;$Format:%cD$&quot;
+<span class="lineNum">      48 </span>                :            : #endif
+<span class="lineNum">      49 </span>                :            : 
+<span class="lineNum">      50 </span>                :            : #define BUILD_DESC_WITH_SUFFIX(maj, min, rev, build, suffix) \
+<span class="lineNum">      51 </span>                :            :     &quot;v&quot; DO_STRINGIZE(maj) &quot;.&quot; DO_STRINGIZE(min) &quot;.&quot; DO_STRINGIZE(rev) &quot;.&quot; DO_STRINGIZE(build) &quot;-&quot; DO_STRINGIZE(suffix)
+<span class="lineNum">      52 </span>                :            : 
+<span class="lineNum">      53 </span>                :            : #define BUILD_DESC_FROM_COMMIT(maj, min, rev, build, commit) \
+<span class="lineNum">      54 </span>                :            :     &quot;v&quot; DO_STRINGIZE(maj) &quot;.&quot; DO_STRINGIZE(min) &quot;.&quot; DO_STRINGIZE(rev) &quot;.&quot; DO_STRINGIZE(build) &quot;-g&quot; commit
+<span class="lineNum">      55 </span>                :            : 
+<span class="lineNum">      56 </span>                :            : #define BUILD_DESC_FROM_UNKNOWN(maj, min, rev, build) \
+<span class="lineNum">      57 </span>                :            :     &quot;v&quot; DO_STRINGIZE(maj) &quot;.&quot; DO_STRINGIZE(min) &quot;.&quot; DO_STRINGIZE(rev) &quot;.&quot; DO_STRINGIZE(build) &quot;-unk&quot;
+<span class="lineNum">      58 </span>                :            : 
+<span class="lineNum">      59 </span>                :            : #ifndef BUILD_DESC
+<span class="lineNum">      60 </span>                :            : #ifdef BUILD_SUFFIX
+<span class="lineNum">      61 </span>                :            : #define BUILD_DESC BUILD_DESC_WITH_SUFFIX(CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR, CLIENT_VERSION_REVISION, CLIENT_VERSION_BUILD, BUILD_SUFFIX)
+<span class="lineNum">      62 </span>                :            : #elif defined(GIT_COMMIT_ID)
+<span class="lineNum">      63 </span>                :            : #define BUILD_DESC BUILD_DESC_FROM_COMMIT(CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR, CLIENT_VERSION_REVISION, CLIENT_VERSION_BUILD, GIT_COMMIT_ID)
+<span class="lineNum">      64 </span>                :            : #else
+<span class="lineNum">      65 </span>                :            : #define BUILD_DESC BUILD_DESC_FROM_UNKNOWN(CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR, CLIENT_VERSION_REVISION, CLIENT_VERSION_BUILD)
+<span class="lineNum">      66 </span>                :            : #endif
+<span class="lineNum">      67 </span>                :            : #endif
+<span class="lineNum">      68 </span>                :            : 
+<a name="69"><span class="lineNum">      69 </span>                :<span class="lineCov">        146 : const std::string CLIENT_BUILD(BUILD_DESC CLIENT_VERSION_SUFFIX);</span></a>
+<span class="lineNum">      70 </span>                :            : 
+<span class="lineNum">      71 </span>                :<span class="lineCov">          6 : static std::string FormatVersion(int nVersion)</span>
+<span class="lineNum">      72 </span>                :            : {
+<span class="lineNum">      73 </span>        [<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          6 :     if (nVersion % 100 == 0)</span>
+<span class="lineNum">      74 </span>                :<span class="lineCov">          6 :         return strprintf(&quot;%d.%d.%d&quot;, nVersion / 1000000, (nVersion / 10000) % 100, (nVersion / 100) % 100);</span>
+<span class="lineNum">      75 </span>                :            :     else
+<span class="lineNum">      76 </span>                :<span class="lineNoCov">          0 :         return strprintf(&quot;%d.%d.%d.%d&quot;, nVersion / 1000000, (nVersion / 10000) % 100, (nVersion / 100) % 100, nVersion % 100);</span>
+<a name="77"><span class="lineNum">      77 </span>                :            : }</a>
+<span class="lineNum">      78 </span>                :            : 
+<span class="lineNum">      79 </span>                :<span class="lineNoCov">          0 : std::string FormatFullVersion()</span>
+<span class="lineNum">      80 </span>                :            : {
+<span class="lineNum">      81 </span>                :<span class="lineNoCov">          0 :     return CLIENT_BUILD;</span>
+<span class="lineNum">      82 </span>                :            : }
+<span class="lineNum">      83 </span>                :            : 
+<span class="lineNum">      84 </span>                :            : /**
+<a name="85"><span class="lineNum">      85 </span>                :            :  * Format the subversion field according to BIP 14 spec (https://github.com/bitcoin/bips/blob/master/bip-0014.mediawiki)</a>
+<span class="lineNum">      86 </span>                :            :  */
+<span class="lineNum">      87 </span>                :<span class="lineCov">          6 : std::string FormatSubVersion(const std::string&amp; name, int nClientVersion, const std::vector&lt;std::string&gt;&amp; comments)</span>
+<span class="lineNum">      88 </span>                :            : {
+<span class="lineNum">      89 </span>                :<span class="lineCov">         12 :     std::ostringstream ss;</span>
+<span class="lineNum">      90 </span>        [<span class="branchCov" title="Branch 1 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          6 :     ss &lt;&lt; &quot;/&quot;;</span>
+<span class="lineNum">      91 </span>        [<span class="branchCov" title="Branch 1 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          6 :     ss &lt;&lt; name &lt;&lt; &quot;:&quot; &lt;&lt; FormatVersion(nClientVersion);</span>
+<span class="lineNum">      92 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          6 :     if (!comments.empty())</span>
+<span class="lineNum">      93 </span>                :            :     {
+<span class="lineNum">      94 </span>                :<span class="lineCov">          4 :         std::vector&lt;std::string&gt;::const_iterator it(comments.begin());</span>
+<span class="lineNum">      95 </span>                :<span class="lineCov">          8 :         ss &lt;&lt; &quot;(&quot; &lt;&lt; *it;</span>
+<span class="lineNum">      96 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">          6 :         for(++it; it != comments.end(); ++it)</span>
+<span class="lineNum">      97 </span>                :<span class="lineCov">          4 :             ss &lt;&lt; &quot;; &quot; &lt;&lt; *it;</span>
+<span class="lineNum">      98 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :         ss &lt;&lt; &quot;)&quot;;</span>
+<span class="lineNum">      99 </span>                :            :     }
+<a name="100"><span class="lineNum">     100 </span>        [<span class="branchCov" title="Branch 1 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          6 :     ss &lt;&lt; &quot;/&quot;;</span></a>
+<span class="lineNum">     101 </span>                :<span class="lineCov">          6 :     return ss.str();</span>
+<span class="lineNum">     102 </span>[<span class="branchCov" title="Branch 1 was taken 146 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 146 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        584 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
