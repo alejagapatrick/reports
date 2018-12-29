@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/support/allocators/zeroafterfree.h</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">src/support/allocators</a> - zeroafterfree.h<span style="font-size: 80%;"> (source / <a href="zeroafterfree.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntryHi">-</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntryHi">-</td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #ifndef BITCOIN_SUPPORT_ALLOCATORS_ZEROAFTERFREE_H
+<span class="lineNum">       7 </span>                :            : #define BITCOIN_SUPPORT_ALLOCATORS_ZEROAFTERFREE_H
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : #include &lt;support/cleanse.h&gt;
+<span class="lineNum">      10 </span>                :            : 
+<span class="lineNum">      11 </span>                :            : #include &lt;memory&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">      13 </span>                :            : 
+<span class="lineNum">      14 </span>                :            : template &lt;typename T&gt;
+<span class="lineNum">      15 </span>                :            : struct zero_after_free_allocator : public std::allocator&lt;T&gt; {
+<span class="lineNum">      16 </span>                :            :     // MSVC8 default copy constructor is broken
+<span class="lineNum">      17 </span>                :            :     typedef std::allocator&lt;T&gt; base;
+<span class="lineNum">      18 </span>                :            :     typedef typename base::size_type size_type;
+<span class="lineNum">      19 </span>                :            :     typedef typename base::difference_type difference_type;
+<span class="lineNum">      20 </span>                :            :     typedef typename base::pointer pointer;
+<span class="lineNum">      21 </span>                :            :     typedef typename base::const_pointer const_pointer;
+<span class="lineNum">      22 </span>                :            :     typedef typename base::reference reference;
+<span class="lineNum">      23 </span>                :            :     typedef typename base::const_reference const_reference;
+<span class="lineNum">      24 </span>                :            :     typedef typename base::value_type value_type;
+<span class="lineNum">      25 </span>                :<span class="lineCov">    1684298 :     zero_after_free_allocator() noexcept {}</span>
+<span class="lineNum">      26 </span>                :<span class="lineCov">     234417 :     zero_after_free_allocator(const zero_after_free_allocator&amp; a) noexcept : base(a) {}</span>
+<span class="lineNum">      27 </span>                :            :     template &lt;typename U&gt;
+<span class="lineNum">      28 </span>                :            :     zero_after_free_allocator(const zero_after_free_allocator&lt;U&gt;&amp; a) noexcept : base(a)
+<span class="lineNum">      29 </span>                :            :     {
+<span class="lineNum">      30 </span>                :            :     }
+<span class="lineNum">      31 </span>                :<span class="lineCov">    1918715 :     ~zero_after_free_allocator() noexcept {}</span>
+<span class="lineNum">      32 </span>                :            :     template &lt;typename _Other&gt;
+<span class="lineNum">      33 </span>                :            :     struct rebind {
+<span class="lineNum">      34 </span>                :            :         typedef zero_after_free_allocator&lt;_Other&gt; other;
+<span class="lineNum">      35 </span>                :            :     };
+<span class="lineNum">      36 </span>                :            : 
+<span class="lineNum">      37 </span>                :            :     void deallocate(T* p, std::size_t n)
+<span class="lineNum">      38 </span>                :            :     {
+<span class="lineNum">      39 </span>                :            :         if (p != nullptr)
+<span class="lineNum">      40 </span>                :<span class="lineCov">    3266039 :             memory_cleanse(p, sizeof(T) * n);</span>
+<span class="lineNum">      41 </span>                :<span class="lineCov">    3266039 :         std::allocator&lt;T&gt;::deallocate(p, n);</span>
+<span class="lineNum">      42 </span>                :            :     }
+<span class="lineNum">      43 </span>                :            : };
+<span class="lineNum">      44 </span>                :            : 
+<span class="lineNum">      45 </span>                :            : // Byte-vector that clears its contents before deletion.
+<span class="lineNum">      46 </span>                :            : typedef std::vector&lt;char, zero_after_free_allocator&lt;char&gt; &gt; CSerializeData;
+<span class="lineNum">      47 </span>                :            : 
+<span class="lineNum">      48 </span>                :            : #endif // BITCOIN_SUPPORT_ALLOCATORS_ZEROAFTERFREE_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

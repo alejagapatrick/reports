@@ -1,0 +1,878 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/script/descriptor.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/script</a> - descriptor.cpp<span style="font-size: 80%;"> (source / <a href="descriptor.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">378</td>
+            <td class="headerCovTableEntry">405</td>
+            <td class="headerCovTableEntryHi">93.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">76</td>
+            <td class="headerCovTableEntry">93</td>
+            <td class="headerCovTableEntryMed">81.7 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">439</td>
+            <td class="headerCovTableEntry">678</td>
+            <td class="headerCovTableEntryLo">64.7 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #include &lt;script/descriptor.h&gt;
+<span class="lineNum">       6 </span>                :            : 
+<span class="lineNum">       7 </span>                :            : #include &lt;key_io.h&gt;
+<span class="lineNum">       8 </span>                :            : #include &lt;pubkey.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;script/script.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;script/standard.h&gt;
+<span class="lineNum">      11 </span>                :            : 
+<span class="lineNum">      12 </span>                :            : #include &lt;span.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;util/system.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;util/strencodings.h&gt;
+<span class="lineNum">      15 </span>                :            : 
+<span class="lineNum">      16 </span>                :            : #include &lt;memory&gt;
+<span class="lineNum">      17 </span>                :            : #include &lt;string&gt;
+<span class="lineNum">      18 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">      19 </span>                :            : 
+<span class="lineNum">      20 </span>                :            : namespace {
+<span class="lineNum">      21 </span>                :            : 
+<span class="lineNum">      22 </span>                :            : ////////////////////////////////////////////////////////////////////////////
+<span class="lineNum">      23 </span>                :            : // Internal representation                                                //
+<span class="lineNum">      24 </span>                :            : ////////////////////////////////////////////////////////////////////////////
+<span class="lineNum">      25 </span>                :            : 
+<span class="lineNum">      26 </span>                :            : typedef std::vector&lt;uint32_t&gt; KeyPath;
+<span class="lineNum">      27 </span>                :            : 
+<span class="lineNum">      28 </span>                :<span class="lineCov">         60 : std::string FormatKeyPath(const KeyPath&amp; path)</span>
+<span class="lineNum">      29 </span>                :            : {
+<span class="lineNum">      30 </span>                :<span class="lineCov">         60 :     std::string ret;</span>
+<span class="lineNum">      31 </span>        [<span class="branchCov" title="Branch 0 was taken 100 times"> + </span><span class="branchCov" title="Branch 1 was taken 60 times"> + </span>]:<span class="lineCov">        160 :     for (auto i : path) {</span>
+<span class="lineNum">      32 </span>        [<span class="branchCov" title="Branch 1 was taken 100 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        100 :         ret += strprintf(&quot;/%i&quot;, (i &lt;&lt; 1) &gt;&gt; 1);</span>
+<span class="lineNum">      33 </span>        [<span class="branchCov" title="Branch 0 was taken 24 times"> + </span><span class="branchCov" title="Branch 1 was taken 76 times"> + </span>]:<span class="lineCov">        100 :         if (i &gt;&gt; 31) ret += '\'';</span>
+<span class="lineNum">      34 </span>                :            :     }
+<span class="lineNum">      35 </span>                :<span class="lineCov">         60 :     return ret;</span>
+<span class="lineNum">      36 </span>                :            : }
+<span class="lineNum">      37 </span>                :            : 
+<span class="lineNum">      38 </span>                :            : /** Interface for public key objects in descriptors. */
+<span class="lineNum">      39 </span>                :            : struct PubkeyProvider
+<span class="lineNum">      40 </span>                :            : {
+<span class="lineNum">      41 </span>                :            :     virtual ~PubkeyProvider() = default;
+<span class="lineNum">      42 </span>                :            : 
+<span class="lineNum">      43 </span>                :            :     /** Derive a public key. If key==nullptr, only info is desired. */
+<span class="lineNum">      44 </span>                :            :     virtual bool GetPubKey(int pos, const SigningProvider&amp; arg, CPubKey* key, KeyOriginInfo&amp; info) const = 0;
+<span class="lineNum">      45 </span>                :            : 
+<span class="lineNum">      46 </span>                :            :     /** Whether this represent multiple public keys at different positions. */
+<span class="lineNum">      47 </span>                :            :     virtual bool IsRange() const = 0;
+<span class="lineNum">      48 </span>                :            : 
+<span class="lineNum">      49 </span>                :            :     /** Get the size of the generated public key(s) in bytes (33 or 65). */
+<span class="lineNum">      50 </span>                :            :     virtual size_t GetSize() const = 0;
+<span class="lineNum">      51 </span>                :            : 
+<span class="lineNum">      52 </span>                :            :     /** Get the descriptor string form. */
+<span class="lineNum">      53 </span>                :            :     virtual std::string ToString() const = 0;
+<span class="lineNum">      54 </span>                :            : 
+<span class="lineNum">      55 </span>                :            :     /** Get the descriptor string form including private data (if available in arg). */
+<span class="lineNum">      56 </span>                :            :     virtual bool ToPrivateString(const SigningProvider&amp; arg, std::string&amp; out) const = 0;
+<a name="57"><span class="lineNum">      57 </span>                :            : };</a>
+<span class="lineNum">      58 </span>                :            : 
+<span class="lineNum">      59 </span>                :<span class="lineCov">       1278 : class OriginPubkeyProvider final : public PubkeyProvider</span>
+<span class="lineNum">      60 </span>                :            : {
+<span class="lineNum">      61 </span>                :            :     KeyOriginInfo m_origin;
+<span class="lineNum">      62 </span>                :            :     std::unique_ptr&lt;PubkeyProvider&gt; m_provider;
+<span class="lineNum">      63 </span>                :            : 
+<span class="lineNum">      64 </span>                :<span class="lineCov">         16 :     std::string OriginString() const</span>
+<span class="lineNum">      65 </span>                :            :     {
+<span class="lineNum">      66 </span>[<span class="branchCov" title="Branch 2 was taken 16 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 16 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">         32 :         return HexStr(std::begin(m_origin.fingerprint), std::end(m_origin.fingerprint)) + FormatKeyPath(m_origin.path);</span>
+<span class="lineNum">      67 </span>                :            :     }
+<span class="lineNum">      68 </span>                :            : 
+<a name="69"><span class="lineNum">      69 </span>                :            : public:</a>
+<span class="lineNum">      70 </span>                :<span class="lineCov">       1278 :     OriginPubkeyProvider(KeyOriginInfo info, std::unique_ptr&lt;PubkeyProvider&gt; provider) : m_origin(std::move(info)), m_provider(std::move(provider)) {}</span>
+<span class="lineNum">      71 </span>                :<span class="lineCov">        466 :     bool GetPubKey(int pos, const SigningProvider&amp; arg, CPubKey* key, KeyOriginInfo&amp; info) const override</span>
+<span class="lineNum">      72 </span>                :            :     {
+<span class="lineNum">      73 </span>        [<span class="branchCov" title="Branch 1 was taken 466 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        466 :         if (!m_provider-&gt;GetPubKey(pos, arg, key, info)) return false;</span>
+<span class="lineNum">      74 </span>                :<span class="lineCov">       1398 :         std::copy(std::begin(m_origin.fingerprint), std::end(m_origin.fingerprint), info.fingerprint);</span>
+<span class="lineNum">      75 </span>                :<span class="lineCov">        466 :         info.path.insert(info.path.begin(), m_origin.path.begin(), m_origin.path.end());</span>
+<a name="76"><span class="lineNum">      76 </span>                :<span class="lineCov">        466 :         return true;</span></a>
+<a name="77"><span class="lineNum">      77 </span>                :            :     }</a>
+<span class="lineNum">      78 </span>                :<span class="lineCov">         16 :     bool IsRange() const override { return m_provider-&gt;IsRange(); }</span>
+<span class="lineNum">      79 </span>                :<span class="lineCov">          4 :     size_t GetSize() const override { return m_provider-&gt;GetSize(); }</span>
+<span class="lineNum">      80 </span>[<span class="branchCov" title="Branch 2 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">         16 :     std::string ToString() const override { return &quot;[&quot; + OriginString() + &quot;]&quot; + m_provider-&gt;ToString(); }</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">      81 </span>                :<span class="lineCov">         16 :     bool ToPrivateString(const SigningProvider&amp; arg, std::string&amp; ret) const override</span>
+<span class="lineNum">      82 </span>                :            :     {
+<span class="lineNum">      83 </span>                :<span class="lineCov">         16 :         std::string sub;</span>
+<span class="lineNum">      84 </span>[<span class="branchCov" title="Branch 1 was taken 16 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 8 times"> + </span><span class="branchCov" title="Branch 4 was taken 8 times"> + </span>]:<span class="lineCov">         16 :         if (!m_provider-&gt;ToPrivateString(arg, sub)) return false;</span>
+<span class="lineNum">      85 </span>[<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          8 :         ret = &quot;[&quot; + OriginString() + &quot;]&quot; + std::move(sub);</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">      86 </span>                :<span class="lineCov">          8 :         return true;</span>
+<span class="lineNum">      87 </span>                :            :     }
+<span class="lineNum">      88 </span>                :            : };
+<a name="89"><span class="lineNum">      89 </span>                :            : </a>
+<span class="lineNum">      90 </span>                :            : /** An object representing a parsed constant public key in a descriptor. */
+<span class="lineNum">      91 </span>                :<span class="lineCov">       1028 : class ConstPubkeyProvider final : public PubkeyProvider</span>
+<span class="lineNum">      92 </span>                :            : {
+<span class="lineNum">      93 </span>                :            :     CPubKey m_pubkey;
+<span class="lineNum">      94 </span>                :            : 
+<a name="95"><span class="lineNum">      95 </span>                :            : public:</a>
+<span class="lineNum">      96 </span>                :<span class="lineCov">        514 :     ConstPubkeyProvider(const CPubKey&amp; pubkey) : m_pubkey(pubkey) {}</span>
+<span class="lineNum">      97 </span>                :<span class="lineCov">        802 :     bool GetPubKey(int pos, const SigningProvider&amp; arg, CPubKey* key, KeyOriginInfo&amp; info) const override</span>
+<span class="lineNum">      98 </span>                :            :     {
+<span class="lineNum">      99 </span>        [<span class="branchCov" title="Branch 0 was taken 610 times"> + </span><span class="branchCov" title="Branch 1 was taken 192 times"> + </span>]:<span class="lineCov">        802 :         if (key) *key = m_pubkey;</span>
+<span class="lineNum">     100 </span>                :<span class="lineCov">       1604 :         info.path.clear();</span>
+<span class="lineNum">     101 </span>                :<span class="lineCov">        802 :         CKeyID keyid = m_pubkey.GetID();</span>
+<span class="lineNum">     102 </span>                :<span class="lineCov">       1604 :         std::copy(keyid.begin(), keyid.begin() + sizeof(info.fingerprint), info.fingerprint);</span>
+<a name="103"><span class="lineNum">     103 </span>                :<span class="lineCov">        802 :         return true;</span></a>
+<a name="104"><span class="lineNum">     104 </span>                :            :     }</a>
+<a name="105"><span class="lineNum">     105 </span>                :<span class="lineCov">         64 :     bool IsRange() const override { return false; }</span></a>
+<span class="lineNum">     106 </span>                :<span class="lineCov">         68 :     size_t GetSize() const override { return m_pubkey.size(); }</span>
+<span class="lineNum">     107 </span>                :<span class="lineCov">        128 :     std::string ToString() const override { return HexStr(m_pubkey.begin(), m_pubkey.end()); }</span>
+<span class="lineNum">     108 </span>                :<span class="lineCov">         96 :     bool ToPrivateString(const SigningProvider&amp; arg, std::string&amp; ret) const override</span>
+<span class="lineNum">     109 </span>                :            :     {
+<span class="lineNum">     110 </span>                :<span class="lineCov">        192 :         CKey key;</span>
+<span class="lineNum">     111 </span>[<span class="branchCov" title="Branch 1 was taken 96 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 96 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         96 :         if (!arg.GetKey(m_pubkey.GetID(), key)) return false;</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 64 times"> + </span><span class="branchCov" title="Branch 7 was taken 32 times"> + </span>]
+<span class="lineNum">     112 </span>        [<span class="branchCov" title="Branch 1 was taken 64 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         64 :         ret = EncodeSecret(key);</span>
+<span class="lineNum">     113 </span>                :<span class="lineCov">         64 :         return true;</span>
+<span class="lineNum">     114 </span>                :            :     }
+<span class="lineNum">     115 </span>                :            : };
+<span class="lineNum">     116 </span>                :            : 
+<span class="lineNum">     117 </span>                :            : enum class DeriveType {
+<span class="lineNum">     118 </span>                :            :     NO,
+<span class="lineNum">     119 </span>                :            :     UNHARDENED,
+<span class="lineNum">     120 </span>                :            :     HARDENED,
+<span class="lineNum">     121 </span>                :            : };
+<span class="lineNum">     122 </span>                :            : 
+<span class="lineNum">     123 </span>                :            : /** An object representing a parsed extended public key in a descriptor. */
+<span class="lineNum">     124 </span>                :<span class="lineCov">         44 : class BIP32PubkeyProvider final : public PubkeyProvider</span>
+<span class="lineNum">     125 </span>                :            : {
+<span class="lineNum">     126 </span>                :            :     CExtPubKey m_extkey;
+<span class="lineNum">     127 </span>                :            :     KeyPath m_path;
+<span class="lineNum">     128 </span>                :            :     DeriveType m_derive;
+<span class="lineNum">     129 </span>                :            : 
+<span class="lineNum">     130 </span>                :<span class="lineCov">         62 :     bool GetExtKey(const SigningProvider&amp; arg, CExtKey&amp; ret) const</span>
+<span class="lineNum">     131 </span>                :            :     {
+<span class="lineNum">     132 </span>                :<span class="lineCov">        124 :         CKey key;</span>
+<span class="lineNum">     133 </span>[<span class="branchCov" title="Branch 1 was taken 62 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 62 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         62 :         if (!arg.GetKey(m_extkey.pubkey.GetID(), key)) return false;</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 46 times"> + </span><span class="branchCov" title="Branch 7 was taken 16 times"> + </span>]
+<span class="lineNum">     134 </span>                :<span class="lineCov">         46 :         ret.nDepth = m_extkey.nDepth;</span>
+<span class="lineNum">     135 </span>                :<span class="lineCov">         92 :         std::copy(m_extkey.vchFingerprint, m_extkey.vchFingerprint + sizeof(ret.vchFingerprint), ret.vchFingerprint);</span>
+<span class="lineNum">     136 </span>                :<span class="lineCov">         46 :         ret.nChild = m_extkey.nChild;</span>
+<span class="lineNum">     137 </span>                :<span class="lineCov">         46 :         ret.chaincode = m_extkey.chaincode;</span>
+<span class="lineNum">     138 </span>                :<span class="lineCov">         46 :         ret.key = key;</span>
+<span class="lineNum">     139 </span>                :            :         return true;
+<a name="140"><span class="lineNum">     140 </span>                :            :     }</a>
+<span class="lineNum">     141 </span>                :            : 
+<span class="lineNum">     142 </span>                :<span class="lineCov">         64 :     bool IsHardened() const</span>
+<span class="lineNum">     143 </span>                :            :     {
+<span class="lineNum">     144 </span>        [<span class="branchCov" title="Branch 0 was taken 52 times"> + </span><span class="branchCov" title="Branch 1 was taken 12 times"> + </span>]:<span class="lineCov">         64 :         if (m_derive == DeriveType::HARDENED) return true;</span>
+<span class="lineNum">     145 </span>        [<span class="branchCov" title="Branch 0 was taken 48 times"> + </span><span class="branchCov" title="Branch 1 was taken 40 times"> + </span>]:<span class="lineCov">         88 :         for (auto entry : m_path) {</span>
+<span class="lineNum">     146 </span>        [<span class="branchCov" title="Branch 0 was taken 12 times"> + </span><span class="branchCov" title="Branch 1 was taken 36 times"> + </span>]:<span class="lineCov">         48 :             if (entry &gt;&gt; 31) return true;</span>
+<span class="lineNum">     147 </span>                :            :         }
+<span class="lineNum">     148 </span>                :<span class="lineCov">         40 :         return false;</span>
+<span class="lineNum">     149 </span>                :            :     }
+<span class="lineNum">     150 </span>                :            : 
+<a name="151"><span class="lineNum">     151 </span>                :            : public:</a>
+<a name="152"><span class="lineNum">     152 </span>                :<span class="lineCov">         44 :     BIP32PubkeyProvider(const CExtPubKey&amp; extkey, KeyPath path, DeriveType derive) : m_extkey(extkey), m_path(std::move(path)), m_derive(derive) {}</span></a>
+<span class="lineNum">     153 </span>                :<span class="lineCov">         20 :     bool IsRange() const override { return m_derive != DeriveType::NO; }</span>
+<span class="lineNum">     154 </span>                :<span class="lineCov">         10 :     size_t GetSize() const override { return 33; }</span>
+<span class="lineNum">     155 </span>                :<span class="lineCov">        128 :     bool GetPubKey(int pos, const SigningProvider&amp; arg, CPubKey* key, KeyOriginInfo&amp; info) const override</span>
+<span class="lineNum">     156 </span>                :            :     {
+<span class="lineNum">     157 </span>        [<span class="branchCov" title="Branch 0 was taken 64 times"> + </span><span class="branchCov" title="Branch 1 was taken 64 times"> + </span>]:<span class="lineCov">        128 :         if (key) {</span>
+<span class="lineNum">     158 </span>        [<span class="branchCov" title="Branch 1 was taken 24 times"> + </span><span class="branchCov" title="Branch 2 was taken 40 times"> + </span>]:<span class="lineCov">         64 :             if (IsHardened()) {</span>
+<span class="lineNum">     159 </span>                :<span class="lineCov">         48 :                 CExtKey extkey;</span>
+<span class="lineNum">     160 </span>[<span class="branchCov" title="Branch 1 was taken 24 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 24 times"> + </span>]:<span class="lineCov">         24 :                 if (!GetExtKey(arg, extkey)) return false;</span>
+<span class="lineNum">     161 </span>        [<span class="branchCov" title="Branch 0 was taken 72 times"> + </span><span class="branchCov" title="Branch 1 was taken 24 times"> + </span>]:<span class="lineCov">         96 :                 for (auto entry : m_path) {</span>
+<span class="lineNum">     162 </span>        [<span class="branchCov" title="Branch 1 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         72 :                     extkey.Derive(extkey, entry);</span>
+<span class="lineNum">     163 </span>                :            :                 }
+<span class="lineNum">     164 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 24 times"> + </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineCov">         24 :                 if (m_derive == DeriveType::UNHARDENED) extkey.Derive(extkey, pos);</span>
+<span class="lineNum">     165 </span>[<span class="branchCov" title="Branch 0 was taken 12 times"> + </span><span class="branchCov" title="Branch 1 was taken 12 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         24 :                 if (m_derive == DeriveType::HARDENED) extkey.Derive(extkey, pos | 0x80000000UL);</span>
+<span class="lineNum">     166 </span>        [<span class="branchCov" title="Branch 1 was taken 24 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         24 :                 *key = extkey.Neuter().pubkey;</span>
+<span class="lineNum">     167 </span>                :            :             } else {
+<span class="lineNum">     168 </span>                :            :                 // TODO: optimize by caching
+<span class="lineNum">     169 </span>                :<span class="lineCov">         40 :                 CExtPubKey extkey = m_extkey;</span>
+<span class="lineNum">     170 </span>        [<span class="branchCov" title="Branch 0 was taken 36 times"> + </span><span class="branchCov" title="Branch 1 was taken 40 times"> + </span>]:<span class="lineCov">         76 :                 for (auto entry : m_path) {</span>
+<span class="lineNum">     171 </span>                :<span class="lineCov">         36 :                     extkey.Derive(extkey, entry);</span>
+<span class="lineNum">     172 </span>                :            :                 }
+<span class="lineNum">     173 </span>        [<span class="branchCov" title="Branch 0 was taken 16 times"> + </span><span class="branchCov" title="Branch 1 was taken 24 times"> + </span>]:<span class="lineCov">         40 :                 if (m_derive == DeriveType::UNHARDENED) extkey.Derive(extkey, pos);</span>
+<span class="lineNum">     174 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 40 times"> + </span>]:<span class="lineCov">         40 :                 assert(m_derive != DeriveType::HARDENED);</span>
+<span class="lineNum">     175 </span>                :<span class="lineCov">         40 :                 *key = extkey.pubkey;</span>
+<span class="lineNum">     176 </span>                :            :             }
+<span class="lineNum">     177 </span>                :            :         }
+<span class="lineNum">     178 </span>                :<span class="lineCov">        128 :         CKeyID keyid = m_extkey.pubkey.GetID();</span>
+<span class="lineNum">     179 </span>                :<span class="lineCov">        256 :         std::copy(keyid.begin(), keyid.begin() + sizeof(info.fingerprint), info.fingerprint);</span>
+<span class="lineNum">     180 </span>                :<span class="lineCov">        128 :         info.path = m_path;</span>
+<span class="lineNum">     181 </span>        [<span class="branchCov" title="Branch 0 was taken 32 times"> + </span><span class="branchCov" title="Branch 1 was taken 96 times"> + </span>]:<span class="lineCov">        160 :         if (m_derive == DeriveType::UNHARDENED) info.path.push_back((uint32_t)pos);</span>
+<span class="lineNum">     182 </span>        [<span class="branchCov" title="Branch 0 was taken 24 times"> + </span><span class="branchCov" title="Branch 1 was taken 104 times"> + </span>]:<span class="lineCov">        152 :         if (m_derive == DeriveType::HARDENED) info.path.push_back(((uint32_t)pos) | 0x80000000L);</span>
+<span class="lineNum">     183 </span>                :            :         return true;
+<span class="lineNum">     184 </span>                :            :     }
+<span class="lineNum">     185 </span>                :<span class="lineCov">         22 :     std::string ToString() const override</span>
+<span class="lineNum">     186 </span>                :            :     {
+<span class="lineNum">     187 </span>[<span class="branchCov" title="Branch 2 was taken 22 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 22 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">         22 :         std::string ret = EncodeExtPubKey(m_extkey) + FormatKeyPath(m_path);</span>
+<span class="lineNum">     188 </span>        [<span class="branchCov" title="Branch 0 was taken 10 times"> + </span><span class="branchCov" title="Branch 1 was taken 12 times"> + </span>]:<span class="lineCov">         22 :         if (IsRange()) {</span>
+<span class="lineNum">     189 </span>                :<span class="lineCov">         10 :             ret += &quot;/*&quot;;</span>
+<span class="lineNum">     190 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>]:<span class="lineCov">         10 :             if (m_derive == DeriveType::HARDENED) ret += '\'';</span>
+<span class="lineNum">     191 </span>                :            :         }
+<span class="lineNum">     192 </span>                :<span class="lineCov">         22 :         return ret;</span>
+<span class="lineNum">     193 </span>                :            :     }
+<span class="lineNum">     194 </span>                :<span class="lineCov">         38 :     bool ToPrivateString(const SigningProvider&amp; arg, std::string&amp; out) const override</span>
+<span class="lineNum">     195 </span>                :            :     {
+<span class="lineNum">     196 </span>                :<span class="lineCov">         76 :         CExtKey key;</span>
+<span class="lineNum">     197 </span>[<span class="branchCov" title="Branch 1 was taken 38 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 22 times"> + </span><span class="branchCov" title="Branch 4 was taken 16 times"> + </span>]:<span class="lineCov">         38 :         if (!GetExtKey(arg, key)) return false;</span>
+<span class="lineNum">     198 </span>[<span class="branchCov" title="Branch 1 was taken 22 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 22 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         22 :         out = EncodeExtKey(key) + FormatKeyPath(m_path);</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 22 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     199 </span>        [<span class="branchCov" title="Branch 0 was taken 10 times"> + </span><span class="branchCov" title="Branch 1 was taken 12 times"> + </span>]:<span class="lineCov">         22 :         if (IsRange()) {</span>
+<span class="lineNum">     200 </span>                :<span class="lineCov">         10 :             out += &quot;/*&quot;;</span>
+<span class="lineNum">     201 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>]:<span class="lineCov">         10 :             if (m_derive == DeriveType::HARDENED) out += '\'';</span>
+<span class="lineNum">     202 </span>                :            :         }
+<span class="lineNum">     203 </span>                :            :         return true;
+<span class="lineNum">     204 </span>                :            :     }
+<span class="lineNum">     205 </span>                :            : };
+<span class="lineNum">     206 </span>                :            : 
+<span class="lineNum">     207 </span>                :            : /** Base class for all Descriptor implementations. */
+<span class="lineNum">     208 </span>                :<span class="lineCov">       1176 : class DescriptorImpl : public Descriptor</span>
+<span class="lineNum">     209 </span>                :            : {
+<span class="lineNum">     210 </span>                :            :     //! Public key arguments for this descriptor (size 1 for PK, PKH, WPKH; any size of Multisig).
+<span class="lineNum">     211 </span>                :            :     const std::vector&lt;std::unique_ptr&lt;PubkeyProvider&gt;&gt; m_pubkey_args;
+<span class="lineNum">     212 </span>                :            :     //! The sub-descriptor argument (nullptr for everything but SH and WSH).
+<span class="lineNum">     213 </span>                :            :     const std::unique_ptr&lt;DescriptorImpl&gt; m_script_arg;
+<span class="lineNum">     214 </span>                :            :     //! The string name of the descriptor function.
+<span class="lineNum">     215 </span>                :            :     const std::string m_name;
+<span class="lineNum">     216 </span>                :            : 
+<a name="217"><span class="lineNum">     217 </span>                :            : protected:</a>
+<span class="lineNum">     218 </span>                :            :     //! Return a serialization of anything except pubkey and script arguments, to be prepended to those.
+<span class="lineNum">     219 </span>                :<span class="lineCov">        408 :     virtual std::string ToStringExtra() const { return &quot;&quot;; }</span>
+<span class="lineNum">     220 </span>                :            : 
+<span class="lineNum">     221 </span>                :            :     /** A helper function to construct the scripts for this descriptor.
+<span class="lineNum">     222 </span>                :            :      *
+<span class="lineNum">     223 </span>                :            :      *  This function is invoked once for every CScript produced by evaluating
+<span class="lineNum">     224 </span>                :            :      *  m_script_arg, or just once in case m_script_arg is nullptr.
+<span class="lineNum">     225 </span>                :            : 
+<span class="lineNum">     226 </span>                :            :      *  @param pubkeys The evaluations of the m_pubkey_args field.
+<span class="lineNum">     227 </span>                :            :      *  @param script The evaluation of m_script_arg (or nullptr when m_script_arg is nullptr).
+<span class="lineNum">     228 </span>                :            :      *  @param out A FlatSigningProvider to put scripts or public keys in that are necessary to the solver.
+<span class="lineNum">     229 </span>                :            :      *             The script and pubkeys argument to this function are automatically added.
+<span class="lineNum">     230 </span>                :            :      *  @return A vector with scriptPubKeys for this descriptor.
+<span class="lineNum">     231 </span>                :            :      */
+<span class="lineNum">     232 </span>                :            :     virtual std::vector&lt;CScript&gt; MakeScripts(const std::vector&lt;CPubKey&gt;&amp; pubkeys, const CScript* script, FlatSigningProvider&amp; out) const = 0;
+<span class="lineNum">     233 </span>                :            : 
+<span class="lineNum">     234 </span>                :            : public:
+<a name="235"><span class="lineNum">     235 </span>                :<span class="lineCov">        588 :     DescriptorImpl(std::vector&lt;std::unique_ptr&lt;PubkeyProvider&gt;&gt; pubkeys, std::unique_ptr&lt;DescriptorImpl&gt; script, const std::string&amp; name) : m_pubkey_args(std::move(pubkeys)), m_script_arg(std::move(script)), m_name(name) {}</span></a>
+<span class="lineNum">     236 </span>                :            : 
+<span class="lineNum">     237 </span>                :<span class="lineCov">        296 :     bool IsSolvable() const override</span>
+<span class="lineNum">     238 </span>                :            :     {
+<span class="lineNum">     239 </span>        [<span class="branchCov" title="Branch 0 was taken 100 times"> + </span><span class="branchCov" title="Branch 1 was taken 196 times"> + </span>]:<span class="lineCov">        296 :         if (m_script_arg) {</span>
+<span class="lineNum">     240 </span>        [<span class="branchCov" title="Branch 1 was taken 100 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        100 :             if (!m_script_arg-&gt;IsSolvable()) return false;</span>
+<span class="lineNum">     241 </span>                :            :         }
+<span class="lineNum">     242 </span>                :            :         return true;
+<a name="243"><span class="lineNum">     243 </span>                :            :     }</a>
+<span class="lineNum">     244 </span>                :            : 
+<span class="lineNum">     245 </span>                :<span class="lineCov">         76 :     bool IsRange() const final</span>
+<span class="lineNum">     246 </span>                :            :     {
+<span class="lineNum">     247 </span>        [<span class="branchCov" title="Branch 0 was taken 84 times"> + </span><span class="branchCov" title="Branch 1 was taken 68 times"> + </span>]:<span class="lineCov">        152 :         for (const auto&amp; pubkey : m_pubkey_args) {</span>
+<span class="lineNum">     248 </span>        [<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchCov" title="Branch 2 was taken 76 times"> + </span>]:<span class="lineCov">         84 :             if (pubkey-&gt;IsRange()) return true;</span>
+<span class="lineNum">     249 </span>                :            :         }
+<span class="lineNum">     250 </span>        [<span class="branchCov" title="Branch 0 was taken 28 times"> + </span><span class="branchCov" title="Branch 1 was taken 40 times"> + </span>]:<span class="lineCov">         68 :         if (m_script_arg) {</span>
+<span class="lineNum">     251 </span>        [<span class="branchCov" title="Branch 1 was taken 24 times"> + </span><span class="branchCov" title="Branch 2 was taken 4 times"> + </span>]:<span class="lineCov">         28 :             if (m_script_arg-&gt;IsRange()) return true;</span>
+<span class="lineNum">     252 </span>                :            :         }
+<span class="lineNum">     253 </span>                :            :         return false;
+<span class="lineNum">     254 </span>                :            :     }
+<span class="lineNum">     255 </span>                :            : 
+<span class="lineNum">     256 </span>                :<span class="lineCov">        228 :     bool ToStringHelper(const SigningProvider* arg, std::string&amp; out, bool priv) const</span>
+<span class="lineNum">     257 </span>                :            :     {
+<span class="lineNum">     258 </span>                :<span class="lineCov">        456 :         std::string extra = ToStringExtra();</span>
+<span class="lineNum">     259 </span>        [<span class="branchCov" title="Branch 0 was taken 204 times"> + </span><span class="branchCov" title="Branch 1 was taken 24 times"> + </span>]:<span class="lineCov">        228 :         size_t pos = extra.size() &gt; 0 ? 1 : 0;</span>
+<span class="lineNum">     260 </span>[<span class="branchCov" title="Branch 1 was taken 228 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 228 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        228 :         std::string ret = m_name + &quot;(&quot; + extra;</span>
+<span class="lineNum">     261 </span>        [<span class="branchCov" title="Branch 0 was taken 220 times"> + </span><span class="branchCov" title="Branch 1 was taken 180 times"> + </span>]:<span class="lineCov">        400 :         for (const auto&amp; pubkey : m_pubkey_args) {</span>
+<span class="lineNum">     262 </span>        [<span class="branchCov" title="Branch 0 was taken 100 times"> + </span><span class="branchCov" title="Branch 1 was taken 120 times"> + </span>]:<span class="lineCov">        220 :             if (pos++) ret += &quot;,&quot;;</span>
+<span class="lineNum">     263 </span>                :<span class="lineNoCov">          0 :             std::string tmp;</span>
+<span class="lineNum">     264 </span>        [<span class="branchCov" title="Branch 0 was taken 134 times"> + </span><span class="branchCov" title="Branch 1 was taken 86 times"> + </span>]:<span class="lineCov">        220 :             if (priv) {</span>
+<span class="lineNum">     265 </span>[<span class="branchCov" title="Branch 1 was taken 134 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 48 times"> + </span><span class="branchCov" title="Branch 4 was taken 86 times"> + </span>]:<span class="lineCov">        182 :                 if (!pubkey-&gt;ToPrivateString(*arg, tmp)) return false;</span>
+<span class="lineNum">     266 </span>                :            :             } else {
+<span class="lineNum">     267 </span>        [<span class="branchCov" title="Branch 1 was taken 86 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        172 :                 tmp = pubkey-&gt;ToString();</span>
+<span class="lineNum">     268 </span>                :            :             }
+<span class="lineNum">     269 </span>                :<span class="lineCov">        344 :             ret += std::move(tmp);</span>
+<span class="lineNum">     270 </span>                :            :         }
+<span class="lineNum">     271 </span>        [<span class="branchCov" title="Branch 0 was taken 84 times"> + </span><span class="branchCov" title="Branch 1 was taken 96 times"> + </span>]:<span class="lineCov">        180 :         if (m_script_arg) {</span>
+<span class="lineNum">     272 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 84 times"> + </span>]:<span class="lineCov">         84 :             if (pos++) ret += &quot;,&quot;;</span>
+<span class="lineNum">     273 </span>                :<span class="lineCov">         56 :             std::string tmp;</span>
+<span class="lineNum">     274 </span>[<span class="branchCov" title="Branch 1 was taken 84 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 28 times"> + </span><span class="branchCov" title="Branch 4 was taken 56 times"> + </span>]:<span class="lineCov">        112 :             if (!m_script_arg-&gt;ToStringHelper(arg, tmp, priv)) return false;</span>
+<span class="lineNum">     275 </span>                :<span class="lineCov">        112 :             ret += std::move(tmp);</span>
+<span class="lineNum">     276 </span>                :            :         }
+<span class="lineNum">     277 </span>        [<span class="branchCov" title="Branch 1 was taken 152 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        152 :         out = std::move(ret) + &quot;)&quot;;</span>
+<span class="lineNum">     278 </span>                :<span class="lineCov">        152 :         return true;</span>
+<span class="lineNum">     279 </span>                :            :     }
+<span class="lineNum">     280 </span>                :            : 
+<span class="lineNum">     281 </span>                :<span class="lineCov">         48 :     std::string ToString() const final</span>
+<span class="lineNum">     282 </span>                :            :     {
+<span class="lineNum">     283 </span>                :<span class="lineCov">         48 :         std::string ret;</span>
+<span class="lineNum">     284 </span>        [<span class="branchCov" title="Branch 1 was taken 48 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         48 :         ToStringHelper(nullptr, ret, false);</span>
+<span class="lineNum">     285 </span>                :<span class="lineCov">         48 :         return ret;</span>
+<a name="286"><span class="lineNum">     286 </span>                :            :     }</a>
+<span class="lineNum">     287 </span>                :            : 
+<span class="lineNum">     288 </span>                :<span class="lineCov">        192 :     bool ToPrivateString(const SigningProvider&amp; arg, std::string&amp; out) const override final { return ToStringHelper(&amp;arg, out, true); }</span>
+<span class="lineNum">     289 </span>                :            : 
+<span class="lineNum">     290 </span>                :<span class="lineCov">        964 :     bool ExpandHelper(int pos, const SigningProvider&amp; arg, Span&lt;const unsigned char&gt;* cache_read, std::vector&lt;CScript&gt;&amp; output_scripts, FlatSigningProvider&amp; out, std::vector&lt;unsigned char&gt;* cache_write) const</span>
+<span class="lineNum">     291 </span>                :            :     {
+<span class="lineNum">     292 </span>                :<span class="lineCov">        964 :         std::vector&lt;std::pair&lt;CPubKey, KeyOriginInfo&gt;&gt; entries;</span>
+<span class="lineNum">     293 </span>        [<span class="branchCov" title="Branch 1 was taken 964 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        964 :         entries.reserve(m_pubkey_args.size());</span>
+<span class="lineNum">     294 </span>                :            : 
+<span class="lineNum">     295 </span>                :            :         // Construct temporary data in `entries` and `subscripts`, to avoid producing output in case of failure.
+<span class="lineNum">     296 </span>        [<span class="branchCov" title="Branch 0 was taken 930 times"> + </span><span class="branchCov" title="Branch 1 was taken 964 times"> + </span>]:<span class="lineCov">       1894 :         for (const auto&amp; p : m_pubkey_args) {</span>
+<span class="lineNum">     297 </span>        [<span class="branchCov" title="Branch 1 was taken 930 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        930 :             entries.emplace_back();</span>
+<span class="lineNum">     298 </span>[<span class="branchCov" title="Branch 0 was taken 674 times"> + </span><span class="branchCov" title="Branch 1 was taken 256 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 930 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        930 :             if (!p-&gt;GetPubKey(pos, arg, cache_read ? nullptr : &amp;entries.back().first, entries.back().second)) return false;</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 5 was taken 930 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]
+<span class="lineNum">     299 </span>        [<span class="branchCov" title="Branch 0 was taken 256 times"> + </span><span class="branchCov" title="Branch 1 was taken 674 times"> + </span>]:<span class="lineCov">        930 :             if (cache_read) {</span>
+<span class="lineNum">     300 </span>                :            :                 // Cached expanded public key exists, use it.
+<span class="lineNum">     301 </span>        [<span class="branchCov" title="Branch 0 was taken 256 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        256 :                 if (cache_read-&gt;size() == 0) return false;</span>
+<span class="lineNum">     302 </span>[<span class="branchCov" title="Branch 0 was taken 154 times"> + </span><span class="branchCov" title="Branch 1 was taken 102 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 130 times"> + </span><span class="branchCov" title="Branch 3 was taken 24 times"> + </span>]:<span class="lineCov">        256 :                 bool compressed = ((*cache_read)[0] == 0x02 || (*cache_read)[0] == 0x03) &amp;&amp; cache_read-&gt;size() &gt;= 33;</span>
+<span class="lineNum">         </span>        [<span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 232 times"> + </span>]
+<span class="lineNum">     303 </span>[<span class="branchCov" title="Branch 0 was taken 24 times"> + </span><span class="branchCov" title="Branch 1 was taken 232 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 24 times"> + </span>]:<span class="lineCov">        256 :                 bool uncompressed = ((*cache_read)[0] == 0x04) &amp;&amp; cache_read-&gt;size() &gt;= 65;</span>
+<span class="lineNum">     304 </span>        [<span class="branchCov" title="Branch 0 was taken 256 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        256 :                 if (!(compressed || uncompressed)) return false;</span>
+<span class="lineNum">     305 </span>        [<span class="branchCov" title="Branch 0 was taken 24 times"> + </span><span class="branchCov" title="Branch 1 was taken 232 times"> + </span>]:<span class="lineCov">        256 :                 CPubKey pubkey(cache_read-&gt;begin(), cache_read-&gt;begin() + (compressed ? 33 : 65));</span>
+<span class="lineNum">     306 </span>                :<span class="lineCov">        256 :                 entries.back().first = pubkey;</span>
+<span class="lineNum">     307 </span>        [<span class="branchCov" title="Branch 0 was taken 24 times"> + </span><span class="branchCov" title="Branch 1 was taken 232 times"> + </span>]:<span class="lineCov">        256 :                 *cache_read = cache_read-&gt;subspan(compressed ? 33 : 65);</span>
+<span class="lineNum">     308 </span>                :            :             }
+<span class="lineNum">     309 </span>        [<span class="branchCov" title="Branch 0 was taken 256 times"> + </span><span class="branchCov" title="Branch 1 was taken 674 times"> + </span>]:<span class="lineCov">        930 :             if (cache_write) {</span>
+<span class="lineNum">     310 </span>        [<span class="branchCov" title="Branch 1 was taken 256 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        256 :                 cache_write-&gt;insert(cache_write-&gt;end(), entries.back().first.begin(), entries.back().first.end());</span>
+<span class="lineNum">     311 </span>                :            :             }
+<span class="lineNum">     312 </span>                :            :         }
+<span class="lineNum">     313 </span>                :<span class="lineCov">        964 :         std::vector&lt;CScript&gt; subscripts;</span>
+<span class="lineNum">     314 </span>        [<span class="branchCov" title="Branch 0 was taken 268 times"> + </span><span class="branchCov" title="Branch 1 was taken 696 times"> + </span>]:<span class="lineCov">        964 :         if (m_script_arg) {</span>
+<span class="lineNum">     315 </span>                :<span class="lineCov">        268 :             FlatSigningProvider subprovider;</span>
+<span class="lineNum">     316 </span>[<span class="branchCov" title="Branch 1 was taken 268 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 268 times"> + </span>]:<span class="lineCov">        268 :             if (!m_script_arg-&gt;ExpandHelper(pos, arg, cache_read, subscripts, subprovider, cache_write)) return false;</span>
+<span class="lineNum">     317 </span>        [<span class="branchCov" title="Branch 1 was taken 268 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        268 :             out = Merge(out, subprovider);</span>
+<span class="lineNum">     318 </span>                :            :         }
+<span class="lineNum">     319 </span>                :            : 
+<span class="lineNum">     320 </span>                :<span class="lineNoCov">          0 :         std::vector&lt;CPubKey&gt; pubkeys;</span>
+<span class="lineNum">     321 </span>        [<span class="branchCov" title="Branch 1 was taken 964 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        964 :         pubkeys.reserve(entries.size());</span>
+<span class="lineNum">     322 </span>        [<span class="branchCov" title="Branch 0 was taken 930 times"> + </span><span class="branchCov" title="Branch 1 was taken 964 times"> + </span>]:<span class="lineCov">       1894 :         for (auto&amp; entry : entries) {</span>
+<span class="lineNum">     323 </span>        [<span class="branchCov" title="Branch 1 was taken 930 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        930 :             pubkeys.push_back(entry.first);</span>
+<span class="lineNum">     324 </span>        [<span class="branchCov" title="Branch 1 was taken 930 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        930 :             out.origins.emplace(entry.first.GetID(), std::move(entry.second));</span>
+<span class="lineNum">     325 </span>        [<span class="branchCov" title="Branch 1 was taken 930 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        930 :             out.pubkeys.emplace(entry.first.GetID(), entry.first);</span>
+<span class="lineNum">     326 </span>                :            :         }
+<span class="lineNum">     327 </span>        [<span class="branchCov" title="Branch 0 was taken 268 times"> + </span><span class="branchCov" title="Branch 1 was taken 696 times"> + </span>]:<span class="lineCov">        964 :         if (m_script_arg) {</span>
+<span class="lineNum">     328 </span>        [<span class="branchCov" title="Branch 0 was taken 268 times"> + </span><span class="branchCov" title="Branch 1 was taken 268 times"> + </span>]:<span class="lineCov">        536 :             for (const auto&amp; subscript : subscripts) {</span>
+<span class="lineNum">     329 </span>        [<span class="branchCov" title="Branch 1 was taken 268 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        268 :                 out.scripts.emplace(CScriptID(subscript), subscript);</span>
+<span class="lineNum">     330 </span>        [<span class="branchCov" title="Branch 1 was taken 268 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        536 :                 std::vector&lt;CScript&gt; addscripts = MakeScripts(pubkeys, &amp;subscript, out);</span>
+<span class="lineNum">     331 </span>        [<span class="branchCov" title="Branch 0 was taken 268 times"> + </span><span class="branchCov" title="Branch 1 was taken 268 times"> + </span>]:<span class="lineCov">        536 :                 for (auto&amp; addscript : addscripts) {</span>
+<span class="lineNum">     332 </span>                :<span class="lineCov">        536 :                     output_scripts.push_back(std::move(addscript));</span>
+<span class="lineNum">     333 </span>                :            :                 }
+<span class="lineNum">     334 </span>                :            :             }
+<span class="lineNum">     335 </span>                :            :         } else {
+<span class="lineNum">     336 </span>        [<span class="branchCov" title="Branch 1 was taken 696 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1392 :             output_scripts = MakeScripts(pubkeys, nullptr, out);</span>
+<span class="lineNum">     337 </span>                :            :         }
+<span class="lineNum">     338 </span>                :<span class="lineCov">        964 :         return true;</span>
+<a name="339"><span class="lineNum">     339 </span>                :            :     }</a>
+<span class="lineNum">     340 </span>                :            : 
+<span class="lineNum">     341 </span>                :<span class="lineCov">        554 :     bool Expand(int pos, const SigningProvider&amp; provider, std::vector&lt;CScript&gt;&amp; output_scripts, FlatSigningProvider&amp; out, std::vector&lt;unsigned char&gt;* cache = nullptr) const final</span>
+<span class="lineNum">     342 </span>                :            :     {
+<span class="lineNum">     343 </span>                :<span class="lineCov">        554 :         return ExpandHelper(pos, provider, nullptr, output_scripts, out, cache);</span>
+<a name="344"><span class="lineNum">     344 </span>                :            :     }</a>
+<span class="lineNum">     345 </span>                :            : 
+<span class="lineNum">     346 </span>                :<span class="lineCov">        142 :     bool ExpandFromCache(int pos, const std::vector&lt;unsigned char&gt;&amp; cache, std::vector&lt;CScript&gt;&amp; output_scripts, FlatSigningProvider&amp; out) const final</span>
+<span class="lineNum">     347 </span>                :            :     {
+<span class="lineNum">     348 </span>                :<span class="lineCov">        142 :         Span&lt;const unsigned char&gt; span = MakeSpan(cache);</span>
+<span class="lineNum">     349 </span>[<span class="branchCov" title="Branch 1 was taken 142 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 142 times"> + </span>]:<span class="lineCov">        142 :         return ExpandHelper(pos, DUMMY_SIGNING_PROVIDER, &amp;span, output_scripts, out, nullptr) &amp;&amp; span.size() == 0;</span>
+<span class="lineNum">     350 </span>                :            :     }
+<span class="lineNum">     351 </span>                :            : };
+<span class="lineNum">     352 </span>                :            : 
+<a name="353"><span class="lineNum">     353 </span>                :            : /** Construct a vector with one element, which is moved into it. */</a>
+<span class="lineNum">     354 </span>                :            : template&lt;typename T&gt;
+<span class="lineNum">     355 </span>                :<span class="lineCov">       1240 : std::vector&lt;T&gt; Singleton(T elem)</span>
+<span class="lineNum">     356 </span>                :            : {
+<span class="lineNum">     357 </span>                :<span class="lineCov">       1240 :     std::vector&lt;T&gt; ret;</span>
+<span class="lineNum">     358 </span>[<span class="branchCov" title="Branch 1 was taken 320 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 920 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1240 :     ret.emplace_back(std::move(elem));</span>
+<span class="lineNum">     359 </span>                :<span class="lineCov">       1240 :     return ret;</span>
+<span class="lineNum">     360 </span>                :            : }
+<a name="361"><span class="lineNum">     361 </span>                :            : </a>
+<span class="lineNum">     362 </span>                :            : /** A parsed addr(A) descriptor. */
+<span class="lineNum">     363 </span>                :<span class="lineNoCov">          0 : class AddressDescriptor final : public DescriptorImpl</span>
+<span class="lineNum">     364 </span>                :            : {
+<a name="365"><span class="lineNum">     365 </span>                :            :     const CTxDestination m_destination;</a>
+<a name="366"><span class="lineNum">     366 </span>                :            : protected:</a>
+<span class="lineNum">     367 </span>                :<span class="lineNoCov">          0 :     std::string ToStringExtra() const override { return EncodeDestination(m_destination); }</span>
+<span class="lineNum">     368 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     std::vector&lt;CScript&gt; MakeScripts(const std::vector&lt;CPubKey&gt;&amp;, const CScript*, FlatSigningProvider&amp;) const override { return Singleton(GetScriptForDestination(m_destination)); }</span>
+<a name="369"><span class="lineNum">     369 </span>                :            : public:</a>
+<span class="lineNum">     370 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :     AddressDescriptor(CTxDestination destination) : DescriptorImpl({}, {}, &quot;addr&quot;), m_destination(std::move(destination)) {}</span>
+<span class="lineNum">     371 </span>                :<span class="lineNoCov">          0 :     bool IsSolvable() const final { return false; }</span>
+<span class="lineNum">     372 </span>                :            : };
+<a name="373"><span class="lineNum">     373 </span>                :            : </a>
+<span class="lineNum">     374 </span>                :            : /** A parsed raw(H) descriptor. */
+<span class="lineNum">     375 </span>                :<span class="lineCov">        432 : class RawDescriptor final : public DescriptorImpl</span>
+<span class="lineNum">     376 </span>                :            : {
+<a name="377"><span class="lineNum">     377 </span>                :            :     const CScript m_script;</a>
+<a name="378"><span class="lineNum">     378 </span>                :            : protected:</a>
+<span class="lineNum">     379 </span>                :<span class="lineNoCov">          0 :     std::string ToStringExtra() const override { return HexStr(m_script.begin(), m_script.end()); }</span>
+<span class="lineNum">     380 </span>        [<span class="branchCov" title="Branch 1 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        216 :     std::vector&lt;CScript&gt; MakeScripts(const std::vector&lt;CPubKey&gt;&amp;, const CScript*, FlatSigningProvider&amp;) const override { return Singleton(m_script); }</span>
+<a name="381"><span class="lineNum">     381 </span>                :            : public:</a>
+<span class="lineNum">     382 </span>[<span class="branchCov" title="Branch 1 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        216 :     RawDescriptor(CScript script) : DescriptorImpl({}, {}, &quot;raw&quot;), m_script(std::move(script)) {}</span>
+<span class="lineNum">     383 </span>                :<span class="lineNoCov">          0 :     bool IsSolvable() const final { return false; }</span>
+<span class="lineNum">     384 </span>                :            : };
+<a name="385"><span class="lineNum">     385 </span>                :            : </a>
+<span class="lineNum">     386 </span>                :            : /** A parsed pk(P) descriptor. */
+<span class="lineNum">     387 </span>                :<span class="lineCov">        356 : class PKDescriptor final : public DescriptorImpl</span>
+<a name="388"><span class="lineNum">     388 </span>                :            : {</a>
+<span class="lineNum">     389 </span>                :            : protected:
+<span class="lineNum">     390 </span>        [<span class="branchCov" title="Branch 2 was taken 238 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        476 :     std::vector&lt;CScript&gt; MakeScripts(const std::vector&lt;CPubKey&gt;&amp; keys, const CScript*, FlatSigningProvider&amp;) const override { return Singleton(GetScriptForRawPubKey(keys[0])); }</span>
+<span class="lineNum">     391 </span>                :            : public:
+<span class="lineNum">     392 </span>[<span class="branchCov" title="Branch 1 was taken 178 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 178 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        356 :     PKDescriptor(std::unique_ptr&lt;PubkeyProvider&gt; prov) : DescriptorImpl(Singleton(std::move(prov)), {}, &quot;pk&quot;) {}</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 178 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     393 </span>                :            : };
+<a name="394"><span class="lineNum">     394 </span>                :            : </a>
+<span class="lineNum">     395 </span>                :            : /** A parsed pkh(P) descriptor. */
+<span class="lineNum">     396 </span>                :<span class="lineCov">        140 : class PKHDescriptor final : public DescriptorImpl</span>
+<a name="397"><span class="lineNum">     397 </span>                :            : {</a>
+<span class="lineNum">     398 </span>                :            : protected:
+<span class="lineNum">     399 </span>[<span class="branchCov" title="Branch 2 was taken 130 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 130 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        260 :     std::vector&lt;CScript&gt; MakeScripts(const std::vector&lt;CPubKey&gt;&amp; keys, const CScript*, FlatSigningProvider&amp;) const override { return Singleton(GetScriptForDestination(keys[0].GetID())); }</span>
+<span class="lineNum">     400 </span>                :            : public:
+<span class="lineNum">     401 </span>[<span class="branchCov" title="Branch 1 was taken 70 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 70 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        140 :     PKHDescriptor(std::unique_ptr&lt;PubkeyProvider&gt; prov) : DescriptorImpl(Singleton(std::move(prov)), {}, &quot;pkh&quot;) {}</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 70 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     402 </span>                :            : };
+<a name="403"><span class="lineNum">     403 </span>                :            : </a>
+<span class="lineNum">     404 </span>                :            : /** A parsed wpkh(P) descriptor. */
+<span class="lineNum">     405 </span>                :<span class="lineCov">        128 : class WPKHDescriptor final : public DescriptorImpl</span>
+<a name="406"><span class="lineNum">     406 </span>                :            : {</a>
+<span class="lineNum">     407 </span>                :            : protected:
+<span class="lineNum">     408 </span>[<span class="branchCov" title="Branch 2 was taken 104 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 104 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        208 :     std::vector&lt;CScript&gt; MakeScripts(const std::vector&lt;CPubKey&gt;&amp; keys, const CScript*, FlatSigningProvider&amp;) const override { return Singleton(GetScriptForDestination(WitnessV0KeyHash(keys[0].GetID()))); }</span>
+<span class="lineNum">     409 </span>                :            : public:
+<span class="lineNum">     410 </span>[<span class="branchCov" title="Branch 1 was taken 64 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 64 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        128 :     WPKHDescriptor(std::unique_ptr&lt;PubkeyProvider&gt; prov) : DescriptorImpl(Singleton(std::move(prov)), {}, &quot;wpkh&quot;) {}</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 64 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     411 </span>                :            : };
+<a name="412"><span class="lineNum">     412 </span>                :            : </a>
+<span class="lineNum">     413 </span>                :            : /** A parsed combo(P) descriptor. */
+<span class="lineNum">     414 </span>                :<span class="lineCov">         16 : class ComboDescriptor final : public DescriptorImpl</span>
+<a name="415"><span class="lineNum">     415 </span>                :            : {</a>
+<span class="lineNum">     416 </span>                :            : protected:
+<span class="lineNum">     417 </span>                :<span class="lineCov">         44 :     std::vector&lt;CScript&gt; MakeScripts(const std::vector&lt;CPubKey&gt;&amp; keys, const CScript*, FlatSigningProvider&amp; out) const override</span>
+<span class="lineNum">     418 </span>                :            :     {
+<span class="lineNum">     419 </span>                :<span class="lineCov">         44 :         std::vector&lt;CScript&gt; ret;</span>
+<span class="lineNum">     420 </span>        [<span class="branchCov" title="Branch 1 was taken 44 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         44 :         CKeyID id = keys[0].GetID();</span>
+<span class="lineNum">     421 </span>[<span class="branchCov" title="Branch 1 was taken 44 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 44 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         44 :         ret.emplace_back(GetScriptForRawPubKey(keys[0])); // P2PK</span>
+<span class="lineNum">     422 </span>[<span class="branchCov" title="Branch 1 was taken 44 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 44 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         44 :         ret.emplace_back(GetScriptForDestination(id)); // P2PKH</span>
+<span class="lineNum">     423 </span>                :<span class="lineCov">         76 :         if (keys[0].IsCompressed()) {</span>
+<span class="lineNum">     424 </span>        [<span class="branchCov" title="Branch 1 was taken 32 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         64 :             CScript p2wpkh = GetScriptForDestination(WitnessV0KeyHash(id));</span>
+<span class="lineNum">     425 </span>        [<span class="branchCov" title="Branch 1 was taken 32 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         32 :             out.scripts.emplace(CScriptID(p2wpkh), p2wpkh);</span>
+<span class="lineNum">     426 </span>        [<span class="branchCov" title="Branch 1 was taken 32 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         32 :             ret.emplace_back(p2wpkh);</span>
+<span class="lineNum">     427 </span>[<span class="branchCov" title="Branch 1 was taken 32 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 32 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         32 :             ret.emplace_back(GetScriptForDestination(CScriptID(p2wpkh))); // P2SH-P2WPKH</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 32 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     428 </span>                :            :         }
+<span class="lineNum">     429 </span>                :<span class="lineCov">         44 :         return ret;</span>
+<span class="lineNum">     430 </span>                :            :     }
+<span class="lineNum">     431 </span>                :            : public:
+<span class="lineNum">     432 </span>[<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         16 :     ComboDescriptor(std::unique_ptr&lt;PubkeyProvider&gt; prov) : DescriptorImpl(Singleton(std::move(prov)), {}, &quot;combo&quot;) {}</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     433 </span>                :            : };
+<a name="434"><span class="lineNum">     434 </span>                :            : </a>
+<span class="lineNum">     435 </span>                :            : /** A parsed multi(...) descriptor. */
+<span class="lineNum">     436 </span>                :<span class="lineCov">         64 : class MultisigDescriptor final : public DescriptorImpl</span>
+<span class="lineNum">     437 </span>                :            : {
+<a name="438"><span class="lineNum">     438 </span>                :            :     const int m_threshold;</a>
+<a name="439"><span class="lineNum">     439 </span>                :            : protected:</a>
+<span class="lineNum">     440 </span>                :<span class="lineCov">         48 :     std::string ToStringExtra() const override { return strprintf(&quot;%i&quot;, m_threshold); }</span>
+<span class="lineNum">     441 </span>        [<span class="branchCov" title="Branch 2 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        144 :     std::vector&lt;CScript&gt; MakeScripts(const std::vector&lt;CPubKey&gt;&amp; keys, const CScript*, FlatSigningProvider&amp;) const override { return Singleton(GetScriptForMultisig(m_threshold, keys)); }</span>
+<span class="lineNum">     442 </span>                :            : public:
+<span class="lineNum">     443 </span>[<span class="branchCov" title="Branch 1 was taken 32 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 32 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         64 :     MultisigDescriptor(int threshold, std::vector&lt;std::unique_ptr&lt;PubkeyProvider&gt;&gt; providers) : DescriptorImpl(std::move(providers), {}, &quot;multi&quot;), m_threshold(threshold) {}</span>
+<span class="lineNum">     444 </span>                :            : };
+<a name="445"><span class="lineNum">     445 </span>                :            : </a>
+<span class="lineNum">     446 </span>                :            : /** A parsed sh(...) descriptor. */
+<span class="lineNum">     447 </span>                :<span class="lineCov">        160 : class SHDescriptor final : public DescriptorImpl</span>
+<a name="448"><span class="lineNum">     448 </span>                :            : {</a>
+<span class="lineNum">     449 </span>                :            : protected:
+<span class="lineNum">     450 </span>[<span class="branchCov" title="Branch 2 was taken 160 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 160 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        320 :     std::vector&lt;CScript&gt; MakeScripts(const std::vector&lt;CPubKey&gt;&amp;, const CScript* script, FlatSigningProvider&amp;) const override { return Singleton(GetScriptForDestination(CScriptID(*script))); }</span>
+<span class="lineNum">     451 </span>                :            : public:
+<span class="lineNum">     452 </span>[<span class="branchCov" title="Branch 1 was taken 80 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 80 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        160 :     SHDescriptor(std::unique_ptr&lt;DescriptorImpl&gt; desc) : DescriptorImpl({}, std::move(desc), &quot;sh&quot;) {}</span>
+<span class="lineNum">     453 </span>                :            : };
+<a name="454"><span class="lineNum">     454 </span>                :            : </a>
+<span class="lineNum">     455 </span>                :            : /** A parsed wsh(...) descriptor. */
+<span class="lineNum">     456 </span>                :<span class="lineCov">         96 : class WSHDescriptor final : public DescriptorImpl</span>
+<a name="457"><span class="lineNum">     457 </span>                :            : {</a>
+<span class="lineNum">     458 </span>                :            : protected:
+<span class="lineNum">     459 </span>[<span class="branchCov" title="Branch 2 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        216 :     std::vector&lt;CScript&gt; MakeScripts(const std::vector&lt;CPubKey&gt;&amp;, const CScript* script, FlatSigningProvider&amp;) const override { return Singleton(GetScriptForDestination(WitnessV0ScriptHash(*script))); }</span>
+<span class="lineNum">     460 </span>                :            : public:
+<span class="lineNum">     461 </span>[<span class="branchCov" title="Branch 1 was taken 48 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 48 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         96 :     WSHDescriptor(std::unique_ptr&lt;DescriptorImpl&gt; desc) : DescriptorImpl({}, std::move(desc), &quot;wsh&quot;) {}</span>
+<span class="lineNum">     462 </span>                :            : };
+<span class="lineNum">     463 </span>                :            : 
+<span class="lineNum">     464 </span>                :            : ////////////////////////////////////////////////////////////////////////////
+<span class="lineNum">     465 </span>                :            : // Parser                                                                 //
+<span class="lineNum">     466 </span>                :            : ////////////////////////////////////////////////////////////////////////////
+<span class="lineNum">     467 </span>                :            : 
+<span class="lineNum">     468 </span>                :            : enum class ParseScriptContext {
+<span class="lineNum">     469 </span>                :            :     TOP,
+<span class="lineNum">     470 </span>                :            :     P2SH,
+<span class="lineNum">     471 </span>                :            :     P2WSH,
+<span class="lineNum">     472 </span>                :            : };
+<a name="473"><span class="lineNum">     473 </span>                :            : </a>
+<span class="lineNum">     474 </span>                :            : /** Parse a constant. If successful, sp is updated to skip the constant and return true. */
+<span class="lineNum">     475 </span>                :<span class="lineCov">         88 : bool Const(const std::string&amp; str, Span&lt;const char&gt;&amp; sp)</span>
+<span class="lineNum">     476 </span>                :            : {
+<span class="lineNum">     477 </span>[<span class="branchCov" title="Branch 0 was taken 88 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 88 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">         88 :     if ((size_t)sp.size() &gt;= str.size() &amp;&amp; std::equal(str.begin(), str.end(), sp.begin())) {</span>
+<span class="lineNum">     478 </span>                :<span class="lineCov">        176 :         sp = sp.subspan(str.size());</span>
+<span class="lineNum">     479 </span>                :<span class="lineCov">         88 :         return true;</span>
+<span class="lineNum">     480 </span>                :            :     }
+<span class="lineNum">     481 </span>                :            :     return false;
+<span class="lineNum">     482 </span>                :            : }
+<a name="483"><span class="lineNum">     483 </span>                :            : </a>
+<span class="lineNum">     484 </span>                :            : /** Parse a function call. If successful, sp is updated to be the function's argument(s). */
+<span class="lineNum">     485 </span>                :<span class="lineCov">        610 : bool Func(const std::string&amp; str, Span&lt;const char&gt;&amp; sp)</span>
+<span class="lineNum">     486 </span>                :            : {
+<span class="lineNum">     487 </span>[<span class="branchCov" title="Branch 0 was taken 610 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 208 times"> + </span><span class="branchCov" title="Branch 3 was taken 402 times"> + </span>]:<span class="lineCov">        610 :     if ((size_t)sp.size() &gt;= str.size() + 2 &amp;&amp; sp[str.size()] == '(' &amp;&amp; sp[sp.size() - 1] == ')' &amp;&amp; std::equal(str.begin(), str.end(), sp.begin())) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 208 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchCov" title="Branch 6 was taken 128 times"> + </span><span class="branchCov" title="Branch 7 was taken 80 times"> + </span>]
+<span class="lineNum">     488 </span>                :<span class="lineCov">        256 :         sp = sp.subspan(str.size() + 1, sp.size() - str.size() - 2);</span>
+<span class="lineNum">     489 </span>                :<span class="lineCov">        128 :         return true;</span>
+<span class="lineNum">     490 </span>                :            :     }
+<span class="lineNum">     491 </span>                :            :     return false;
+<span class="lineNum">     492 </span>                :            : }
+<a name="493"><span class="lineNum">     493 </span>                :            : </a>
+<span class="lineNum">     494 </span>                :            : /** Return the expression that sp begins with, and update sp to skip it. */
+<span class="lineNum">     495 </span>                :<span class="lineCov">        250 : Span&lt;const char&gt; Expr(Span&lt;const char&gt;&amp; sp)</span>
+<span class="lineNum">     496 </span>                :            : {
+<span class="lineNum">     497 </span>                :<span class="lineCov">        250 :     int level = 0;</span>
+<span class="lineNum">     498 </span>                :<span class="lineCov">        250 :     auto it = sp.begin();</span>
+<span class="lineNum">     499 </span>        [<span class="branchCov" title="Branch 0 was taken 34924 times"> + </span><span class="branchCov" title="Branch 1 was taken 152 times"> + </span>]:<span class="lineCov">      35076 :     while (it != sp.end()) {</span>
+<span class="lineNum">     500 </span>        [<span class="branchCov" title="Branch 0 was taken 210 times"> + </span><span class="branchCov" title="Branch 1 was taken 34714 times"> + </span>]:<span class="lineCov">      34924 :         if (*it == '(') {</span>
+<span class="lineNum">     501 </span>                :<span class="lineCov">        210 :             ++level;</span>
+<span class="lineNum">     502 </span>[<span class="branchCov" title="Branch 0 was taken 27491 times"> + </span><span class="branchCov" title="Branch 1 was taken 7223 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 210 times"> + </span><span class="branchCov" title="Branch 3 was taken 27281 times"> + </span>]:<span class="lineCov">      34714 :         } else if (level &amp;&amp; *it == ')') {</span>
+<span class="lineNum">     503 </span>                :<span class="lineCov">        210 :             --level;</span>
+<span class="lineNum">     504 </span>[<span class="branchCov" title="Branch 0 was taken 7223 times"> + </span><span class="branchCov" title="Branch 1 was taken 27281 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 7125 times"> + </span><span class="branchCov" title="Branch 3 was taken 98 times"> + </span>]:<span class="lineCov">      34504 :         } else if (level == 0 &amp;&amp; (*it == ')' || *it == ',')) {</span>
+<span class="lineNum">     505 </span>                :            :             break;
+<span class="lineNum">     506 </span>                :            :         }
+<span class="lineNum">     507 </span>                :<span class="lineCov">      34826 :         ++it;</span>
+<span class="lineNum">     508 </span>                :            :     }
+<span class="lineNum">     509 </span>                :<span class="lineCov">        500 :     Span&lt;const char&gt; ret = sp.first(it - sp.begin());</span>
+<span class="lineNum">     510 </span>                :<span class="lineCov">        500 :     sp = sp.subspan(it - sp.begin());</span>
+<span class="lineNum">     511 </span>                :<span class="lineCov">        250 :     return ret;</span>
+<span class="lineNum">     512 </span>                :            : }
+<span class="lineNum">     513 </span>                :            : 
+<span class="lineNum">     514 </span>                :            : /** Split a string on every instance of sep, returning a vector. */
+<span class="lineNum">     515 </span>                :<span class="lineCov">        284 : std::vector&lt;Span&lt;const char&gt;&gt; Split(const Span&lt;const char&gt;&amp; sp, char sep)</span>
+<span class="lineNum">     516 </span>                :            : {
+<span class="lineNum">     517 </span>                :<span class="lineCov">        284 :     std::vector&lt;Span&lt;const char&gt;&gt; ret;</span>
+<span class="lineNum">     518 </span>                :<span class="lineCov">        284 :     auto it = sp.begin();</span>
+<span class="lineNum">     519 </span>                :<span class="lineCov">        284 :     auto start = it;</span>
+<span class="lineNum">     520 </span>        [<span class="branchCov" title="Branch 0 was taken 20276 times"> + </span><span class="branchCov" title="Branch 1 was taken 284 times"> + </span>]:<span class="lineCov">      20560 :     while (it != sp.end()) {</span>
+<span class="lineNum">     521 </span>        [<span class="branchCov" title="Branch 0 was taken 84 times"> + </span><span class="branchCov" title="Branch 1 was taken 20192 times"> + </span>]:<span class="lineCov">      20276 :         if (*it == sep) {</span>
+<span class="lineNum">     522 </span>        [<span class="branchCov" title="Branch 1 was taken 84 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         84 :             ret.emplace_back(start, it);</span>
+<span class="lineNum">     523 </span>                :<span class="lineCov">         84 :             start = it + 1;</span>
+<span class="lineNum">     524 </span>                :            :         }
+<span class="lineNum">     525 </span>                :<span class="lineCov">      20276 :         ++it;</span>
+<span class="lineNum">     526 </span>                :            :     }
+<span class="lineNum">     527 </span>        [<span class="branchCov" title="Branch 1 was taken 284 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        284 :     ret.emplace_back(start, it);</span>
+<span class="lineNum">     528 </span>                :<span class="lineCov">        284 :     return ret;</span>
+<span class="lineNum">     529 </span>                :            : }
+<span class="lineNum">     530 </span>                :            : 
+<span class="lineNum">     531 </span>                :            : /** Parse a key path, being passed a split list of elements (the first element is ignored). */
+<span class="lineNum">     532 </span>                :<span class="lineCov">         34 : NODISCARD bool ParseKeyPath(const std::vector&lt;Span&lt;const char&gt;&gt;&amp; split, KeyPath&amp; out)</span>
+<span class="lineNum">     533 </span>                :            : {
+<span class="lineNum">     534 </span>        [<span class="branchCov" title="Branch 0 was taken 52 times"> + </span><span class="branchCov" title="Branch 1 was taken 32 times"> + </span>]:<span class="lineCov">         86 :     for (size_t i = 1; i &lt; split.size(); ++i) {</span>
+<span class="lineNum">     535 </span>                :<span class="lineCov">         52 :         Span&lt;const char&gt; elem = split[i];</span>
+<span class="lineNum">     536 </span>                :<span class="lineCov">         52 :         bool hardened = false;</span>
+<span class="lineNum">     537 </span>[<span class="branchCov" title="Branch 0 was taken 52 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 45 times"> + </span><span class="branchCov" title="Branch 3 was taken 7 times"> + </span>]:<span class="lineCov">         52 :         if (elem.size() &gt; 0 &amp;&amp; (elem[elem.size() - 1] == '\'' || elem[elem.size() - 1] == 'h')) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 5 times"> + </span><span class="branchCov" title="Branch 5 was taken 40 times"> + </span>]
+<span class="lineNum">     538 </span>                :<span class="lineCov">         24 :             elem = elem.first(elem.size() - 1);</span>
+<span class="lineNum">     539 </span>                :<span class="lineCov">         12 :             hardened = true;</span>
+<span class="lineNum">     540 </span>                :            :         }
+<span class="lineNum">     541 </span>                :            :         uint32_t p;
+<span class="lineNum">     542 </span>[<span class="branchCov" title="Branch 1 was taken 52 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 52 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        104 :         if (!ParseUInt32(std::string(elem.begin(), elem.end()), &amp;p) || p &gt; 0x7FFFFFFFUL) return false;</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 5 was taken 50 times"> + </span><span class="branchCov" title="Branch 6 was taken 2 times"> + </span>][<span class="branchCov" title="Branch 7 was taken 2 times"> + </span><span class="branchCov" title="Branch 8 was taken 50 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 9 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span>]
+<span class="lineNum">     543 </span>                :<span class="lineCov">        100 :         out.push_back(p | (((uint32_t)hardened) &lt;&lt; 31));</span>
+<span class="lineNum">     544 </span>                :            :     }
+<span class="lineNum">     545 </span>                :            :     return true;
+<span class="lineNum">     546 </span>                :            : }
+<span class="lineNum">     547 </span>                :            : 
+<span class="lineNum">     548 </span>                :            : /** Parse a public key that excludes origin information. */
+<span class="lineNum">     549 </span>                :<span class="lineCov">        128 : std::unique_ptr&lt;PubkeyProvider&gt; ParsePubkeyInner(const Span&lt;const char&gt;&amp; sp, bool permit_uncompressed, FlatSigningProvider&amp; out)</span>
+<span class="lineNum">     550 </span>                :            : {
+<span class="lineNum">     551 </span>                :<span class="lineCov">        256 :     auto split = Split(sp, '/');</span>
+<span class="lineNum">     552 </span>                :<span class="lineNoCov">          0 :     std::string str(split[0].begin(), split[0].end());</span>
+<span class="lineNum">     553 </span>        [<span class="branchCov" title="Branch 0 was taken 108 times"> + </span><span class="branchCov" title="Branch 1 was taken 20 times"> + </span>]:<span class="lineCov">        128 :     if (split.size() == 1) {</span>
+<span class="lineNum">     554 </span>[<span class="branchCov" title="Branch 1 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 51 times"> + </span><span class="branchCov" title="Branch 4 was taken 57 times"> + </span>]:<span class="lineCov">        108 :         if (IsHex(str)) {</span>
+<span class="lineNum">     555 </span>        [<span class="branchCov" title="Branch 1 was taken 51 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         54 :             std::vector&lt;unsigned char&gt; data = ParseHex(str);</span>
+<span class="lineNum">     556 </span>                :<span class="lineCov">         51 :             CPubKey pubkey(data);</span>
+<span class="lineNum">     557 </span>[<span class="branchCov" title="Branch 1 was taken 51 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 51 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         73 :             if (pubkey.IsFullyValid() &amp;&amp; (permit_uncompressed || pubkey.IsCompressed())) return MakeUnique&lt;ConstPubkeyProvider&gt;(pubkey);</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 5 was taken 25 times"> + </span><span class="branchCov" title="Branch 6 was taken 26 times"> + </span>][<span class="branchCov" title="Branch 8 was taken 48 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     558 </span>                :            :         }
+<span class="lineNum">     559 </span>        [<span class="branchCov" title="Branch 1 was taken 60 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        168 :         CKey key = DecodeSecret(str);</span>
+<span class="lineNum">     560 </span>[<span class="branchCov" title="Branch 0 was taken 51 times"> + </span><span class="branchCov" title="Branch 1 was taken 9 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 25 times"> + </span><span class="branchCov" title="Branch 3 was taken 26 times"> + </span>]:<span class="lineCov">         60 :         if (key.IsValid() &amp;&amp; (permit_uncompressed || key.IsCompressed())) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 22 times"> + </span><span class="branchCov" title="Branch 5 was taken 3 times"> + </span>]
+<span class="lineNum">     561 </span>        [<span class="branchCov" title="Branch 1 was taken 48 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         48 :             CPubKey pubkey = key.GetPubKey();</span>
+<span class="lineNum">     562 </span>        [<span class="branchCov" title="Branch 1 was taken 48 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         48 :             out.keys.emplace(pubkey.GetID(), key);</span>
+<span class="lineNum">     563 </span>        [<span class="branchCov" title="Branch 1 was taken 48 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         48 :             return MakeUnique&lt;ConstPubkeyProvider&gt;(pubkey);</span>
+<span class="lineNum">     564 </span>                :            :         }
+<span class="lineNum">     565 </span>                :            :     }
+<span class="lineNum">     566 </span>        [<span class="branchCov" title="Branch 1 was taken 32 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         32 :     CExtKey extkey = DecodeExtKey(str);</span>
+<span class="lineNum">     567 </span>        [<span class="branchCov" title="Branch 1 was taken 32 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         32 :     CExtPubKey extpubkey = DecodeExtPubKey(str);</span>
+<span class="lineNum">     568 </span>        [<span class="branchCov" title="Branch 0 was taken 20 times"> + </span><span class="branchCov" title="Branch 1 was taken 12 times"> + </span>]:<span class="lineCov">         32 :     if (!extkey.key.IsValid() &amp;&amp; !extpubkey.pubkey.IsValid()) return nullptr;</span>
+<span class="lineNum">     569 </span>                :<span class="lineNoCov">          0 :     KeyPath path;</span>
+<span class="lineNum">     570 </span>                :<span class="lineCov">         24 :     DeriveType type = DeriveType::NO;</span>
+<span class="lineNum">     571 </span>        [<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 18 times"> + </span>]:<span class="lineCov">         24 :     if (split.back() == MakeSpan(&quot;*&quot;).first(1)) {</span>
+<span class="lineNum">     572 </span>                :<span class="lineCov">          6 :         split.pop_back();</span>
+<span class="lineNum">     573 </span>                :<span class="lineCov">          6 :         type = DeriveType::UNHARDENED;</span>
+<span class="lineNum">     574 </span>[<span class="branchCov" title="Branch 0 was taken 17 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 14 times"> + </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">         18 :     } else if (split.back() == MakeSpan(&quot;*'&quot;).first(2) || split.back() == MakeSpan(&quot;*h&quot;).first(2)) {</span>
+<span class="lineNum">     575 </span>                :<span class="lineCov">          4 :         split.pop_back();</span>
+<span class="lineNum">     576 </span>                :<span class="lineCov">          4 :         type = DeriveType::HARDENED;</span>
+<span class="lineNum">     577 </span>                :            :     }
+<span class="lineNum">     578 </span>[<span class="branchCov" title="Branch 1 was taken 24 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 2 times"> + </span><span class="branchCov" title="Branch 4 was taken 22 times"> + </span>]:<span class="lineCov">         24 :     if (!ParseKeyPath(split, path)) return nullptr;</span>
+<span class="lineNum">     579 </span>        [<span class="branchCov" title="Branch 0 was taken 11 times"> + </span><span class="branchCov" title="Branch 1 was taken 11 times"> + </span>]:<span class="lineCov">         22 :     if (extkey.key.IsValid()) {</span>
+<span class="lineNum">     580 </span>        [<span class="branchCov" title="Branch 1 was taken 11 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         11 :         extpubkey = extkey.Neuter();</span>
+<span class="lineNum">     581 </span>        [<span class="branchCov" title="Branch 1 was taken 11 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         22 :         out.keys.emplace(extpubkey.pubkey.GetID(), extkey.key);</span>
+<span class="lineNum">     582 </span>                :            :     }
+<span class="lineNum">     583 </span>        [<span class="branchCov" title="Branch 1 was taken 22 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         44 :     return MakeUnique&lt;BIP32PubkeyProvider&gt;(extpubkey, std::move(path), type);</span>
+<span class="lineNum">     584 </span>                :            : }
+<span class="lineNum">     585 </span>                :            : 
+<span class="lineNum">     586 </span>                :            : /** Parse a public key including origin information (if enabled). */
+<span class="lineNum">     587 </span>                :<span class="lineCov">        138 : std::unique_ptr&lt;PubkeyProvider&gt; ParsePubkey(const Span&lt;const char&gt;&amp; sp, bool permit_uncompressed, FlatSigningProvider&amp; out)</span>
+<span class="lineNum">     588 </span>                :            : {
+<span class="lineNum">     589 </span>                :<span class="lineCov">        276 :     auto origin_split = Split(sp, ']');</span>
+<span class="lineNum">     590 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 136 times"> + </span>]:<span class="lineCov">        138 :     if (origin_split.size() &gt; 2) return nullptr;</span>
+<span class="lineNum">     591 </span>[<span class="branchCov" title="Branch 0 was taken 118 times"> + </span><span class="branchCov" title="Branch 1 was taken 18 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 118 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        136 :     if (origin_split.size() == 1) return ParsePubkeyInner(origin_split[0], permit_uncompressed, out);</span>
+<span class="lineNum">     592 </span>[<span class="branchCov" title="Branch 0 was taken 18 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 18 times"> + </span>]:<span class="lineCov">         18 :     if (origin_split[0].size() &lt; 1 || origin_split[0][0] != '[') return nullptr;</span>
+<span class="lineNum">     593 </span>        [<span class="branchCov" title="Branch 1 was taken 18 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         18 :     auto slash_split = Split(origin_split[0].subspan(1), '/');</span>
+<span class="lineNum">     594 </span>        [<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 12 times"> + </span>]:<span class="lineCov">         18 :     if (slash_split[0].size() != 8) return nullptr;</span>
+<span class="lineNum">     595 </span>                :<span class="lineNoCov">          0 :     std::string fpr_hex = std::string(slash_split[0].begin(), slash_split[0].end());</span>
+<span class="lineNum">     596 </span>[<span class="branchCov" title="Branch 1 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 2 times"> + </span><span class="branchCov" title="Branch 4 was taken 10 times"> + </span>]:<span class="lineCov">         12 :     if (!IsHex(fpr_hex)) return nullptr;</span>
+<span class="lineNum">     597 </span>        [<span class="branchCov" title="Branch 1 was taken 10 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         10 :     auto fpr_bytes = ParseHex(fpr_hex);</span>
+<span class="lineNum">     598 </span>                :<span class="lineNoCov">          0 :     KeyOriginInfo info;</span>
+<span class="lineNum">     599 </span>                :            :     static_assert(sizeof(info.fingerprint) == 4, &quot;Fingerprint must be 4 bytes&quot;);
+<span class="lineNum">     600 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 10 times"> + </span>]:<span class="lineCov">         10 :     assert(fpr_bytes.size() == 4);</span>
+<span class="lineNum">     601 </span>                :<span class="lineCov">         10 :     std::copy(fpr_bytes.begin(), fpr_bytes.end(), info.fingerprint);</span>
+<span class="lineNum">     602 </span>[<span class="branchCov" title="Branch 1 was taken 10 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 10 times"> + </span>]:<span class="lineCov">         10 :     if (!ParseKeyPath(slash_split, info.path)) return nullptr;</span>
+<span class="lineNum">     603 </span>        [<span class="branchCov" title="Branch 1 was taken 10 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         10 :     auto provider = ParsePubkeyInner(origin_split[1], permit_uncompressed, out);</span>
+<span class="lineNum">     604 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 8 times"> + </span>]:<span class="lineCov">         10 :     if (!provider) return nullptr;</span>
+<span class="lineNum">     605 </span>        [<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          8 :     return MakeUnique&lt;OriginPubkeyProvider&gt;(std::move(info), std::move(provider));</span>
+<span class="lineNum">     606 </span>                :            : }
+<span class="lineNum">     607 </span>                :            : 
+<span class="lineNum">     608 </span>                :            : /** Parse a script in a particular context. */
+<span class="lineNum">     609 </span>                :<span class="lineCov">        142 : std::unique_ptr&lt;DescriptorImpl&gt; ParseScript(Span&lt;const char&gt;&amp; sp, ParseScriptContext ctx, FlatSigningProvider&amp; out)</span>
+<span class="lineNum">     610 </span>                :            : {
+<span class="lineNum">     611 </span>                :<span class="lineCov">        142 :     auto expr = Expr(sp);</span>
+<span class="lineNum">     612 </span>        [<span class="branchCov" title="Branch 2 was taken 14 times"> + </span><span class="branchCov" title="Branch 3 was taken 128 times"> + </span>]:<span class="lineCov">        284 :     if (Func(&quot;pk&quot;, expr)) {</span>
+<span class="lineNum">     613 </span>                :<span class="lineCov">         28 :         auto pubkey = ParsePubkey(expr, ctx != ParseScriptContext::P2WSH, out);</span>
+<span class="lineNum">     614 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 12 times"> + </span>]:<span class="lineCov">         14 :         if (!pubkey) return nullptr;</span>
+<span class="lineNum">     615 </span>        [<span class="branchCov" title="Branch 1 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         12 :         return MakeUnique&lt;PKDescriptor&gt;(std::move(pubkey));</span>
+<span class="lineNum">     616 </span>                :            :     }
+<span class="lineNum">     617 </span>        [<span class="branchCov" title="Branch 2 was taken 14 times"> + </span><span class="branchCov" title="Branch 3 was taken 114 times"> + </span>]:<span class="lineCov">        256 :     if (Func(&quot;pkh&quot;, expr)) {</span>
+<span class="lineNum">     618 </span>                :<span class="lineCov">         28 :         auto pubkey = ParsePubkey(expr, ctx != ParseScriptContext::P2WSH, out);</span>
+<span class="lineNum">     619 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 12 times"> + </span>]:<span class="lineCov">         14 :         if (!pubkey) return nullptr;</span>
+<span class="lineNum">     620 </span>        [<span class="branchCov" title="Branch 1 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         12 :         return MakeUnique&lt;PKHDescriptor&gt;(std::move(pubkey));</span>
+<span class="lineNum">     621 </span>                :            :     }
+<span class="lineNum">     622 </span>[<span class="branchCov" title="Branch 0 was taken 70 times"> + </span><span class="branchCov" title="Branch 1 was taken 44 times"> + </span>][<span class="branchCov" title="Branch 4 was taken 60 times"> + </span><span class="branchCov" title="Branch 5 was taken 10 times"> + </span>]:<span class="lineCov">        184 :     if (ctx == ParseScriptContext::TOP &amp;&amp; Func(&quot;combo&quot;, expr)) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 6 was taken 70 times"> + </span><span class="branchCov" title="Branch 7 was taken 44 times"> + </span>][<span class="branchCov" title="Branch 8 was taken 10 times"> + </span><span class="branchCov" title="Branch 9 was taken 104 times"> + </span>]
+<span class="lineNum">     623 </span>                :<span class="lineCov">         20 :         auto pubkey = ParsePubkey(expr, true, out);</span>
+<span class="lineNum">     624 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 8 times"> + </span>]:<span class="lineCov">         10 :         if (!pubkey) return nullptr;</span>
+<span class="lineNum">     625 </span>        [<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          8 :         return MakeUnique&lt;ComboDescriptor&gt;(std::move(pubkey));</span>
+<span class="lineNum">     626 </span>                :            :     }
+<span class="lineNum">     627 </span>        [<span class="branchCov" title="Branch 2 was taken 20 times"> + </span><span class="branchCov" title="Branch 3 was taken 84 times"> + </span>]:<span class="lineCov">        208 :     if (Func(&quot;multi&quot;, expr)) {</span>
+<span class="lineNum">     628 </span>                :<span class="lineCov">         20 :         auto threshold = Expr(expr);</span>
+<span class="lineNum">     629 </span>                :            :         uint32_t thres;
+<span class="lineNum">     630 </span>                :<span class="lineCov">         20 :         std::vector&lt;std::unique_ptr&lt;PubkeyProvider&gt;&gt; providers;</span>
+<span class="lineNum">     631 </span>[<span class="branchCov" title="Branch 1 was taken 20 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 20 times"> + </span>]:<span class="lineCov">         40 :         if (!ParseUInt32(std::string(threshold.begin(), threshold.end()), &amp;thres)) return nullptr;</span>
+<span class="lineNum">     632 </span>                :            :         size_t script_size = 0;
+<span class="lineNum">     633 </span>        [<span class="branchCov" title="Branch 0 was taken 88 times"> + </span><span class="branchCov" title="Branch 1 was taken 10 times"> + </span>]:<span class="lineCov">         98 :         while (expr.size()) {</span>
+<span class="lineNum">     634 </span>[<span class="branchCov" title="Branch 1 was taken 88 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 88 times"> + </span>]:<span class="lineCov">        186 :             if (!Const(&quot;,&quot;, expr)) return nullptr;</span>
+<span class="lineNum">     635 </span>                :<span class="lineCov">         88 :             auto arg = Expr(expr);</span>
+<span class="lineNum">     636 </span>        [<span class="branchCov" title="Branch 1 was taken 88 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        166 :             auto pk = ParsePubkey(arg, ctx != ParseScriptContext::P2WSH, out);</span>
+<span class="lineNum">     637 </span>        [<span class="branchCov" title="Branch 0 was taken 10 times"> + </span><span class="branchCov" title="Branch 1 was taken 78 times"> + </span>]:<span class="lineCov">         88 :             if (!pk) return nullptr;</span>
+<span class="lineNum">     638 </span>        [<span class="branchCov" title="Branch 1 was taken 78 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         78 :             script_size += pk-&gt;GetSize() + 1;</span>
+<span class="lineNum">     639 </span>        [<span class="branchCov" title="Branch 1 was taken 78 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         78 :             providers.emplace_back(std::move(pk));</span>
+<span class="lineNum">     640 </span>                :            :         }
+<span class="lineNum">     641 </span>[<span class="branchCov" title="Branch 0 was taken 10 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 10 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">         10 :         if (providers.size() &lt; 1 || providers.size() &gt; 16 || thres &lt; 1 || thres &gt; providers.size()) return nullptr;</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 10 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchNoCov" title="Branch 6 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 10 times"> + </span>]
+<span class="lineNum">     642 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 8 times"> + </span>]:<span class="lineCov">         10 :         if (ctx == ParseScriptContext::TOP) {</span>
+<span class="lineNum">     643 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :             if (providers.size() &gt; 3) return nullptr; // Not more than 3 pubkeys for raw multisig</span>
+<span class="lineNum">     644 </span>                :            :         }
+<span class="lineNum">     645 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>]:<span class="lineCov">         10 :         if (ctx == ParseScriptContext::P2SH) {</span>
+<span class="lineNum">     646 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          4 :             if (script_size + 3 &gt; 520) return nullptr; // Enforce P2SH script size limit</span>
+<span class="lineNum">     647 </span>                :            :         }
+<span class="lineNum">     648 </span>        [<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          8 :         return MakeUnique&lt;MultisigDescriptor&gt;(thres, std::move(providers));</span>
+<span class="lineNum">     649 </span>                :            :     }
+<span class="lineNum">     650 </span>[<span class="branchCov" title="Branch 0 was taken 76 times"> + </span><span class="branchCov" title="Branch 1 was taken 8 times"> + </span>][<span class="branchCov" title="Branch 4 was taken 64 times"> + </span><span class="branchCov" title="Branch 5 was taken 12 times"> + </span>]:<span class="lineCov">        160 :     if (ctx != ParseScriptContext::P2WSH &amp;&amp; Func(&quot;wpkh&quot;, expr)) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 6 was taken 76 times"> + </span><span class="branchCov" title="Branch 7 was taken 8 times"> + </span>][<span class="branchCov" title="Branch 8 was taken 12 times"> + </span><span class="branchCov" title="Branch 9 was taken 72 times"> + </span>]
+<span class="lineNum">     651 </span>                :<span class="lineCov">         24 :         auto pubkey = ParsePubkey(expr, false, out);</span>
+<span class="lineNum">     652 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 8 times"> + </span>]:<span class="lineCov">         12 :         if (!pubkey) return nullptr;</span>
+<span class="lineNum">     653 </span>        [<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          8 :         return MakeUnique&lt;WPKHDescriptor&gt;(std::move(pubkey));</span>
+<span class="lineNum">     654 </span>                :            :     }
+<span class="lineNum">     655 </span>[<span class="branchCov" title="Branch 0 was taken 52 times"> + </span><span class="branchCov" title="Branch 1 was taken 20 times"> + </span>][<span class="branchCov" title="Branch 4 was taken 26 times"> + </span><span class="branchCov" title="Branch 5 was taken 26 times"> + </span>]:<span class="lineCov">        124 :     if (ctx == ParseScriptContext::TOP &amp;&amp; Func(&quot;sh&quot;, expr)) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 6 was taken 52 times"> + </span><span class="branchCov" title="Branch 7 was taken 20 times"> + </span>][<span class="branchCov" title="Branch 8 was taken 26 times"> + </span><span class="branchCov" title="Branch 9 was taken 46 times"> + </span>]
+<span class="lineNum">     656 </span>                :<span class="lineCov">         52 :         auto desc = ParseScript(expr, ParseScriptContext::P2SH, out);</span>
+<span class="lineNum">     657 </span>[<span class="branchCov" title="Branch 0 was taken 16 times"> + </span><span class="branchCov" title="Branch 1 was taken 10 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 16 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">         26 :         if (!desc || expr.size()) return nullptr;</span>
+<span class="lineNum">     658 </span>        [<span class="branchCov" title="Branch 1 was taken 16 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         16 :         return MakeUnique&lt;SHDescriptor&gt;(std::move(desc));</span>
+<span class="lineNum">     659 </span>                :            :     }
+<span class="lineNum">     660 </span>[<span class="branchCov" title="Branch 0 was taken 38 times"> + </span><span class="branchCov" title="Branch 1 was taken 8 times"> + </span>][<span class="branchCov" title="Branch 4 was taken 6 times"> + </span><span class="branchCov" title="Branch 5 was taken 32 times"> + </span>]:<span class="lineCov">         84 :     if (ctx != ParseScriptContext::P2WSH &amp;&amp; Func(&quot;wsh&quot;, expr)) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 6 was taken 38 times"> + </span><span class="branchCov" title="Branch 7 was taken 8 times"> + </span>][<span class="branchCov" title="Branch 8 was taken 32 times"> + </span><span class="branchCov" title="Branch 9 was taken 14 times"> + </span>]
+<span class="lineNum">     661 </span>                :<span class="lineCov">         64 :         auto desc = ParseScript(expr, ParseScriptContext::P2WSH, out);</span>
+<span class="lineNum">     662 </span>[<span class="branchCov" title="Branch 0 was taken 12 times"> + </span><span class="branchCov" title="Branch 1 was taken 20 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">         32 :         if (!desc || expr.size()) return nullptr;</span>
+<span class="lineNum">     663 </span>        [<span class="branchCov" title="Branch 1 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         12 :         return MakeUnique&lt;WSHDescriptor&gt;(std::move(desc));</span>
+<span class="lineNum">     664 </span>                :            :     }
+<span class="lineNum">     665 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 14 times"> + </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineCov">         14 :     if (ctx == ParseScriptContext::TOP &amp;&amp; Func(&quot;addr&quot;, expr)) {</span>
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 6 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 14 times"> + </span>][<span class="branchNoCov" title="Branch 8 was not taken"> - </span><span class="branchCov" title="Branch 9 was taken 14 times"> + </span>]
+<span class="lineNum">     666 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         CTxDestination dest = DecodeDestination(std::string(expr.begin(), expr.end()));</span>
+<span class="lineNum">     667 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!IsValidDestination(dest)) return nullptr;</span>
+<span class="lineNum">     668 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         return MakeUnique&lt;AddressDescriptor&gt;(std::move(dest));</span>
+<span class="lineNum">     669 </span>                :            :     }
+<span class="lineNum">     670 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 14 times"> + </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineCov">         14 :     if (ctx == ParseScriptContext::TOP &amp;&amp; Func(&quot;raw&quot;, expr)) {</span>
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 6 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 14 times"> + </span>][<span class="branchNoCov" title="Branch 8 was not taken"> - </span><span class="branchCov" title="Branch 9 was taken 14 times"> + </span>]
+<span class="lineNum">     671 </span>                :<span class="lineNoCov">          0 :         std::string str(expr.begin(), expr.end());</span>
+<span class="lineNum">     672 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!IsHex(str)) return nullptr;</span>
+<span class="lineNum">     673 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         auto bytes = ParseHex(str);</span>
+<span class="lineNum">     674 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         return MakeUnique&lt;RawDescriptor&gt;(CScript(bytes.begin(), bytes.end()));</span>
+<span class="lineNum">     675 </span>                :            :     }
+<span class="lineNum">     676 </span>                :            :     return nullptr;
+<span class="lineNum">     677 </span>                :            : }
+<span class="lineNum">     678 </span>                :            : 
+<span class="lineNum">     679 </span>                :<span class="lineCov">        418 : std::unique_ptr&lt;PubkeyProvider&gt; InferPubkey(const CPubKey&amp; pubkey, ParseScriptContext, const SigningProvider&amp; provider)</span>
+<span class="lineNum">     680 </span>                :            : {
+<span class="lineNum">     681 </span>                :<span class="lineCov">        836 :     std::unique_ptr&lt;PubkeyProvider&gt; key_provider = MakeUnique&lt;ConstPubkeyProvider&gt;(pubkey);</span>
+<span class="lineNum">     682 </span>                :<span class="lineNoCov">          0 :     KeyOriginInfo info;</span>
+<span class="lineNum">     683 </span>[<span class="branchCov" title="Branch 1 was taken 418 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 418 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        418 :     if (provider.GetKeyOrigin(pubkey.GetID(), info)) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 418 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">     684 </span>        [<span class="branchCov" title="Branch 1 was taken 418 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        418 :         return MakeUnique&lt;OriginPubkeyProvider&gt;(std::move(info), std::move(key_provider));</span>
+<span class="lineNum">     685 </span>                :            :     }
+<span class="lineNum">     686 </span>                :            :     return key_provider;
+<a name="687"><span class="lineNum">     687 </span>                :            : }</a>
+<span class="lineNum">     688 </span>                :            : 
+<span class="lineNum">     689 </span>                :<span class="lineCov">        512 : std::unique_ptr&lt;DescriptorImpl&gt; InferScript(const CScript&amp; script, ParseScriptContext ctx, const SigningProvider&amp; provider)</span>
+<span class="lineNum">     690 </span>                :            : {
+<span class="lineNum">     691 </span>                :<span class="lineCov">        512 :     std::vector&lt;std::vector&lt;unsigned char&gt;&gt; data;</span>
+<span class="lineNum">     692 </span>        [<span class="branchCov" title="Branch 1 was taken 512 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        512 :     txnouttype txntype = Solver(script, data);</span>
+<span class="lineNum">     693 </span>                :            : 
+<span class="lineNum">     694 </span>        [<span class="branchCov" title="Branch 0 was taken 166 times"> + </span><span class="branchCov" title="Branch 1 was taken 346 times"> + </span>]:<span class="lineCov">        512 :     if (txntype == TX_PUBKEY) {</span>
+<span class="lineNum">     695 </span>                :<span class="lineCov">        664 :         CPubKey pubkey(data[0].begin(), data[0].end());</span>
+<span class="lineNum">     696 </span>                :<span class="lineNoCov">          0 :         if (pubkey.IsValid()) {</span>
+<span class="lineNum">     697 </span>[<span class="branchCov" title="Branch 1 was taken 166 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 166 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        332 :             return MakeUnique&lt;PKDescriptor&gt;(InferPubkey(pubkey, ctx, provider));</span>
+<span class="lineNum">     698 </span>                :            :         }
+<span class="lineNum">     699 </span>                :            :     }
+<span class="lineNum">     700 </span>        [<span class="branchCov" title="Branch 0 was taken 58 times"> + </span><span class="branchCov" title="Branch 1 was taken 288 times"> + </span>]:<span class="lineCov">        346 :     if (txntype == TX_PUBKEYHASH) {</span>
+<span class="lineNum">     701 </span>                :<span class="lineCov">        116 :         uint160 hash(data[0]);</span>
+<span class="lineNum">     702 </span>                :<span class="lineCov">         58 :         CKeyID keyid(hash);</span>
+<span class="lineNum">     703 </span>                :<span class="lineCov">         58 :         CPubKey pubkey;</span>
+<span class="lineNum">     704 </span>[<span class="branchCov" title="Branch 1 was taken 58 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 58 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         58 :         if (provider.GetPubKey(keyid, pubkey)) {</span>
+<span class="lineNum">     705 </span>[<span class="branchCov" title="Branch 1 was taken 58 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 58 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        116 :             return MakeUnique&lt;PKHDescriptor&gt;(InferPubkey(pubkey, ctx, provider));</span>
+<span class="lineNum">     706 </span>                :            :         }
+<span class="lineNum">     707 </span>                :            :     }
+<span class="lineNum">     708 </span>        [<span class="branchCov" title="Branch 0 was taken 56 times"> + </span><span class="branchCov" title="Branch 1 was taken 232 times"> + </span>]:<span class="lineCov">        288 :     if (txntype == TX_WITNESS_V0_KEYHASH &amp;&amp; ctx != ParseScriptContext::P2WSH) {</span>
+<span class="lineNum">     709 </span>                :<span class="lineCov">        112 :         uint160 hash(data[0]);</span>
+<span class="lineNum">     710 </span>                :<span class="lineCov">         56 :         CKeyID keyid(hash);</span>
+<span class="lineNum">     711 </span>                :<span class="lineCov">         56 :         CPubKey pubkey;</span>
+<span class="lineNum">     712 </span>[<span class="branchCov" title="Branch 1 was taken 56 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 56 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         56 :         if (provider.GetPubKey(keyid, pubkey)) {</span>
+<span class="lineNum">     713 </span>[<span class="branchCov" title="Branch 1 was taken 56 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 56 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        112 :             return MakeUnique&lt;WPKHDescriptor&gt;(InferPubkey(pubkey, ctx, provider));</span>
+<span class="lineNum">     714 </span>                :            :         }
+<span class="lineNum">     715 </span>                :            :     }
+<span class="lineNum">     716 </span>        [<span class="branchCov" title="Branch 0 was taken 24 times"> + </span><span class="branchCov" title="Branch 1 was taken 208 times"> + </span>]:<span class="lineCov">        232 :     if (txntype == TX_MULTISIG) {</span>
+<span class="lineNum">     717 </span>                :<span class="lineCov">         24 :         std::vector&lt;std::unique_ptr&lt;PubkeyProvider&gt;&gt; providers;</span>
+<span class="lineNum">     718 </span>        [<span class="branchCov" title="Branch 0 was taken 138 times"> + </span><span class="branchCov" title="Branch 1 was taken 24 times"> + </span>]:<span class="lineCov">        162 :         for (size_t i = 1; i + 1 &lt; data.size(); ++i) {</span>
+<span class="lineNum">     719 </span>                :<span class="lineCov">        552 :             CPubKey pubkey(data[i].begin(), data[i].end());</span>
+<span class="lineNum">     720 </span>        [<span class="branchCov" title="Branch 1 was taken 138 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        138 :             providers.push_back(InferPubkey(pubkey, ctx, provider));</span>
+<span class="lineNum">     721 </span>                :            :         }
+<span class="lineNum">     722 </span>        [<span class="branchCov" title="Branch 1 was taken 24 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         24 :         return MakeUnique&lt;MultisigDescriptor&gt;((int)data[0][0], std::move(providers));</span>
+<span class="lineNum">     723 </span>                :            :     }
+<span class="lineNum">     724 </span>        [<span class="branchCov" title="Branch 0 was taken 64 times"> + </span><span class="branchCov" title="Branch 1 was taken 144 times"> + </span>]:<span class="lineCov">        208 :     if (txntype == TX_SCRIPTHASH &amp;&amp; ctx == ParseScriptContext::TOP) {</span>
+<span class="lineNum">     725 </span>                :<span class="lineCov">        128 :         uint160 hash(data[0]);</span>
+<span class="lineNum">     726 </span>                :<span class="lineCov">         64 :         CScriptID scriptid(hash);</span>
+<span class="lineNum">     727 </span>                :<span class="lineNoCov">          0 :         CScript subscript;</span>
+<span class="lineNum">     728 </span>[<span class="branchCov" title="Branch 1 was taken 64 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 64 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         64 :         if (provider.GetCScript(scriptid, subscript)) {</span>
+<span class="lineNum">     729 </span>        [<span class="branchCov" title="Branch 1 was taken 64 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         64 :             auto sub = InferScript(subscript, ParseScriptContext::P2SH, provider);</span>
+<span class="lineNum">     730 </span>[<span class="branchCov" title="Branch 0 was taken 64 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 64 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         64 :             if (sub) return MakeUnique&lt;SHDescriptor&gt;(std::move(sub));</span>
+<span class="lineNum">     731 </span>                :            :         }
+<span class="lineNum">     732 </span>                :            :     }
+<span class="lineNum">     733 </span>        [<span class="branchCov" title="Branch 0 was taken 36 times"> + </span><span class="branchCov" title="Branch 1 was taken 108 times"> + </span>]:<span class="lineCov">        144 :     if (txntype == TX_WITNESS_V0_SCRIPTHASH &amp;&amp; ctx != ParseScriptContext::P2WSH) {</span>
+<span class="lineNum">     734 </span>                :<span class="lineCov">         36 :         CScriptID scriptid;</span>
+<span class="lineNum">     735 </span>[<span class="branchCov" title="Branch 1 was taken 36 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 36 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         36 :         CRIPEMD160().Write(data[0].data(), data[0].size()).Finalize(scriptid.begin());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 36 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     736 </span>                :<span class="lineNoCov">          0 :         CScript subscript;</span>
+<span class="lineNum">     737 </span>[<span class="branchCov" title="Branch 1 was taken 36 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 36 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         36 :         if (provider.GetCScript(scriptid, subscript)) {</span>
+<span class="lineNum">     738 </span>        [<span class="branchCov" title="Branch 1 was taken 36 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         36 :             auto sub = InferScript(subscript, ParseScriptContext::P2WSH, provider);</span>
+<span class="lineNum">     739 </span>[<span class="branchCov" title="Branch 0 was taken 36 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 36 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         36 :             if (sub) return MakeUnique&lt;WSHDescriptor&gt;(std::move(sub));</span>
+<span class="lineNum">     740 </span>                :            :         }
+<span class="lineNum">     741 </span>                :            :     }
+<span class="lineNum">     742 </span>                :            : 
+<span class="lineNum">     743 </span>                :<span class="lineNoCov">          0 :     CTxDestination dest;</span>
+<span class="lineNum">     744 </span>[<span class="branchCov" title="Branch 1 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 108 times"> + </span>]:<span class="lineCov">        108 :     if (ExtractDestination(script, dest)) {</span>
+<span class="lineNum">     745 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (GetScriptForDestination(dest) == script) {</span>
+<span class="lineNum">     746 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             return MakeUnique&lt;AddressDescriptor&gt;(std::move(dest));</span>
+<span class="lineNum">     747 </span>                :            :         }
+<span class="lineNum">     748 </span>                :            :     }
+<span class="lineNum">     749 </span>                :            : 
+<span class="lineNum">     750 </span>        [<span class="branchCov" title="Branch 1 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        108 :     return MakeUnique&lt;RawDescriptor&gt;(script);</span>
+<span class="lineNum">     751 </span>                :            : }
+<span class="lineNum">     752 </span>                :            : 
+<a name="753"><span class="lineNum">     753 </span>                :            : } // namespace</a>
+<span class="lineNum">     754 </span>                :            : 
+<span class="lineNum">     755 </span>                :<span class="lineCov">         84 : std::unique_ptr&lt;Descriptor&gt; Parse(const std::string&amp; descriptor, FlatSigningProvider&amp; out)</span>
+<span class="lineNum">     756 </span>                :            : {
+<span class="lineNum">     757 </span>                :<span class="lineCov">        252 :     Span&lt;const char&gt; sp(descriptor.data(), descriptor.size());</span>
+<span class="lineNum">     758 </span>                :<span class="lineCov">         84 :     auto ret = ParseScript(sp, ParseScriptContext::TOP, out);</span>
+<span class="lineNum">     759 </span>[<span class="branchCov" title="Branch 0 was taken 84 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 48 times"> + </span><span class="branchCov" title="Branch 3 was taken 36 times"> + </span>]:<span class="lineCov">         84 :     if (sp.size() == 0 &amp;&amp; ret) return std::unique_ptr&lt;Descriptor&gt;(std::move(ret));</span>
+<span class="lineNum">     760 </span>                :            :     return nullptr;
+<a name="761"><span class="lineNum">     761 </span>                :            : }</a>
+<span class="lineNum">     762 </span>                :            : 
+<span class="lineNum">     763 </span>                :<span class="lineCov">        412 : std::unique_ptr&lt;Descriptor&gt; InferDescriptor(const CScript&amp; script, const SigningProvider&amp; provider)</span>
+<a name="764"><span class="lineNum">     764 </span>                :            : {</a>
+<span class="lineNum">     765 </span>                :<span class="lineCov">        412 :     return InferScript(script, ParseScriptContext::TOP, provider);</span>
+<span class="lineNum">     766 </span>[<span class="branchCov" title="Branch 1 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        288 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/bloom.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - bloom.h<span style="font-size: 80%;"> (source / <a href="bloom.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryLo">50.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntryLo">37.5 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2012-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #ifndef BITCOIN_BLOOM_H
+<span class="lineNum">       6 </span>                :            : #define BITCOIN_BLOOM_H
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;serialize.h&gt;
+<span class="lineNum">       9 </span>                :            : 
+<span class="lineNum">      10 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">      11 </span>                :            : 
+<span class="lineNum">      12 </span>                :            : class COutPoint;
+<span class="lineNum">      13 </span>                :            : class CTransaction;
+<span class="lineNum">      14 </span>                :            : class uint256;
+<span class="lineNum">      15 </span>                :            : 
+<span class="lineNum">      16 </span>                :            : //! 20,000 items with fp rate &lt; 0.1% or 10,000 items and &lt;0.0001%
+<span class="lineNum">      17 </span>                :            : static const unsigned int MAX_BLOOM_FILTER_SIZE = 36000; // bytes
+<span class="lineNum">      18 </span>                :            : static const unsigned int MAX_HASH_FUNCS = 50;
+<span class="lineNum">      19 </span>                :            : 
+<span class="lineNum">      20 </span>                :            : /**
+<span class="lineNum">      21 </span>                :            :  * First two bits of nFlags control how much IsRelevantAndUpdate actually updates
+<span class="lineNum">      22 </span>                :            :  * The remaining bits are reserved
+<span class="lineNum">      23 </span>                :            :  */
+<span class="lineNum">      24 </span>                :            : enum bloomflags
+<span class="lineNum">      25 </span>                :            : {
+<span class="lineNum">      26 </span>                :            :     BLOOM_UPDATE_NONE = 0,
+<span class="lineNum">      27 </span>                :            :     BLOOM_UPDATE_ALL = 1,
+<span class="lineNum">      28 </span>                :            :     // Only adds outpoints to the filter if the output is a pay-to-pubkey/pay-to-multisig script
+<span class="lineNum">      29 </span>                :            :     BLOOM_UPDATE_P2PUBKEY_ONLY = 2,
+<span class="lineNum">      30 </span>                :            :     BLOOM_UPDATE_MASK = 3,
+<span class="lineNum">      31 </span>                :            : };
+<span class="lineNum">      32 </span>                :            : 
+<span class="lineNum">      33 </span>                :            : /**
+<span class="lineNum">      34 </span>                :            :  * BloomFilter is a probabilistic filter which SPV clients provide
+<span class="lineNum">      35 </span>                :            :  * so that we can filter the transactions we send them.
+<span class="lineNum">      36 </span>                :            :  *
+<span class="lineNum">      37 </span>                :            :  * This allows for significantly more efficient transaction and block downloads.
+<span class="lineNum">      38 </span>                :            :  *
+<span class="lineNum">      39 </span>                :            :  * Because bloom filters are probabilistic, a SPV node can increase the false-
+<span class="lineNum">      40 </span>                :            :  * positive rate, making us send it transactions which aren't actually its,
+<span class="lineNum">      41 </span>                :            :  * allowing clients to trade more bandwidth for more privacy by obfuscating which
+<span class="lineNum">      42 </span>                :            :  * keys are controlled by them.
+<span class="lineNum">      43 </span>                :            :  */
+<span class="lineNum">      44 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">        100 : class CBloomFilter</span>
+<span class="lineNum">      45 </span>                :            : {
+<span class="lineNum">      46 </span>                :            : private:
+<span class="lineNum">      47 </span>                :            :     std::vector&lt;unsigned char&gt; vData;
+<span class="lineNum">      48 </span>                :            :     bool isFull;
+<span class="lineNum">      49 </span>                :            :     bool isEmpty;
+<span class="lineNum">      50 </span>                :            :     unsigned int nHashFuncs;
+<span class="lineNum">      51 </span>                :            :     unsigned int nTweak;
+<span class="lineNum">      52 </span>                :            :     unsigned char nFlags;
+<span class="lineNum">      53 </span>                :            : 
+<span class="lineNum">      54 </span>                :            :     unsigned int Hash(unsigned int nHashNum, const std::vector&lt;unsigned char&gt;&amp; vDataToHash) const;
+<span class="lineNum">      55 </span>                :            : 
+<span class="lineNum">      56 </span>                :            : public:
+<span class="lineNum">      57 </span>                :            :     /**
+<span class="lineNum">      58 </span>                :            :      * Creates a new bloom filter which will provide the given fp rate when filled with the given number of elements
+<span class="lineNum">      59 </span>                :            :      * Note that if the given parameters will result in a filter outside the bounds of the protocol limits,
+<span class="lineNum">      60 </span>                :            :      * the filter created will be as close to the given parameters as possible within the protocol limits.
+<span class="lineNum">      61 </span>                :            :      * This will apply if nFPRate is very low or nElements is unreasonably high.
+<span class="lineNum">      62 </span>                :            :      * nTweak is a constant which is added to the seed value passed to the hash function
+<span class="lineNum">      63 </span>                :            :      * It should generally always be a random value (and is largely only exposed for unit testing)
+<span class="lineNum">      64 </span>                :            :      * nFlags should be one of the BLOOM_UPDATE_* enums (not _MASK)
+<span class="lineNum">      65 </span>                :            :      */
+<span class="lineNum">      66 </span>                :            :     CBloomFilter(const unsigned int nElements, const double nFPRate, const unsigned int nTweak, unsigned char nFlagsIn);
+<span class="lineNum">      67 </span>                :<span class="lineCov">         34 :     CBloomFilter() : isFull(true), isEmpty(false), nHashFuncs(0), nTweak(0), nFlags(0) {}</span>
+<span class="lineNum">      68 </span>                :            : 
+<span class="lineNum">      69 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          3 :     ADD_SERIALIZE_METHODS;</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<a name="70"><span class="lineNum">      70 </span>                :            : </a>
+<span class="lineNum">      71 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
+<span class="lineNum">      72 </span>                :<span class="lineCov">          3 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">      73 </span>                :<span class="lineCov">          6 :         READWRITE(vData);</span>
+<span class="lineNum">      74 </span>                :<span class="lineCov">          6 :         READWRITE(nHashFuncs);</span>
+<span class="lineNum">      75 </span>                :<span class="lineCov">          6 :         READWRITE(nTweak);</span>
+<span class="lineNum">      76 </span>                :<span class="lineCov">          6 :         READWRITE(nFlags);</span>
+<span class="lineNum">      77 </span>                :<span class="lineCov">          3 :     }</span>
+<span class="lineNum">      78 </span>                :            : 
+<span class="lineNum">      79 </span>                :            :     void insert(const std::vector&lt;unsigned char&gt;&amp; vKey);
+<span class="lineNum">      80 </span>                :            :     void insert(const COutPoint&amp; outpoint);
+<span class="lineNum">      81 </span>                :            :     void insert(const uint256&amp; hash);
+<span class="lineNum">      82 </span>                :            : 
+<span class="lineNum">      83 </span>                :            :     bool contains(const std::vector&lt;unsigned char&gt;&amp; vKey) const;
+<span class="lineNum">      84 </span>                :            :     bool contains(const COutPoint&amp; outpoint) const;
+<span class="lineNum">      85 </span>                :            :     bool contains(const uint256&amp; hash) const;
+<span class="lineNum">      86 </span>                :            : 
+<span class="lineNum">      87 </span>                :            :     void clear();
+<span class="lineNum">      88 </span>                :            :     void reset(const unsigned int nNewTweak);
+<span class="lineNum">      89 </span>                :            : 
+<span class="lineNum">      90 </span>                :            :     //! True if the size is &lt;= MAX_BLOOM_FILTER_SIZE and the number of hash functions is &lt;= MAX_HASH_FUNCS
+<span class="lineNum">      91 </span>                :            :     //! (catch a filter which was just deserialized which was too big)
+<span class="lineNum">      92 </span>                :            :     bool IsWithinSizeConstraints() const;
+<span class="lineNum">      93 </span>                :            : 
+<span class="lineNum">      94 </span>                :            :     //! Also adds any outputs which match the filter to the filter (to match their spending txes)
+<span class="lineNum">      95 </span>                :            :     bool IsRelevantAndUpdate(const CTransaction&amp; tx);
+<span class="lineNum">      96 </span>                :            : 
+<span class="lineNum">      97 </span>                :            :     //! Checks for empty and full filters to avoid wasting cpu
+<span class="lineNum">      98 </span>                :            :     void UpdateEmptyFull();
+<span class="lineNum">      99 </span>                :            : };
+<span class="lineNum">     100 </span>                :            : 
+<span class="lineNum">     101 </span>                :            : /**
+<span class="lineNum">     102 </span>                :            :  * RollingBloomFilter is a probabilistic &quot;keep track of most recently inserted&quot; set.
+<span class="lineNum">     103 </span>                :            :  * Construct it with the number of items to keep track of, and a false-positive
+<span class="lineNum">     104 </span>                :            :  * rate. Unlike CBloomFilter, by default nTweak is set to a cryptographically
+<span class="lineNum">     105 </span>                :            :  * secure random value for you. Similarly rather than clear() the method
+<span class="lineNum">     106 </span>                :            :  * reset() is provided, which also changes nTweak to decrease the impact of
+<span class="lineNum">     107 </span>                :            :  * false-positives.
+<span class="lineNum">     108 </span>                :            :  *
+<span class="lineNum">     109 </span>                :            :  * contains(item) will always return true if item was one of the last N to 1.5*N
+<span class="lineNum">     110 </span>                :            :  * insert()'ed ... but may also return true for items that were not inserted.
+<span class="lineNum">     111 </span>                :            :  *
+<span class="lineNum">     112 </span>                :            :  * It needs around 1.8 bytes per element per factor 0.1 of false positive rate.
+<span class="lineNum">     113 </span>                :            :  * (More accurately: 3/(log(256)*log(2)) * log(1/fpRate) * nElements bytes)
+<span class="lineNum">     114 </span>                :            :  */
+<span class="lineNum">     115 </span>                :<span class="lineCov">        204 : class CRollingBloomFilter</span>
+<span class="lineNum">     116 </span>                :            : {
+<span class="lineNum">     117 </span>                :            : public:
+<span class="lineNum">     118 </span>                :            :     // A random bloom filter calls GetRand() at creation time.
+<span class="lineNum">     119 </span>                :            :     // Don't create global CRollingBloomFilter objects, as they may be
+<span class="lineNum">     120 </span>                :            :     // constructed before the randomizer is properly initialized.
+<span class="lineNum">     121 </span>                :            :     CRollingBloomFilter(const unsigned int nElements, const double nFPRate);
+<span class="lineNum">     122 </span>                :            : 
+<span class="lineNum">     123 </span>                :            :     void insert(const std::vector&lt;unsigned char&gt;&amp; vKey);
+<span class="lineNum">     124 </span>                :            :     void insert(const uint256&amp; hash);
+<span class="lineNum">     125 </span>                :            :     bool contains(const std::vector&lt;unsigned char&gt;&amp; vKey) const;
+<span class="lineNum">     126 </span>                :            :     bool contains(const uint256&amp; hash) const;
+<span class="lineNum">     127 </span>                :            : 
+<span class="lineNum">     128 </span>                :            :     void reset();
+<span class="lineNum">     129 </span>                :            : 
+<span class="lineNum">     130 </span>                :            : private:
+<span class="lineNum">     131 </span>                :            :     int nEntriesPerGeneration;
+<span class="lineNum">     132 </span>                :            :     int nEntriesThisGeneration;
+<span class="lineNum">     133 </span>                :            :     int nGeneration;
+<span class="lineNum">     134 </span>                :            :     std::vector&lt;uint64_t&gt; data;
+<span class="lineNum">     135 </span>                :            :     unsigned int nTweak;
+<span class="lineNum">     136 </span>                :            :     int nHashFuncs;
+<span class="lineNum">     137 </span>                :            : };
+<span class="lineNum">     138 </span>                :            : 
+<span class="lineNum">     139 </span>                :            : #endif // BITCOIN_BLOOM_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
