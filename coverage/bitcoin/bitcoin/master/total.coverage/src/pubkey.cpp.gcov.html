@@ -95,28 +95,28 @@
 <span class="lineNum">      24 </span>                :            :  *  strict DER before being passed to this module, and we know it supports all
 <a name="25"><span class="lineNum">      25 </span>                :            :  *  violations present in the blockchain before that point.</a>
 <span class="lineNum">      26 </span>                :            :  */
-<span class="lineNum">      27 </span>                :<span class="lineCov">     302143 : static int ecdsa_signature_parse_der_lax(const secp256k1_context* ctx, secp256k1_ecdsa_signature* sig, const unsigned char *input, size_t inputlen) {</span>
+<span class="lineNum">      27 </span>                :<span class="lineCov">     349347 : static int ecdsa_signature_parse_der_lax(const secp256k1_context* ctx, secp256k1_ecdsa_signature* sig, const unsigned char *input, size_t inputlen) {</span>
 <span class="lineNum">      28 </span>                :            :     size_t rpos, rlen, spos, slen;
-<span class="lineNum">      29 </span>                :<span class="lineCov">     302143 :     size_t pos = 0;</span>
+<span class="lineNum">      29 </span>                :<span class="lineCov">     349347 :     size_t pos = 0;</span>
 <span class="lineNum">      30 </span>                :            :     size_t lenbyte;
-<span class="lineNum">      31 </span>                :<span class="lineCov">     302143 :     unsigned char tmpsig[64] = {0};</span>
-<span class="lineNum">      32 </span>                :<span class="lineCov">     302143 :     int overflow = 0;</span>
+<span class="lineNum">      31 </span>                :<span class="lineCov">     349347 :     unsigned char tmpsig[64] = {0};</span>
+<span class="lineNum">      32 </span>                :<span class="lineCov">     349347 :     int overflow = 0;</span>
 <span class="lineNum">      33 </span>                :            : 
 <span class="lineNum">      34 </span>                :            :     /* Hack to initialize sig with a correctly-parsed but invalid signature. */
-<span class="lineNum">      35 </span>                :<span class="lineCov">     302143 :     secp256k1_ecdsa_signature_parse_compact(ctx, sig, tmpsig);</span>
+<span class="lineNum">      35 </span>                :<span class="lineCov">     349347 :     secp256k1_ecdsa_signature_parse_compact(ctx, sig, tmpsig);</span>
 <span class="lineNum">      36 </span>                :            : 
 <span class="lineNum">      37 </span>                :            :     /* Sequence tag byte */
-<span class="lineNum">      38 </span>[<span class="branchCov" title="Branch 0 was taken 302097 times"> + </span><span class="branchCov" title="Branch 1 was taken 46 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 302097 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     302143 :     if (pos == inputlen || input[pos] != 0x30) {</span>
+<span class="lineNum">      38 </span>[<span class="branchCov" title="Branch 0 was taken 349301 times"> + </span><span class="branchCov" title="Branch 1 was taken 46 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 349301 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     349347 :     if (pos == inputlen || input[pos] != 0x30) {</span>
 <span class="lineNum">      39 </span>                :            :         return 0;
 <span class="lineNum">      40 </span>                :            :     }
-<span class="lineNum">      41 </span>                :<span class="lineCov">     302097 :     pos++;</span>
+<span class="lineNum">      41 </span>                :<span class="lineCov">     349301 :     pos++;</span>
 <span class="lineNum">      42 </span>                :            : 
 <span class="lineNum">      43 </span>                :            :     /* Sequence length bytes */
-<span class="lineNum">      44 </span>        [<span class="branchCov" title="Branch 0 was taken 302097 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     302097 :     if (pos == inputlen) {</span>
+<span class="lineNum">      44 </span>        [<span class="branchCov" title="Branch 0 was taken 349301 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     349301 :     if (pos == inputlen) {</span>
 <span class="lineNum">      45 </span>                :            :         return 0;
 <span class="lineNum">      46 </span>                :            :     }
-<span class="lineNum">      47 </span>                :<span class="lineCov">     302097 :     lenbyte = input[pos++];</span>
-<span class="lineNum">      48 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 302097 times"> + </span>]:<span class="lineCov">     302097 :     if (lenbyte &amp; 0x80) {</span>
+<span class="lineNum">      47 </span>                :<span class="lineCov">     349301 :     lenbyte = input[pos++];</span>
+<span class="lineNum">      48 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 349301 times"> + </span>]:<span class="lineCov">     349301 :     if (lenbyte &amp; 0x80) {</span>
 <span class="lineNum">      49 </span>                :<span class="lineNoCov">          0 :         lenbyte -= 0x80;</span>
 <span class="lineNum">      50 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (lenbyte &gt; inputlen - pos) {</span>
 <span class="lineNum">      51 </span>                :            :             return 0;
@@ -125,17 +125,17 @@
 <span class="lineNum">      54 </span>                :            :     }
 <span class="lineNum">      55 </span>                :            : 
 <span class="lineNum">      56 </span>                :            :     /* Integer tag byte for R */
-<span class="lineNum">      57 </span>[<span class="branchCov" title="Branch 0 was taken 302097 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 302097 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     302097 :     if (pos == inputlen || input[pos] != 0x02) {</span>
+<span class="lineNum">      57 </span>[<span class="branchCov" title="Branch 0 was taken 349301 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 349301 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     349301 :     if (pos == inputlen || input[pos] != 0x02) {</span>
 <span class="lineNum">      58 </span>                :            :         return 0;
 <span class="lineNum">      59 </span>                :            :     }
-<span class="lineNum">      60 </span>                :<span class="lineCov">     302097 :     pos++;</span>
+<span class="lineNum">      60 </span>                :<span class="lineCov">     349301 :     pos++;</span>
 <span class="lineNum">      61 </span>                :            : 
 <span class="lineNum">      62 </span>                :            :     /* Integer length for R */
-<span class="lineNum">      63 </span>        [<span class="branchCov" title="Branch 0 was taken 302097 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     302097 :     if (pos == inputlen) {</span>
+<span class="lineNum">      63 </span>        [<span class="branchCov" title="Branch 0 was taken 349301 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     349301 :     if (pos == inputlen) {</span>
 <span class="lineNum">      64 </span>                :            :         return 0;
 <span class="lineNum">      65 </span>                :            :     }
-<span class="lineNum">      66 </span>                :<span class="lineCov">     302097 :     lenbyte = input[pos++];</span>
-<span class="lineNum">      67 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 302097 times"> + </span>]:<span class="lineCov">     302097 :     if (lenbyte &amp; 0x80) {</span>
+<span class="lineNum">      66 </span>                :<span class="lineCov">     349301 :     lenbyte = input[pos++];</span>
+<span class="lineNum">      67 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 349301 times"> + </span>]:<span class="lineCov">     349301 :     if (lenbyte &amp; 0x80) {</span>
 <span class="lineNum">      68 </span>                :<span class="lineNoCov">          0 :         lenbyte -= 0x80;</span>
 <span class="lineNum">      69 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (lenbyte &gt; inputlen - pos) {</span>
 <span class="lineNum">      70 </span>                :            :             return 0;
@@ -157,24 +157,24 @@
 <span class="lineNum">      86 </span>                :            :     } else {
 <span class="lineNum">      87 </span>                :            :         rlen = lenbyte;
 <span class="lineNum">      88 </span>                :            :     }
-<span class="lineNum">      89 </span>        [<span class="branchCov" title="Branch 0 was taken 302097 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     302097 :     if (rlen &gt; inputlen - pos) {</span>
+<span class="lineNum">      89 </span>        [<span class="branchCov" title="Branch 0 was taken 349301 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     349301 :     if (rlen &gt; inputlen - pos) {</span>
 <span class="lineNum">      90 </span>                :            :         return 0;
 <span class="lineNum">      91 </span>                :            :     }
-<span class="lineNum">      92 </span>                :<span class="lineCov">     302097 :     rpos = pos;</span>
-<span class="lineNum">      93 </span>                :<span class="lineCov">     302097 :     pos += rlen;</span>
+<span class="lineNum">      92 </span>                :<span class="lineCov">     349301 :     rpos = pos;</span>
+<span class="lineNum">      93 </span>                :<span class="lineCov">     349301 :     pos += rlen;</span>
 <span class="lineNum">      94 </span>                :            : 
 <span class="lineNum">      95 </span>                :            :     /* Integer tag byte for S */
-<span class="lineNum">      96 </span>[<span class="branchCov" title="Branch 0 was taken 302097 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 302097 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     302097 :     if (pos == inputlen || input[pos] != 0x02) {</span>
+<span class="lineNum">      96 </span>[<span class="branchCov" title="Branch 0 was taken 349301 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 349301 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     349301 :     if (pos == inputlen || input[pos] != 0x02) {</span>
 <span class="lineNum">      97 </span>                :            :         return 0;
 <span class="lineNum">      98 </span>                :            :     }
-<span class="lineNum">      99 </span>                :<span class="lineCov">     302097 :     pos++;</span>
+<span class="lineNum">      99 </span>                :<span class="lineCov">     349301 :     pos++;</span>
 <span class="lineNum">     100 </span>                :            : 
 <span class="lineNum">     101 </span>                :            :     /* Integer length for S */
-<span class="lineNum">     102 </span>        [<span class="branchCov" title="Branch 0 was taken 302097 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     302097 :     if (pos == inputlen) {</span>
+<span class="lineNum">     102 </span>        [<span class="branchCov" title="Branch 0 was taken 349301 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     349301 :     if (pos == inputlen) {</span>
 <span class="lineNum">     103 </span>                :            :         return 0;
 <span class="lineNum">     104 </span>                :            :     }
-<span class="lineNum">     105 </span>                :<span class="lineCov">     302097 :     lenbyte = input[pos++];</span>
-<span class="lineNum">     106 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 302097 times"> + </span>]:<span class="lineCov">     302097 :     if (lenbyte &amp; 0x80) {</span>
+<span class="lineNum">     105 </span>                :<span class="lineCov">     349301 :     lenbyte = input[pos++];</span>
+<span class="lineNum">     106 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 349301 times"> + </span>]:<span class="lineCov">     349301 :     if (lenbyte &amp; 0x80) {</span>
 <span class="lineNum">     107 </span>                :<span class="lineNoCov">          0 :         lenbyte -= 0x80;</span>
 <span class="lineNum">     108 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (lenbyte &gt; inputlen - pos) {</span>
 <span class="lineNum">     109 </span>                :            :             return 0;
@@ -196,39 +196,39 @@
 <span class="lineNum">     125 </span>                :            :     } else {
 <span class="lineNum">     126 </span>                :            :         slen = lenbyte;
 <span class="lineNum">     127 </span>                :            :     }
-<span class="lineNum">     128 </span>        [<span class="branchCov" title="Branch 0 was taken 302097 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     302097 :     if (slen &gt; inputlen - pos) {</span>
+<span class="lineNum">     128 </span>        [<span class="branchCov" title="Branch 0 was taken 349301 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     349301 :     if (slen &gt; inputlen - pos) {</span>
 <span class="lineNum">     129 </span>                :            :         return 0;
 <span class="lineNum">     130 </span>                :            :     }
 <span class="lineNum">     131 </span>                :            :     spos = pos;
 <span class="lineNum">     132 </span>                :            : 
 <span class="lineNum">     133 </span>                :            :     /* Ignore leading zeroes in R */
-<span class="lineNum">     134 </span>[<span class="branchCov" title="Branch 0 was taken 329615 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 27518 times"> + </span><span class="branchCov" title="Branch 3 was taken 302097 times"> + </span>]:<span class="lineCov">     329615 :     while (rlen &gt; 0 &amp;&amp; input[rpos] == 0) {</span>
-<span class="lineNum">     135 </span>                :<span class="lineCov">      27518 :         rlen--;</span>
-<span class="lineNum">     136 </span>                :<span class="lineCov">      27518 :         rpos++;</span>
+<span class="lineNum">     134 </span>[<span class="branchCov" title="Branch 0 was taken 375604 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 26303 times"> + </span><span class="branchCov" title="Branch 3 was taken 349301 times"> + </span>]:<span class="lineCov">     375604 :     while (rlen &gt; 0 &amp;&amp; input[rpos] == 0) {</span>
+<span class="lineNum">     135 </span>                :<span class="lineCov">      26303 :         rlen--;</span>
+<span class="lineNum">     136 </span>                :<span class="lineCov">      26303 :         rpos++;</span>
 <span class="lineNum">     137 </span>                :            :     }
 <span class="lineNum">     138 </span>                :            :     /* Copy R value */
-<span class="lineNum">     139 </span>        [<span class="branchCov" title="Branch 0 was taken 302055 times"> + </span><span class="branchCov" title="Branch 1 was taken 42 times"> + </span>]:<span class="lineCov">     302097 :     if (rlen &gt; 32) {</span>
+<span class="lineNum">     139 </span>        [<span class="branchCov" title="Branch 0 was taken 349259 times"> + </span><span class="branchCov" title="Branch 1 was taken 42 times"> + </span>]:<span class="lineCov">     349301 :     if (rlen &gt; 32) {</span>
 <span class="lineNum">     140 </span>                :            :         overflow = 1;
 <span class="lineNum">     141 </span>                :            :     } else {
-<span class="lineNum">     142 </span>                :<span class="lineCov">     302055 :         memcpy(tmpsig + 32 - rlen, input + rpos, rlen);</span>
+<span class="lineNum">     142 </span>                :<span class="lineCov">     349259 :         memcpy(tmpsig + 32 - rlen, input + rpos, rlen);</span>
 <span class="lineNum">     143 </span>                :            :     }
 <span class="lineNum">     144 </span>                :            : 
 <span class="lineNum">     145 </span>                :            :     /* Ignore leading zeroes in S */
-<span class="lineNum">     146 </span>[<span class="branchCov" title="Branch 0 was taken 302686 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 589 times"> + </span><span class="branchCov" title="Branch 3 was taken 302097 times"> + </span>]:<span class="lineCov">     302686 :     while (slen &gt; 0 &amp;&amp; input[spos] == 0) {</span>
-<span class="lineNum">     147 </span>                :<span class="lineCov">        589 :         slen--;</span>
-<span class="lineNum">     148 </span>                :<span class="lineCov">        589 :         spos++;</span>
+<span class="lineNum">     146 </span>[<span class="branchCov" title="Branch 0 was taken 349945 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 644 times"> + </span><span class="branchCov" title="Branch 3 was taken 349301 times"> + </span>]:<span class="lineCov">     349945 :     while (slen &gt; 0 &amp;&amp; input[spos] == 0) {</span>
+<span class="lineNum">     147 </span>                :<span class="lineCov">        644 :         slen--;</span>
+<span class="lineNum">     148 </span>                :<span class="lineCov">        644 :         spos++;</span>
 <span class="lineNum">     149 </span>                :            :     }
 <span class="lineNum">     150 </span>                :            :     /* Copy S value */
-<span class="lineNum">     151 </span>        [<span class="branchCov" title="Branch 0 was taken 302097 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     302097 :     if (slen &gt; 32) {</span>
+<span class="lineNum">     151 </span>        [<span class="branchCov" title="Branch 0 was taken 349301 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     349301 :     if (slen &gt; 32) {</span>
 <span class="lineNum">     152 </span>                :            :         overflow = 1;
 <span class="lineNum">     153 </span>                :            :     } else {
-<span class="lineNum">     154 </span>                :<span class="lineCov">     302097 :         memcpy(tmpsig + 64 - slen, input + spos, slen);</span>
+<span class="lineNum">     154 </span>                :<span class="lineCov">     349301 :         memcpy(tmpsig + 64 - slen, input + spos, slen);</span>
 <span class="lineNum">     155 </span>                :            :     }
 <span class="lineNum">     156 </span>                :            : 
-<span class="lineNum">     157 </span>        [<span class="branchCov" title="Branch 0 was taken 302055 times"> + </span><span class="branchCov" title="Branch 1 was taken 42 times"> + </span>]:<span class="lineCov">     302097 :     if (!overflow) {</span>
-<span class="lineNum">     158 </span>                :<span class="lineCov">     302055 :         overflow = !secp256k1_ecdsa_signature_parse_compact(ctx, sig, tmpsig);</span>
+<span class="lineNum">     157 </span>        [<span class="branchCov" title="Branch 0 was taken 349259 times"> + </span><span class="branchCov" title="Branch 1 was taken 42 times"> + </span>]:<span class="lineCov">     349301 :     if (!overflow) {</span>
+<span class="lineNum">     158 </span>                :<span class="lineCov">     349259 :         overflow = !secp256k1_ecdsa_signature_parse_compact(ctx, sig, tmpsig);</span>
 <span class="lineNum">     159 </span>                :            :     }
-<span class="lineNum">     160 </span>        [<span class="branchCov" title="Branch 0 was taken 42 times"> + </span><span class="branchCov" title="Branch 1 was taken 302055 times"> + </span>]:<span class="lineCov">     302097 :     if (overflow) {</span>
+<span class="lineNum">     160 </span>        [<span class="branchCov" title="Branch 0 was taken 42 times"> + </span><span class="branchCov" title="Branch 1 was taken 349259 times"> + </span>]:<span class="lineCov">     349301 :     if (overflow) {</span>
 <span class="lineNum">     161 </span>                :            :         /* Overwrite the result again with a correctly-parsed but invalid
 <span class="lineNum">     162 </span>                :            :            signature if parsing failed. */
 <span class="lineNum">     163 </span>                :<span class="lineCov">         42 :         memset(tmpsig, 0, 64);</span>
@@ -237,21 +237,21 @@
 <span class="lineNum">     166 </span>                :            :     return 1;
 <a name="167"><span class="lineNum">     167 </span>                :            : }</a>
 <span class="lineNum">     168 </span>                :            : 
-<span class="lineNum">     169 </span>                :<span class="lineCov">      95544 : bool CPubKey::Verify(const uint256 &amp;hash, const std::vector&lt;unsigned char&gt;&amp; vchSig) const {</span>
+<span class="lineNum">     169 </span>                :<span class="lineCov">      98478 : bool CPubKey::Verify(const uint256 &amp;hash, const std::vector&lt;unsigned char&gt;&amp; vchSig) const {</span>
 <span class="lineNum">     170 </span>                :            :     if (!IsValid())
 <span class="lineNum">     171 </span>                :            :         return false;
 <span class="lineNum">     172 </span>                :            :     secp256k1_pubkey pubkey;
 <span class="lineNum">     173 </span>                :            :     secp256k1_ecdsa_signature sig;
-<span class="lineNum">     174 </span>        [<span class="branchCov" title="Branch 1 was taken 95544 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      95544 :     if (!secp256k1_ec_pubkey_parse(secp256k1_context_verify, &amp;pubkey, vch, size())) {</span>
+<span class="lineNum">     174 </span>        [<span class="branchCov" title="Branch 1 was taken 98478 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      98478 :     if (!secp256k1_ec_pubkey_parse(secp256k1_context_verify, &amp;pubkey, vch, size())) {</span>
 <span class="lineNum">     175 </span>                :            :         return false;
 <span class="lineNum">     176 </span>                :            :     }
-<span class="lineNum">     177 </span>        [<span class="branchCov" title="Branch 1 was taken 95498 times"> + </span><span class="branchCov" title="Branch 2 was taken 46 times"> + </span>]:<span class="lineCov">      95544 :     if (!ecdsa_signature_parse_der_lax(secp256k1_context_verify, &amp;sig, vchSig.data(), vchSig.size())) {</span>
+<span class="lineNum">     177 </span>        [<span class="branchCov" title="Branch 1 was taken 98432 times"> + </span><span class="branchCov" title="Branch 2 was taken 46 times"> + </span>]:<span class="lineCov">      98478 :     if (!ecdsa_signature_parse_der_lax(secp256k1_context_verify, &amp;sig, vchSig.data(), vchSig.size())) {</span>
 <span class="lineNum">     178 </span>                :            :         return false;
 <span class="lineNum">     179 </span>                :            :     }
 <span class="lineNum">     180 </span>                :            :     /* libsecp256k1's ECDSA verification requires lower-S signatures, which have
 <span class="lineNum">     181 </span>                :            :      * not historically been enforced in Bitcoin, so normalize them first. */
-<span class="lineNum">     182 </span>                :<span class="lineCov">      95498 :     secp256k1_ecdsa_signature_normalize(secp256k1_context_verify, &amp;sig, &amp;sig);</span>
-<span class="lineNum">     183 </span>                :<span class="lineCov">      95498 :     return secp256k1_ecdsa_verify(secp256k1_context_verify, &amp;sig, hash.begin(), &amp;pubkey);</span>
+<span class="lineNum">     182 </span>                :<span class="lineCov">      98432 :     secp256k1_ecdsa_signature_normalize(secp256k1_context_verify, &amp;sig, &amp;sig);</span>
+<span class="lineNum">     183 </span>                :<span class="lineCov">      98432 :     return secp256k1_ecdsa_verify(secp256k1_context_verify, &amp;sig, hash.begin(), &amp;pubkey);</span>
 <a name="184"><span class="lineNum">     184 </span>                :            : }</a>
 <span class="lineNum">     185 </span>                :            : 
 <span class="lineNum">     186 </span>                :<span class="lineCov">         68 : bool CPubKey::RecoverCompact(const uint256 &amp;hash, const std::vector&lt;unsigned char&gt;&amp; vchSig) {</span>
@@ -342,12 +342,12 @@
 <span class="lineNum">     271 </span>                :<span class="lineCov">      22591 :     return pubkey.Derive(out.pubkey, out.chaincode, _nChild, chaincode);</span>
 <a name="272"><span class="lineNum">     272 </span>                :            : }</a>
 <span class="lineNum">     273 </span>                :            : 
-<span class="lineNum">     274 </span>                :<span class="lineCov">     206599 : /* static */ bool CPubKey::CheckLowS(const std::vector&lt;unsigned char&gt;&amp; vchSig) {</span>
+<span class="lineNum">     274 </span>                :<span class="lineCov">     250869 : /* static */ bool CPubKey::CheckLowS(const std::vector&lt;unsigned char&gt;&amp; vchSig) {</span>
 <span class="lineNum">     275 </span>                :            :     secp256k1_ecdsa_signature sig;
-<span class="lineNum">     276 </span>        [<span class="branchCov" title="Branch 1 was taken 206599 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     206599 :     if (!ecdsa_signature_parse_der_lax(secp256k1_context_verify, &amp;sig, vchSig.data(), vchSig.size())) {</span>
+<span class="lineNum">     276 </span>        [<span class="branchCov" title="Branch 1 was taken 250869 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     250869 :     if (!ecdsa_signature_parse_der_lax(secp256k1_context_verify, &amp;sig, vchSig.data(), vchSig.size())) {</span>
 <span class="lineNum">     277 </span>                :            :         return false;
 <span class="lineNum">     278 </span>                :            :     }
-<span class="lineNum">     279 </span>                :<span class="lineCov">     206599 :     return (!secp256k1_ecdsa_signature_normalize(secp256k1_context_verify, nullptr, &amp;sig));</span>
+<span class="lineNum">     279 </span>                :<span class="lineCov">     250869 :     return (!secp256k1_ecdsa_signature_normalize(secp256k1_context_verify, nullptr, &amp;sig));</span>
 <span class="lineNum">     280 </span>                :            : }
 <span class="lineNum">     281 </span>                :            : 
 <a name="282"><span class="lineNum">     282 </span>                :            : /* static */ int ECCVerifyHandle::refcount = 0;</a>

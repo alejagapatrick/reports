@@ -103,48 +103,48 @@
 <span class="lineNum">      32 </span>                :            :  *
 <a name="33"><span class="lineNum">      33 </span>                :            :  * out32 must point to an output buffer of length at least 32 bytes.</a>
 <span class="lineNum">      34 </span>                :            :  */
-<span class="lineNum">      35 </span>                :<span class="lineCov">       2678 : static int ec_privkey_import_der(const secp256k1_context* ctx, unsigned char *out32, const unsigned char *privkey, size_t privkeylen) {</span>
-<span class="lineNum">      36 </span>                :<span class="lineCov">       2678 :     const unsigned char *end = privkey + privkeylen;</span>
-<span class="lineNum">      37 </span>                :<span class="lineCov">       2678 :     memset(out32, 0, 32);</span>
+<span class="lineNum">      35 </span>                :<span class="lineCov">       2673 : static int ec_privkey_import_der(const secp256k1_context* ctx, unsigned char *out32, const unsigned char *privkey, size_t privkeylen) {</span>
+<span class="lineNum">      36 </span>                :<span class="lineCov">       2673 :     const unsigned char *end = privkey + privkeylen;</span>
+<span class="lineNum">      37 </span>                :<span class="lineCov">       2673 :     memset(out32, 0, 32);</span>
 <span class="lineNum">      38 </span>                :            :     /* sequence header */
-<span class="lineNum">      39 </span>[<span class="branchCov" title="Branch 0 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2678 :     if (end - privkey &lt; 1 || *privkey != 0x30u) {</span>
+<span class="lineNum">      39 </span>[<span class="branchCov" title="Branch 0 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2673 :     if (end - privkey &lt; 1 || *privkey != 0x30u) {</span>
 <span class="lineNum">      40 </span>                :            :         return 0;
 <span class="lineNum">      41 </span>                :            :     }
-<span class="lineNum">      42 </span>                :<span class="lineCov">       2678 :     privkey++;</span>
+<span class="lineNum">      42 </span>                :<span class="lineCov">       2673 :     privkey++;</span>
 <span class="lineNum">      43 </span>                :            :     /* sequence length constructor */
-<span class="lineNum">      44 </span>[<span class="branchCov" title="Branch 0 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2678 :     if (end - privkey &lt; 1 || !(*privkey &amp; 0x80u)) {</span>
+<span class="lineNum">      44 </span>[<span class="branchCov" title="Branch 0 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2673 :     if (end - privkey &lt; 1 || !(*privkey &amp; 0x80u)) {</span>
 <span class="lineNum">      45 </span>                :            :         return 0;
 <span class="lineNum">      46 </span>                :            :     }
-<span class="lineNum">      47 </span>                :<span class="lineCov">       2678 :     ptrdiff_t lenb = *privkey &amp; ~0x80u; privkey++;</span>
-<span class="lineNum">      48 </span>        [<span class="branchCov" title="Branch 0 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       2678 :     if (lenb &lt; 1 || lenb &gt; 2) {</span>
+<span class="lineNum">      47 </span>                :<span class="lineCov">       2673 :     ptrdiff_t lenb = *privkey &amp; ~0x80u; privkey++;</span>
+<span class="lineNum">      48 </span>        [<span class="branchCov" title="Branch 0 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       2673 :     if (lenb &lt; 1 || lenb &gt; 2) {</span>
 <span class="lineNum">      49 </span>                :            :         return 0;
 <span class="lineNum">      50 </span>                :            :     }
-<span class="lineNum">      51 </span>        [<span class="branchCov" title="Branch 0 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       2678 :     if (end - privkey &lt; lenb) {</span>
+<span class="lineNum">      51 </span>        [<span class="branchCov" title="Branch 0 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       2673 :     if (end - privkey &lt; lenb) {</span>
 <span class="lineNum">      52 </span>                :            :         return 0;
 <span class="lineNum">      53 </span>                :            :     }
 <span class="lineNum">      54 </span>                :            :     /* sequence length */
-<span class="lineNum">      55 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2678 times"> + </span>]:<span class="lineCov">       2678 :     ptrdiff_t len = privkey[lenb-1] | (lenb &gt; 1 ? privkey[lenb-2] &lt;&lt; 8 : 0u);</span>
-<span class="lineNum">      56 </span>                :<span class="lineCov">       2678 :     privkey += lenb;</span>
-<span class="lineNum">      57 </span>        [<span class="branchCov" title="Branch 0 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       2678 :     if (end - privkey &lt; len) {</span>
+<span class="lineNum">      55 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2673 times"> + </span>]:<span class="lineCov">       2673 :     ptrdiff_t len = privkey[lenb-1] | (lenb &gt; 1 ? privkey[lenb-2] &lt;&lt; 8 : 0u);</span>
+<span class="lineNum">      56 </span>                :<span class="lineCov">       2673 :     privkey += lenb;</span>
+<span class="lineNum">      57 </span>        [<span class="branchCov" title="Branch 0 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       2673 :     if (end - privkey &lt; len) {</span>
 <span class="lineNum">      58 </span>                :            :         return 0;
 <span class="lineNum">      59 </span>                :            :     }
 <span class="lineNum">      60 </span>                :            :     /* sequence element 0: version number (=1) */
-<span class="lineNum">      61 </span>[<span class="branchCov" title="Branch 0 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2678 :     if (end - privkey &lt; 3 || privkey[0] != 0x02u || privkey[1] != 0x01u || privkey[2] != 0x01u) {</span>
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchCov" title="Branch 6 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">      61 </span>[<span class="branchCov" title="Branch 0 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2673 :     if (end - privkey &lt; 3 || privkey[0] != 0x02u || privkey[1] != 0x01u || privkey[2] != 0x01u) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchCov" title="Branch 6 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
 <span class="lineNum">      62 </span>                :            :         return 0;
 <span class="lineNum">      63 </span>                :            :     }
-<span class="lineNum">      64 </span>                :<span class="lineCov">       2678 :     privkey += 3;</span>
+<span class="lineNum">      64 </span>                :<span class="lineCov">       2673 :     privkey += 3;</span>
 <span class="lineNum">      65 </span>                :            :     /* sequence element 1: octet string, up to 32 bytes */
-<span class="lineNum">      66 </span>[<span class="branchCov" title="Branch 0 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2678 :     if (end - privkey &lt; 2 || privkey[0] != 0x04u) {</span>
+<span class="lineNum">      66 </span>[<span class="branchCov" title="Branch 0 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2673 :     if (end - privkey &lt; 2 || privkey[0] != 0x04u) {</span>
 <span class="lineNum">      67 </span>                :            :         return 0;
 <span class="lineNum">      68 </span>                :            :     }
-<span class="lineNum">      69 </span>                :<span class="lineCov">       2678 :     ptrdiff_t oslen = privkey[1];</span>
-<span class="lineNum">      70 </span>                :<span class="lineCov">       2678 :     privkey += 2;</span>
-<span class="lineNum">      71 </span>[<span class="branchCov" title="Branch 0 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2678 :     if (oslen &gt; 32 || end - privkey &lt; oslen) {</span>
+<span class="lineNum">      69 </span>                :<span class="lineCov">       2673 :     ptrdiff_t oslen = privkey[1];</span>
+<span class="lineNum">      70 </span>                :<span class="lineCov">       2673 :     privkey += 2;</span>
+<span class="lineNum">      71 </span>[<span class="branchCov" title="Branch 0 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2673 :     if (oslen &gt; 32 || end - privkey &lt; oslen) {</span>
 <span class="lineNum">      72 </span>                :            :         return 0;
 <span class="lineNum">      73 </span>                :            :     }
-<span class="lineNum">      74 </span>                :<span class="lineCov">       5356 :     memcpy(out32 + (32 - oslen), privkey, oslen);</span>
-<span class="lineNum">      75 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 2678 times"> + </span>]:<span class="lineCov">       2678 :     if (!secp256k1_ec_seckey_verify(ctx, out32)) {</span>
+<span class="lineNum">      74 </span>                :<span class="lineCov">       5346 :     memcpy(out32 + (32 - oslen), privkey, oslen);</span>
+<span class="lineNum">      75 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 2673 times"> + </span>]:<span class="lineCov">       2673 :     if (!secp256k1_ec_seckey_verify(ctx, out32)) {</span>
 <span class="lineNum">      76 </span>                :<span class="lineNoCov">          0 :         memset(out32, 0, 32);</span>
 <span class="lineNum">      77 </span>                :<span class="lineNoCov">          0 :         return 0;</span>
 <span class="lineNum">      78 </span>                :            :     }
@@ -161,15 +161,15 @@
 <span class="lineNum">      89 </span>                :            :  * will be set to the number of bytes used in the buffer.
 <a name="90"><span class="lineNum">      90 </span>                :            :  * key32 must point to a 32-byte raw private key.</a>
 <span class="lineNum">      91 </span>                :            :  */
-<span class="lineNum">      92 </span>                :<span class="lineCov">       7977 : static int ec_privkey_export_der(const secp256k1_context *ctx, unsigned char *privkey, size_t *privkeylen, const unsigned char *key32, bool compressed) {</span>
-<span class="lineNum">      93 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 7977 times"> + </span>]:<span class="lineCov">       7977 :     assert(*privkeylen &gt;= CKey::PRIVATE_KEY_SIZE);</span>
+<span class="lineNum">      92 </span>                :<span class="lineCov">       8002 : static int ec_privkey_export_der(const secp256k1_context *ctx, unsigned char *privkey, size_t *privkeylen, const unsigned char *key32, bool compressed) {</span>
+<span class="lineNum">      93 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 8002 times"> + </span>]:<span class="lineCov">       8002 :     assert(*privkeylen &gt;= CKey::PRIVATE_KEY_SIZE);</span>
 <span class="lineNum">      94 </span>                :            :     secp256k1_pubkey pubkey;
-<span class="lineNum">      95 </span>                :<span class="lineCov">       7977 :     size_t pubkeylen = 0;</span>
-<span class="lineNum">      96 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 7977 times"> + </span>]:<span class="lineCov">       7977 :     if (!secp256k1_ec_pubkey_create(ctx, &amp;pubkey, key32)) {</span>
+<span class="lineNum">      95 </span>                :<span class="lineCov">       8002 :     size_t pubkeylen = 0;</span>
+<span class="lineNum">      96 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 8002 times"> + </span>]:<span class="lineCov">       8002 :     if (!secp256k1_ec_pubkey_create(ctx, &amp;pubkey, key32)) {</span>
 <span class="lineNum">      97 </span>                :<span class="lineNoCov">          0 :         *privkeylen = 0;</span>
 <span class="lineNum">      98 </span>                :<span class="lineNoCov">          0 :         return 0;</span>
 <span class="lineNum">      99 </span>                :            :     }
-<span class="lineNum">     100 </span>        [<span class="branchCov" title="Branch 0 was taken 6973 times"> + </span><span class="branchCov" title="Branch 1 was taken 1004 times"> + </span>]:<span class="lineCov">       7977 :     if (compressed) {</span>
+<span class="lineNum">     100 </span>        [<span class="branchCov" title="Branch 0 was taken 6998 times"> + </span><span class="branchCov" title="Branch 1 was taken 1004 times"> + </span>]:<span class="lineCov">       8002 :     if (compressed) {</span>
 <span class="lineNum">     101 </span>                :            :         static const unsigned char begin[] = {
 <span class="lineNum">     102 </span>                :            :             0x30,0x81,0xD3,0x02,0x01,0x01,0x04,0x20
 <span class="lineNum">     103 </span>                :            :         };
@@ -184,15 +184,15 @@
 <span class="lineNum">     112 </span>                :            :             0xFF,0xFF,0xFF,0xFF,0xFE,0xBA,0xAE,0xDC,0xE6,0xAF,0x48,0xA0,0x3B,0xBF,0xD2,0x5E,
 <span class="lineNum">     113 </span>                :            :             0x8C,0xD0,0x36,0x41,0x41,0x02,0x01,0x01,0xA1,0x24,0x03,0x22,0x00
 <span class="lineNum">     114 </span>                :            :         };
-<span class="lineNum">     115 </span>                :<span class="lineCov">       6973 :         unsigned char *ptr = privkey;</span>
-<span class="lineNum">     116 </span>                :<span class="lineCov">       6973 :         memcpy(ptr, begin, sizeof(begin)); ptr += sizeof(begin);</span>
-<span class="lineNum">     117 </span>                :<span class="lineCov">       6973 :         memcpy(ptr, key32, 32); ptr += 32;</span>
-<span class="lineNum">     118 </span>                :<span class="lineCov">       6973 :         memcpy(ptr, middle, sizeof(middle)); ptr += sizeof(middle);</span>
-<span class="lineNum">     119 </span>                :<span class="lineCov">       6973 :         pubkeylen = CPubKey::COMPRESSED_PUBLIC_KEY_SIZE;</span>
-<span class="lineNum">     120 </span>                :<span class="lineCov">       6973 :         secp256k1_ec_pubkey_serialize(ctx, ptr, &amp;pubkeylen, &amp;pubkey, SECP256K1_EC_COMPRESSED);</span>
-<span class="lineNum">     121 </span>                :<span class="lineCov">       6973 :         ptr += pubkeylen;</span>
-<span class="lineNum">     122 </span>                :<span class="lineCov">       6973 :         *privkeylen = ptr - privkey;</span>
-<span class="lineNum">     123 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 6973 times"> + </span>]:<span class="lineCov">       6973 :         assert(*privkeylen == CKey::COMPRESSED_PRIVATE_KEY_SIZE);</span>
+<span class="lineNum">     115 </span>                :<span class="lineCov">       6998 :         unsigned char *ptr = privkey;</span>
+<span class="lineNum">     116 </span>                :<span class="lineCov">       6998 :         memcpy(ptr, begin, sizeof(begin)); ptr += sizeof(begin);</span>
+<span class="lineNum">     117 </span>                :<span class="lineCov">       6998 :         memcpy(ptr, key32, 32); ptr += 32;</span>
+<span class="lineNum">     118 </span>                :<span class="lineCov">       6998 :         memcpy(ptr, middle, sizeof(middle)); ptr += sizeof(middle);</span>
+<span class="lineNum">     119 </span>                :<span class="lineCov">       6998 :         pubkeylen = CPubKey::COMPRESSED_PUBLIC_KEY_SIZE;</span>
+<span class="lineNum">     120 </span>                :<span class="lineCov">       6998 :         secp256k1_ec_pubkey_serialize(ctx, ptr, &amp;pubkeylen, &amp;pubkey, SECP256K1_EC_COMPRESSED);</span>
+<span class="lineNum">     121 </span>                :<span class="lineCov">       6998 :         ptr += pubkeylen;</span>
+<span class="lineNum">     122 </span>                :<span class="lineCov">       6998 :         *privkeylen = ptr - privkey;</span>
+<span class="lineNum">     123 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 6998 times"> + </span>]:<span class="lineCov">       6998 :         assert(*privkeylen == CKey::COMPRESSED_PRIVATE_KEY_SIZE);</span>
 <span class="lineNum">     124 </span>                :            :     } else {
 <span class="lineNum">     125 </span>                :            :         static const unsigned char begin[] = {
 <span class="lineNum">     126 </span>                :            :             0x30,0x82,0x01,0x13,0x02,0x01,0x01,0x04,0x20
@@ -223,8 +223,8 @@
 <span class="lineNum">     151 </span>                :            :     return 1;
 <a name="152"><span class="lineNum">     152 </span>                :            : }</a>
 <span class="lineNum">     153 </span>                :            : 
-<span class="lineNum">     154 </span>                :<span class="lineCov">      95164 : bool CKey::Check(const unsigned char *vch) {</span>
-<span class="lineNum">     155 </span>                :<span class="lineCov">      95164 :     return secp256k1_ec_seckey_verify(secp256k1_context_sign, vch);</span>
+<span class="lineNum">     154 </span>                :<span class="lineCov">     112191 : bool CKey::Check(const unsigned char *vch) {</span>
+<span class="lineNum">     155 </span>                :<span class="lineCov">     112191 :     return secp256k1_ec_seckey_verify(secp256k1_context_sign, vch);</span>
 <span class="lineNum">     156 </span>                :            : }
 <span class="lineNum">     157 </span>                :            : 
 <span class="lineNum">     158 </span>                :<span class="lineCov">       3462 : void CKey::MakeNewKey(bool fCompressedIn) {</span>
@@ -235,80 +235,80 @@
 <span class="lineNum">     163 </span>                :<span class="lineCov">       1731 :     fCompressed = fCompressedIn;</span>
 <span class="lineNum">     164 </span>                :<span class="lineCov">       1731 : }</span>
 <span class="lineNum">     165 </span>                :            : 
-<span class="lineNum">     166 </span>                :<span class="lineCov">       7977 : CPrivKey CKey::GetPrivKey() const {</span>
-<span class="lineNum">     167 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 7977 times"> + </span>]:<span class="lineCov">       7977 :     assert(fValid);</span>
-<span class="lineNum">     168 </span>                :<span class="lineCov">       7977 :     CPrivKey privkey;</span>
+<span class="lineNum">     166 </span>                :<span class="lineCov">       8002 : CPrivKey CKey::GetPrivKey() const {</span>
+<span class="lineNum">     167 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 8002 times"> + </span>]:<span class="lineCov">       8002 :     assert(fValid);</span>
+<span class="lineNum">     168 </span>                :<span class="lineCov">       8002 :     CPrivKey privkey;</span>
 <span class="lineNum">     169 </span>                :            :     int ret;
 <span class="lineNum">     170 </span>                :            :     size_t privkeylen;
-<span class="lineNum">     171 </span>        [<span class="branchCov" title="Branch 1 was taken 7977 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       7977 :     privkey.resize(PRIVATE_KEY_SIZE);</span>
-<span class="lineNum">     172 </span>                :<span class="lineCov">       7977 :     privkeylen = PRIVATE_KEY_SIZE;</span>
-<span class="lineNum">     173 </span>        [<span class="branchCov" title="Branch 1 was taken 7977 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       7977 :     ret = ec_privkey_export_der(secp256k1_context_sign, privkey.data(), &amp;privkeylen, begin(), fCompressed);</span>
-<span class="lineNum">     174 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 7977 times"> + </span>]:<span class="lineCov">       7977 :     assert(ret);</span>
-<span class="lineNum">     175 </span>        [<span class="branchCov" title="Branch 1 was taken 7977 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       7977 :     privkey.resize(privkeylen);</span>
-<span class="lineNum">     176 </span>                :<span class="lineCov">       7977 :     return privkey;</span>
+<span class="lineNum">     171 </span>        [<span class="branchCov" title="Branch 1 was taken 8002 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       8002 :     privkey.resize(PRIVATE_KEY_SIZE);</span>
+<span class="lineNum">     172 </span>                :<span class="lineCov">       8002 :     privkeylen = PRIVATE_KEY_SIZE;</span>
+<span class="lineNum">     173 </span>        [<span class="branchCov" title="Branch 1 was taken 8002 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       8002 :     ret = ec_privkey_export_der(secp256k1_context_sign, privkey.data(), &amp;privkeylen, begin(), fCompressed);</span>
+<span class="lineNum">     174 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 8002 times"> + </span>]:<span class="lineCov">       8002 :     assert(ret);</span>
+<span class="lineNum">     175 </span>        [<span class="branchCov" title="Branch 1 was taken 8002 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       8002 :     privkey.resize(privkeylen);</span>
+<span class="lineNum">     176 </span>                :<span class="lineCov">       8002 :     return privkey;</span>
 <span class="lineNum">     177 </span>                :            : }
 <span class="lineNum">     178 </span>                :            : 
-<span class="lineNum">     179 </span>                :<span class="lineCov">     393854 : CPubKey CKey::GetPubKey() const {</span>
-<span class="lineNum">     180 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 393854 times"> + </span>]:<span class="lineCov">     393854 :     assert(fValid);</span>
+<span class="lineNum">     179 </span>                :<span class="lineCov">     526581 : CPubKey CKey::GetPubKey() const {</span>
+<span class="lineNum">     180 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 526581 times"> + </span>]:<span class="lineCov">     526581 :     assert(fValid);</span>
 <span class="lineNum">     181 </span>                :            :     secp256k1_pubkey pubkey;
-<span class="lineNum">     182 </span>                :<span class="lineCov">     393854 :     size_t clen = CPubKey::PUBLIC_KEY_SIZE;</span>
-<span class="lineNum">     183 </span>                :<span class="lineCov">     393854 :     CPubKey result;</span>
-<span class="lineNum">     184 </span>                :<span class="lineCov">     393854 :     int ret = secp256k1_ec_pubkey_create(secp256k1_context_sign, &amp;pubkey, begin());</span>
-<span class="lineNum">     185 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 393854 times"> + </span>]:<span class="lineCov">     393854 :     assert(ret);</span>
-<span class="lineNum">     186 </span>        [<span class="branchCov" title="Branch 0 was taken 1707 times"> + </span><span class="branchCov" title="Branch 1 was taken 392147 times"> + </span>]:<span class="lineCov">     393854 :     secp256k1_ec_pubkey_serialize(secp256k1_context_sign, (unsigned char*)result.begin(), &amp;clen, &amp;pubkey, fCompressed ? SECP256K1_EC_COMPRESSED : SECP256K1_EC_UNCOMPRESSED);</span>
-<span class="lineNum">     187 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 393854 times"> + </span>]:<span class="lineCov">     393854 :     assert(result.size() == clen);</span>
+<span class="lineNum">     182 </span>                :<span class="lineCov">     526581 :     size_t clen = CPubKey::PUBLIC_KEY_SIZE;</span>
+<span class="lineNum">     183 </span>                :<span class="lineCov">     526581 :     CPubKey result;</span>
+<span class="lineNum">     184 </span>                :<span class="lineCov">     526581 :     int ret = secp256k1_ec_pubkey_create(secp256k1_context_sign, &amp;pubkey, begin());</span>
+<span class="lineNum">     185 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 526581 times"> + </span>]:<span class="lineCov">     526581 :     assert(ret);</span>
+<span class="lineNum">     186 </span>        [<span class="branchCov" title="Branch 0 was taken 1707 times"> + </span><span class="branchCov" title="Branch 1 was taken 524874 times"> + </span>]:<span class="lineCov">     526581 :     secp256k1_ec_pubkey_serialize(secp256k1_context_sign, (unsigned char*)result.begin(), &amp;clen, &amp;pubkey, fCompressed ? SECP256K1_EC_COMPRESSED : SECP256K1_EC_UNCOMPRESSED);</span>
+<span class="lineNum">     187 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 526581 times"> + </span>]:<span class="lineCov">     526581 :     assert(result.size() == clen);</span>
 <span class="lineNum">     188 </span>                :<span class="lineNoCov">          0 :     assert(result.IsValid());</span>
-<span class="lineNum">     189 </span>                :<span class="lineCov">     393854 :     return result;</span>
+<span class="lineNum">     189 </span>                :<span class="lineCov">     526581 :     return result;</span>
 <span class="lineNum">     190 </span>                :            : }
 <a name="191"><span class="lineNum">     191 </span>                :            : </a>
 <span class="lineNum">     192 </span>                :            : // Check that the sig has a low R value and will be less than 71 bytes
-<span class="lineNum">     193 </span>                :<span class="lineCov">      46990 : bool SigHasLowR(const secp256k1_ecdsa_signature* sig)</span>
+<span class="lineNum">     193 </span>                :<span class="lineCov">      49187 : bool SigHasLowR(const secp256k1_ecdsa_signature* sig)</span>
 <span class="lineNum">     194 </span>                :            : {
 <span class="lineNum">     195 </span>                :            :     unsigned char compact_sig[64];
-<span class="lineNum">     196 </span>                :<span class="lineCov">      46990 :     secp256k1_ecdsa_signature_serialize_compact(secp256k1_context_sign, compact_sig, sig);</span>
+<span class="lineNum">     196 </span>                :<span class="lineCov">      49187 :     secp256k1_ecdsa_signature_serialize_compact(secp256k1_context_sign, compact_sig, sig);</span>
 <span class="lineNum">     197 </span>                :            : 
 <span class="lineNum">     198 </span>                :            :     // In DER serialization, all values are interpreted as big-endian, signed integers. The highest bit in the integer indicates
 <span class="lineNum">     199 </span>                :            :     // its signed-ness; 0 is positive, 1 is negative. When the value is interpreted as a negative integer, it must be converted
 <span class="lineNum">     200 </span>                :            :     // to a positive value by prepending a 0x00 byte so that the highest bit is 0. We can avoid this prepending by ensuring that
 <span class="lineNum">     201 </span>                :            :     // our highest bit is always 0, and thus we must check that the first byte is less than 0x80.
-<span class="lineNum">     202 </span>                :<span class="lineCov">      46990 :     return compact_sig[0] &lt; 0x80;</span>
+<span class="lineNum">     202 </span>                :<span class="lineCov">      49187 :     return compact_sig[0] &lt; 0x80;</span>
 <span class="lineNum">     203 </span>                :            : }
 <span class="lineNum">     204 </span>                :            : 
-<span class="lineNum">     205 </span>                :<span class="lineCov">      24133 : bool CKey::Sign(const uint256 &amp;hash, std::vector&lt;unsigned char&gt;&amp; vchSig, bool grind, uint32_t test_case) const {</span>
-<span class="lineNum">     206 </span>        [<span class="branchCov" title="Branch 0 was taken 24133 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      24133 :     if (!fValid)</span>
+<span class="lineNum">     205 </span>                :<span class="lineCov">      25128 : bool CKey::Sign(const uint256 &amp;hash, std::vector&lt;unsigned char&gt;&amp; vchSig, bool grind, uint32_t test_case) const {</span>
+<span class="lineNum">     206 </span>        [<span class="branchCov" title="Branch 0 was taken 25128 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      25128 :     if (!fValid)</span>
 <span class="lineNum">     207 </span>                :            :         return false;
-<span class="lineNum">     208 </span>                :<span class="lineCov">      24133 :     vchSig.resize(CPubKey::SIGNATURE_SIZE);</span>
-<span class="lineNum">     209 </span>                :<span class="lineCov">      24133 :     size_t nSigLen = CPubKey::SIGNATURE_SIZE;</span>
-<span class="lineNum">     210 </span>                :<span class="lineCov">      24133 :     unsigned char extra_entropy[32] = {0};</span>
-<span class="lineNum">     211 </span>                :<span class="lineCov">      24133 :     WriteLE32(extra_entropy, test_case);</span>
+<span class="lineNum">     208 </span>                :<span class="lineCov">      25128 :     vchSig.resize(CPubKey::SIGNATURE_SIZE);</span>
+<span class="lineNum">     209 </span>                :<span class="lineCov">      25128 :     size_t nSigLen = CPubKey::SIGNATURE_SIZE;</span>
+<span class="lineNum">     210 </span>                :<span class="lineCov">      25128 :     unsigned char extra_entropy[32] = {0};</span>
+<span class="lineNum">     211 </span>                :<span class="lineCov">      25128 :     WriteLE32(extra_entropy, test_case);</span>
 <span class="lineNum">     212 </span>                :            :     secp256k1_ecdsa_signature sig;
-<span class="lineNum">     213 </span>                :<span class="lineCov">      24133 :     uint32_t counter = 0;</span>
-<span class="lineNum">     214 </span>        [<span class="branchCov" title="Branch 0 was taken 22934 times"> + </span><span class="branchCov" title="Branch 1 was taken 1199 times"> + </span>]:<span class="lineCov">      24133 :     int ret = secp256k1_ecdsa_sign(secp256k1_context_sign, &amp;sig, hash.begin(), begin(), secp256k1_nonce_function_rfc6979, (!grind &amp;&amp; test_case) ? extra_entropy : nullptr);</span>
+<span class="lineNum">     213 </span>                :<span class="lineCov">      25128 :     uint32_t counter = 0;</span>
+<span class="lineNum">     214 </span>        [<span class="branchCov" title="Branch 0 was taken 23929 times"> + </span><span class="branchCov" title="Branch 1 was taken 1199 times"> + </span>]:<span class="lineCov">      25128 :     int ret = secp256k1_ecdsa_sign(secp256k1_context_sign, &amp;sig, hash.begin(), begin(), secp256k1_nonce_function_rfc6979, (!grind &amp;&amp; test_case) ? extra_entropy : nullptr);</span>
 <span class="lineNum">     215 </span>                :            : 
 <span class="lineNum">     216 </span>                :            :     // Grind for low R
-<span class="lineNum">     217 </span>[<span class="branchCov" title="Branch 0 was taken 46990 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 23598 times"> + </span><span class="branchCov" title="Branch 4 was taken 23392 times"> + </span>]:<span class="lineCov">      46990 :     while (ret &amp;&amp; !SigHasLowR(&amp;sig) &amp;&amp; grind) {</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 5 was taken 22857 times"> + </span><span class="branchCov" title="Branch 6 was taken 741 times"> + </span>]
-<span class="lineNum">     218 </span>                :<span class="lineCov">      45714 :         WriteLE32(extra_entropy, ++counter);</span>
-<span class="lineNum">     219 </span>                :<span class="lineCov">      22857 :         ret = secp256k1_ecdsa_sign(secp256k1_context_sign, &amp;sig, hash.begin(), begin(), secp256k1_nonce_function_rfc6979, extra_entropy);</span>
+<span class="lineNum">     217 </span>[<span class="branchCov" title="Branch 0 was taken 49187 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 24800 times"> + </span><span class="branchCov" title="Branch 4 was taken 24387 times"> + </span>]:<span class="lineCov">      49187 :     while (ret &amp;&amp; !SigHasLowR(&amp;sig) &amp;&amp; grind) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 5 was taken 24059 times"> + </span><span class="branchCov" title="Branch 6 was taken 741 times"> + </span>]
+<span class="lineNum">     218 </span>                :<span class="lineCov">      48118 :         WriteLE32(extra_entropy, ++counter);</span>
+<span class="lineNum">     219 </span>                :<span class="lineCov">      24059 :         ret = secp256k1_ecdsa_sign(secp256k1_context_sign, &amp;sig, hash.begin(), begin(), secp256k1_nonce_function_rfc6979, extra_entropy);</span>
 <span class="lineNum">     220 </span>                :            :     }
-<span class="lineNum">     221 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 24133 times"> + </span>]:<span class="lineCov">      24133 :     assert(ret);</span>
-<span class="lineNum">     222 </span>                :<span class="lineCov">      24133 :     secp256k1_ecdsa_signature_serialize_der(secp256k1_context_sign, vchSig.data(), &amp;nSigLen, &amp;sig);</span>
-<span class="lineNum">     223 </span>                :<span class="lineCov">      24133 :     vchSig.resize(nSigLen);</span>
+<span class="lineNum">     221 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 25128 times"> + </span>]:<span class="lineCov">      25128 :     assert(ret);</span>
+<span class="lineNum">     222 </span>                :<span class="lineCov">      25128 :     secp256k1_ecdsa_signature_serialize_der(secp256k1_context_sign, vchSig.data(), &amp;nSigLen, &amp;sig);</span>
+<span class="lineNum">     223 </span>                :<span class="lineCov">      25128 :     vchSig.resize(nSigLen);</span>
 <span class="lineNum">     224 </span>                :            :     return true;
 <span class="lineNum">     225 </span>                :            : }
 <span class="lineNum">     226 </span>                :            : 
-<span class="lineNum">     227 </span>                :<span class="lineCov">      12051 : bool CKey::VerifyPubKey(const CPubKey&amp; pubkey) const {</span>
-<span class="lineNum">     228 </span>        [<span class="branchCov" title="Branch 0 was taken 12043 times"> + </span><span class="branchCov" title="Branch 1 was taken 8 times"> + </span>]:<span class="lineCov">      12051 :     if (pubkey.IsCompressed() != fCompressed) {</span>
+<span class="lineNum">     227 </span>                :<span class="lineCov">      12082 : bool CKey::VerifyPubKey(const CPubKey&amp; pubkey) const {</span>
+<span class="lineNum">     228 </span>        [<span class="branchCov" title="Branch 0 was taken 12074 times"> + </span><span class="branchCov" title="Branch 1 was taken 8 times"> + </span>]:<span class="lineCov">      12082 :     if (pubkey.IsCompressed() != fCompressed) {</span>
 <span class="lineNum">     229 </span>                :            :         return false;
 <span class="lineNum">     230 </span>                :            :     }
 <span class="lineNum">     231 </span>                :            :     unsigned char rnd[8];
-<span class="lineNum">     232 </span>                :<span class="lineCov">      12043 :     std::string str = &quot;Bitcoin key verification\n&quot;;</span>
-<span class="lineNum">     233 </span>        [<span class="branchCov" title="Branch 1 was taken 12043 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      12043 :     GetRandBytes(rnd, sizeof(rnd));</span>
-<span class="lineNum">     234 </span>                :<span class="lineCov">      12043 :     uint256 hash;</span>
-<span class="lineNum">     235 </span>        [<span class="branchCov" title="Branch 1 was taken 12043 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      12043 :     CHash256().Write((unsigned char*)str.data(), str.size()).Write(rnd, sizeof(rnd)).Finalize(hash.begin());</span>
+<span class="lineNum">     232 </span>                :<span class="lineCov">      12074 :     std::string str = &quot;Bitcoin key verification\n&quot;;</span>
+<span class="lineNum">     233 </span>        [<span class="branchCov" title="Branch 1 was taken 12074 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      12074 :     GetRandBytes(rnd, sizeof(rnd));</span>
+<span class="lineNum">     234 </span>                :<span class="lineCov">      12074 :     uint256 hash;</span>
+<span class="lineNum">     235 </span>        [<span class="branchCov" title="Branch 1 was taken 12074 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      12074 :     CHash256().Write((unsigned char*)str.data(), str.size()).Write(rnd, sizeof(rnd)).Finalize(hash.begin());</span>
 <span class="lineNum">     236 </span>                :<span class="lineNoCov">          0 :     std::vector&lt;unsigned char&gt; vchSig;</span>
-<span class="lineNum">     237 </span>        [<span class="branchCov" title="Branch 1 was taken 12043 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      12043 :     Sign(hash, vchSig);</span>
-<span class="lineNum">     238 </span>        [<span class="branchCov" title="Branch 1 was taken 12043 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      12043 :     return pubkey.Verify(hash, vchSig);</span>
+<span class="lineNum">     237 </span>        [<span class="branchCov" title="Branch 1 was taken 12074 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      12074 :     Sign(hash, vchSig);</span>
+<span class="lineNum">     238 </span>        [<span class="branchCov" title="Branch 1 was taken 12074 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      12074 :     return pubkey.Verify(hash, vchSig);</span>
 <span class="lineNum">     239 </span>                :            : }
 <span class="lineNum">     240 </span>                :            : 
 <span class="lineNum">     241 </span>                :<span class="lineCov">         71 : bool CKey::SignCompact(const uint256 &amp;hash, std::vector&lt;unsigned char&gt;&amp; vchSig) const {</span>
@@ -326,56 +326,56 @@
 <span class="lineNum">     253 </span>                :<span class="lineCov">         71 :     return true;</span>
 <span class="lineNum">     254 </span>                :            : }
 <span class="lineNum">     255 </span>                :            : 
-<span class="lineNum">     256 </span>                :<span class="lineCov">       2678 : bool CKey::Load(const CPrivKey &amp;privkey, const CPubKey &amp;vchPubKey, bool fSkipCheck=false) {</span>
-<span class="lineNum">     257 </span>        [<span class="branchCov" title="Branch 1 was taken 2678 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2678 :     if (!ec_privkey_import_der(secp256k1_context_sign, (unsigned char*)begin(), privkey.data(), privkey.size()))</span>
+<span class="lineNum">     256 </span>                :<span class="lineCov">       2673 : bool CKey::Load(const CPrivKey &amp;privkey, const CPubKey &amp;vchPubKey, bool fSkipCheck=false) {</span>
+<span class="lineNum">     257 </span>        [<span class="branchCov" title="Branch 1 was taken 2673 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2673 :     if (!ec_privkey_import_der(secp256k1_context_sign, (unsigned char*)begin(), privkey.data(), privkey.size()))</span>
 <span class="lineNum">     258 </span>                :            :         return false;
-<span class="lineNum">     259 </span>                :<span class="lineCov">       2678 :     fCompressed = vchPubKey.IsCompressed();</span>
-<span class="lineNum">     260 </span>                :<span class="lineCov">       2678 :     fValid = true;</span>
+<span class="lineNum">     259 </span>                :<span class="lineCov">       2673 :     fCompressed = vchPubKey.IsCompressed();</span>
+<span class="lineNum">     260 </span>                :<span class="lineCov">       2673 :     fValid = true;</span>
 <span class="lineNum">     261 </span>                :            : 
-<span class="lineNum">     262 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2678 times"> + </span>]:<span class="lineCov">       2678 :     if (fSkipCheck)</span>
+<span class="lineNum">     262 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2673 times"> + </span>]:<span class="lineCov">       2673 :     if (fSkipCheck)</span>
 <span class="lineNum">     263 </span>                :            :         return true;
 <span class="lineNum">     264 </span>                :            : 
 <span class="lineNum">     265 </span>                :<span class="lineNoCov">          0 :     return VerifyPubKey(vchPubKey);</span>
 <span class="lineNum">     266 </span>                :            : }
 <span class="lineNum">     267 </span>                :            : 
-<span class="lineNum">     268 </span>                :<span class="lineCov">      49832 : bool CKey::Derive(CKey&amp; keyChild, ChainCode &amp;ccChild, unsigned int nChild, const ChainCode&amp; cc) const {</span>
-<span class="lineNum">     269 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 49832 times"> + </span>]:<span class="lineCov">      49832 :     assert(IsValid());</span>
-<span class="lineNum">     270 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 49832 times"> + </span>]:<span class="lineCov">      49832 :     assert(IsCompressed());</span>
-<span class="lineNum">     271 </span>                :<span class="lineCov">      49832 :     std::vector&lt;unsigned char, secure_allocator&lt;unsigned char&gt;&gt; vout(64);</span>
-<span class="lineNum">     272 </span>        [<span class="branchCov" title="Branch 0 was taken 10581 times"> + </span><span class="branchCov" title="Branch 1 was taken 39251 times"> + </span>]:<span class="lineCov">      49832 :     if ((nChild &gt;&gt; 31) == 0) {</span>
+<span class="lineNum">     268 </span>                :<span class="lineCov">      49922 : bool CKey::Derive(CKey&amp; keyChild, ChainCode &amp;ccChild, unsigned int nChild, const ChainCode&amp; cc) const {</span>
+<span class="lineNum">     269 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 49922 times"> + </span>]:<span class="lineCov">      49922 :     assert(IsValid());</span>
+<span class="lineNum">     270 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 49922 times"> + </span>]:<span class="lineCov">      49922 :     assert(IsCompressed());</span>
+<span class="lineNum">     271 </span>                :<span class="lineCov">      49922 :     std::vector&lt;unsigned char, secure_allocator&lt;unsigned char&gt;&gt; vout(64);</span>
+<span class="lineNum">     272 </span>        [<span class="branchCov" title="Branch 0 was taken 10581 times"> + </span><span class="branchCov" title="Branch 1 was taken 39341 times"> + </span>]:<span class="lineCov">      49922 :     if ((nChild &gt;&gt; 31) == 0) {</span>
 <span class="lineNum">     273 </span>        [<span class="branchCov" title="Branch 1 was taken 10581 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      10581 :         CPubKey pubkey = GetPubKey();</span>
 <span class="lineNum">     274 </span>                :<span class="lineCov">      10581 :         assert(pubkey.size() == CPubKey::COMPRESSED_PUBLIC_KEY_SIZE);</span>
 <span class="lineNum">     275 </span>        [<span class="branchCov" title="Branch 1 was taken 10581 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      10581 :         BIP32Hash(cc, nChild, *pubkey.begin(), pubkey.begin()+1, vout.data());</span>
 <span class="lineNum">     276 </span>                :            :     } else {
-<span class="lineNum">     277 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 39251 times"> + </span>]:<span class="lineCov">      39251 :         assert(size() == 32);</span>
-<span class="lineNum">     278 </span>        [<span class="branchCov" title="Branch 1 was taken 39251 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      39251 :         BIP32Hash(cc, nChild, 0, begin(), vout.data());</span>
+<span class="lineNum">     277 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 39341 times"> + </span>]:<span class="lineCov">      39341 :         assert(size() == 32);</span>
+<span class="lineNum">     278 </span>        [<span class="branchCov" title="Branch 1 was taken 39341 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      39341 :         BIP32Hash(cc, nChild, 0, begin(), vout.data());</span>
 <span class="lineNum">     279 </span>                :            :     }
-<span class="lineNum">     280 </span>                :<span class="lineCov">     149496 :     memcpy(ccChild.begin(), vout.data()+32, 32);</span>
-<span class="lineNum">     281 </span>                :<span class="lineCov">     149496 :     memcpy((unsigned char*)keyChild.begin(), begin(), 32);</span>
-<span class="lineNum">     282 </span>        [<span class="branchCov" title="Branch 1 was taken 49832 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      49832 :     bool ret = secp256k1_ec_privkey_tweak_add(secp256k1_context_sign, (unsigned char*)keyChild.begin(), vout.data());</span>
-<span class="lineNum">     283 </span>                :<span class="lineCov">      49832 :     keyChild.fCompressed = true;</span>
-<span class="lineNum">     284 </span>                :<span class="lineCov">      49832 :     keyChild.fValid = ret;</span>
-<span class="lineNum">     285 </span>                :<span class="lineCov">      49832 :     return ret;</span>
+<span class="lineNum">     280 </span>                :<span class="lineCov">     149766 :     memcpy(ccChild.begin(), vout.data()+32, 32);</span>
+<span class="lineNum">     281 </span>                :<span class="lineCov">     149766 :     memcpy((unsigned char*)keyChild.begin(), begin(), 32);</span>
+<span class="lineNum">     282 </span>        [<span class="branchCov" title="Branch 1 was taken 49922 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      49922 :     bool ret = secp256k1_ec_privkey_tweak_add(secp256k1_context_sign, (unsigned char*)keyChild.begin(), vout.data());</span>
+<span class="lineNum">     283 </span>                :<span class="lineCov">      49922 :     keyChild.fCompressed = true;</span>
+<span class="lineNum">     284 </span>                :<span class="lineCov">      49922 :     keyChild.fValid = ret;</span>
+<span class="lineNum">     285 </span>                :<span class="lineCov">      49922 :     return ret;</span>
 <a name="286"><span class="lineNum">     286 </span>                :            : }</a>
 <span class="lineNum">     287 </span>                :            : 
-<span class="lineNum">     288 </span>                :<span class="lineCov">      49832 : bool CExtKey::Derive(CExtKey &amp;out, unsigned int _nChild) const {</span>
-<span class="lineNum">     289 </span>                :<span class="lineCov">      49832 :     out.nDepth = nDepth + 1;</span>
-<span class="lineNum">     290 </span>                :<span class="lineCov">      49832 :     CKeyID id = key.GetPubKey().GetID();</span>
-<span class="lineNum">     291 </span>                :<span class="lineCov">      99664 :     memcpy(&amp;out.vchFingerprint[0], &amp;id, 4);</span>
-<span class="lineNum">     292 </span>                :<span class="lineCov">      49832 :     out.nChild = _nChild;</span>
-<span class="lineNum">     293 </span>                :<span class="lineCov">      49832 :     return key.Derive(out.key, out.chaincode, _nChild, chaincode);</span>
+<span class="lineNum">     288 </span>                :<span class="lineCov">      49922 : bool CExtKey::Derive(CExtKey &amp;out, unsigned int _nChild) const {</span>
+<span class="lineNum">     289 </span>                :<span class="lineCov">      49922 :     out.nDepth = nDepth + 1;</span>
+<span class="lineNum">     290 </span>                :<span class="lineCov">      49922 :     CKeyID id = key.GetPubKey().GetID();</span>
+<span class="lineNum">     291 </span>                :<span class="lineCov">      99844 :     memcpy(&amp;out.vchFingerprint[0], &amp;id, 4);</span>
+<span class="lineNum">     292 </span>                :<span class="lineCov">      49922 :     out.nChild = _nChild;</span>
+<span class="lineNum">     293 </span>                :<span class="lineCov">      49922 :     return key.Derive(out.key, out.chaincode, _nChild, chaincode);</span>
 <span class="lineNum">     294 </span>                :            : }
 <span class="lineNum">     295 </span>                :            : 
-<span class="lineNum">     296 </span>                :<span class="lineCov">      88881 : void CExtKey::SetSeed(const unsigned char *seed, unsigned int nSeedLen) {</span>
+<span class="lineNum">     296 </span>                :<span class="lineCov">     105907 : void CExtKey::SetSeed(const unsigned char *seed, unsigned int nSeedLen) {</span>
 <span class="lineNum">     297 </span>                :            :     static const unsigned char hashkey[] = {'B','i','t','c','o','i','n',' ','s','e','e','d'};
-<span class="lineNum">     298 </span>                :<span class="lineCov">      88881 :     std::vector&lt;unsigned char, secure_allocator&lt;unsigned char&gt;&gt; vout(64);</span>
-<span class="lineNum">     299 </span>[<span class="branchCov" title="Branch 1 was taken 88881 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 88881 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     177762 :     CHMAC_SHA512(hashkey, sizeof(hashkey)).Write(seed, nSeedLen).Finalize(vout.data());</span>
-<span class="lineNum">     300 </span>        [<span class="branchCov" title="Branch 1 was taken 88881 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      88881 :     key.Set(vout.data(), vout.data() + 32, true);</span>
-<span class="lineNum">     301 </span>                :<span class="lineCov">     266643 :     memcpy(chaincode.begin(), vout.data() + 32, 32);</span>
-<span class="lineNum">     302 </span>                :<span class="lineCov">      88881 :     nDepth = 0;</span>
-<span class="lineNum">     303 </span>                :<span class="lineCov">      88881 :     nChild = 0;</span>
-<span class="lineNum">     304 </span>                :<span class="lineCov">     177762 :     memset(vchFingerprint, 0, sizeof(vchFingerprint));</span>
-<a name="305"><span class="lineNum">     305 </span>                :<span class="lineCov">      88881 : }</span></a>
+<span class="lineNum">     298 </span>                :<span class="lineCov">     105907 :     std::vector&lt;unsigned char, secure_allocator&lt;unsigned char&gt;&gt; vout(64);</span>
+<span class="lineNum">     299 </span>[<span class="branchCov" title="Branch 1 was taken 105907 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 105907 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     211814 :     CHMAC_SHA512(hashkey, sizeof(hashkey)).Write(seed, nSeedLen).Finalize(vout.data());</span>
+<span class="lineNum">     300 </span>        [<span class="branchCov" title="Branch 1 was taken 105907 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     105907 :     key.Set(vout.data(), vout.data() + 32, true);</span>
+<span class="lineNum">     301 </span>                :<span class="lineCov">     317721 :     memcpy(chaincode.begin(), vout.data() + 32, 32);</span>
+<span class="lineNum">     302 </span>                :<span class="lineCov">     105907 :     nDepth = 0;</span>
+<span class="lineNum">     303 </span>                :<span class="lineCov">     105907 :     nChild = 0;</span>
+<span class="lineNum">     304 </span>                :<span class="lineCov">     211814 :     memset(vchFingerprint, 0, sizeof(vchFingerprint));</span>
+<a name="305"><span class="lineNum">     305 </span>                :<span class="lineCov">     105907 : }</span></a>
 <span class="lineNum">     306 </span>                :            : 
 <span class="lineNum">     307 </span>                :<span class="lineCov">      10586 : CExtPubKey CExtKey::Neuter() const {</span>
 <span class="lineNum">     308 </span>                :<span class="lineCov">      10586 :     CExtPubKey ret;</span>

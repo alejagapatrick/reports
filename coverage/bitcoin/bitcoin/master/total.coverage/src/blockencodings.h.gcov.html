@@ -87,109 +87,109 @@
 <span class="lineNum">      16 </span>                :            : private:
 <span class="lineNum">      17 </span>                :            :     CTransactionRef&amp; tx;
 <span class="lineNum">      18 </span>                :            : public:
-<span class="lineNum">      19 </span>                :<span class="lineCov">      18052 :     explicit TransactionCompressor(CTransactionRef&amp; txIn) : tx(txIn) {}</span>
+<span class="lineNum">      19 </span>                :<span class="lineCov">      17424 :     explicit TransactionCompressor(CTransactionRef&amp; txIn) : tx(txIn) {}</span>
 <span class="lineNum">      20 </span>                :            : 
-<span class="lineNum">      21 </span>                :<span class="lineCov">      47418 :     ADD_SERIALIZE_METHODS;</span>
+<span class="lineNum">      21 </span>                :<span class="lineCov">      45972 :     ADD_SERIALIZE_METHODS;</span>
 <span class="lineNum">      22 </span>                :            : 
 <span class="lineNum">      23 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
 <span class="lineNum">      24 </span>                :            :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {
-<span class="lineNum">      25 </span>                :<span class="lineCov">      58732 :         READWRITE(tx); //TODO: Compress tx encoding</span>
+<span class="lineNum">      25 </span>                :<span class="lineCov">      57096 :         READWRITE(tx); //TODO: Compress tx encoding</span>
 <span class="lineNum">      26 </span>                :            :     }
 <span class="lineNum">      27 </span>                :            : };
 <span class="lineNum">      28 </span>                :            : 
-<span class="lineNum">      29 </span>                :<span class="lineCov">      31330 : class BlockTransactionsRequest {</span>
+<span class="lineNum">      29 </span>                :<span class="lineCov">      29105 : class BlockTransactionsRequest {</span>
 <span class="lineNum">      30 </span>                :            : public:
 <span class="lineNum">      31 </span>                :            :     // A BlockTransactionsRequest message
 <span class="lineNum">      32 </span>                :            :     uint256 blockhash;
 <span class="lineNum">      33 </span>                :            :     std::vector&lt;uint16_t&gt; indexes;
 <span class="lineNum">      34 </span>                :            : 
-<span class="lineNum">      35 </span>[<span class="branchCov" title="Branch 2 was taken 441 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span>]:<span class="lineCov">        846 :     ADD_SERIALIZE_METHODS;</span>
+<span class="lineNum">      35 </span>[<span class="branchCov" title="Branch 2 was taken 479 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span>]:<span class="lineCov">        922 :     ADD_SERIALIZE_METHODS;</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 10 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>][<span class="branchCov" title="Branch 13 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>]
 <a name="36"><span class="lineNum">      36 </span>                :            : </a>
 <span class="lineNum">      37 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
-<span class="lineNum">      38 </span>                :<span class="lineCov">        848 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
-<span class="lineNum">      39 </span>                :<span class="lineCov">       1696 :         READWRITE(blockhash);</span>
-<span class="lineNum">      40 </span>                :<span class="lineCov">       1696 :         uint64_t indexes_size = (uint64_t)indexes.size();</span>
-<span class="lineNum">      41 </span>                :<span class="lineCov">       2100 :         READWRITE(COMPACTSIZE(indexes_size));</span>
+<span class="lineNum">      38 </span>                :<span class="lineCov">        924 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">      39 </span>                :<span class="lineCov">       1848 :         READWRITE(blockhash);</span>
+<span class="lineNum">      40 </span>                :<span class="lineCov">       1848 :         uint64_t indexes_size = (uint64_t)indexes.size();</span>
+<span class="lineNum">      41 </span>                :<span class="lineCov">       2290 :         READWRITE(COMPACTSIZE(indexes_size));</span>
 <span class="lineNum">      42 </span>                :            :         if (ser_action.ForRead()) {
-<span class="lineNum">      43 </span>                :<span class="lineCov">        444 :             size_t i = 0;</span>
-<span class="lineNum">      44 </span>        [<span class="branchCov" title="Branch 0 was taken 444 times"> + </span><span class="branchCov" title="Branch 1 was taken 444 times"> + </span>]:<span class="lineCov">        888 :             while (indexes.size() &lt; indexes_size) {</span>
-<span class="lineNum">      45 </span>                :<span class="lineCov">        444 :                 indexes.resize(std::min((uint64_t)(1000 + indexes.size()), indexes_size));</span>
-<span class="lineNum">      46 </span>        [<span class="branchCov" title="Branch 0 was taken 444 times"> + </span><span class="branchCov" title="Branch 1 was taken 2379 times"> + </span>]:<span class="lineCov">       2823 :                 for (; i &lt; indexes.size(); i++) {</span>
-<span class="lineNum">      47 </span>                :<span class="lineCov">       2379 :                     uint64_t index = 0;</span>
-<span class="lineNum">      48 </span>                :<span class="lineCov">       4758 :                     READWRITE(COMPACTSIZE(index));</span>
-<span class="lineNum">      49 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2379 times"> + </span>]:<span class="lineCov">       2379 :                     if (index &gt; std::numeric_limits&lt;uint16_t&gt;::max())</span>
+<span class="lineNum">      43 </span>                :<span class="lineCov">        482 :             size_t i = 0;</span>
+<span class="lineNum">      44 </span>        [<span class="branchCov" title="Branch 0 was taken 482 times"> + </span><span class="branchCov" title="Branch 1 was taken 482 times"> + </span>]:<span class="lineCov">        964 :             while (indexes.size() &lt; indexes_size) {</span>
+<span class="lineNum">      45 </span>                :<span class="lineCov">        482 :                 indexes.resize(std::min((uint64_t)(1000 + indexes.size()), indexes_size));</span>
+<span class="lineNum">      46 </span>        [<span class="branchCov" title="Branch 0 was taken 482 times"> + </span><span class="branchCov" title="Branch 1 was taken 2435 times"> + </span>]:<span class="lineCov">       2917 :                 for (; i &lt; indexes.size(); i++) {</span>
+<span class="lineNum">      47 </span>                :<span class="lineCov">       2435 :                     uint64_t index = 0;</span>
+<span class="lineNum">      48 </span>                :<span class="lineCov">       4870 :                     READWRITE(COMPACTSIZE(index));</span>
+<span class="lineNum">      49 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2435 times"> + </span>]:<span class="lineCov">       2435 :                     if (index &gt; std::numeric_limits&lt;uint16_t&gt;::max())</span>
 <span class="lineNum">      50 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;index overflowed 16 bits&quot;);</span>
-<span class="lineNum">      51 </span>                :<span class="lineCov">       4758 :                     indexes[i] = index;</span>
+<span class="lineNum">      51 </span>                :<span class="lineCov">       4870 :                     indexes[i] = index;</span>
 <span class="lineNum">      52 </span>                :            :                 }
 <span class="lineNum">      53 </span>                :            :             }
 <span class="lineNum">      54 </span>                :            : 
 <span class="lineNum">      55 </span>                :            :             int32_t offset = 0;
-<span class="lineNum">      56 </span>        [<span class="branchCov" title="Branch 0 was taken 2379 times"> + </span><span class="branchCov" title="Branch 1 was taken 443 times"> + </span>]:<span class="lineCov">       2822 :             for (size_t j = 0; j &lt; indexes.size(); j++) {</span>
-<span class="lineNum">      57 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 2378 times"> + </span>]:<span class="lineCov">       2379 :                 if (int32_t(indexes[j]) + offset &gt; std::numeric_limits&lt;uint16_t&gt;::max())</span>
+<span class="lineNum">      56 </span>        [<span class="branchCov" title="Branch 0 was taken 2435 times"> + </span><span class="branchCov" title="Branch 1 was taken 481 times"> + </span>]:<span class="lineCov">       2916 :             for (size_t j = 0; j &lt; indexes.size(); j++) {</span>
+<span class="lineNum">      57 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 2434 times"> + </span>]:<span class="lineCov">       2435 :                 if (int32_t(indexes[j]) + offset &gt; std::numeric_limits&lt;uint16_t&gt;::max())</span>
 <span class="lineNum">      58 </span>        [<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          2 :                     throw std::ios_base::failure(&quot;indexes overflowed 16 bits&quot;);</span>
-<span class="lineNum">      59 </span>                :<span class="lineCov">       2378 :                 indexes[j] = indexes[j] + offset;</span>
-<span class="lineNum">      60 </span>                :<span class="lineCov">       4756 :                 offset = int32_t(indexes[j]) + 1;</span>
+<span class="lineNum">      59 </span>                :<span class="lineCov">       2434 :                 indexes[j] = indexes[j] + offset;</span>
+<span class="lineNum">      60 </span>                :<span class="lineCov">       4868 :                 offset = int32_t(indexes[j]) + 1;</span>
 <span class="lineNum">      61 </span>                :            :             }
 <span class="lineNum">      62 </span>                :            :         } else {
-<span class="lineNum">      63 </span>        [<span class="branchCov" title="Branch 0 was taken 2259 times"> + </span><span class="branchCov" title="Branch 1 was taken 404 times"> + </span>]:<span class="lineCov">       2663 :             for (size_t i = 0; i &lt; indexes.size(); i++) {</span>
-<span class="lineNum">      64 </span>        [<span class="branchCov" title="Branch 0 was taken 1855 times"> + </span><span class="branchCov" title="Branch 1 was taken 404 times"> + </span>]:<span class="lineCov">       2259 :                 uint64_t index = indexes[i] - (i == 0 ? 0 : (indexes[i - 1] + 1));</span>
-<span class="lineNum">      65 </span>                :<span class="lineCov">       6777 :                 READWRITE(COMPACTSIZE(index));</span>
+<span class="lineNum">      63 </span>        [<span class="branchCov" title="Branch 0 was taken 2276 times"> + </span><span class="branchCov" title="Branch 1 was taken 442 times"> + </span>]:<span class="lineCov">       2718 :             for (size_t i = 0; i &lt; indexes.size(); i++) {</span>
+<span class="lineNum">      64 </span>        [<span class="branchCov" title="Branch 0 was taken 1834 times"> + </span><span class="branchCov" title="Branch 1 was taken 442 times"> + </span>]:<span class="lineCov">       2276 :                 uint64_t index = indexes[i] - (i == 0 ? 0 : (indexes[i - 1] + 1));</span>
+<span class="lineNum">      65 </span>                :<span class="lineCov">       6828 :                 READWRITE(COMPACTSIZE(index));</span>
 <span class="lineNum">      66 </span>                :            :             }
 <span class="lineNum">      67 </span>                :            :         }
-<span class="lineNum">      68 </span>                :<span class="lineCov">        443 :     }</span>
+<span class="lineNum">      68 </span>                :<span class="lineCov">        481 :     }</span>
 <span class="lineNum">      69 </span>                :            : };
 <span class="lineNum">      70 </span>                :            : 
-<span class="lineNum">      71 </span>                :<span class="lineCov">      11668 : class BlockTransactions {</span>
+<span class="lineNum">      71 </span>                :<span class="lineCov">      10701 : class BlockTransactions {</span>
 <span class="lineNum">      72 </span>                :            : public:
 <span class="lineNum">      73 </span>                :            :     // A BlockTransactions message
 <span class="lineNum">      74 </span>                :            :     uint256 blockhash;
 <span class="lineNum">      75 </span>                :            :     std::vector&lt;CTransactionRef&gt; txn;
 <span class="lineNum">      76 </span>                :            : 
-<span class="lineNum">      77 </span>                :<span class="lineCov">      33705 :     BlockTransactions() {}</span>
-<span class="lineNum">      78 </span>                :<span class="lineCov">        433 :     explicit BlockTransactions(const BlockTransactionsRequest&amp; req) :</span>
-<span class="lineNum">      79 </span>                :<span class="lineCov">        433 :         blockhash(req.blockhash), txn(req.indexes.size()) {}</span>
+<span class="lineNum">      77 </span>                :<span class="lineCov">      30690 :     BlockTransactions() {}</span>
+<span class="lineNum">      78 </span>                :<span class="lineCov">        471 :     explicit BlockTransactions(const BlockTransactionsRequest&amp; req) :</span>
+<span class="lineNum">      79 </span>                :<span class="lineCov">        471 :         blockhash(req.blockhash), txn(req.indexes.size()) {}</span>
 <span class="lineNum">      80 </span>                :            : 
-<span class="lineNum">      81 </span>[<span class="branchCov" title="Branch 2 was taken 5417 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 5818 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">      11668 :     ADD_SERIALIZE_METHODS;</span>
+<span class="lineNum">      81 </span>[<span class="branchCov" title="Branch 2 was taken 4896 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 5334 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">      10701 :     ADD_SERIALIZE_METHODS;</span>
 <a name="82"><span class="lineNum">      82 </span>                :            : </a>
 <span class="lineNum">      83 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
-<span class="lineNum">      84 </span>                :<span class="lineCov">      11668 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
-<span class="lineNum">      85 </span>                :<span class="lineCov">      23336 :         READWRITE(blockhash);</span>
-<span class="lineNum">      86 </span>                :<span class="lineCov">      23336 :         uint64_t txn_size = (uint64_t)txn.size();</span>
-<span class="lineNum">      87 </span>                :<span class="lineCov">      29186 :         READWRITE(COMPACTSIZE(txn_size));</span>
+<span class="lineNum">      84 </span>                :<span class="lineCov">      10701 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">      85 </span>                :<span class="lineCov">      21402 :         READWRITE(blockhash);</span>
+<span class="lineNum">      86 </span>                :<span class="lineCov">      21402 :         uint64_t txn_size = (uint64_t)txn.size();</span>
+<span class="lineNum">      87 </span>                :<span class="lineCov">      26769 :         READWRITE(COMPACTSIZE(txn_size));</span>
 <span class="lineNum">      88 </span>                :            :         if (ser_action.ForRead()) {
-<span class="lineNum">      89 </span>                :<span class="lineCov">       5818 :             size_t i = 0;</span>
-<span class="lineNum">      90 </span>        [<span class="branchCov" title="Branch 0 was taken 401 times"> + </span><span class="branchCov" title="Branch 1 was taken 5818 times"> + </span>]:<span class="lineCov">       6219 :             while (txn.size() &lt; txn_size) {</span>
-<span class="lineNum">      91 </span>                :<span class="lineCov">        401 :                 txn.resize(std::min((uint64_t)(1000 + txn.size()), txn_size));</span>
-<span class="lineNum">      92 </span>        [<span class="branchCov" title="Branch 0 was taken 401 times"> + </span><span class="branchCov" title="Branch 1 was taken 2249 times"> + </span>]:<span class="lineCov">       2650 :                 for (; i &lt; txn.size(); i++)</span>
-<span class="lineNum">      93 </span>                :<span class="lineCov">       6747 :                     READWRITE(TransactionCompressor(txn[i]));</span>
+<span class="lineNum">      89 </span>                :<span class="lineCov">       5334 :             size_t i = 0;</span>
+<span class="lineNum">      90 </span>        [<span class="branchCov" title="Branch 0 was taken 438 times"> + </span><span class="branchCov" title="Branch 1 was taken 5334 times"> + </span>]:<span class="lineCov">       5772 :             while (txn.size() &lt; txn_size) {</span>
+<span class="lineNum">      91 </span>                :<span class="lineCov">        438 :                 txn.resize(std::min((uint64_t)(1000 + txn.size()), txn_size));</span>
+<span class="lineNum">      92 </span>        [<span class="branchCov" title="Branch 0 was taken 438 times"> + </span><span class="branchCov" title="Branch 1 was taken 2254 times"> + </span>]:<span class="lineCov">       2692 :                 for (; i &lt; txn.size(); i++)</span>
+<span class="lineNum">      93 </span>                :<span class="lineCov">       6762 :                     READWRITE(TransactionCompressor(txn[i]));</span>
 <span class="lineNum">      94 </span>                :            :             }
 <span class="lineNum">      95 </span>                :            :         } else {
-<span class="lineNum">      96 </span>[<span class="branchCov" title="Branch 0 was taken 2363 times"> + </span><span class="branchCov" title="Branch 1 was taken 433 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 5417 times"> + </span>]:<span class="lineCov">       8213 :             for (size_t i = 0; i &lt; txn.size(); i++)</span>
-<span class="lineNum">      97 </span>                :<span class="lineCov">       9452 :                 READWRITE(TransactionCompressor(txn[i]));</span>
+<span class="lineNum">      96 </span>[<span class="branchCov" title="Branch 0 was taken 2419 times"> + </span><span class="branchCov" title="Branch 1 was taken 471 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4896 times"> + </span>]:<span class="lineCov">       7786 :             for (size_t i = 0; i &lt; txn.size(); i++)</span>
+<span class="lineNum">      97 </span>                :<span class="lineCov">       9676 :                 READWRITE(TransactionCompressor(txn[i]));</span>
 <span class="lineNum">      98 </span>                :            :         }
-<span class="lineNum">      99 </span>                :<span class="lineCov">      11668 :     }</span>
+<span class="lineNum">      99 </span>                :<span class="lineCov">      10701 :     }</span>
 <span class="lineNum">     100 </span>                :            : };
 <span class="lineNum">     101 </span>                :            : 
 <span class="lineNum">     102 </span>                :            : // Dumb serialization/storage-helper for CBlockHeaderAndShortTxIDs and PartiallyDownloadedBlock
-<span class="lineNum">     103 </span>                :<span class="lineCov">      33430 : struct PrefilledTransaction {</span>
+<span class="lineNum">     103 </span>                :<span class="lineCov">      33158 : struct PrefilledTransaction {</span>
 <span class="lineNum">     104 </span>                :            :     // Used as an offset since last prefilled tx in CBlockHeaderAndShortTxIDs,
 <span class="lineNum">     105 </span>                :            :     // as a proper transaction-in-block-index in PartiallyDownloadedBlock
 <span class="lineNum">     106 </span>                :            :     uint16_t index;
 <span class="lineNum">     107 </span>                :            :     CTransactionRef tx;
 <span class="lineNum">     108 </span>                :            : 
-<span class="lineNum">     109 </span>                :<span class="lineCov">      24754 :     ADD_SERIALIZE_METHODS;</span>
+<span class="lineNum">     109 </span>                :<span class="lineCov">      23875 :     ADD_SERIALIZE_METHODS;</span>
 <a name="110"><span class="lineNum">     110 </span>                :            : </a>
 <span class="lineNum">     111 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
-<span class="lineNum">     112 </span>                :<span class="lineCov">      24754 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
-<span class="lineNum">     113 </span>                :<span class="lineCov">      24754 :         uint64_t idx = index;</span>
-<span class="lineNum">     114 </span>                :<span class="lineCov">      65197 :         READWRITE(COMPACTSIZE(idx));</span>
-<span class="lineNum">     115 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 15689 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 9065 times"> + </span>]:<span class="lineCov">      24754 :         if (idx &gt; std::numeric_limits&lt;uint16_t&gt;::max())</span>
+<span class="lineNum">     112 </span>                :<span class="lineCov">      23875 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">     113 </span>                :<span class="lineCov">      23875 :         uint64_t idx = index;</span>
+<span class="lineNum">     114 </span>                :<span class="lineCov">      62755 :         READWRITE(COMPACTSIZE(idx));</span>
+<span class="lineNum">     115 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 15005 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 8870 times"> + </span>]:<span class="lineCov">      23875 :         if (idx &gt; std::numeric_limits&lt;uint16_t&gt;::max())</span>
 <span class="lineNum">     116 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;index overflowed 16-bits&quot;);</span>
-<span class="lineNum">     117 </span>                :<span class="lineCov">      24754 :         index = idx;</span>
-<span class="lineNum">     118 </span>                :<span class="lineCov">      65197 :         READWRITE(TransactionCompressor(tx));</span>
-<span class="lineNum">     119 </span>                :<span class="lineCov">      24754 :     }</span>
+<span class="lineNum">     117 </span>                :<span class="lineCov">      23875 :         index = idx;</span>
+<span class="lineNum">     118 </span>                :<span class="lineCov">      62755 :         READWRITE(TransactionCompressor(tx));</span>
+<span class="lineNum">     119 </span>                :<span class="lineCov">      23875 :     }</span>
 <span class="lineNum">     120 </span>                :            : };
 <span class="lineNum">     121 </span>                :            : 
 <span class="lineNum">     122 </span>                :            : typedef enum ReadStatus_t
@@ -201,7 +201,7 @@
 <span class="lineNum">     128 </span>                :            :                                    // failure in CheckBlock.
 <span class="lineNum">     129 </span>                :            : } ReadStatus;
 <span class="lineNum">     130 </span>                :            : 
-<span class="lineNum">     131 </span>                :<span class="lineCov">      66778 : class CBlockHeaderAndShortTxIDs {</span>
+<span class="lineNum">     131 </span>                :<span class="lineCov">      66234 : class CBlockHeaderAndShortTxIDs {</span>
 <span class="lineNum">     132 </span>                :            : private:
 <span class="lineNum">     133 </span>                :            :     mutable uint64_t shorttxidk0, shorttxidk1;
 <span class="lineNum">     134 </span>                :            :     uint64_t nonce;
@@ -219,65 +219,65 @@
 <span class="lineNum">     146 </span>                :            :     CBlockHeader header;
 <span class="lineNum">     147 </span>                :            : 
 <span class="lineNum">     148 </span>                :            :     // Dummy for deserialization
-<span class="lineNum">     149 </span>                :<span class="lineCov">       9025 :     CBlockHeaderAndShortTxIDs() {}</span>
+<span class="lineNum">     149 </span>                :<span class="lineCov">       8830 :     CBlockHeaderAndShortTxIDs() {}</span>
 <span class="lineNum">     150 </span>                :            : 
 <span class="lineNum">     151 </span>                :            :     CBlockHeaderAndShortTxIDs(const CBlock&amp; block, bool fUseWTXID);
 <span class="lineNum">     152 </span>                :            : 
 <span class="lineNum">     153 </span>                :            :     uint64_t GetShortID(const uint256&amp; txhash) const;
 <span class="lineNum">     154 </span>                :            : 
-<span class="lineNum">     155 </span>                :<span class="lineCov">     159498 :     size_t BlockTxCount() const { return shorttxids.size() + prefilledtxn.size(); }</span>
+<span class="lineNum">     155 </span>                :<span class="lineCov">     155400 :     size_t BlockTxCount() const { return shorttxids.size() + prefilledtxn.size(); }</span>
 <span class="lineNum">     156 </span>                :            : 
-<span class="lineNum">     157 </span>  [<span class="branchCov" title="Branch 2 was taken 9018 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchCov" title="Branch 4 was taken 1 time"> + </span> :<span class="lineCov">      24678 :     ADD_SERIALIZE_METHODS;</span>
+<span class="lineNum">     157 </span>  [<span class="branchCov" title="Branch 2 was taken 8823 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchCov" title="Branch 4 was taken 1 time"> + </span> :<span class="lineCov">      23799 :     ADD_SERIALIZE_METHODS;</span>
 <span class="lineNum">         </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span><span class="branchCov" title="Branch 10 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span> 
 <span class="lineNum">         </span>   <span class="branchCov" title="Branch 13 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span><span class="branchCov" title="Branch 16 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
 <span class="lineNum">         </span>  [<span class="branchCov" title="Branch 19 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span><span class="branchCov" title="Branch 22 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
 <a name="158"><span class="lineNum">     158 </span>                :            : </a>
 <span class="lineNum">     159 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
-<span class="lineNum">     160 </span>                :<span class="lineCov">      24678 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
-<span class="lineNum">     161 </span>                :<span class="lineCov">      49356 :         READWRITE(header);</span>
-<span class="lineNum">     162 </span>                :<span class="lineCov">      49356 :         READWRITE(nonce);</span>
+<span class="lineNum">     160 </span>                :<span class="lineCov">      23799 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">     161 </span>                :<span class="lineCov">      47598 :         READWRITE(header);</span>
+<span class="lineNum">     162 </span>                :<span class="lineCov">      47598 :         READWRITE(nonce);</span>
 <span class="lineNum">     163 </span>                :            : 
-<span class="lineNum">     164 </span>                :<span class="lineCov">      49356 :         uint64_t shorttxids_size = (uint64_t)shorttxids.size();</span>
-<span class="lineNum">     165 </span>                :<span class="lineCov">      65009 :         READWRITE(COMPACTSIZE(shorttxids_size));</span>
+<span class="lineNum">     164 </span>                :<span class="lineCov">      47598 :         uint64_t shorttxids_size = (uint64_t)shorttxids.size();</span>
+<span class="lineNum">     165 </span>                :<span class="lineCov">      62567 :         READWRITE(COMPACTSIZE(shorttxids_size));</span>
 <span class="lineNum">     166 </span>                :            :         if (ser_action.ForRead()) {
-<span class="lineNum">     167 </span>                :<span class="lineCov">       9025 :             size_t i = 0;</span>
-<span class="lineNum">     168 </span>        [<span class="branchCov" title="Branch 0 was taken 984 times"> + </span><span class="branchCov" title="Branch 1 was taken 9025 times"> + </span>]:<span class="lineCov">      10009 :             while (shorttxids.size() &lt; shorttxids_size) {</span>
-<span class="lineNum">     169 </span>                :<span class="lineCov">        984 :                 shorttxids.resize(std::min((uint64_t)(1000 + shorttxids.size()), shorttxids_size));</span>
-<span class="lineNum">     170 </span>        [<span class="branchCov" title="Branch 0 was taken 984 times"> + </span><span class="branchCov" title="Branch 1 was taken 18313 times"> + </span>]:<span class="lineCov">      19297 :                 for (; i &lt; shorttxids.size(); i++) {</span>
-<span class="lineNum">     171 </span>                :<span class="lineCov">      18313 :                     uint32_t lsb = 0; uint16_t msb = 0;</span>
-<span class="lineNum">     172 </span>                :<span class="lineCov">      18313 :                     READWRITE(lsb);</span>
-<span class="lineNum">     173 </span>                :<span class="lineCov">      18313 :                     READWRITE(msb);</span>
-<span class="lineNum">     174 </span>                :<span class="lineCov">      36626 :                     shorttxids[i] = (uint64_t(msb) &lt;&lt; 32) | uint64_t(lsb);</span>
+<span class="lineNum">     167 </span>                :<span class="lineCov">       8830 :             size_t i = 0;</span>
+<span class="lineNum">     168 </span>        [<span class="branchCov" title="Branch 0 was taken 1108 times"> + </span><span class="branchCov" title="Branch 1 was taken 8830 times"> + </span>]:<span class="lineCov">       9938 :             while (shorttxids.size() &lt; shorttxids_size) {</span>
+<span class="lineNum">     169 </span>                :<span class="lineCov">       1108 :                 shorttxids.resize(std::min((uint64_t)(1000 + shorttxids.size()), shorttxids_size));</span>
+<span class="lineNum">     170 </span>        [<span class="branchCov" title="Branch 0 was taken 1108 times"> + </span><span class="branchCov" title="Branch 1 was taken 20127 times"> + </span>]:<span class="lineCov">      21235 :                 for (; i &lt; shorttxids.size(); i++) {</span>
+<span class="lineNum">     171 </span>                :<span class="lineCov">      20127 :                     uint32_t lsb = 0; uint16_t msb = 0;</span>
+<span class="lineNum">     172 </span>                :<span class="lineCov">      20127 :                     READWRITE(lsb);</span>
+<span class="lineNum">     173 </span>                :<span class="lineCov">      20127 :                     READWRITE(msb);</span>
+<span class="lineNum">     174 </span>                :<span class="lineCov">      40254 :                     shorttxids[i] = (uint64_t(msb) &lt;&lt; 32) | uint64_t(lsb);</span>
 <span class="lineNum">     175 </span>                :            :                     static_assert(SHORTTXIDS_LENGTH == 6, &quot;shorttxids serialization assumes 6-byte shorttxids&quot;);
 <span class="lineNum">     176 </span>                :            :                 }
 <span class="lineNum">     177 </span>                :            :             }
 <span class="lineNum">     178 </span>                :            :         } else {
-<span class="lineNum">     179 </span>        [<span class="branchCov" title="Branch 0 was taken 29603 times"> + </span><span class="branchCov" title="Branch 1 was taken 15653 times"> + </span>]:<span class="lineCov">      45256 :             for (size_t i = 0; i &lt; shorttxids.size(); i++) {</span>
-<span class="lineNum">     180 </span>                :<span class="lineCov">      59206 :                 uint32_t lsb = shorttxids[i] &amp; 0xffffffff;</span>
-<span class="lineNum">     181 </span>                :<span class="lineCov">      29603 :                 uint16_t msb = (shorttxids[i] &gt;&gt; 32) &amp; 0xffff;</span>
-<span class="lineNum">     182 </span>                :<span class="lineCov">      29603 :                 READWRITE(lsb);</span>
-<span class="lineNum">     183 </span>                :<span class="lineCov">      29603 :                 READWRITE(msb);</span>
+<span class="lineNum">     179 </span>        [<span class="branchCov" title="Branch 0 was taken 32355 times"> + </span><span class="branchCov" title="Branch 1 was taken 14969 times"> + </span>]:<span class="lineCov">      47324 :             for (size_t i = 0; i &lt; shorttxids.size(); i++) {</span>
+<span class="lineNum">     180 </span>                :<span class="lineCov">      64710 :                 uint32_t lsb = shorttxids[i] &amp; 0xffffffff;</span>
+<span class="lineNum">     181 </span>                :<span class="lineCov">      32355 :                 uint16_t msb = (shorttxids[i] &gt;&gt; 32) &amp; 0xffff;</span>
+<span class="lineNum">     182 </span>                :<span class="lineCov">      32355 :                 READWRITE(lsb);</span>
+<span class="lineNum">     183 </span>                :<span class="lineCov">      32355 :                 READWRITE(msb);</span>
 <span class="lineNum">     184 </span>                :            :             }
 <span class="lineNum">     185 </span>                :            :         }
 <span class="lineNum">     186 </span>                :            : 
-<span class="lineNum">     187 </span>                :<span class="lineCov">      49356 :         READWRITE(prefilledtxn);</span>
+<span class="lineNum">     187 </span>                :<span class="lineCov">      47598 :         READWRITE(prefilledtxn);</span>
 <span class="lineNum">     188 </span>                :            : 
-<span class="lineNum">     189 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 15656 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 9022 times"> + </span>]:<span class="lineCov">      24678 :         if (BlockTxCount() &gt; std::numeric_limits&lt;uint16_t&gt;::max())</span>
+<span class="lineNum">     189 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 14972 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 8827 times"> + </span>]:<span class="lineCov">      23799 :         if (BlockTxCount() &gt; std::numeric_limits&lt;uint16_t&gt;::max())</span>
 <span class="lineNum">     190 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;indexes overflowed 16 bits&quot;);</span>
 <span class="lineNum">     191 </span>                :            : 
 <span class="lineNum">     192 </span>                :            :         if (ser_action.ForRead())
-<span class="lineNum">     193 </span>                :<span class="lineCov">       9025 :             FillShortTxIDSelector();</span>
-<span class="lineNum">     194 </span>                :<span class="lineCov">      24678 :     }</span>
+<span class="lineNum">     193 </span>                :<span class="lineCov">       8830 :             FillShortTxIDSelector();</span>
+<span class="lineNum">     194 </span>                :<span class="lineCov">      23799 :     }</span>
 <a name="195"><span class="lineNum">     195 </span>                :            : };</a>
 <span class="lineNum">     196 </span>                :            : 
-<span class="lineNum">     197 </span>                :<span class="lineCov">       6178 : class PartiallyDownloadedBlock {</span>
+<span class="lineNum">     197 </span>                :<span class="lineCov">       5851 : class PartiallyDownloadedBlock {</span>
 <span class="lineNum">     198 </span>                :            : protected:
 <span class="lineNum">     199 </span>                :            :     std::vector&lt;CTransactionRef&gt; txn_available;
 <span class="lineNum">     200 </span>                :            :     size_t prefilled_count = 0, mempool_count = 0, extra_count = 0;
 <span class="lineNum">     201 </span>                :            :     CTxMemPool* pool;
 <span class="lineNum">     202 </span>                :            : public:
 <span class="lineNum">     203 </span>                :            :     CBlockHeader header;
-<span class="lineNum">     204 </span>                :<span class="lineCov">        421 :     explicit PartiallyDownloadedBlock(CTxMemPool* poolIn) : pool(poolIn) {}</span>
+<span class="lineNum">     204 </span>                :<span class="lineCov">        569 :     explicit PartiallyDownloadedBlock(CTxMemPool* poolIn) : pool(poolIn) {}</span>
 <span class="lineNum">     205 </span>                :            : 
 <span class="lineNum">     206 </span>                :            :     // extra_txn is a list of extra transactions to look at, in &lt;witness hash, reference&gt; form
 <span class="lineNum">     207 </span>                :            :     ReadStatus InitData(const CBlockHeaderAndShortTxIDs&amp; cmpctblock, const std::vector&lt;std::pair&lt;uint256, CTransactionRef&gt;&gt;&amp; extra_txn);
