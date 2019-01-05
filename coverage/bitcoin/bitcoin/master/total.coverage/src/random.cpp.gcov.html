@@ -136,9 +136,9 @@
 <span class="lineNum">      65 </span>                :            :     __asm__ volatile (&quot;rdtsc&quot; : &quot;=A&quot;(r)); // Constrain the r variable to the eax:edx pair.
 <span class="lineNum">      66 </span>                :            :     return r;
 <span class="lineNum">      67 </span>                :            : #elif !defined(_MSC_VER) &amp;&amp; (defined(__x86_64__) || defined(__amd64__))
-<span class="lineNum">      68 </span>                :<span class="lineCov">       4305 :     uint64_t r1 = 0, r2 = 0;</span>
-<span class="lineNum">      69 </span>                :<span class="lineCov">       4305 :     __asm__ volatile (&quot;rdtsc&quot; : &quot;=a&quot;(r1), &quot;=d&quot;(r2)); // Constrain r1 to rax and r2 to rdx.</span>
-<span class="lineNum">      70 </span>                :<span class="lineCov">       4305 :     return (r2 &lt;&lt; 32) | r1;</span>
+<span class="lineNum">      68 </span>                :<span class="lineCov">       4301 :     uint64_t r1 = 0, r2 = 0;</span>
+<span class="lineNum">      69 </span>                :<span class="lineCov">       4301 :     __asm__ volatile (&quot;rdtsc&quot; : &quot;=a&quot;(r1), &quot;=d&quot;(r2)); // Constrain r1 to rax and r2 to rdx.</span>
+<span class="lineNum">      70 </span>                :<span class="lineCov">       4301 :     return (r2 &lt;&lt; 32) | r1;</span>
 <span class="lineNum">      71 </span>                :            : #else
 <span class="lineNum">      72 </span>                :            :     // Fall back to using C++11 clock (usually microsecond or nanosecond precision)
 <span class="lineNum">      73 </span>                :            :     return std::chrono::high_resolution_clock::now().time_since_epoch().count();
@@ -150,15 +150,15 @@
 <span class="lineNum">      79 </span>                :            : static std::atomic&lt;bool&gt; hwrand_initialized{false};
 <a name="80"><span class="lineNum">      80 </span>                :            : static bool rdrand_supported = false;</a>
 <span class="lineNum">      81 </span>                :            : static constexpr uint32_t CPUID_F1_ECX_RDRAND = 0x40000000;
-<span class="lineNum">      82 </span>                :<span class="lineCov">        725 : static void RDRandInit()</span>
+<span class="lineNum">      82 </span>                :<span class="lineCov">        724 : static void RDRandInit()</span>
 <span class="lineNum">      83 </span>                :            : {
 <span class="lineNum">      84 </span>                :            :     uint32_t eax, ebx, ecx, edx;
-<span class="lineNum">      85 </span>        [<span class="branchCov" title="Branch 0 was taken 725 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        725 :     if (__get_cpuid(1, &amp;eax, &amp;ebx, &amp;ecx, &amp;edx) &amp;&amp; (ecx &amp; CPUID_F1_ECX_RDRAND)) {</span>
-<span class="lineNum">      86 </span>                :<span class="lineCov">        725 :         LogPrintf(&quot;Using RdRand as an additional entropy source\n&quot;);</span>
-<span class="lineNum">      87 </span>                :<span class="lineCov">        725 :         rdrand_supported = true;</span>
+<span class="lineNum">      85 </span>        [<span class="branchCov" title="Branch 0 was taken 724 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        724 :     if (__get_cpuid(1, &amp;eax, &amp;ebx, &amp;ecx, &amp;edx) &amp;&amp; (ecx &amp; CPUID_F1_ECX_RDRAND)) {</span>
+<span class="lineNum">      86 </span>                :<span class="lineCov">        724 :         LogPrintf(&quot;Using RdRand as an additional entropy source\n&quot;);</span>
+<span class="lineNum">      87 </span>                :<span class="lineCov">        724 :         rdrand_supported = true;</span>
 <span class="lineNum">      88 </span>                :            :     }
-<span class="lineNum">      89 </span>                :<span class="lineCov">        725 :     hwrand_initialized.store(true);</span>
-<span class="lineNum">      90 </span>                :<span class="lineCov">        725 : }</span>
+<span class="lineNum">      89 </span>                :<span class="lineCov">        724 :     hwrand_initialized.store(true);</span>
+<span class="lineNum">      90 </span>                :<span class="lineCov">        724 : }</span>
 <span class="lineNum">      91 </span>                :            : #else
 <span class="lineNum">      92 </span>                :            : static void RDRandInit() {}
 <a name="93"><span class="lineNum">      93 </span>                :            : #endif</a>
@@ -272,7 +272,7 @@
 <span class="lineNum">     201 </span>                :            : #endif
 <a name="202"><span class="lineNum">     202 </span>                :            : </a>
 <span class="lineNum">     203 </span>                :            : /** Get 32 bytes of system entropy. */
-<span class="lineNum">     204 </span>                :<span class="lineCov">       2180 : void GetOSRand(unsigned char *ent32)</span>
+<span class="lineNum">     204 </span>                :<span class="lineCov">       2169 : void GetOSRand(unsigned char *ent32)</span>
 <span class="lineNum">     205 </span>                :            : {
 <span class="lineNum">     206 </span>                :            : #if defined(WIN32)
 <span class="lineNum">     207 </span>                :            :     HCRYPTPROV hProvider;
@@ -291,8 +291,8 @@
 <span class="lineNum">     220 </span>                :            :      * will always return as many bytes as requested and will not be
 <span class="lineNum">     221 </span>                :            :      * interrupted by signals.&quot;
 <span class="lineNum">     222 </span>                :            :      */
-<span class="lineNum">     223 </span>                :<span class="lineCov">       2180 :     int rv = syscall(SYS_getrandom, ent32, NUM_OS_RANDOM_BYTES, 0);</span>
-<span class="lineNum">     224 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2180 times"> + </span>]:<span class="lineCov">       2180 :     if (rv != NUM_OS_RANDOM_BYTES) {</span>
+<span class="lineNum">     223 </span>                :<span class="lineCov">       2169 :     int rv = syscall(SYS_getrandom, ent32, NUM_OS_RANDOM_BYTES, 0);</span>
+<span class="lineNum">     224 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2169 times"> + </span>]:<span class="lineCov">       2169 :     if (rv != NUM_OS_RANDOM_BYTES) {</span>
 <span class="lineNum">     225 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (rv &lt; 0 &amp;&amp; errno == ENOSYS) {</span>
 <span class="lineNum">     226 </span>                :            :             /* Fallback for kernel &lt;3.17: the return value will be -1 and errno
 <span class="lineNum">     227 </span>                :            :              * ENOSYS if the syscall is not available, in that case fall back
@@ -341,51 +341,51 @@
 <span class="lineNum">     270 </span>                :            :      */
 <span class="lineNum">     271 </span>                :            :     GetDevURandom(ent32);
 <span class="lineNum">     272 </span>                :            : #endif
-<a name="273"><span class="lineNum">     273 </span>                :<span class="lineCov">       2180 : }</span></a>
+<a name="273"><span class="lineNum">     273 </span>                :<span class="lineCov">       2169 : }</span></a>
 <span class="lineNum">     274 </span>                :            : 
-<span class="lineNum">     275 </span>                :<span class="lineCov">     914856 : void GetRandBytes(unsigned char* buf, int num)</span>
+<span class="lineNum">     275 </span>                :<span class="lineCov">     911392 : void GetRandBytes(unsigned char* buf, int num)</span>
 <span class="lineNum">     276 </span>                :            : {
-<span class="lineNum">     277 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 914856 times"> + </span>]:<span class="lineCov">     914856 :     if (RAND_bytes(buf, num) != 1) {</span>
+<span class="lineNum">     277 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 911392 times"> + </span>]:<span class="lineCov">     911392 :     if (RAND_bytes(buf, num) != 1) {</span>
 <span class="lineNum">     278 </span>                :<span class="lineNoCov">          0 :         RandFailure();</span>
 <span class="lineNum">     279 </span>                :            :     }
-<span class="lineNum">     280 </span>                :<span class="lineCov">     914856 : }</span>
+<span class="lineNum">     280 </span>                :<span class="lineCov">     911392 : }</span>
 <span class="lineNum">     281 </span>                :            : 
 <a name="282"><span class="lineNum">     282 </span>                :            : static void AddDataToRng(void* data, size_t len);</a>
 <span class="lineNum">     283 </span>                :            : 
-<span class="lineNum">     284 </span>                :<span class="lineCov">        511 : void RandAddSeedSleep()</span>
+<span class="lineNum">     284 </span>                :<span class="lineCov">        509 : void RandAddSeedSleep()</span>
 <span class="lineNum">     285 </span>                :            : {
-<span class="lineNum">     286 </span>                :<span class="lineCov">        511 :     int64_t nPerfCounter1 = GetPerformanceCounter();</span>
-<span class="lineNum">     287 </span>                :<span class="lineCov">        511 :     std::this_thread::sleep_for(std::chrono::milliseconds(1));</span>
-<span class="lineNum">     288 </span>                :<span class="lineCov">        511 :     int64_t nPerfCounter2 = GetPerformanceCounter();</span>
+<span class="lineNum">     286 </span>                :<span class="lineCov">        509 :     int64_t nPerfCounter1 = GetPerformanceCounter();</span>
+<span class="lineNum">     287 </span>                :<span class="lineCov">        509 :     std::this_thread::sleep_for(std::chrono::milliseconds(1));</span>
+<span class="lineNum">     288 </span>                :<span class="lineCov">        509 :     int64_t nPerfCounter2 = GetPerformanceCounter();</span>
 <span class="lineNum">     289 </span>                :            : 
 <span class="lineNum">     290 </span>                :            :     // Combine with and update state
-<span class="lineNum">     291 </span>                :<span class="lineCov">        511 :     AddDataToRng(&amp;nPerfCounter1, sizeof(nPerfCounter1));</span>
-<span class="lineNum">     292 </span>                :<span class="lineCov">        511 :     AddDataToRng(&amp;nPerfCounter2, sizeof(nPerfCounter2));</span>
+<span class="lineNum">     291 </span>                :<span class="lineCov">        509 :     AddDataToRng(&amp;nPerfCounter1, sizeof(nPerfCounter1));</span>
+<span class="lineNum">     292 </span>                :<span class="lineCov">        509 :     AddDataToRng(&amp;nPerfCounter2, sizeof(nPerfCounter2));</span>
 <span class="lineNum">     293 </span>                :            : 
-<span class="lineNum">     294 </span>                :<span class="lineCov">        511 :     memory_cleanse(&amp;nPerfCounter1, sizeof(nPerfCounter1));</span>
-<span class="lineNum">     295 </span>                :<span class="lineCov">        511 :     memory_cleanse(&amp;nPerfCounter2, sizeof(nPerfCounter2));</span>
-<span class="lineNum">     296 </span>                :<span class="lineCov">        511 : }</span>
+<span class="lineNum">     294 </span>                :<span class="lineCov">        509 :     memory_cleanse(&amp;nPerfCounter1, sizeof(nPerfCounter1));</span>
+<span class="lineNum">     295 </span>                :<span class="lineCov">        509 :     memory_cleanse(&amp;nPerfCounter2, sizeof(nPerfCounter2));</span>
+<span class="lineNum">     296 </span>                :<span class="lineCov">        509 : }</span>
 <span class="lineNum">     297 </span>                :            : 
 <span class="lineNum">     298 </span>                :            : 
 <span class="lineNum">     299 </span>                :<span class="lineCov">        782 : static Mutex cs_rng_state;</span>
 <span class="lineNum">     300 </span>                :            : static unsigned char rng_state[32] = {0};
 <a name="301"><span class="lineNum">     301 </span>                :            : static uint64_t rng_counter = 0;</a>
 <span class="lineNum">     302 </span>                :            : 
-<span class="lineNum">     303 </span>                :<span class="lineCov">       1022 : static void AddDataToRng(void* data, size_t len) {</span>
-<span class="lineNum">     304 </span>                :<span class="lineCov">       1022 :     CSHA512 hasher;</span>
-<span class="lineNum">     305 </span>                :<span class="lineCov">       1022 :     hasher.Write((const unsigned char*)&amp;len, sizeof(len));</span>
-<span class="lineNum">     306 </span>                :<span class="lineCov">       1022 :     hasher.Write((const unsigned char*)data, len);</span>
+<span class="lineNum">     303 </span>                :<span class="lineCov">       1018 : static void AddDataToRng(void* data, size_t len) {</span>
+<span class="lineNum">     304 </span>                :<span class="lineCov">       1018 :     CSHA512 hasher;</span>
+<span class="lineNum">     305 </span>                :<span class="lineCov">       1018 :     hasher.Write((const unsigned char*)&amp;len, sizeof(len));</span>
+<span class="lineNum">     306 </span>                :<span class="lineCov">       1018 :     hasher.Write((const unsigned char*)data, len);</span>
 <span class="lineNum">     307 </span>                :            :     unsigned char buf[64];
 <span class="lineNum">     308 </span>                :            :     {
-<span class="lineNum">     309 </span>                :<span class="lineCov">       1022 :         WAIT_LOCK(cs_rng_state, lock);</span>
-<span class="lineNum">     310 </span>        [<span class="branchCov" title="Branch 1 was taken 1022 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1022 :         hasher.Write(rng_state, sizeof(rng_state));</span>
-<span class="lineNum">     311 </span>        [<span class="branchCov" title="Branch 1 was taken 1022 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1022 :         hasher.Write((const unsigned char*)&amp;rng_counter, sizeof(rng_counter));</span>
-<span class="lineNum">     312 </span>                :<span class="lineCov">       1022 :         ++rng_counter;</span>
-<span class="lineNum">     313 </span>        [<span class="branchCov" title="Branch 1 was taken 1022 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1022 :         hasher.Finalize(buf);</span>
-<span class="lineNum">     314 </span>                :<span class="lineCov">       1022 :         memcpy(rng_state, buf + 32, 32);</span>
+<span class="lineNum">     309 </span>                :<span class="lineCov">       1018 :         WAIT_LOCK(cs_rng_state, lock);</span>
+<span class="lineNum">     310 </span>        [<span class="branchCov" title="Branch 1 was taken 1018 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1018 :         hasher.Write(rng_state, sizeof(rng_state));</span>
+<span class="lineNum">     311 </span>        [<span class="branchCov" title="Branch 1 was taken 1018 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1018 :         hasher.Write((const unsigned char*)&amp;rng_counter, sizeof(rng_counter));</span>
+<span class="lineNum">     312 </span>                :<span class="lineCov">       1018 :         ++rng_counter;</span>
+<span class="lineNum">     313 </span>        [<span class="branchCov" title="Branch 1 was taken 1018 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1018 :         hasher.Finalize(buf);</span>
+<span class="lineNum">     314 </span>                :<span class="lineCov">       1018 :         memcpy(rng_state, buf + 32, 32);</span>
 <span class="lineNum">     315 </span>                :            :     }
-<span class="lineNum">     316 </span>                :<span class="lineCov">       1022 :     memory_cleanse(buf, 64);</span>
-<a name="317"><span class="lineNum">     317 </span>                :<span class="lineCov">       1022 : }</span></a>
+<span class="lineNum">     316 </span>                :<span class="lineCov">       1018 :     memory_cleanse(buf, 64);</span>
+<a name="317"><span class="lineNum">     317 </span>                :<span class="lineCov">       1018 : }</span></a>
 <span class="lineNum">     318 </span>                :            : 
 <span class="lineNum">     319 </span>                :<span class="lineCov">       1747 : void GetStrongRandBytes(unsigned char* out, int num)</span>
 <span class="lineNum">     320 </span>                :            : {
@@ -422,49 +422,49 @@
 <span class="lineNum">     351 </span>                :<span class="lineCov">       1747 :     memory_cleanse(buf, 64);</span>
 <a name="352"><span class="lineNum">     352 </span>                :<span class="lineCov">       1747 : }</span></a>
 <span class="lineNum">     353 </span>                :            : 
-<span class="lineNum">     354 </span>                :<span class="lineCov">     887061 : uint64_t GetRand(uint64_t nMax)</span>
+<span class="lineNum">     354 </span>                :<span class="lineCov">     883855 : uint64_t GetRand(uint64_t nMax)</span>
 <span class="lineNum">     355 </span>                :            : {
-<span class="lineNum">     356 </span>        [<span class="branchCov" title="Branch 0 was taken 887061 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     887061 :     if (nMax == 0)</span>
+<span class="lineNum">     356 </span>        [<span class="branchCov" title="Branch 0 was taken 883855 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     883855 :     if (nMax == 0)</span>
 <span class="lineNum">     357 </span>                :            :         return 0;
 <span class="lineNum">     358 </span>                :            : 
 <span class="lineNum">     359 </span>                :            :     // The range of the random source must be a multiple of the modulus
 <span class="lineNum">     360 </span>                :            :     // to give every possible output value an equal possibility
-<span class="lineNum">     361 </span>                :<span class="lineCov">     887061 :     uint64_t nRange = (std::numeric_limits&lt;uint64_t&gt;::max() / nMax) * nMax;</span>
-<span class="lineNum">     362 </span>                :<span class="lineCov">     887061 :     uint64_t nRand = 0;</span>
+<span class="lineNum">     361 </span>                :<span class="lineCov">     883855 :     uint64_t nRange = (std::numeric_limits&lt;uint64_t&gt;::max() / nMax) * nMax;</span>
+<span class="lineNum">     362 </span>                :<span class="lineCov">     883855 :     uint64_t nRand = 0;</span>
 <span class="lineNum">     363 </span>                :            :     do {
-<span class="lineNum">     364 </span>                :<span class="lineCov">     887061 :         GetRandBytes((unsigned char*)&amp;nRand, sizeof(nRand));</span>
-<span class="lineNum">     365 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 887061 times"> + </span>]:<span class="lineCov">     887061 :     } while (nRand &gt;= nRange);</span>
-<span class="lineNum">     366 </span>                :<span class="lineCov">     887061 :     return (nRand % nMax);</span>
+<span class="lineNum">     364 </span>                :<span class="lineCov">     883855 :         GetRandBytes((unsigned char*)&amp;nRand, sizeof(nRand));</span>
+<span class="lineNum">     365 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 883855 times"> + </span>]:<span class="lineCov">     883855 :     } while (nRand &gt;= nRange);</span>
+<span class="lineNum">     366 </span>                :<span class="lineCov">     883855 :     return (nRand % nMax);</span>
 <a name="367"><span class="lineNum">     367 </span>                :            : }</a>
 <span class="lineNum">     368 </span>                :            : 
-<span class="lineNum">     369 </span>                :<span class="lineCov">       1819 : int GetRandInt(int nMax)</span>
+<span class="lineNum">     369 </span>                :<span class="lineCov">       1764 : int GetRandInt(int nMax)</span>
 <span class="lineNum">     370 </span>                :            : {
-<span class="lineNum">     371 </span>                :<span class="lineCov">       1819 :     return GetRand(nMax);</span>
+<span class="lineNum">     371 </span>                :<span class="lineCov">       1764 :     return GetRand(nMax);</span>
 <a name="372"><span class="lineNum">     372 </span>                :            : }</a>
 <span class="lineNum">     373 </span>                :            : 
-<span class="lineNum">     374 </span>                :<span class="lineCov">      10590 : uint256 GetRandHash()</span>
+<span class="lineNum">     374 </span>                :<span class="lineCov">      10351 : uint256 GetRandHash()</span>
 <span class="lineNum">     375 </span>                :            : {
-<span class="lineNum">     376 </span>                :<span class="lineCov">      10590 :     uint256 hash;</span>
-<span class="lineNum">     377 </span>                :<span class="lineCov">      10590 :     GetRandBytes((unsigned char*)&amp;hash, sizeof(hash));</span>
-<span class="lineNum">     378 </span>                :<span class="lineCov">      10590 :     return hash;</span>
+<span class="lineNum">     376 </span>                :<span class="lineCov">      10351 :     uint256 hash;</span>
+<span class="lineNum">     377 </span>                :<span class="lineCov">      10351 :     GetRandBytes((unsigned char*)&amp;hash, sizeof(hash));</span>
+<span class="lineNum">     378 </span>                :<span class="lineCov">      10351 :     return hash;</span>
 <a name="379"><span class="lineNum">     379 </span>                :            : }</a>
 <span class="lineNum">     380 </span>                :            : 
-<span class="lineNum">     381 </span>                :<span class="lineCov">       9912 : void FastRandomContext::RandomSeed()</span>
+<span class="lineNum">     381 </span>                :<span class="lineCov">       9673 : void FastRandomContext::RandomSeed()</span>
 <span class="lineNum">     382 </span>                :            : {
-<span class="lineNum">     383 </span>                :<span class="lineCov">       9912 :     uint256 seed = GetRandHash();</span>
-<span class="lineNum">     384 </span>                :<span class="lineCov">       9912 :     rng.SetKey(seed.begin(), 32);</span>
-<span class="lineNum">     385 </span>                :<span class="lineCov">       9912 :     requires_seed = false;</span>
-<a name="386"><span class="lineNum">     386 </span>                :<span class="lineCov">       9912 : }</span></a>
+<span class="lineNum">     383 </span>                :<span class="lineCov">       9673 :     uint256 seed = GetRandHash();</span>
+<span class="lineNum">     384 </span>                :<span class="lineCov">       9673 :     rng.SetKey(seed.begin(), 32);</span>
+<span class="lineNum">     385 </span>                :<span class="lineCov">       9673 :     requires_seed = false;</span>
+<a name="386"><span class="lineNum">     386 </span>                :<span class="lineCov">       9673 : }</span></a>
 <span class="lineNum">     387 </span>                :            : 
-<span class="lineNum">     388 </span>                :<span class="lineCov">     592852 : uint256 FastRandomContext::rand256()</span>
+<span class="lineNum">     388 </span>                :<span class="lineCov">     592640 : uint256 FastRandomContext::rand256()</span>
 <span class="lineNum">     389 </span>                :            : {
-<span class="lineNum">     390 </span>        [<span class="branchCov" title="Branch 0 was taken 326735 times"> + </span><span class="branchCov" title="Branch 1 was taken 266117 times"> + </span>]:<span class="lineCov">     592852 :     if (bytebuf_size &lt; 32) {</span>
-<span class="lineNum">     391 </span>                :<span class="lineCov">     326735 :         FillByteBuffer();</span>
+<span class="lineNum">     390 </span>        [<span class="branchCov" title="Branch 0 was taken 326131 times"> + </span><span class="branchCov" title="Branch 1 was taken 266509 times"> + </span>]:<span class="lineCov">     592640 :     if (bytebuf_size &lt; 32) {</span>
+<span class="lineNum">     391 </span>                :<span class="lineCov">     326131 :         FillByteBuffer();</span>
 <span class="lineNum">     392 </span>                :            :     }
-<span class="lineNum">     393 </span>                :<span class="lineCov">     592852 :     uint256 ret;</span>
-<span class="lineNum">     394 </span>                :<span class="lineCov">    1185704 :     memcpy(ret.begin(), bytebuf + 64 - bytebuf_size, 32);</span>
-<span class="lineNum">     395 </span>                :<span class="lineCov">     592852 :     bytebuf_size -= 32;</span>
-<span class="lineNum">     396 </span>                :<span class="lineCov">     592852 :     return ret;</span>
+<span class="lineNum">     393 </span>                :<span class="lineCov">     592640 :     uint256 ret;</span>
+<span class="lineNum">     394 </span>                :<span class="lineCov">    1185280 :     memcpy(ret.begin(), bytebuf + 64 - bytebuf_size, 32);</span>
+<span class="lineNum">     395 </span>                :<span class="lineCov">     592640 :     bytebuf_size -= 32;</span>
+<span class="lineNum">     396 </span>                :<span class="lineCov">     592640 :     return ret;</span>
 <a name="397"><span class="lineNum">     397 </span>                :            : }</a>
 <span class="lineNum">     398 </span>                :            : 
 <span class="lineNum">     399 </span>                :<span class="lineCov">          8 : std::vector&lt;unsigned char&gt; FastRandomContext::randbytes(size_t len)</span>
@@ -497,21 +497,21 @@
 <span class="lineNum">     426 </span>                :<span class="lineCov">        377 :     int tries = 0;</span>
 <span class="lineNum">     427 </span>                :            :     /* Loop until all bytes have been overwritten at least once, or max number tries reached */
 <span class="lineNum">     428 </span>                :            :     do {
-<span class="lineNum">     429 </span>                :<span class="lineCov">        433 :         memset(data, 0, NUM_OS_RANDOM_BYTES);</span>
-<span class="lineNum">     430 </span>                :<span class="lineCov">        433 :         GetOSRand(data);</span>
-<span class="lineNum">     431 </span>        [<span class="branchCov" title="Branch 0 was taken 433 times"> + </span><span class="branchCov" title="Branch 1 was taken 13856 times"> + </span>]:<span class="lineCov">      14289 :         for (int x=0; x &lt; NUM_OS_RANDOM_BYTES; ++x) {</span>
-<span class="lineNum">     432 </span>                :<span class="lineCov">      13856 :             overwritten[x] |= (data[x] != 0);</span>
+<span class="lineNum">     429 </span>                :<span class="lineCov">        422 :         memset(data, 0, NUM_OS_RANDOM_BYTES);</span>
+<span class="lineNum">     430 </span>                :<span class="lineCov">        422 :         GetOSRand(data);</span>
+<span class="lineNum">     431 </span>        [<span class="branchCov" title="Branch 0 was taken 422 times"> + </span><span class="branchCov" title="Branch 1 was taken 13504 times"> + </span>]:<span class="lineCov">      13926 :         for (int x=0; x &lt; NUM_OS_RANDOM_BYTES; ++x) {</span>
+<span class="lineNum">     432 </span>                :<span class="lineCov">      13504 :             overwritten[x] |= (data[x] != 0);</span>
 <span class="lineNum">     433 </span>                :            :         }
 <span class="lineNum">     434 </span>                :            : 
 <span class="lineNum">     435 </span>                :            :         num_overwritten = 0;
-<span class="lineNum">     436 </span>        [<span class="branchCov" title="Branch 0 was taken 13856 times"> + </span><span class="branchCov" title="Branch 1 was taken 433 times"> + </span>]:<span class="lineCov">      14289 :         for (int x=0; x &lt; NUM_OS_RANDOM_BYTES; ++x) {</span>
-<span class="lineNum">     437 </span>        [<span class="branchCov" title="Branch 0 was taken 13800 times"> + </span><span class="branchCov" title="Branch 1 was taken 56 times"> + </span>]:<span class="lineCov">      13856 :             if (overwritten[x]) {</span>
-<span class="lineNum">     438 </span>                :<span class="lineCov">      13800 :                 num_overwritten += 1;</span>
+<span class="lineNum">     436 </span>        [<span class="branchCov" title="Branch 0 was taken 13504 times"> + </span><span class="branchCov" title="Branch 1 was taken 422 times"> + </span>]:<span class="lineCov">      13926 :         for (int x=0; x &lt; NUM_OS_RANDOM_BYTES; ++x) {</span>
+<span class="lineNum">     437 </span>        [<span class="branchCov" title="Branch 0 was taken 13455 times"> + </span><span class="branchCov" title="Branch 1 was taken 49 times"> + </span>]:<span class="lineCov">      13504 :             if (overwritten[x]) {</span>
+<span class="lineNum">     438 </span>                :<span class="lineCov">      13455 :                 num_overwritten += 1;</span>
 <span class="lineNum">     439 </span>                :            :             }
 <span class="lineNum">     440 </span>                :            :         }
 <span class="lineNum">     441 </span>                :            : 
-<span class="lineNum">     442 </span>                :<span class="lineCov">        433 :         tries += 1;</span>
-<span class="lineNum">     443 </span>        [<span class="branchCov" title="Branch 0 was taken 56 times"> + </span><span class="branchCov" title="Branch 1 was taken 377 times"> + </span>]:<span class="lineCov">        433 :     } while (num_overwritten &lt; NUM_OS_RANDOM_BYTES &amp;&amp; tries &lt; MAX_TRIES);</span>
+<span class="lineNum">     442 </span>                :<span class="lineCov">        422 :         tries += 1;</span>
+<span class="lineNum">     443 </span>        [<span class="branchCov" title="Branch 0 was taken 45 times"> + </span><span class="branchCov" title="Branch 1 was taken 377 times"> + </span>]:<span class="lineCov">        422 :     } while (num_overwritten &lt; NUM_OS_RANDOM_BYTES &amp;&amp; tries &lt; MAX_TRIES);</span>
 <span class="lineNum">     444 </span>        [<span class="branchCov" title="Branch 0 was taken 377 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        377 :     if (num_overwritten != NUM_OS_RANDOM_BYTES) return false; /* If this failed, bailed out after too many tries */</span>
 <span class="lineNum">     445 </span>                :            : 
 <span class="lineNum">     446 </span>                :            :     // Check that GetPerformanceCounter increases at least during a GetOSRand() call + 1ms sleep.
@@ -526,10 +526,10 @@
 <span class="lineNum">     455 </span>                :            :     return true;
 <a name="456"><span class="lineNum">     456 </span>                :            : }</a>
 <span class="lineNum">     457 </span>                :            : 
-<span class="lineNum">     458 </span>                :<span class="lineCov">      26016 : FastRandomContext::FastRandomContext(bool fDeterministic) : requires_seed(!fDeterministic), bytebuf_size(0), bitbuf_size(0)</span>
+<span class="lineNum">     458 </span>                :<span class="lineCov">      25570 : FastRandomContext::FastRandomContext(bool fDeterministic) : requires_seed(!fDeterministic), bytebuf_size(0), bitbuf_size(0)</span>
 <span class="lineNum">     459 </span>                :            : {
-<span class="lineNum">     460 </span>        [<span class="branchCov" title="Branch 0 was taken 34 times"> + </span><span class="branchCov" title="Branch 1 was taken 12974 times"> + </span>]:<span class="lineCov">      13008 :     if (!fDeterministic) {</span>
-<span class="lineNum">     461 </span>                :<span class="lineCov">      12974 :         return;</span>
+<span class="lineNum">     460 </span>        [<span class="branchCov" title="Branch 0 was taken 34 times"> + </span><span class="branchCov" title="Branch 1 was taken 12751 times"> + </span>]:<span class="lineCov">      12785 :     if (!fDeterministic) {</span>
+<span class="lineNum">     461 </span>                :<span class="lineCov">      12751 :         return;</span>
 <span class="lineNum">     462 </span>                :            :     }
 <span class="lineNum">     463 </span>                :<span class="lineCov">         34 :     uint256 seed;</span>
 <span class="lineNum">     464 </span>                :<span class="lineCov">         34 :     rng.SetKey(seed.begin(), 32);</span>
@@ -549,9 +549,9 @@
 <span class="lineNum">     478 </span>                :<span class="lineCov">        160 :     return *this;</span>
 <a name="479"><span class="lineNum">     479 </span>                :            : }</a>
 <span class="lineNum">     480 </span>                :            : 
-<span class="lineNum">     481 </span>                :<span class="lineCov">        725 : void RandomInit()</span>
+<span class="lineNum">     481 </span>                :<span class="lineCov">        724 : void RandomInit()</span>
 <a name="482"><span class="lineNum">     482 </span>                :            : {</a>
-<span class="lineNum">     483 </span>                :<span class="lineCov">        725 :     RDRandInit();</span>
+<span class="lineNum">     483 </span>                :<span class="lineCov">        724 :     RDRandInit();</span>
 <span class="lineNum">     484 </span>[<span class="branchCov" title="Branch 1 was taken 782 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 782 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       3128 : }</span>
 </pre>
       </td>

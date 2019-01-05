@@ -109,7 +109,7 @@
 <span class="lineNum">      38 </span>                :            :     static std::atomic&lt;size_t&gt; n_calls;
 <span class="lineNum">      39 </span>                :            :     bool operator()()
 <span class="lineNum">      40 </span>                :            :     {
-<span class="lineNum">      41 </span>                :<span class="lineCov">   10767094 :         n_calls.fetch_add(1, std::memory_order_relaxed);</span>
+<span class="lineNum">      41 </span>                :<span class="lineCov">   10184898 :         n_calls.fetch_add(1, std::memory_order_relaxed);</span>
 <span class="lineNum">      42 </span>                :            :         return true;
 <span class="lineNum">      43 </span>                :            :     }
 <span class="lineNum">      44 </span>                :            :     void swap(FakeCheckCheckCompletion&amp; x){};
@@ -121,7 +121,7 @@
 <span class="lineNum">      50 </span>                :<span class="lineCov">     502500 :     FailingCheck() : fails(true){};</span>
 <span class="lineNum">      51 </span>                :            :     bool operator()()
 <span class="lineNum">      52 </span>                :            :     {
-<span class="lineNum">      53 </span>                :<span class="lineCov">     495384 :         return !fails;</span>
+<span class="lineNum">      53 </span>                :<span class="lineCov">     494112 :         return !fails;</span>
 <span class="lineNum">      54 </span>                :            :     }
 <span class="lineNum">      55 </span>                :            :     void swap(FailingCheck&amp; x)
 <span class="lineNum">      56 </span>                :            :     {
@@ -154,20 +154,20 @@
 <span class="lineNum">      83 </span>                :            :     }
 <span class="lineNum">      84 </span>                :<span class="lineCov">     499500 :     MemoryCheck(){};</span>
 <span class="lineNum">      85 </span>                :            :     MemoryCheck(const MemoryCheck&amp; x)
-<span class="lineNum">      86 </span>                :<span class="lineCov">    1053667 :     {</span>
+<span class="lineNum">      86 </span>                :<span class="lineCov">    1052972 :     {</span>
 <span class="lineNum">      87 </span>                :            :         // We have to do this to make sure that destructor calls are paired
 <span class="lineNum">      88 </span>                :            :         //
 <span class="lineNum">      89 </span>                :            :         // Really, copy constructor should be deletable, but CCheckQueue breaks
 <span class="lineNum">      90 </span>                :            :         // if it is deleted because of internal push_back.
-<span class="lineNum">      91 </span>                :<span class="lineCov">    2107334 :         fake_allocated_memory.fetch_add(b, std::memory_order_relaxed);</span>
+<span class="lineNum">      91 </span>                :<span class="lineCov">    2105944 :         fake_allocated_memory.fetch_add(b, std::memory_order_relaxed);</span>
 <span class="lineNum">      92 </span>                :            :     };
 <span class="lineNum">      93 </span>                :<span class="lineCov">     499500 :     MemoryCheck(bool b_) : b(b_)</span>
 <span class="lineNum">      94 </span>                :            :     {
 <span class="lineNum">      95 </span>                :<span class="lineCov">     999000 :         fake_allocated_memory.fetch_add(b, std::memory_order_relaxed);</span>
 <span class="lineNum">      96 </span>                :            :     };
 <span class="lineNum">      97 </span>                :            :     ~MemoryCheck()
-<span class="lineNum">      98 </span>                :<span class="lineCov">    2052667 :     {</span>
-<span class="lineNum">      99 </span>                :<span class="lineCov">    5104334 :         fake_allocated_memory.fetch_sub(b, std::memory_order_relaxed);</span>
+<span class="lineNum">      98 </span>                :<span class="lineCov">    2051972 :     {</span>
+<span class="lineNum">      99 </span>                :<span class="lineCov">    5102944 :         fake_allocated_memory.fetch_sub(b, std::memory_order_relaxed);</span>
 <span class="lineNum">     100 </span>                :            :     };
 <span class="lineNum">     101 </span>                :<span class="lineCov">    1998000 :     void swap(MemoryCheck&amp; x) { std::swap(b, x.b); };</span>
 <span class="lineNum">     102 </span>                :            : };
@@ -226,17 +226,17 @@
 <span class="lineNum">     155 </span>                :            :     }
 <span class="lineNum">     156 </span>                :            :     // Make vChecks here to save on malloc (this test can be slow...)
 <span class="lineNum">     157 </span>                :<span class="lineNoCov">          0 :     std::vector&lt;FakeCheckCheckCompletion&gt; vChecks;</span>
-<span class="lineNum">     158 </span>        [<span class="branchCov" title="Branch 0 was taken 221 times"> + </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">        225 :     for (const size_t i : range) {</span>
-<span class="lineNum">     159 </span>                :<span class="lineCov">        221 :         size_t total = i;</span>
-<span class="lineNum">     160 </span>                :<span class="lineCov">        221 :         FakeCheckCheckCompletion::n_calls = 0;</span>
-<span class="lineNum">     161 </span>                :<span class="lineCov">        221 :         CCheckQueueControl&lt;FakeCheckCheckCompletion&gt; control(small_queue.get());</span>
-<span class="lineNum">     162 </span>        [<span class="branchCov" title="Branch 0 was taken 2393119 times"> + </span><span class="branchCov" title="Branch 1 was taken 221 times"> + </span>]:<span class="lineCov">    2393340 :         while (total) {</span>
-<span class="lineNum">     163 </span>        [<span class="branchCov" title="Branch 1 was taken 2393119 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    2393119 :             vChecks.resize(std::min(total, (size_t) InsecureRandRange(10)));</span>
-<span class="lineNum">     164 </span>                :<span class="lineCov">    2393119 :             total -= vChecks.size();</span>
+<span class="lineNum">     158 </span>        [<span class="branchCov" title="Branch 0 was taken 209 times"> + </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">        213 :     for (const size_t i : range) {</span>
+<span class="lineNum">     159 </span>                :<span class="lineCov">        209 :         size_t total = i;</span>
+<span class="lineNum">     160 </span>                :<span class="lineCov">        209 :         FakeCheckCheckCompletion::n_calls = 0;</span>
+<span class="lineNum">     161 </span>                :<span class="lineCov">        209 :         CCheckQueueControl&lt;FakeCheckCheckCompletion&gt; control(small_queue.get());</span>
+<span class="lineNum">     162 </span>        [<span class="branchCov" title="Branch 0 was taken 2261067 times"> + </span><span class="branchCov" title="Branch 1 was taken 209 times"> + </span>]:<span class="lineCov">    2261276 :         while (total) {</span>
+<span class="lineNum">     163 </span>        [<span class="branchCov" title="Branch 1 was taken 2261067 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    2261067 :             vChecks.resize(std::min(total, (size_t) InsecureRandRange(10)));</span>
+<span class="lineNum">     164 </span>                :<span class="lineCov">    2261067 :             total -= vChecks.size();</span>
 <span class="lineNum">     165 </span>                :            :             control.Add(vChecks);
 <span class="lineNum">     166 </span>                :            :         }
-<span class="lineNum">     167 </span>[<span class="branchCov" title="Branch 1 was taken 221 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 221 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        442 :         BOOST_REQUIRE(control.Wait());</span>
-<span class="lineNum">     168 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 221 times"> + </span>]:<span class="lineCov">        221 :         if (FakeCheckCheckCompletion::n_calls != i) {</span>
+<span class="lineNum">     167 </span>[<span class="branchCov" title="Branch 1 was taken 209 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 209 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        418 :         BOOST_REQUIRE(control.Wait());</span>
+<span class="lineNum">     168 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 209 times"> + </span>]:<span class="lineCov">        209 :         if (FakeCheckCheckCompletion::n_calls != i) {</span>
 <span class="lineNum">     169 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :             BOOST_REQUIRE_EQUAL(FakeCheckCheckCompletion::n_calls, i);</span>
 <span class="lineNum">     170 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             BOOST_TEST_MESSAGE(&quot;Failure on trial &quot; &lt;&lt; i &lt;&lt; &quot; expected, got &quot; &lt;&lt; FakeCheckCheckCompletion::n_calls);</span>
 <span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]
@@ -300,8 +300,8 @@
 <span class="lineNum">     204 </span>                :            : {
 <span class="lineNum">     205 </span>                :<span class="lineCov">          2 :     std::vector&lt;size_t&gt; range;</span>
 <span class="lineNum">     206 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     range.reserve(100000/1000);</span>
-<span class="lineNum">     207 </span>[<span class="branchCov" title="Branch 0 was taken 218 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 3 was taken 218 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        437 :     for (size_t i = 2; i &lt; 100000; i += std::max((size_t)1, (size_t)InsecureRandRange(std::min((size_t)1000, ((size_t)100000) - i))))</span>
-<span class="lineNum">     208 </span>        [<span class="branchCov" title="Branch 1 was taken 218 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        218 :         range.push_back(i);</span>
+<span class="lineNum">     207 </span>[<span class="branchCov" title="Branch 0 was taken 206 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 3 was taken 206 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        413 :     for (size_t i = 2; i &lt; 100000; i += std::max((size_t)1, (size_t)InsecureRandRange(std::min((size_t)1000, ((size_t)100000) - i))))</span>
+<span class="lineNum">     208 </span>        [<span class="branchCov" title="Branch 1 was taken 206 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        206 :         range.push_back(i);</span>
 <span class="lineNum">     209 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     Correct_Queue_range(range);</span>
 <span class="lineNum">     210 </span>                :<span class="lineCov">          1 : }</span>
 <span class="lineNum">     211 </span>                :            : 
@@ -325,14 +325,14 @@
 <span class="lineNum">     223 </span>        [<span class="branchCov" title="Branch 0 was taken 1001 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">       1002 :     for (size_t i = 0; i &lt; 1001; ++i) {</span>
 <span class="lineNum">     224 </span>                :<span class="lineCov">       1001 :         CCheckQueueControl&lt;FailingCheck&gt; control(fail_queue.get());</span>
 <span class="lineNum">     225 </span>                :            :         size_t remaining = i;
-<span class="lineNum">     226 </span>        [<span class="branchCov" title="Branch 0 was taken 111810 times"> + </span><span class="branchCov" title="Branch 1 was taken 1001 times"> + </span>]:<span class="lineCov">     112811 :         while (remaining) {</span>
-<span class="lineNum">     227 </span>                :<span class="lineCov">     111810 :             size_t r = InsecureRandRange(10);</span>
+<span class="lineNum">     226 </span>        [<span class="branchCov" title="Branch 0 was taken 111844 times"> + </span><span class="branchCov" title="Branch 1 was taken 1001 times"> + </span>]:<span class="lineCov">     112845 :         while (remaining) {</span>
+<span class="lineNum">     227 </span>                :<span class="lineCov">     111844 :             size_t r = InsecureRandRange(10);</span>
 <span class="lineNum">     228 </span>                :            : 
 <span class="lineNum">     229 </span>                :<span class="lineNoCov">          0 :             std::vector&lt;FailingCheck&gt; vChecks;</span>
-<span class="lineNum">     230 </span>        [<span class="branchCov" title="Branch 1 was taken 111810 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     111810 :             vChecks.reserve(r);</span>
-<span class="lineNum">     231 </span>        [<span class="branchCov" title="Branch 0 was taken 500500 times"> + </span><span class="branchCov" title="Branch 1 was taken 111810 times"> + </span>]:<span class="lineCov">     612310 :             for (size_t k = 0; k &lt; r &amp;&amp; remaining; k++, remaining--)</span>
+<span class="lineNum">     230 </span>        [<span class="branchCov" title="Branch 1 was taken 111844 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     111844 :             vChecks.reserve(r);</span>
+<span class="lineNum">     231 </span>        [<span class="branchCov" title="Branch 0 was taken 500500 times"> + </span><span class="branchCov" title="Branch 1 was taken 111844 times"> + </span>]:<span class="lineCov">     612344 :             for (size_t k = 0; k &lt; r &amp;&amp; remaining; k++, remaining--)</span>
 <span class="lineNum">     232 </span>        [<span class="branchCov" title="Branch 1 was taken 500500 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     500500 :                 vChecks.emplace_back(remaining == 1);</span>
-<span class="lineNum">     233 </span>                :<span class="lineCov">     111810 :             control.Add(vChecks);</span>
+<span class="lineNum">     233 </span>                :<span class="lineCov">     111844 :             control.Add(vChecks);</span>
 <span class="lineNum">     234 </span>                :            :         }
 <span class="lineNum">     235 </span>                :<span class="lineCov">       1001 :         bool success = control.Wait();</span>
 <span class="lineNum">     236 </span>        [<span class="branchCov" title="Branch 0 was taken 1000 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">       1001 :         if (i &gt; 0) {</span>
@@ -399,12 +399,12 @@
 <span class="lineNum">     285 </span>                :<span class="lineCov">          1 :     size_t total = COUNT;</span>
 <span class="lineNum">     286 </span>                :            :     {
 <span class="lineNum">     287 </span>                :<span class="lineCov">          1 :         CCheckQueueControl&lt;UniqueCheck&gt; control(queue.get());</span>
-<span class="lineNum">     288 </span>        [<span class="branchCov" title="Branch 0 was taken 22241 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">      22242 :         while (total) {</span>
-<span class="lineNum">     289 </span>                :<span class="lineCov">      22241 :             size_t r = InsecureRandRange(10);</span>
+<span class="lineNum">     288 </span>        [<span class="branchCov" title="Branch 0 was taken 22138 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">      22139 :         while (total) {</span>
+<span class="lineNum">     289 </span>                :<span class="lineCov">      22138 :             size_t r = InsecureRandRange(10);</span>
 <span class="lineNum">     290 </span>                :<span class="lineNoCov">          0 :             std::vector&lt;UniqueCheck&gt; vChecks;</span>
-<span class="lineNum">     291 </span>[<span class="branchCov" title="Branch 0 was taken 100001 times"> + </span><span class="branchCov" title="Branch 1 was taken 22240 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 100000 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">     122241 :             for (size_t k = 0; k &lt; r &amp;&amp; total; k++)</span>
+<span class="lineNum">     291 </span>[<span class="branchCov" title="Branch 0 was taken 100001 times"> + </span><span class="branchCov" title="Branch 1 was taken 22137 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 100000 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">     122138 :             for (size_t k = 0; k &lt; r &amp;&amp; total; k++)</span>
 <span class="lineNum">     292 </span>        [<span class="branchCov" title="Branch 1 was taken 100000 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     100000 :                 vChecks.emplace_back(--total);</span>
-<span class="lineNum">     293 </span>                :<span class="lineCov">      22241 :             control.Add(vChecks);</span>
+<span class="lineNum">     293 </span>                :<span class="lineCov">      22138 :             control.Add(vChecks);</span>
 <span class="lineNum">     294 </span>                :            :         }
 <span class="lineNum">     295 </span>                :            :     }
 <span class="lineNum">     296 </span>                :<span class="lineCov">          1 :     bool r = true;</span>
@@ -439,17 +439,17 @@
 <span class="lineNum">     319 </span>                :<span class="lineCov">       1000 :         size_t total = i;</span>
 <span class="lineNum">     320 </span>                :            :         {
 <span class="lineNum">     321 </span>                :<span class="lineCov">       1000 :             CCheckQueueControl&lt;MemoryCheck&gt; control(queue.get());</span>
-<span class="lineNum">     322 </span>        [<span class="branchCov" title="Branch 0 was taken 111639 times"> + </span><span class="branchCov" title="Branch 1 was taken 1000 times"> + </span>]:<span class="lineCov">     112639 :             while (total) {</span>
-<span class="lineNum">     323 </span>                :<span class="lineCov">     111639 :                 size_t r = InsecureRandRange(10);</span>
-<span class="lineNum">     324 </span>                :<span class="lineCov">     111639 :                 std::vector&lt;MemoryCheck&gt; vChecks;</span>
-<span class="lineNum">     325 </span>        [<span class="branchCov" title="Branch 0 was taken 499500 times"> + </span><span class="branchCov" title="Branch 1 was taken 111639 times"> + </span>]:<span class="lineCov">     611139 :                 for (size_t k = 0; k &lt; r &amp;&amp; total; k++) {</span>
+<span class="lineNum">     322 </span>        [<span class="branchCov" title="Branch 0 was taken 111828 times"> + </span><span class="branchCov" title="Branch 1 was taken 1000 times"> + </span>]:<span class="lineCov">     112828 :             while (total) {</span>
+<span class="lineNum">     323 </span>                :<span class="lineCov">     111828 :                 size_t r = InsecureRandRange(10);</span>
+<span class="lineNum">     324 </span>                :<span class="lineCov">     111828 :                 std::vector&lt;MemoryCheck&gt; vChecks;</span>
+<span class="lineNum">     325 </span>        [<span class="branchCov" title="Branch 0 was taken 499500 times"> + </span><span class="branchCov" title="Branch 1 was taken 111828 times"> + </span>]:<span class="lineCov">     611328 :                 for (size_t k = 0; k &lt; r &amp;&amp; total; k++) {</span>
 <span class="lineNum">     326 </span>                :<span class="lineCov">     499500 :                     total--;</span>
 <span class="lineNum">     327 </span>                :            :                     // Each iteration leaves data at the front, back, and middle
 <span class="lineNum">     328 </span>                :            :                     // to catch any sort of deallocation failure
 <span class="lineNum">     329 </span>[<span class="branchCov" title="Branch 0 was taken 498501 times"> + </span><span class="branchCov" title="Branch 1 was taken 999 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 497503 times"> + </span><span class="branchCov" title="Branch 3 was taken 998 times"> + </span>]:<span class="lineCov">     499500 :                     vChecks.emplace_back(total == 0 || total == i || total == i/2);</span>
 <span class="lineNum">         </span>        [<span class="branchCov" title="Branch 5 was taken 499500 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]
 <span class="lineNum">     330 </span>                :            :                 }
-<span class="lineNum">     331 </span>                :<span class="lineCov">     111639 :                 control.Add(vChecks);</span>
+<span class="lineNum">     331 </span>                :<span class="lineCov">     111828 :                 control.Add(vChecks);</span>
 <span class="lineNum">     332 </span>                :            :             }
 <span class="lineNum">     333 </span>                :            :         }
 <span class="lineNum">     334 </span>[<span class="branchCov" title="Branch 1 was taken 1000 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1000 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">       1000 :         BOOST_REQUIRE_EQUAL(MemoryCheck::fake_allocated_memory, 0U);</span>

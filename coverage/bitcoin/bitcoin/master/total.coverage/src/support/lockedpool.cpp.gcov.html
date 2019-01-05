@@ -108,7 +108,7 @@
 <span class="lineNum">      37 </span>                :            : /** Align up to power of 2 */
 <span class="lineNum">      38 </span>                :            : static inline size_t align_up(size_t x, size_t align)
 <span class="lineNum">      39 </span>                :            : {
-<span class="lineNum">      40 </span>                :<span class="lineCov">     835099 :     return (x + align - 1) &amp; ~(align - 1);</span>
+<span class="lineNum">      40 </span>                :<span class="lineCov">     676343 :     return (x + align - 1) &amp; ~(align - 1);</span>
 <span class="lineNum">      41 </span>                :            : }
 <span class="lineNum">      42 </span>                :            : 
 <span class="lineNum">      43 </span>                :            : /*******************************************************************************/
@@ -127,77 +127,77 @@
 <span class="lineNum">      56 </span>                :            : {
 <a name="57"><span class="lineNum">      57 </span>                :<span class="lineNoCov">          0 : }</span></a>
 <span class="lineNum">      58 </span>                :            : 
-<span class="lineNum">      59 </span>                :<span class="lineCov">     834157 : void* Arena::alloc(size_t size)</span>
+<span class="lineNum">      59 </span>                :<span class="lineCov">     675401 : void* Arena::alloc(size_t size)</span>
 <span class="lineNum">      60 </span>                :            : {
 <span class="lineNum">      61 </span>                :            :     // Round to next multiple of alignment
-<span class="lineNum">      62 </span>                :<span class="lineCov">    1668314 :     size = align_up(size, alignment);</span>
+<span class="lineNum">      62 </span>                :<span class="lineCov">    1350802 :     size = align_up(size, alignment);</span>
 <span class="lineNum">      63 </span>                :            : 
 <span class="lineNum">      64 </span>                :            :     // Don't handle zero-sized chunks
-<span class="lineNum">      65 </span>        [<span class="branchCov" title="Branch 0 was taken 834155 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">     834157 :     if (size == 0)</span>
+<span class="lineNum">      65 </span>        [<span class="branchCov" title="Branch 0 was taken 675399 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">     675401 :     if (size == 0)</span>
 <span class="lineNum">      66 </span>                :            :         return nullptr;
 <span class="lineNum">      67 </span>                :            : 
 <span class="lineNum">      68 </span>                :            :     // Pick a large enough free-chunk. Returns an iterator pointing to the first element that is not less than key.
 <span class="lineNum">      69 </span>                :            :     // This allocation strategy is best-fit. According to &quot;Dynamic Storage Allocation: A Survey and Critical Review&quot;,
 <span class="lineNum">      70 </span>                :            :     // Wilson et. al. 1995, http://www.scs.stanford.edu/14wi-cs140/sched/readings/wilson.pdf, best-fit and first-fit
 <span class="lineNum">      71 </span>                :            :     // policies seem to work well in practice.
-<span class="lineNum">      72 </span>                :<span class="lineCov">    1668310 :     auto size_ptr_it = size_to_free_chunk.lower_bound(size);</span>
-<span class="lineNum">      73 </span>        [<span class="branchCov" title="Branch 0 was taken 833537 times"> + </span><span class="branchCov" title="Branch 1 was taken 618 times"> + </span>]:<span class="lineCov">     834155 :     if (size_ptr_it == size_to_free_chunk.end())</span>
+<span class="lineNum">      72 </span>                :<span class="lineCov">    1350798 :     auto size_ptr_it = size_to_free_chunk.lower_bound(size);</span>
+<span class="lineNum">      73 </span>        [<span class="branchCov" title="Branch 0 was taken 674781 times"> + </span><span class="branchCov" title="Branch 1 was taken 618 times"> + </span>]:<span class="lineCov">     675399 :     if (size_ptr_it == size_to_free_chunk.end())</span>
 <span class="lineNum">      74 </span>                :            :         return nullptr;
 <span class="lineNum">      75 </span>                :            : 
 <span class="lineNum">      76 </span>                :            :     // Create the used-chunk, taking its space from the end of the free-chunk
-<span class="lineNum">      77 </span>                :<span class="lineCov">     833537 :     const size_t size_remaining = size_ptr_it-&gt;first - size;</span>
-<span class="lineNum">      78 </span>                :<span class="lineCov">    2500611 :     auto allocated = chunks_used.emplace(size_ptr_it-&gt;second + size_remaining, size).first;</span>
-<span class="lineNum">      79 </span>                :<span class="lineCov">    3334148 :     chunks_free_end.erase(size_ptr_it-&gt;second + size_ptr_it-&gt;first);</span>
-<span class="lineNum">      80 </span>        [<span class="branchCov" title="Branch 0 was taken 457791 times"> + </span><span class="branchCov" title="Branch 1 was taken 375746 times"> + </span>]:<span class="lineCov">     833537 :     if (size_ptr_it-&gt;first == size) {</span>
+<span class="lineNum">      77 </span>                :<span class="lineCov">     674781 :     const size_t size_remaining = size_ptr_it-&gt;first - size;</span>
+<span class="lineNum">      78 </span>                :<span class="lineCov">    2024343 :     auto allocated = chunks_used.emplace(size_ptr_it-&gt;second + size_remaining, size).first;</span>
+<span class="lineNum">      79 </span>                :<span class="lineCov">    2699124 :     chunks_free_end.erase(size_ptr_it-&gt;second + size_ptr_it-&gt;first);</span>
+<span class="lineNum">      80 </span>        [<span class="branchCov" title="Branch 0 was taken 330301 times"> + </span><span class="branchCov" title="Branch 1 was taken 344480 times"> + </span>]:<span class="lineCov">     674781 :     if (size_ptr_it-&gt;first == size) {</span>
 <span class="lineNum">      81 </span>                :            :         // whole chunk is used up
-<span class="lineNum">      82 </span>                :<span class="lineCov">     915582 :         chunks_free.erase(size_ptr_it-&gt;second);</span>
+<span class="lineNum">      82 </span>                :<span class="lineCov">     660602 :         chunks_free.erase(size_ptr_it-&gt;second);</span>
 <span class="lineNum">      83 </span>                :            :     } else {
 <span class="lineNum">      84 </span>                :            :         // still some memory left in the chunk
-<span class="lineNum">      85 </span>                :<span class="lineCov">    1127238 :         auto it_remaining = size_to_free_chunk.emplace(size_remaining, size_ptr_it-&gt;second);</span>
-<span class="lineNum">      86 </span>                :<span class="lineCov">    1127238 :         chunks_free[size_ptr_it-&gt;second] = it_remaining;</span>
-<span class="lineNum">      87 </span>                :<span class="lineCov">     375746 :         chunks_free_end.emplace(size_ptr_it-&gt;second + size_remaining, it_remaining);</span>
+<span class="lineNum">      85 </span>                :<span class="lineCov">    1033440 :         auto it_remaining = size_to_free_chunk.emplace(size_remaining, size_ptr_it-&gt;second);</span>
+<span class="lineNum">      86 </span>                :<span class="lineCov">    1033440 :         chunks_free[size_ptr_it-&gt;second] = it_remaining;</span>
+<span class="lineNum">      87 </span>                :<span class="lineCov">     344480 :         chunks_free_end.emplace(size_ptr_it-&gt;second + size_remaining, it_remaining);</span>
 <span class="lineNum">      88 </span>                :            :     }
-<span class="lineNum">      89 </span>                :<span class="lineCov">    1667074 :     size_to_free_chunk.erase(size_ptr_it);</span>
+<span class="lineNum">      89 </span>                :<span class="lineCov">    1349562 :     size_to_free_chunk.erase(size_ptr_it);</span>
 <span class="lineNum">      90 </span>                :            : 
-<span class="lineNum">      91 </span>                :<span class="lineCov">     833537 :     return reinterpret_cast&lt;void*&gt;(allocated-&gt;first);</span>
+<span class="lineNum">      91 </span>                :<span class="lineCov">     674781 :     return reinterpret_cast&lt;void*&gt;(allocated-&gt;first);</span>
 <a name="92"><span class="lineNum">      92 </span>                :            : }</a>
 <span class="lineNum">      93 </span>                :            : 
-<span class="lineNum">      94 </span>                :<span class="lineCov">     836912 : void Arena::free(void *ptr)</span>
+<span class="lineNum">      94 </span>                :<span class="lineCov">     678156 : void Arena::free(void *ptr)</span>
 <span class="lineNum">      95 </span>                :            : {
 <span class="lineNum">      96 </span>                :            :     // Freeing the nullptr pointer is OK.
-<span class="lineNum">      97 </span>        [<span class="branchCov" title="Branch 0 was taken 833539 times"> + </span><span class="branchCov" title="Branch 1 was taken 3373 times"> + </span>]:<span class="lineCov">     836912 :     if (ptr == nullptr) {</span>
-<span class="lineNum">      98 </span>                :<span class="lineCov">     836910 :         return;</span>
+<span class="lineNum">      97 </span>        [<span class="branchCov" title="Branch 0 was taken 674783 times"> + </span><span class="branchCov" title="Branch 1 was taken 3373 times"> + </span>]:<span class="lineCov">     678156 :     if (ptr == nullptr) {</span>
+<span class="lineNum">      98 </span>                :<span class="lineCov">     678154 :         return;</span>
 <span class="lineNum">      99 </span>                :            :     }
 <span class="lineNum">     100 </span>                :            : 
 <span class="lineNum">     101 </span>                :            :     // Remove chunk from used map
-<span class="lineNum">     102 </span>                :<span class="lineCov">    1667078 :     auto i = chunks_used.find(static_cast&lt;char*&gt;(ptr));</span>
-<span class="lineNum">     103 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 833537 times"> + </span>]:<span class="lineCov">     833539 :     if (i == chunks_used.end()) {</span>
+<span class="lineNum">     102 </span>                :<span class="lineCov">    1349566 :     auto i = chunks_used.find(static_cast&lt;char*&gt;(ptr));</span>
+<span class="lineNum">     103 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 674781 times"> + </span>]:<span class="lineCov">     674783 :     if (i == chunks_used.end()) {</span>
 <span class="lineNum">     104 </span>        [<span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          2 :         throw std::runtime_error(&quot;Arena: invalid or double free&quot;);</span>
 <span class="lineNum">     105 </span>                :            :     }
-<span class="lineNum">     106 </span>                :<span class="lineCov">    1667074 :     std::pair&lt;char*, size_t&gt; freed = *i;</span>
-<span class="lineNum">     107 </span>                :<span class="lineCov">    1667074 :     chunks_used.erase(i);</span>
+<span class="lineNum">     106 </span>                :<span class="lineCov">    1349562 :     std::pair&lt;char*, size_t&gt; freed = *i;</span>
+<span class="lineNum">     107 </span>                :<span class="lineCov">    1349562 :     chunks_used.erase(i);</span>
 <span class="lineNum">     108 </span>                :            : 
 <span class="lineNum">     109 </span>                :            :     // coalesce freed with previous chunk
-<span class="lineNum">     110 </span>                :<span class="lineCov">    1667074 :     auto prev = chunks_free_end.find(freed.first);</span>
-<span class="lineNum">     111 </span>        [<span class="branchCov" title="Branch 0 was taken 365400 times"> + </span><span class="branchCov" title="Branch 1 was taken 468137 times"> + </span>]:<span class="lineCov">     833537 :     if (prev != chunks_free_end.end()) {</span>
-<span class="lineNum">     112 </span>                :<span class="lineCov">     730800 :         freed.first -= prev-&gt;second-&gt;first;</span>
-<span class="lineNum">     113 </span>                :<span class="lineCov">     730800 :         freed.second += prev-&gt;second-&gt;first;</span>
-<span class="lineNum">     114 </span>                :<span class="lineCov">    1096200 :         size_to_free_chunk.erase(prev-&gt;second);</span>
-<span class="lineNum">     115 </span>                :<span class="lineCov">     365400 :         chunks_free_end.erase(prev);</span>
+<span class="lineNum">     110 </span>                :<span class="lineCov">    1349562 :     auto prev = chunks_free_end.find(freed.first);</span>
+<span class="lineNum">     111 </span>        [<span class="branchCov" title="Branch 0 was taken 334125 times"> + </span><span class="branchCov" title="Branch 1 was taken 340656 times"> + </span>]:<span class="lineCov">     674781 :     if (prev != chunks_free_end.end()) {</span>
+<span class="lineNum">     112 </span>                :<span class="lineCov">     668250 :         freed.first -= prev-&gt;second-&gt;first;</span>
+<span class="lineNum">     113 </span>                :<span class="lineCov">     668250 :         freed.second += prev-&gt;second-&gt;first;</span>
+<span class="lineNum">     114 </span>                :<span class="lineCov">    1002375 :         size_to_free_chunk.erase(prev-&gt;second);</span>
+<span class="lineNum">     115 </span>                :<span class="lineCov">     334125 :         chunks_free_end.erase(prev);</span>
 <span class="lineNum">     116 </span>                :            :     }
 <span class="lineNum">     117 </span>                :            : 
 <span class="lineNum">     118 </span>                :            :     // coalesce freed with chunk after freed
-<span class="lineNum">     119 </span>                :<span class="lineCov">    1667074 :     auto next = chunks_free.find(freed.first + freed.second);</span>
-<span class="lineNum">     120 </span>        [<span class="branchCov" title="Branch 0 was taken 10346 times"> + </span><span class="branchCov" title="Branch 1 was taken 823191 times"> + </span>]:<span class="lineCov">     833537 :     if (next != chunks_free.end()) {</span>
-<span class="lineNum">     121 </span>                :<span class="lineCov">      20692 :         freed.second += next-&gt;second-&gt;first;</span>
-<span class="lineNum">     122 </span>                :<span class="lineCov">      31038 :         size_to_free_chunk.erase(next-&gt;second);</span>
-<span class="lineNum">     123 </span>                :<span class="lineCov">      10346 :         chunks_free.erase(next);</span>
+<span class="lineNum">     119 </span>                :<span class="lineCov">    1349562 :     auto next = chunks_free.find(freed.first + freed.second);</span>
+<span class="lineNum">     120 </span>        [<span class="branchCov" title="Branch 0 was taken 10355 times"> + </span><span class="branchCov" title="Branch 1 was taken 664426 times"> + </span>]:<span class="lineCov">     674781 :     if (next != chunks_free.end()) {</span>
+<span class="lineNum">     121 </span>                :<span class="lineCov">      20710 :         freed.second += next-&gt;second-&gt;first;</span>
+<span class="lineNum">     122 </span>                :<span class="lineCov">      31065 :         size_to_free_chunk.erase(next-&gt;second);</span>
+<span class="lineNum">     123 </span>                :<span class="lineCov">      10355 :         chunks_free.erase(next);</span>
 <span class="lineNum">     124 </span>                :            :     }
 <span class="lineNum">     125 </span>                :            : 
 <span class="lineNum">     126 </span>                :            :     // Add/set space with coalesced free chunk
-<span class="lineNum">     127 </span>                :<span class="lineCov">    1667074 :     auto it = size_to_free_chunk.emplace(freed.second, freed.first);</span>
-<span class="lineNum">     128 </span>                :<span class="lineCov">    1667074 :     chunks_free[freed.first] = it;</span>
-<span class="lineNum">     129 </span>                :<span class="lineCov">     833537 :     chunks_free_end[freed.first + freed.second] = it;</span>
+<span class="lineNum">     127 </span>                :<span class="lineCov">    1349562 :     auto it = size_to_free_chunk.emplace(freed.second, freed.first);</span>
+<span class="lineNum">     128 </span>                :<span class="lineCov">    1349562 :     chunks_free[freed.first] = it;</span>
+<span class="lineNum">     129 </span>                :<span class="lineCov">     674781 :     chunks_free_end[freed.first + freed.second] = it;</span>
 <a name="130"><span class="lineNum">     130 </span>                :            : }</a>
 <span class="lineNum">     131 </span>                :            : 
 <span class="lineNum">     132 </span>                :<span class="lineCov">         35 : Arena::Stats Arena::stats() const</span>
@@ -356,19 +356,19 @@
 <span class="lineNum">     285 </span>                :<span class="lineCov">        472 : LockedPool::~LockedPool()</span>
 <a name="286"><span class="lineNum">     286 </span>                :            : {</a>
 <span class="lineNum">     287 </span>                :<span class="lineCov">        472 : }</span>
-<span class="lineNum">     288 </span>                :<span class="lineCov">     828306 : void* LockedPool::alloc(size_t size)</span>
+<span class="lineNum">     288 </span>                :<span class="lineCov">     669550 : void* LockedPool::alloc(size_t size)</span>
 <span class="lineNum">     289 </span>                :            : {
-<span class="lineNum">     290 </span>                :<span class="lineCov">     828306 :     std::lock_guard&lt;std::mutex&gt; lock(mutex);</span>
+<span class="lineNum">     290 </span>                :<span class="lineCov">     669550 :     std::lock_guard&lt;std::mutex&gt; lock(mutex);</span>
 <span class="lineNum">     291 </span>                :            : 
 <span class="lineNum">     292 </span>                :            :     // Don't handle impossible sizes
-<span class="lineNum">     293 </span>        [<span class="branchCov" title="Branch 0 was taken 828304 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">     828306 :     if (size == 0 || size &gt; ARENA_SIZE)</span>
+<span class="lineNum">     293 </span>        [<span class="branchCov" title="Branch 0 was taken 669548 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">     669550 :     if (size == 0 || size &gt; ARENA_SIZE)</span>
 <span class="lineNum">     294 </span>                :            :         return nullptr;
 <span class="lineNum">     295 </span>                :            : 
 <span class="lineNum">     296 </span>                :            :     // Try allocating from each current arena
-<span class="lineNum">     297 </span>        [<span class="branchCov" title="Branch 0 was taken 827838 times"> + </span><span class="branchCov" title="Branch 1 was taken 475 times"> + </span>]:<span class="lineCov">     828313 :     for (auto &amp;arena: arenas) {</span>
-<span class="lineNum">     298 </span>        [<span class="branchCov" title="Branch 1 was taken 827838 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     827838 :         void *addr = arena.alloc(size);</span>
-<span class="lineNum">     299 </span>        [<span class="branchCov" title="Branch 0 was taken 827829 times"> + </span><span class="branchCov" title="Branch 1 was taken 9 times"> + </span>]:<span class="lineCov">     827838 :         if (addr) {</span>
-<span class="lineNum">     300 </span>                :<span class="lineCov">     827829 :             return addr;</span>
+<span class="lineNum">     297 </span>        [<span class="branchCov" title="Branch 0 was taken 669082 times"> + </span><span class="branchCov" title="Branch 1 was taken 475 times"> + </span>]:<span class="lineCov">     669557 :     for (auto &amp;arena: arenas) {</span>
+<span class="lineNum">     298 </span>        [<span class="branchCov" title="Branch 1 was taken 669082 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     669082 :         void *addr = arena.alloc(size);</span>
+<span class="lineNum">     299 </span>        [<span class="branchCov" title="Branch 0 was taken 669073 times"> + </span><span class="branchCov" title="Branch 1 was taken 9 times"> + </span>]:<span class="lineCov">     669082 :         if (addr) {</span>
+<span class="lineNum">     300 </span>                :<span class="lineCov">     669073 :             return addr;</span>
 <span class="lineNum">     301 </span>                :            :         }
 <span class="lineNum">     302 </span>                :            :     }
 <span class="lineNum">     303 </span>                :            :     // If that fails, create a new one
@@ -378,15 +378,15 @@
 <span class="lineNum">     307 </span>                :            :     return nullptr;
 <a name="308"><span class="lineNum">     308 </span>                :            : }</a>
 <span class="lineNum">     309 </span>                :            : 
-<span class="lineNum">     310 </span>                :<span class="lineCov">     828304 : void LockedPool::free(void *ptr)</span>
+<span class="lineNum">     310 </span>                :<span class="lineCov">     669548 : void LockedPool::free(void *ptr)</span>
 <span class="lineNum">     311 </span>                :            : {
-<span class="lineNum">     312 </span>                :<span class="lineCov">    2484912 :     std::lock_guard&lt;std::mutex&gt; lock(mutex);</span>
+<span class="lineNum">     312 </span>                :<span class="lineCov">    2008644 :     std::lock_guard&lt;std::mutex&gt; lock(mutex);</span>
 <span class="lineNum">     313 </span>                :            :     // TODO we can do better than this linear search by keeping a map of arena
 <span class="lineNum">     314 </span>                :            :     // extents to arena, and looking up the address.
-<span class="lineNum">     315 </span>        [<span class="branchCov" title="Branch 0 was taken 828310 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     828310 :     for (auto &amp;arena: arenas) {</span>
-<span class="lineNum">     316 </span>                :<span class="lineCov">    1656620 :         if (arena.addressInArena(ptr)) {</span>
-<span class="lineNum">     317 </span>        [<span class="branchCov" title="Branch 1 was taken 828303 times"> + </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span>]:<span class="lineCov">     828304 :             arena.free(ptr);</span>
-<span class="lineNum">     318 </span>                :<span class="lineCov">     828303 :             return;</span>
+<span class="lineNum">     315 </span>        [<span class="branchCov" title="Branch 0 was taken 669554 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     669554 :     for (auto &amp;arena: arenas) {</span>
+<span class="lineNum">     316 </span>                :<span class="lineCov">    1339108 :         if (arena.addressInArena(ptr)) {</span>
+<span class="lineNum">     317 </span>        [<span class="branchCov" title="Branch 1 was taken 669547 times"> + </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span>]:<span class="lineCov">     669548 :             arena.free(ptr);</span>
+<span class="lineNum">     318 </span>                :<span class="lineCov">     669547 :             return;</span>
 <span class="lineNum">     319 </span>                :            :         }
 <span class="lineNum">     320 </span>                :            :     }
 <span class="lineNum">     321 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     throw std::runtime_error(&quot;LockedPool: invalid address not pointing to any arena&quot;);</span>

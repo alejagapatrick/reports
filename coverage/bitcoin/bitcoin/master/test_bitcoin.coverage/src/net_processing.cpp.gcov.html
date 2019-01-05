@@ -135,7 +135,7 @@
 <span class="lineNum">      64 </span>                :            : /// limiting block relay. Set to one week, denominated in seconds.
 <span class="lineNum">      65 </span>                :            : static constexpr int HISTORICAL_BLOCK_AGE = 7 * 24 * 60 * 60;
 <span class="lineNum">      66 </span>                :            : 
-<span class="lineNum">      67 </span>                :<span class="lineCov">        480 : struct COrphanTx {</span>
+<span class="lineNum">      67 </span>                :<span class="lineCov">        486 : struct COrphanTx {</span>
 <span class="lineNum">      68 </span>                :            :     // When modifying, adapt the copy of this definition in tests/DoS_tests.
 <span class="lineNum">      69 </span>                :            :     CTransactionRef tx;
 <span class="lineNum">      70 </span>                :            :     NodeId fromPeer;
@@ -236,7 +236,7 @@
 <span class="lineNum">     165 </span>                :            :         template&lt;typename I&gt;
 <span class="lineNum">     166 </span>                :            :         bool operator()(const I&amp; a, const I&amp; b) const
 <span class="lineNum">     167 </span>                :            :         {
-<span class="lineNum">     168 </span>                :<span class="lineCov">        320 :             return &amp;(*a) &lt; &amp;(*b);</span>
+<span class="lineNum">     168 </span>                :<span class="lineCov">        324 :             return &amp;(*a) &lt; &amp;(*b);</span>
 <span class="lineNum">     169 </span>                :            :         }
 <span class="lineNum">     170 </span>                :            :     };
 <span class="lineNum">     171 </span>                :<span class="lineCov">         72 :     std::map&lt;COutPoint, std::set&lt;std::map&lt;uint256, COrphanTx&gt;::iterator, IteratorComparator&gt;&gt; mapOrphanTransactionsByPrev GUARDED_BY(g_cs_orphans);</span>
@@ -753,21 +753,21 @@
 <span class="lineNum">     675 </span>                :            : // mapOrphanTransactions
 <span class="lineNum">     676 </span>                :            : //
 <span class="lineNum">     677 </span>                :            : 
-<span class="lineNum">     678 </span>                :<span class="lineCov">         80 : static void AddToCompactExtraTransactions(const CTransactionRef&amp; tx) EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans)</span>
+<span class="lineNum">     678 </span>                :<span class="lineCov">         81 : static void AddToCompactExtraTransactions(const CTransactionRef&amp; tx) EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans)</span>
 <span class="lineNum">     679 </span>                :            : {
-<span class="lineNum">     680 </span>[<span class="branchCov" title="Branch 1 was taken 80 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 80 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         80 :     size_t max_extra_txn = gArgs.GetArg(&quot;-blockreconstructionextratxn&quot;, DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN);</span>
-<span class="lineNum">     681 </span>        [<span class="branchCov" title="Branch 0 was taken 80 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         80 :     if (max_extra_txn &lt;= 0)</span>
+<span class="lineNum">     680 </span>[<span class="branchCov" title="Branch 1 was taken 81 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 81 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         81 :     size_t max_extra_txn = gArgs.GetArg(&quot;-blockreconstructionextratxn&quot;, DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN);</span>
+<span class="lineNum">     681 </span>        [<span class="branchCov" title="Branch 0 was taken 81 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         81 :     if (max_extra_txn &lt;= 0)</span>
 <span class="lineNum">     682 </span>                :            :         return;
-<span class="lineNum">     683 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 79 times"> + </span>]:<span class="lineCov">         80 :     if (!vExtraTxnForCompact.size())</span>
+<span class="lineNum">     683 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 80 times"> + </span>]:<span class="lineCov">         81 :     if (!vExtraTxnForCompact.size())</span>
 <span class="lineNum">     684 </span>                :<span class="lineCov">          1 :         vExtraTxnForCompact.resize(max_extra_txn);</span>
-<span class="lineNum">     685 </span>                :<span class="lineCov">        400 :     vExtraTxnForCompact[vExtraTxnForCompactIt] = std::make_pair(tx-&gt;GetWitnessHash(), tx);</span>
-<span class="lineNum">     686 </span>                :<span class="lineCov">         80 :     vExtraTxnForCompactIt = (vExtraTxnForCompactIt + 1) % max_extra_txn;</span>
+<span class="lineNum">     685 </span>                :<span class="lineCov">        405 :     vExtraTxnForCompact[vExtraTxnForCompactIt] = std::make_pair(tx-&gt;GetWitnessHash(), tx);</span>
+<span class="lineNum">     686 </span>                :<span class="lineCov">         81 :     vExtraTxnForCompactIt = (vExtraTxnForCompactIt + 1) % max_extra_txn;</span>
 <span class="lineNum">     687 </span>                :            : }
 <span class="lineNum">     688 </span>                :            : 
 <span class="lineNum">     689 </span>                :<span class="lineCov">        110 : bool AddOrphanTx(const CTransactionRef&amp; tx, NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans)</span>
 <span class="lineNum">     690 </span>                :            : {
 <span class="lineNum">     691 </span>                :<span class="lineCov">        220 :     const uint256&amp; hash = tx-&gt;GetHash();</span>
-<span class="lineNum">     692 </span>                :<span class="lineCov">         20 :     if (mapOrphanTransactions.count(hash))</span>
+<span class="lineNum">     692 </span>                :<span class="lineCov">         19 :     if (mapOrphanTransactions.count(hash))</span>
 <span class="lineNum">     693 </span>                :            :         return false;
 <span class="lineNum">     694 </span>                :            : 
 <span class="lineNum">     695 </span>                :            :     // Ignore big transactions, to avoid a
@@ -777,42 +777,42 @@
 <span class="lineNum">     699 </span>                :            :     // have been mined or received.
 <span class="lineNum">     700 </span>                :            :     // 100 orphans, each of which is at most 100,000 bytes big is
 <span class="lineNum">     701 </span>                :            :     // at most 10 megabytes of orphans and somewhat more byprev index (in the worst case):
-<span class="lineNum">     702 </span>                :<span class="lineCov">         90 :     unsigned int sz = GetTransactionWeight(*tx);</span>
-<span class="lineNum">     703 </span>        [<span class="branchCov" title="Branch 0 was taken 10 times"> + </span><span class="branchCov" title="Branch 1 was taken 80 times"> + </span>]:<span class="lineCov">         90 :     if (sz &gt; MAX_STANDARD_TX_WEIGHT)</span>
+<span class="lineNum">     702 </span>                :<span class="lineCov">         91 :     unsigned int sz = GetTransactionWeight(*tx);</span>
+<span class="lineNum">     703 </span>        [<span class="branchCov" title="Branch 0 was taken 10 times"> + </span><span class="branchCov" title="Branch 1 was taken 81 times"> + </span>]:<span class="lineCov">         91 :     if (sz &gt; MAX_STANDARD_TX_WEIGHT)</span>
 <span class="lineNum">     704 </span>                :            :     {
 <span class="lineNum">     705 </span>        [<span class="branchCov" title="Branch 2 was taken 10 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">         10 :         LogPrint(BCLog::MEMPOOL, &quot;ignoring large orphan tx (size: %u, hash: %s)\n&quot;, sz, hash.ToString());</span>
 <span class="lineNum">     706 </span>                :<span class="lineCov">         10 :         return false;</span>
 <span class="lineNum">     707 </span>                :            :     }
 <span class="lineNum">     708 </span>                :            : 
-<span class="lineNum">     709 </span>                :<span class="lineCov">         80 :     auto ret = mapOrphanTransactions.emplace(hash, COrphanTx{tx, peer, GetTime() + ORPHAN_TX_EXPIRE_TIME});</span>
-<span class="lineNum">     710 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 80 times"> + </span>]:<span class="lineCov">         80 :     assert(ret.second);</span>
-<span class="lineNum">     711 </span>        [<span class="branchCov" title="Branch 0 was taken 80 times"> + </span><span class="branchCov" title="Branch 1 was taken 80 times"> + </span>]:<span class="lineCov">        160 :     for (const CTxIn&amp; txin : tx-&gt;vin) {</span>
-<span class="lineNum">     712 </span>                :<span class="lineCov">         80 :         mapOrphanTransactionsByPrev[txin.prevout].insert(ret.first);</span>
+<span class="lineNum">     709 </span>                :<span class="lineCov">         81 :     auto ret = mapOrphanTransactions.emplace(hash, COrphanTx{tx, peer, GetTime() + ORPHAN_TX_EXPIRE_TIME});</span>
+<span class="lineNum">     710 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 81 times"> + </span>]:<span class="lineCov">         81 :     assert(ret.second);</span>
+<span class="lineNum">     711 </span>        [<span class="branchCov" title="Branch 0 was taken 81 times"> + </span><span class="branchCov" title="Branch 1 was taken 81 times"> + </span>]:<span class="lineCov">        162 :     for (const CTxIn&amp; txin : tx-&gt;vin) {</span>
+<span class="lineNum">     712 </span>                :<span class="lineCov">         81 :         mapOrphanTransactionsByPrev[txin.prevout].insert(ret.first);</span>
 <span class="lineNum">     713 </span>                :            :     }
 <span class="lineNum">     714 </span>                :            : 
-<span class="lineNum">     715 </span>                :<span class="lineCov">         80 :     AddToCompactExtraTransactions(tx);</span>
+<span class="lineNum">     715 </span>                :<span class="lineCov">         81 :     AddToCompactExtraTransactions(tx);</span>
 <span class="lineNum">     716 </span>                :            : 
-<span class="lineNum">     717 </span>[<span class="branchCov" title="Branch 1 was taken 80 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 80 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         80 :     LogPrint(BCLog::MEMPOOL, &quot;stored orphan tx %s (mapsz %u outsz %u)\n&quot;, hash.ToString(),</span>
-<span class="lineNum">     718 </span>                :<span class="lineCov">        240 :              mapOrphanTransactions.size(), mapOrphanTransactionsByPrev.size());</span>
+<span class="lineNum">     717 </span>[<span class="branchCov" title="Branch 1 was taken 81 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 81 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         81 :     LogPrint(BCLog::MEMPOOL, &quot;stored orphan tx %s (mapsz %u outsz %u)\n&quot;, hash.ToString(),</span>
+<span class="lineNum">     718 </span>                :<span class="lineCov">        243 :              mapOrphanTransactions.size(), mapOrphanTransactionsByPrev.size());</span>
 <span class="lineNum">     719 </span>                :<span class="lineCov">        110 :     return true;</span>
 <a name="720"><span class="lineNum">     720 </span>                :            : }</a>
 <span class="lineNum">     721 </span>                :            : 
-<span class="lineNum">     722 </span>                :<span class="lineCov">         80 : int static EraseOrphanTx(uint256 hash) EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans)</span>
+<span class="lineNum">     722 </span>                :<span class="lineCov">         81 : int static EraseOrphanTx(uint256 hash) EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans)</span>
 <span class="lineNum">     723 </span>                :            : {
-<span class="lineNum">     724 </span>                :<span class="lineCov">         80 :     std::map&lt;uint256, COrphanTx&gt;::iterator it = mapOrphanTransactions.find(hash);</span>
-<span class="lineNum">     725 </span>        [<span class="branchCov" title="Branch 0 was taken 80 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         80 :     if (it == mapOrphanTransactions.end())</span>
+<span class="lineNum">     724 </span>                :<span class="lineCov">         81 :     std::map&lt;uint256, COrphanTx&gt;::iterator it = mapOrphanTransactions.find(hash);</span>
+<span class="lineNum">     725 </span>        [<span class="branchCov" title="Branch 0 was taken 81 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         81 :     if (it == mapOrphanTransactions.end())</span>
 <span class="lineNum">     726 </span>                :            :         return 0;
-<span class="lineNum">     727 </span>        [<span class="branchCov" title="Branch 0 was taken 80 times"> + </span><span class="branchCov" title="Branch 1 was taken 80 times"> + </span>]:<span class="lineCov">        160 :     for (const CTxIn&amp; txin : it-&gt;second.tx-&gt;vin)</span>
+<span class="lineNum">     727 </span>        [<span class="branchCov" title="Branch 0 was taken 81 times"> + </span><span class="branchCov" title="Branch 1 was taken 81 times"> + </span>]:<span class="lineCov">        162 :     for (const CTxIn&amp; txin : it-&gt;second.tx-&gt;vin)</span>
 <span class="lineNum">     728 </span>                :            :     {
-<span class="lineNum">     729 </span>                :<span class="lineCov">        160 :         auto itPrev = mapOrphanTransactionsByPrev.find(txin.prevout);</span>
-<span class="lineNum">     730 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 80 times"> + </span>]:<span class="lineCov">         80 :         if (itPrev == mapOrphanTransactionsByPrev.end())</span>
+<span class="lineNum">     729 </span>                :<span class="lineCov">        162 :         auto itPrev = mapOrphanTransactionsByPrev.find(txin.prevout);</span>
+<span class="lineNum">     730 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 81 times"> + </span>]:<span class="lineCov">         81 :         if (itPrev == mapOrphanTransactionsByPrev.end())</span>
 <span class="lineNum">     731 </span>                :<span class="lineNoCov">          0 :             continue;</span>
-<span class="lineNum">     732 </span>                :<span class="lineCov">        160 :         itPrev-&gt;second.erase(it);</span>
-<span class="lineNum">     733 </span>        [<span class="branchCov" title="Branch 0 was taken 80 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         80 :         if (itPrev-&gt;second.empty())</span>
+<span class="lineNum">     732 </span>                :<span class="lineCov">        162 :         itPrev-&gt;second.erase(it);</span>
+<span class="lineNum">     733 </span>        [<span class="branchCov" title="Branch 0 was taken 81 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         81 :         if (itPrev-&gt;second.empty())</span>
 <span class="lineNum">     734 </span>                :            :             mapOrphanTransactionsByPrev.erase(itPrev);
 <span class="lineNum">     735 </span>                :            :     }
-<span class="lineNum">     736 </span>                :<span class="lineCov">         80 :     mapOrphanTransactions.erase(it);</span>
-<span class="lineNum">     737 </span>                :<span class="lineCov">         80 :     return 1;</span>
+<span class="lineNum">     736 </span>                :<span class="lineCov">         81 :     mapOrphanTransactions.erase(it);</span>
+<span class="lineNum">     737 </span>                :<span class="lineCov">         81 :     return 1;</span>
 <a name="738"><span class="lineNum">     738 </span>                :            : }</a>
 <span class="lineNum">     739 </span>                :            : 
 <span class="lineNum">     740 </span>                :<span class="lineCov">         17 : void EraseOrphansFor(NodeId peer)</span>
@@ -820,10 +820,10 @@
 <span class="lineNum">     742 </span>                :<span class="lineCov">         17 :     LOCK(g_cs_orphans);</span>
 <span class="lineNum">     743 </span>                :<span class="lineCov">         17 :     int nErased = 0;</span>
 <span class="lineNum">     744 </span>                :<span class="lineCov">         17 :     std::map&lt;uint256, COrphanTx&gt;::iterator iter = mapOrphanTransactions.begin();</span>
-<span class="lineNum">     745 </span>        [<span class="branchCov" title="Branch 0 was taken 234 times"> + </span><span class="branchCov" title="Branch 1 was taken 17 times"> + </span>]:<span class="lineCov">        251 :     while (iter != mapOrphanTransactions.end())</span>
+<span class="lineNum">     745 </span>        [<span class="branchCov" title="Branch 0 was taken 237 times"> + </span><span class="branchCov" title="Branch 1 was taken 17 times"> + </span>]:<span class="lineCov">        254 :     while (iter != mapOrphanTransactions.end())</span>
 <span class="lineNum">     746 </span>                :            :     {
-<span class="lineNum">     747 </span>                :<span class="lineCov">        234 :         std::map&lt;uint256, COrphanTx&gt;::iterator maybeErase = iter++; // increment to avoid iterator becoming invalid</span>
-<span class="lineNum">     748 </span>        [<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 228 times"> + </span>]:<span class="lineCov">        234 :         if (maybeErase-&gt;second.fromPeer == peer)</span>
+<span class="lineNum">     747 </span>                :<span class="lineCov">        237 :         std::map&lt;uint256, COrphanTx&gt;::iterator maybeErase = iter++; // increment to avoid iterator becoming invalid</span>
+<span class="lineNum">     748 </span>        [<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 231 times"> + </span>]:<span class="lineCov">        237 :         if (maybeErase-&gt;second.fromPeer == peer)</span>
 <span class="lineNum">     749 </span>                :            :         {
 <span class="lineNum">     750 </span>                :<span class="lineCov">          6 :             nErased += EraseOrphanTx(maybeErase-&gt;second.tx-&gt;GetHash());</span>
 <span class="lineNum">     751 </span>                :            :         }
@@ -844,13 +844,13 @@
 <span class="lineNum">     766 </span>                :<span class="lineCov">          1 :         int nErased = 0;</span>
 <span class="lineNum">     767 </span>                :<span class="lineCov">          1 :         int64_t nMinExpTime = nNow + ORPHAN_TX_EXPIRE_TIME - ORPHAN_TX_EXPIRE_INTERVAL;</span>
 <span class="lineNum">     768 </span>                :<span class="lineCov">          1 :         std::map&lt;uint256, COrphanTx&gt;::iterator iter = mapOrphanTransactions.begin();</span>
-<span class="lineNum">     769 </span>        [<span class="branchCov" title="Branch 0 was taken 74 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">         75 :         while (iter != mapOrphanTransactions.end())</span>
+<span class="lineNum">     769 </span>        [<span class="branchCov" title="Branch 0 was taken 75 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">         76 :         while (iter != mapOrphanTransactions.end())</span>
 <span class="lineNum">     770 </span>                :            :         {
-<span class="lineNum">     771 </span>                :<span class="lineCov">         74 :             std::map&lt;uint256, COrphanTx&gt;::iterator maybeErase = iter++;</span>
-<span class="lineNum">     772 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 74 times"> + </span>]:<span class="lineCov">         74 :             if (maybeErase-&gt;second.nTimeExpire &lt;= nNow) {</span>
+<span class="lineNum">     771 </span>                :<span class="lineCov">         75 :             std::map&lt;uint256, COrphanTx&gt;::iterator maybeErase = iter++;</span>
+<span class="lineNum">     772 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 75 times"> + </span>]:<span class="lineCov">         75 :             if (maybeErase-&gt;second.nTimeExpire &lt;= nNow) {</span>
 <span class="lineNum">     773 </span>                :<span class="lineNoCov">          0 :                 nErased += EraseOrphanTx(maybeErase-&gt;second.tx-&gt;GetHash());</span>
 <span class="lineNum">     774 </span>                :            :             } else {
-<span class="lineNum">     775 </span>                :<span class="lineCov">         74 :                 nMinExpTime = std::min(maybeErase-&gt;second.nTimeExpire, nMinExpTime);</span>
+<span class="lineNum">     775 </span>                :<span class="lineCov">         75 :                 nMinExpTime = std::min(maybeErase-&gt;second.nTimeExpire, nMinExpTime);</span>
 <span class="lineNum">     776 </span>                :            :             }
 <span class="lineNum">     777 </span>                :            :         }
 <span class="lineNum">     778 </span>                :            :         // Sweep again 5 minutes after the next entry that expires in order to batch the linear scan.
@@ -858,15 +858,15 @@
 <span class="lineNum">     780 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineCov">          1 :         if (nErased &gt; 0) LogPrint(BCLog::MEMPOOL, &quot;Erased %d orphan tx due to expiration\n&quot;, nErased);</span>
 <span class="lineNum">     781 </span>                :            :     }
 <span class="lineNum">     782 </span>        [<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          3 :     FastRandomContext rng;</span>
-<span class="lineNum">     783 </span>        [<span class="branchCov" title="Branch 0 was taken 74 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">         77 :     while (mapOrphanTransactions.size() &gt; nMaxOrphans)</span>
+<span class="lineNum">     783 </span>        [<span class="branchCov" title="Branch 0 was taken 75 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">         78 :     while (mapOrphanTransactions.size() &gt; nMaxOrphans)</span>
 <span class="lineNum">     784 </span>                :            :     {
 <span class="lineNum">     785 </span>                :            :         // Evict a random orphan:
-<span class="lineNum">     786 </span>        [<span class="branchCov" title="Branch 1 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         74 :         uint256 randomhash = rng.rand256();</span>
-<span class="lineNum">     787 </span>                :<span class="lineCov">         74 :         std::map&lt;uint256, COrphanTx&gt;::iterator it = mapOrphanTransactions.lower_bound(randomhash);</span>
-<span class="lineNum">     788 </span>        [<span class="branchCov" title="Branch 0 was taken 9 times"> + </span><span class="branchCov" title="Branch 1 was taken 65 times"> + </span>]:<span class="lineCov">         74 :         if (it == mapOrphanTransactions.end())</span>
-<span class="lineNum">     789 </span>                :<span class="lineCov">          9 :             it = mapOrphanTransactions.begin();</span>
-<span class="lineNum">     790 </span>                :<span class="lineCov">         74 :         EraseOrphanTx(it-&gt;first);</span>
-<span class="lineNum">     791 </span>                :<span class="lineCov">         74 :         ++nEvicted;</span>
+<span class="lineNum">     786 </span>        [<span class="branchCov" title="Branch 1 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         75 :         uint256 randomhash = rng.rand256();</span>
+<span class="lineNum">     787 </span>                :<span class="lineCov">         75 :         std::map&lt;uint256, COrphanTx&gt;::iterator it = mapOrphanTransactions.lower_bound(randomhash);</span>
+<span class="lineNum">     788 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 72 times"> + </span>]:<span class="lineCov">         75 :         if (it == mapOrphanTransactions.end())</span>
+<span class="lineNum">     789 </span>                :<span class="lineCov">          3 :             it = mapOrphanTransactions.begin();</span>
+<span class="lineNum">     790 </span>                :<span class="lineCov">         75 :         EraseOrphanTx(it-&gt;first);</span>
+<span class="lineNum">     791 </span>                :<span class="lineCov">         75 :         ++nEvicted;</span>
 <span class="lineNum">     792 </span>                :            :     }
 <span class="lineNum">     793 </span>                :<span class="lineCov">          3 :     return nEvicted;</span>
 <span class="lineNum">     794 </span>                :            : }

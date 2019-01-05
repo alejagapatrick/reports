@@ -113,17 +113,17 @@
 <span class="lineNum">      42 </span>                :            : static const size_t MAX_HEADERS_SIZE = 8192;
 <a name="43"><span class="lineNum">      43 </span>                :            : </a>
 <span class="lineNum">      44 </span>                :            : /** HTTP request work item */
-<span class="lineNum">      45 </span>                :<span class="lineCov">     190456 : class HTTPWorkItem final : public HTTPClosure</span>
+<span class="lineNum">      45 </span>                :<span class="lineCov">     185288 : class HTTPWorkItem final : public HTTPClosure</span>
 <span class="lineNum">      46 </span>                :            : {
 <span class="lineNum">      47 </span>                :            : public:
-<span class="lineNum">      48 </span>                :<span class="lineCov">      47614 :     HTTPWorkItem(std::unique_ptr&lt;HTTPRequest&gt; _req, const std::string &amp;_path, const HTTPRequestHandler&amp; _func):</span>
-<span class="lineNum">      49 </span>        [<span class="branchCov" title="Branch 1 was taken 47614 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      47614 :         req(std::move(_req)), path(_path), func(_func)</span>
+<span class="lineNum">      48 </span>                :<span class="lineCov">      46322 :     HTTPWorkItem(std::unique_ptr&lt;HTTPRequest&gt; _req, const std::string &amp;_path, const HTTPRequestHandler&amp; _func):</span>
+<span class="lineNum">      49 </span>        [<span class="branchCov" title="Branch 1 was taken 46322 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      46322 :         req(std::move(_req)), path(_path), func(_func)</span>
 <a name="50"><span class="lineNum">      50 </span>                :            :     {</a>
-<span class="lineNum">      51 </span>                :<span class="lineCov">      47614 :     }</span>
-<span class="lineNum">      52 </span>                :<span class="lineCov">      47614 :     void operator()() override</span>
+<span class="lineNum">      51 </span>                :<span class="lineCov">      46322 :     }</span>
+<span class="lineNum">      52 </span>                :<span class="lineCov">      46322 :     void operator()() override</span>
 <span class="lineNum">      53 </span>                :            :     {
-<span class="lineNum">      54 </span>                :<span class="lineCov">      47614 :         func(req.get(), path);</span>
-<span class="lineNum">      55 </span>                :<span class="lineCov">      47614 :     }</span>
+<span class="lineNum">      54 </span>                :<span class="lineCov">      46322 :         func(req.get(), path);</span>
+<span class="lineNum">      55 </span>                :<span class="lineCov">      46322 :     }</span>
 <span class="lineNum">      56 </span>                :            : 
 <span class="lineNum">      57 </span>                :            :     std::unique_ptr&lt;HTTPRequest&gt; req;
 <span class="lineNum">      58 </span>                :            : 
@@ -157,31 +157,31 @@
 <span class="lineNum">      86 </span>                :            :     {
 <a name="87"><span class="lineNum">      87 </span>                :<span class="lineCov">        372 :     }</span></a>
 <span class="lineNum">      88 </span>                :            :     /** Enqueue a work item */
-<span class="lineNum">      89 </span>                :<span class="lineCov">      47614 :     bool Enqueue(WorkItem* item)</span>
+<span class="lineNum">      89 </span>                :<span class="lineCov">      46322 :     bool Enqueue(WorkItem* item)</span>
 <span class="lineNum">      90 </span>                :            :     {
-<span class="lineNum">      91 </span>                :<span class="lineCov">      95228 :         LOCK(cs);</span>
-<span class="lineNum">      92 </span>        [<span class="branchCov" title="Branch 0 was taken 47614 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      47614 :         if (queue.size() &gt;= maxDepth) {</span>
+<span class="lineNum">      91 </span>                :<span class="lineCov">      92644 :         LOCK(cs);</span>
+<span class="lineNum">      92 </span>        [<span class="branchCov" title="Branch 0 was taken 46322 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      46322 :         if (queue.size() &gt;= maxDepth) {</span>
 <span class="lineNum">      93 </span>                :            :             return false;
 <span class="lineNum">      94 </span>                :            :         }
-<span class="lineNum">      95 </span>        [<span class="branchCov" title="Branch 1 was taken 47614 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      47614 :         queue.emplace_back(std::unique_ptr&lt;WorkItem&gt;(item));</span>
-<span class="lineNum">      96 </span>                :<span class="lineCov">      47614 :         cond.notify_one();</span>
-<span class="lineNum">      97 </span>                :<span class="lineCov">      47614 :         return true;</span>
+<span class="lineNum">      95 </span>        [<span class="branchCov" title="Branch 1 was taken 46322 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      46322 :         queue.emplace_back(std::unique_ptr&lt;WorkItem&gt;(item));</span>
+<span class="lineNum">      96 </span>                :<span class="lineCov">      46322 :         cond.notify_one();</span>
+<span class="lineNum">      97 </span>                :<span class="lineCov">      46322 :         return true;</span>
 <a name="98"><span class="lineNum">      98 </span>                :            :     }</a>
 <span class="lineNum">      99 </span>                :            :     /** Thread function */
 <span class="lineNum">     100 </span>                :<span class="lineCov">       2976 :     void Run()</span>
 <span class="lineNum">     101 </span>                :            :     {
 <span class="lineNum">     102 </span>                :            :         while (true) {
-<span class="lineNum">     103 </span>                :<span class="lineCov">      47614 :             std::unique_ptr&lt;WorkItem&gt; i;</span>
+<span class="lineNum">     103 </span>                :<span class="lineCov">      46322 :             std::unique_ptr&lt;WorkItem&gt; i;</span>
 <span class="lineNum">     104 </span>                :            :             {
-<span class="lineNum">     105 </span>        [<span class="branchCov" title="Branch 1 was taken 49102 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      49102 :                 WAIT_LOCK(cs, lock);</span>
-<span class="lineNum">     106 </span>[<span class="branchCov" title="Branch 0 was taken 96710 times"> + </span><span class="branchCov" title="Branch 1 was taken 1488 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 49096 times"> + </span><span class="branchCov" title="Branch 3 was taken 47614 times"> + </span>]:<span class="lineCov">      98198 :                 while (running &amp;&amp; queue.empty())</span>
-<span class="lineNum">     107 </span>                :<span class="lineCov">      49096 :                     cond.wait(lock);</span>
-<span class="lineNum">     108 </span>        [<span class="branchCov" title="Branch 0 was taken 47614 times"> + </span><span class="branchCov" title="Branch 1 was taken 1488 times"> + </span>]:<span class="lineCov">      49102 :                 if (!running)</span>
+<span class="lineNum">     105 </span>        [<span class="branchCov" title="Branch 1 was taken 47810 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      47810 :                 WAIT_LOCK(cs, lock);</span>
+<span class="lineNum">     106 </span>[<span class="branchCov" title="Branch 0 was taken 94115 times"> + </span><span class="branchCov" title="Branch 1 was taken 1488 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 47793 times"> + </span><span class="branchCov" title="Branch 3 was taken 46322 times"> + </span>]:<span class="lineCov">      95603 :                 while (running &amp;&amp; queue.empty())</span>
+<span class="lineNum">     107 </span>                :<span class="lineCov">      47793 :                     cond.wait(lock);</span>
+<span class="lineNum">     108 </span>        [<span class="branchCov" title="Branch 0 was taken 46322 times"> + </span><span class="branchCov" title="Branch 1 was taken 1488 times"> + </span>]:<span class="lineCov">      47810 :                 if (!running)</span>
 <span class="lineNum">     109 </span>                :            :                     break;
-<span class="lineNum">     110 </span>                :<span class="lineCov">     142842 :                 i = std::move(queue.front());</span>
-<span class="lineNum">     111 </span>                :<span class="lineCov">      47614 :                 queue.pop_front();</span>
+<span class="lineNum">     110 </span>                :<span class="lineCov">     138966 :                 i = std::move(queue.front());</span>
+<span class="lineNum">     111 </span>                :<span class="lineCov">      46322 :                 queue.pop_front();</span>
 <span class="lineNum">     112 </span>                :            :             }
-<span class="lineNum">     113 </span>        [<span class="branchCov" title="Branch 1 was taken 47614 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      47614 :             (*i)();</span>
+<span class="lineNum">     113 </span>        [<span class="branchCov" title="Branch 1 was taken 46322 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      46322 :             (*i)();</span>
 <span class="lineNum">     114 </span>                :            :         }
 <a name="115"><span class="lineNum">     115 </span>                :<span class="lineCov">       1488 :     }</span></a>
 <span class="lineNum">     116 </span>                :            :     /** Interrupt and exit loops */
@@ -221,13 +221,13 @@
 <span class="lineNum">     150 </span>                :<span class="lineCov">        472 : std::vector&lt;evhttp_bound_socket *&gt; boundSockets;</span>
 <a name="151"><span class="lineNum">     151 </span>                :            : </a>
 <span class="lineNum">     152 </span>                :            : /** Check if a network address is allowed to access the HTTP server */
-<span class="lineNum">     153 </span>                :<span class="lineCov">      47616 : static bool ClientAllowed(const CNetAddr&amp; netaddr)</span>
+<span class="lineNum">     153 </span>                :<span class="lineCov">      46324 : static bool ClientAllowed(const CNetAddr&amp; netaddr)</span>
 <span class="lineNum">     154 </span>                :            : {
-<span class="lineNum">     155 </span>        [<span class="branchCov" title="Branch 1 was taken 47616 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      47616 :     if (!netaddr.IsValid())</span>
+<span class="lineNum">     155 </span>        [<span class="branchCov" title="Branch 1 was taken 46324 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      46324 :     if (!netaddr.IsValid())</span>
 <span class="lineNum">     156 </span>                :            :         return false;
-<span class="lineNum">     157 </span>        [<span class="branchCov" title="Branch 0 was taken 47626 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">      47627 :     for(const CSubNet&amp; subnet : rpc_allow_subnets)</span>
-<span class="lineNum">     158 </span>        [<span class="branchCov" title="Branch 1 was taken 47615 times"> + </span><span class="branchCov" title="Branch 2 was taken 11 times"> + </span>]:<span class="lineCov">      47626 :         if (subnet.Match(netaddr))</span>
-<span class="lineNum">     159 </span>                :<span class="lineCov">      47615 :             return true;</span>
+<span class="lineNum">     157 </span>        [<span class="branchCov" title="Branch 0 was taken 46334 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">      46335 :     for(const CSubNet&amp; subnet : rpc_allow_subnets)</span>
+<span class="lineNum">     158 </span>        [<span class="branchCov" title="Branch 1 was taken 46323 times"> + </span><span class="branchCov" title="Branch 2 was taken 11 times"> + </span>]:<span class="lineCov">      46334 :         if (subnet.Match(netaddr))</span>
+<span class="lineNum">     159 </span>                :<span class="lineCov">      46323 :             return true;</span>
 <span class="lineNum">     160 </span>                :<span class="lineCov">          1 :     return false;</span>
 <span class="lineNum">     161 </span>                :            : }
 <span class="lineNum">     162 </span>                :            : 
@@ -261,15 +261,15 @@
 <span class="lineNum">     189 </span>                :            : }
 <a name="190"><span class="lineNum">     190 </span>                :            : </a>
 <span class="lineNum">     191 </span>                :            : /** HTTP request method as string - use for logging only */
-<span class="lineNum">     192 </span>                :<span class="lineCov">      47615 : static std::string RequestMethodString(HTTPRequest::RequestMethod m)</span>
+<span class="lineNum">     192 </span>                :<span class="lineCov">      46323 : static std::string RequestMethodString(HTTPRequest::RequestMethod m)</span>
 <span class="lineNum">     193 </span>                :            : {
-<span class="lineNum">     194 </span>  [<span class="branchCov" title="Branch 0 was taken 26 times"> + </span><span class="branchCov" title="Branch 1 was taken 47589 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">      47615 :     switch (m) {</span>
+<span class="lineNum">     194 </span>  [<span class="branchCov" title="Branch 0 was taken 26 times"> + </span><span class="branchCov" title="Branch 1 was taken 46297 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">      46323 :     switch (m) {</span>
 <span class="lineNum">         </span>            <span class="branchNoCov" title="Branch 4 was not taken"> - </span>]
 <span class="lineNum">     195 </span>                :<span class="lineCov">         26 :     case HTTPRequest::GET:</span>
 <span class="lineNum">     196 </span>                :<span class="lineCov">         26 :         return &quot;GET&quot;;</span>
 <span class="lineNum">     197 </span>                :            :         break;
-<span class="lineNum">     198 </span>                :<span class="lineCov">      47589 :     case HTTPRequest::POST:</span>
-<span class="lineNum">     199 </span>                :<span class="lineCov">      47589 :         return &quot;POST&quot;;</span>
+<span class="lineNum">     198 </span>                :<span class="lineCov">      46297 :     case HTTPRequest::POST:</span>
+<span class="lineNum">     199 </span>                :<span class="lineCov">      46297 :         return &quot;POST&quot;;</span>
 <span class="lineNum">     200 </span>                :            :         break;
 <span class="lineNum">     201 </span>                :<span class="lineNoCov">          0 :     case HTTPRequest::HEAD:</span>
 <span class="lineNum">     202 </span>                :<span class="lineNoCov">          0 :         return &quot;HEAD&quot;;</span>
@@ -283,65 +283,65 @@
 <span class="lineNum">     210 </span>                :            : }
 <span class="lineNum">     211 </span>                :            : 
 <span class="lineNum">     212 </span>                :            : /** HTTP request callback */
-<span class="lineNum">     213 </span>                :<span class="lineCov">      47616 : static void http_request_cb(struct evhttp_request* req, void* arg)</span>
+<span class="lineNum">     213 </span>                :<span class="lineCov">      46324 : static void http_request_cb(struct evhttp_request* req, void* arg)</span>
 <span class="lineNum">     214 </span>                :            : {
 <span class="lineNum">     215 </span>                :            :     // Disable reading to work around a libevent bug, fixed in 2.2.0.
-<span class="lineNum">     216 </span>[<span class="branchCov" title="Branch 1 was taken 47616 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 47616 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      47616 :     if (event_get_version_number() &gt;= 0x02010600 &amp;&amp; event_get_version_number() &lt; 0x02020001) {</span>
-<span class="lineNum">     217 </span>                :<span class="lineCov">      47616 :         evhttp_connection* conn = evhttp_request_get_connection(req);</span>
-<span class="lineNum">     218 </span>        [<span class="branchCov" title="Branch 0 was taken 47616 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      47616 :         if (conn) {</span>
-<span class="lineNum">     219 </span>                :<span class="lineCov">      47616 :             bufferevent* bev = evhttp_connection_get_bufferevent(conn);</span>
-<span class="lineNum">     220 </span>        [<span class="branchCov" title="Branch 0 was taken 47616 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      47616 :             if (bev) {</span>
-<span class="lineNum">     221 </span>                :<span class="lineCov">      47616 :                 bufferevent_disable(bev, EV_READ);</span>
+<span class="lineNum">     216 </span>[<span class="branchCov" title="Branch 1 was taken 46324 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 46324 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      46324 :     if (event_get_version_number() &gt;= 0x02010600 &amp;&amp; event_get_version_number() &lt; 0x02020001) {</span>
+<span class="lineNum">     217 </span>                :<span class="lineCov">      46324 :         evhttp_connection* conn = evhttp_request_get_connection(req);</span>
+<span class="lineNum">     218 </span>        [<span class="branchCov" title="Branch 0 was taken 46324 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      46324 :         if (conn) {</span>
+<span class="lineNum">     219 </span>                :<span class="lineCov">      46324 :             bufferevent* bev = evhttp_connection_get_bufferevent(conn);</span>
+<span class="lineNum">     220 </span>        [<span class="branchCov" title="Branch 0 was taken 46324 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      46324 :             if (bev) {</span>
+<span class="lineNum">     221 </span>                :<span class="lineCov">      46324 :                 bufferevent_disable(bev, EV_READ);</span>
 <span class="lineNum">     222 </span>                :            :             }
 <span class="lineNum">     223 </span>                :            :         }
 <span class="lineNum">     224 </span>                :            :     }
-<span class="lineNum">     225 </span>                :<span class="lineCov">      95231 :     std::unique_ptr&lt;HTTPRequest&gt; hreq(new HTTPRequest(req));</span>
+<span class="lineNum">     225 </span>                :<span class="lineCov">      92647 :     std::unique_ptr&lt;HTTPRequest&gt; hreq(new HTTPRequest(req));</span>
 <span class="lineNum">     226 </span>                :            : 
 <span class="lineNum">     227 </span>                :            :     // Early address-based allow check
-<span class="lineNum">     228 </span>[<span class="branchCov" title="Branch 1 was taken 47616 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 47616 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      47616 :     if (!ClientAllowed(hreq-&gt;GetPeer())) {</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 1 time"> + </span><span class="branchCov" title="Branch 7 was taken 47615 times"> + </span>]
+<span class="lineNum">     228 </span>[<span class="branchCov" title="Branch 1 was taken 46324 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 46324 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      46324 :     if (!ClientAllowed(hreq-&gt;GetPeer())) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 1 time"> + </span><span class="branchCov" title="Branch 7 was taken 46323 times"> + </span>]
 <span class="lineNum">     229 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :         LogPrint(BCLog::HTTP, &quot;HTTP request from %s rejected: Client network is not allowed RPC access\n&quot;,</span>
 <span class="lineNum">     230 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :                  hreq-&gt;GetPeer().ToString());</span>
 <span class="lineNum">     231 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :         hreq-&gt;WriteReply(HTTP_FORBIDDEN);</span>
-<span class="lineNum">     232 </span>                :<span class="lineCov">      47616 :         return;</span>
+<span class="lineNum">     232 </span>                :<span class="lineCov">      46324 :         return;</span>
 <span class="lineNum">     233 </span>                :            :     }
 <span class="lineNum">     234 </span>                :            : 
 <span class="lineNum">     235 </span>                :            :     // Early reject unknown HTTP methods
-<span class="lineNum">     236 </span>[<span class="branchCov" title="Branch 1 was taken 47615 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 47615 times"> + </span>]:<span class="lineCov">      47615 :     if (hreq-&gt;GetRequestMethod() == HTTPRequest::UNKNOWN) {</span>
+<span class="lineNum">     236 </span>[<span class="branchCov" title="Branch 1 was taken 46323 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 46323 times"> + </span>]:<span class="lineCov">      46323 :     if (hreq-&gt;GetRequestMethod() == HTTPRequest::UNKNOWN) {</span>
 <span class="lineNum">     237 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LogPrint(BCLog::HTTP, &quot;HTTP request from %s rejected: Unknown HTTP request method\n&quot;,</span>
 <span class="lineNum">     238 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                  hreq-&gt;GetPeer().ToString());</span>
 <span class="lineNum">     239 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         hreq-&gt;WriteReply(HTTP_BADMETHOD);</span>
 <span class="lineNum">     240 </span>                :<span class="lineNoCov">          0 :         return;</span>
 <span class="lineNum">     241 </span>                :            :     }
 <span class="lineNum">     242 </span>                :            : 
-<span class="lineNum">     243 </span>        [<span class="branchCov" title="Branch 1 was taken 47615 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      47615 :     LogPrint(BCLog::HTTP, &quot;Received a %s request for %s from %s\n&quot;,</span>
-<span class="lineNum">     244 </span>[<span class="branchCov" title="Branch 1 was taken 47615 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 47615 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      47615 :              RequestMethodString(hreq-&gt;GetRequestMethod()), SanitizeString(hreq-&gt;GetURI(), SAFE_CHARS_URI).substr(0, 100), hreq-&gt;GetPeer().ToString());</span>
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 47615 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 47615 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 13 was taken 47615 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchCov" title="Branch 16 was taken 47615 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 19 was taken 47615 times"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>]
+<span class="lineNum">     243 </span>        [<span class="branchCov" title="Branch 1 was taken 46323 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      46323 :     LogPrint(BCLog::HTTP, &quot;Received a %s request for %s from %s\n&quot;,</span>
+<span class="lineNum">     244 </span>[<span class="branchCov" title="Branch 1 was taken 46323 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 46323 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      46323 :              RequestMethodString(hreq-&gt;GetRequestMethod()), SanitizeString(hreq-&gt;GetURI(), SAFE_CHARS_URI).substr(0, 100), hreq-&gt;GetPeer().ToString());</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 46323 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 46323 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 13 was taken 46323 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchCov" title="Branch 16 was taken 46323 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 19 was taken 46323 times"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>]
 <span class="lineNum">     245 </span>                :            : 
 <span class="lineNum">     246 </span>                :            :     // Find registered handler for prefix
-<span class="lineNum">     247 </span>        [<span class="branchCov" title="Branch 1 was taken 47615 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      47615 :     std::string strURI = hreq-&gt;GetURI();</span>
+<span class="lineNum">     247 </span>        [<span class="branchCov" title="Branch 1 was taken 46323 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      46323 :     std::string strURI = hreq-&gt;GetURI();</span>
 <span class="lineNum">     248 </span>                :<span class="lineNoCov">          0 :     std::string path;</span>
-<span class="lineNum">     249 </span>                :<span class="lineCov">      95230 :     std::vector&lt;HTTPPathHandler&gt;::const_iterator i = pathHandlers.begin();</span>
-<span class="lineNum">     250 </span>                :<span class="lineCov">      47615 :     std::vector&lt;HTTPPathHandler&gt;::const_iterator iend = pathHandlers.end();</span>
-<span class="lineNum">     251 </span>        [<span class="branchCov" title="Branch 0 was taken 48016 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">      48017 :     for (; i != iend; ++i) {</span>
-<span class="lineNum">     252 </span>                :<span class="lineCov">      48016 :         bool match = false;</span>
-<span class="lineNum">     253 </span>        [<span class="branchCov" title="Branch 0 was taken 47615 times"> + </span><span class="branchCov" title="Branch 1 was taken 401 times"> + </span>]:<span class="lineCov">      48016 :         if (i-&gt;exactMatch)</span>
-<span class="lineNum">     254 </span>                :<span class="lineCov">      47615 :             match = (strURI == i-&gt;prefix);</span>
+<span class="lineNum">     249 </span>                :<span class="lineCov">      92646 :     std::vector&lt;HTTPPathHandler&gt;::const_iterator i = pathHandlers.begin();</span>
+<span class="lineNum">     250 </span>                :<span class="lineCov">      46323 :     std::vector&lt;HTTPPathHandler&gt;::const_iterator iend = pathHandlers.end();</span>
+<span class="lineNum">     251 </span>        [<span class="branchCov" title="Branch 0 was taken 46724 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">      46725 :     for (; i != iend; ++i) {</span>
+<span class="lineNum">     252 </span>                :<span class="lineCov">      46724 :         bool match = false;</span>
+<span class="lineNum">     253 </span>        [<span class="branchCov" title="Branch 0 was taken 46323 times"> + </span><span class="branchCov" title="Branch 1 was taken 401 times"> + </span>]:<span class="lineCov">      46724 :         if (i-&gt;exactMatch)</span>
+<span class="lineNum">     254 </span>                :<span class="lineCov">      46323 :             match = (strURI == i-&gt;prefix);</span>
 <span class="lineNum">     255 </span>                :            :         else
 <span class="lineNum">     256 </span>        [<span class="branchCov" title="Branch 1 was taken 401 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        802 :             match = (strURI.substr(0, i-&gt;prefix.size()) == i-&gt;prefix);</span>
-<span class="lineNum">     257 </span>        [<span class="branchCov" title="Branch 0 was taken 47614 times"> + </span><span class="branchCov" title="Branch 1 was taken 402 times"> + </span>]:<span class="lineCov">      48016 :         if (match) {</span>
-<span class="lineNum">     258 </span>        [<span class="branchCov" title="Branch 1 was taken 47614 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      47614 :             path = strURI.substr(i-&gt;prefix.size());</span>
-<span class="lineNum">     259 </span>                :<span class="lineCov">      47614 :             break;</span>
+<span class="lineNum">     257 </span>        [<span class="branchCov" title="Branch 0 was taken 46322 times"> + </span><span class="branchCov" title="Branch 1 was taken 402 times"> + </span>]:<span class="lineCov">      46724 :         if (match) {</span>
+<span class="lineNum">     258 </span>        [<span class="branchCov" title="Branch 1 was taken 46322 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      46322 :             path = strURI.substr(i-&gt;prefix.size());</span>
+<span class="lineNum">     259 </span>                :<span class="lineCov">      46322 :             break;</span>
 <span class="lineNum">     260 </span>                :            :         }
 <span class="lineNum">     261 </span>                :            :     }
 <span class="lineNum">     262 </span>                :            : 
 <span class="lineNum">     263 </span>                :            :     // Dispatch to worker thread
-<span class="lineNum">     264 </span>        [<span class="branchCov" title="Branch 0 was taken 47614 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">      47615 :     if (i != iend) {</span>
-<span class="lineNum">     265 </span>[<span class="branchCov" title="Branch 1 was taken 47614 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 47614 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      95228 :         std::unique_ptr&lt;HTTPWorkItem&gt; item(new HTTPWorkItem(std::move(hreq), path, i-&gt;handler));</span>
-<span class="lineNum">     266 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 47614 times"> + </span>]:<span class="lineCov">      47614 :         assert(workQueue);</span>
-<span class="lineNum">     267 </span>[<span class="branchCov" title="Branch 1 was taken 47614 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 47614 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">      47614 :         if (workQueue-&gt;Enqueue(item.get()))</span>
+<span class="lineNum">     264 </span>        [<span class="branchCov" title="Branch 0 was taken 46322 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">      46323 :     if (i != iend) {</span>
+<span class="lineNum">     265 </span>[<span class="branchCov" title="Branch 1 was taken 46322 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 46322 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      92644 :         std::unique_ptr&lt;HTTPWorkItem&gt; item(new HTTPWorkItem(std::move(hreq), path, i-&gt;handler));</span>
+<span class="lineNum">     266 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 46322 times"> + </span>]:<span class="lineCov">      46322 :         assert(workQueue);</span>
+<span class="lineNum">     267 </span>[<span class="branchCov" title="Branch 1 was taken 46322 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 46322 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">      46322 :         if (workQueue-&gt;Enqueue(item.get()))</span>
 <span class="lineNum">     268 </span>                :            :             item.release(); /* if true, queue took ownership */
 <span class="lineNum">     269 </span>                :            :         else {
 <span class="lineNum">     270 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             LogPrintf(&quot;WARNING: request rejected because http work queue depth exceeded, it can be increased with the -rpcworkqueue= setting\n&quot;);</span>
@@ -572,148 +572,148 @@
 <span class="lineNum">     484 </span>                :<span class="lineCov">        372 :     return eventBase;</span>
 <a name="485"><span class="lineNum">     485 </span>                :            : }</a>
 <span class="lineNum">     486 </span>                :            : 
-<span class="lineNum">     487 </span>                :<span class="lineCov">      47620 : static void httpevent_callback_fn(evutil_socket_t, short, void* data)</span>
+<span class="lineNum">     487 </span>                :<span class="lineCov">      46328 : static void httpevent_callback_fn(evutil_socket_t, short, void* data)</span>
 <span class="lineNum">     488 </span>                :            : {
 <span class="lineNum">     489 </span>                :            :     // Static handler: simply call inner handler
-<span class="lineNum">     490 </span>                :<span class="lineCov">      47620 :     HTTPEvent *self = static_cast&lt;HTTPEvent*&gt;(data);</span>
-<span class="lineNum">     491 </span>                :<span class="lineCov">      47620 :     self-&gt;handler();</span>
-<span class="lineNum">     492 </span>        [<span class="branchCov" title="Branch 0 was taken 47616 times"> + </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">      47620 :     if (self-&gt;deleteWhenTriggered)</span>
-<span class="lineNum">     493 </span>        [<span class="branchCov" title="Branch 0 was taken 47616 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      47616 :         delete self;</span>
-<a name="494"><span class="lineNum">     494 </span>                :<span class="lineCov">      47620 : }</span></a>
+<span class="lineNum">     490 </span>                :<span class="lineCov">      46328 :     HTTPEvent *self = static_cast&lt;HTTPEvent*&gt;(data);</span>
+<span class="lineNum">     491 </span>                :<span class="lineCov">      46328 :     self-&gt;handler();</span>
+<span class="lineNum">     492 </span>        [<span class="branchCov" title="Branch 0 was taken 46324 times"> + </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">      46328 :     if (self-&gt;deleteWhenTriggered)</span>
+<span class="lineNum">     493 </span>        [<span class="branchCov" title="Branch 0 was taken 46324 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      46324 :         delete self;</span>
+<a name="494"><span class="lineNum">     494 </span>                :<span class="lineCov">      46328 : }</span></a>
 <span class="lineNum">     495 </span>                :            : 
-<span class="lineNum">     496 </span>                :<span class="lineCov">      47630 : HTTPEvent::HTTPEvent(struct event_base* base, bool _deleteWhenTriggered, const std::function&lt;void()&gt;&amp; _handler):</span>
-<span class="lineNum">     497 </span>                :<span class="lineCov">      47630 :     deleteWhenTriggered(_deleteWhenTriggered), handler(_handler)</span>
+<span class="lineNum">     496 </span>                :<span class="lineCov">      46338 : HTTPEvent::HTTPEvent(struct event_base* base, bool _deleteWhenTriggered, const std::function&lt;void()&gt;&amp; _handler):</span>
+<span class="lineNum">     497 </span>                :<span class="lineCov">      46338 :     deleteWhenTriggered(_deleteWhenTriggered), handler(_handler)</span>
 <span class="lineNum">     498 </span>                :            : {
-<span class="lineNum">     499 </span>        [<span class="branchCov" title="Branch 1 was taken 47630 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      47630 :     ev = event_new(base, -1, 0, httpevent_callback_fn, this);</span>
-<a name="500"><span class="lineNum">     500 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 47630 times"> + </span>]:<span class="lineCov">      47630 :     assert(ev);</span></a>
-<span class="lineNum">     501 </span>                :<span class="lineCov">      47630 : }</span>
-<span class="lineNum">     502 </span>                :<span class="lineCov">      47630 : HTTPEvent::~HTTPEvent()</span>
+<span class="lineNum">     499 </span>        [<span class="branchCov" title="Branch 1 was taken 46338 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      46338 :     ev = event_new(base, -1, 0, httpevent_callback_fn, this);</span>
+<a name="500"><span class="lineNum">     500 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 46338 times"> + </span>]:<span class="lineCov">      46338 :     assert(ev);</span></a>
+<span class="lineNum">     501 </span>                :<span class="lineCov">      46338 : }</span>
+<span class="lineNum">     502 </span>                :<span class="lineCov">      46338 : HTTPEvent::~HTTPEvent()</span>
 <span class="lineNum">     503 </span>                :            : {
-<a name="504"><span class="lineNum">     504 </span>                :<span class="lineCov">      47630 :     event_free(ev);</span></a>
-<span class="lineNum">     505 </span>                :<span class="lineCov">      47630 : }</span>
-<span class="lineNum">     506 </span>                :<span class="lineCov">      47630 : void HTTPEvent::trigger(struct timeval* tv)</span>
+<a name="504"><span class="lineNum">     504 </span>                :<span class="lineCov">      46338 :     event_free(ev);</span></a>
+<span class="lineNum">     505 </span>                :<span class="lineCov">      46338 : }</span>
+<span class="lineNum">     506 </span>                :<span class="lineCov">      46338 : void HTTPEvent::trigger(struct timeval* tv)</span>
 <span class="lineNum">     507 </span>                :            : {
-<span class="lineNum">     508 </span>        [<span class="branchCov" title="Branch 0 was taken 47616 times"> + </span><span class="branchCov" title="Branch 1 was taken 14 times"> + </span>]:<span class="lineCov">      47630 :     if (tv == nullptr)</span>
-<span class="lineNum">     509 </span>                :<span class="lineCov">      47616 :         event_active(ev, 0, 0); // immediately trigger event in main thread</span>
+<span class="lineNum">     508 </span>        [<span class="branchCov" title="Branch 0 was taken 46324 times"> + </span><span class="branchCov" title="Branch 1 was taken 14 times"> + </span>]:<span class="lineCov">      46338 :     if (tv == nullptr)</span>
+<span class="lineNum">     509 </span>                :<span class="lineCov">      46324 :         event_active(ev, 0, 0); // immediately trigger event in main thread</span>
 <span class="lineNum">     510 </span>                :            :     else
 <a name="511"><span class="lineNum">     511 </span>                :<span class="lineCov">         14 :         evtimer_add(ev, tv); // trigger after timeval passed</span></a>
-<span class="lineNum">     512 </span>                :<span class="lineCov">      47630 : }</span>
-<span class="lineNum">     513 </span>                :<span class="lineCov">      47616 : HTTPRequest::HTTPRequest(struct evhttp_request* _req) : req(_req),</span>
-<span class="lineNum">     514 </span>                :<span class="lineCov">      47616 :                                                        replySent(false)</span>
+<span class="lineNum">     512 </span>                :<span class="lineCov">      46338 : }</span>
+<span class="lineNum">     513 </span>                :<span class="lineCov">      46324 : HTTPRequest::HTTPRequest(struct evhttp_request* _req) : req(_req),</span>
+<span class="lineNum">     514 </span>                :<span class="lineCov">      46324 :                                                        replySent(false)</span>
 <span class="lineNum">     515 </span>                :            : {
-<span class="lineNum">     516 </span>                :<span class="lineCov">      47616 : }</span>
-<span class="lineNum">     517 </span>                :<span class="lineCov">      47616 : HTTPRequest::~HTTPRequest()</span>
+<span class="lineNum">     516 </span>                :<span class="lineCov">      46324 : }</span>
+<span class="lineNum">     517 </span>                :<span class="lineCov">      46324 : HTTPRequest::~HTTPRequest()</span>
 <span class="lineNum">     518 </span>                :            : {
-<span class="lineNum">     519 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 47616 times"> + </span>]:<span class="lineCov">      47616 :     if (!replySent) {</span>
+<span class="lineNum">     519 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 46324 times"> + </span>]:<span class="lineCov">      46324 :     if (!replySent) {</span>
 <span class="lineNum">     520 </span>                :            :         // Keep track of whether reply was sent to avoid request leaks
 <span class="lineNum">     521 </span>                :<span class="lineNoCov">          0 :         LogPrintf(&quot;%s: Unhandled request\n&quot;, __func__);</span>
 <span class="lineNum">     522 </span>                :<span class="lineNoCov">          0 :         WriteReply(HTTP_INTERNAL, &quot;Unhandled request&quot;);</span>
 <span class="lineNum">     523 </span>                :            :     }
 <span class="lineNum">     524 </span>                :            :     // evhttpd cleans up the request, as long as a reply was sent.
-<a name="525"><span class="lineNum">     525 </span>                :<span class="lineCov">      47616 : }</span></a>
+<a name="525"><span class="lineNum">     525 </span>                :<span class="lineCov">      46324 : }</span></a>
 <span class="lineNum">     526 </span>                :            : 
-<span class="lineNum">     527 </span>                :<span class="lineCov">      47583 : std::pair&lt;bool, std::string&gt; HTTPRequest::GetHeader(const std::string&amp; hdr) const</span>
+<span class="lineNum">     527 </span>                :<span class="lineCov">      46291 : std::pair&lt;bool, std::string&gt; HTTPRequest::GetHeader(const std::string&amp; hdr) const</span>
 <span class="lineNum">     528 </span>                :            : {
-<span class="lineNum">     529 </span>                :<span class="lineCov">      47583 :     const struct evkeyvalq* headers = evhttp_request_get_input_headers(req);</span>
-<span class="lineNum">     530 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 47583 times"> + </span>]:<span class="lineCov">      47583 :     assert(headers);</span>
-<span class="lineNum">     531 </span>                :<span class="lineCov">      47583 :     const char* val = evhttp_find_header(headers, hdr.c_str());</span>
-<span class="lineNum">     532 </span>        [<span class="branchCov" title="Branch 0 was taken 47583 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      47583 :     if (val)</span>
-<span class="lineNum">     533 </span>                :<span class="lineCov">      47583 :         return std::make_pair(true, val);</span>
+<span class="lineNum">     529 </span>                :<span class="lineCov">      46291 :     const struct evkeyvalq* headers = evhttp_request_get_input_headers(req);</span>
+<span class="lineNum">     530 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 46291 times"> + </span>]:<span class="lineCov">      46291 :     assert(headers);</span>
+<span class="lineNum">     531 </span>                :<span class="lineCov">      46291 :     const char* val = evhttp_find_header(headers, hdr.c_str());</span>
+<span class="lineNum">     532 </span>        [<span class="branchCov" title="Branch 0 was taken 46291 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      46291 :     if (val)</span>
+<span class="lineNum">     533 </span>                :<span class="lineCov">      46291 :         return std::make_pair(true, val);</span>
 <span class="lineNum">     534 </span>                :            :     else
 <span class="lineNum">     535 </span>                :<span class="lineNoCov">          0 :         return std::make_pair(false, &quot;&quot;);</span>
 <span class="lineNum">     536 </span>                :            : }
 <span class="lineNum">     537 </span>                :            : 
-<span class="lineNum">     538 </span>                :<span class="lineCov">      47589 : std::string HTTPRequest::ReadBody()</span>
+<span class="lineNum">     538 </span>                :<span class="lineCov">      46297 : std::string HTTPRequest::ReadBody()</span>
 <span class="lineNum">     539 </span>                :            : {
-<span class="lineNum">     540 </span>                :<span class="lineCov">      47589 :     struct evbuffer* buf = evhttp_request_get_input_buffer(req);</span>
-<span class="lineNum">     541 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 47589 times"> + </span>]:<span class="lineCov">      47589 :     if (!buf)</span>
+<span class="lineNum">     540 </span>                :<span class="lineCov">      46297 :     struct evbuffer* buf = evhttp_request_get_input_buffer(req);</span>
+<span class="lineNum">     541 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 46297 times"> + </span>]:<span class="lineCov">      46297 :     if (!buf)</span>
 <span class="lineNum">     542 </span>                :<span class="lineNoCov">          0 :         return &quot;&quot;;</span>
-<span class="lineNum">     543 </span>                :<span class="lineCov">      47589 :     size_t size = evbuffer_get_length(buf);</span>
+<span class="lineNum">     543 </span>                :<span class="lineCov">      46297 :     size_t size = evbuffer_get_length(buf);</span>
 <span class="lineNum">     544 </span>                :            :     /** Trivial implementation: if this is ever a performance bottleneck,
 <span class="lineNum">     545 </span>                :            :      * internal copying can be avoided in multi-segment buffers by using
 <span class="lineNum">     546 </span>                :            :      * evbuffer_peek and an awkward loop. Though in that case, it'd be even
 <span class="lineNum">     547 </span>                :            :      * better to not copy into an intermediate string but use a stream
 <span class="lineNum">     548 </span>                :            :      * abstraction to consume the evbuffer on the fly in the parsing algorithm.
 <span class="lineNum">     549 </span>                :            :      */
-<span class="lineNum">     550 </span>                :<span class="lineCov">      47589 :     const char* data = (const char*)evbuffer_pullup(buf, size);</span>
-<span class="lineNum">     551 </span>        [<span class="branchCov" title="Branch 0 was taken 12 times"> + </span><span class="branchCov" title="Branch 1 was taken 47577 times"> + </span>]:<span class="lineCov">      47589 :     if (!data) // returns nullptr in case of empty buffer</span>
+<span class="lineNum">     550 </span>                :<span class="lineCov">      46297 :     const char* data = (const char*)evbuffer_pullup(buf, size);</span>
+<span class="lineNum">     551 </span>        [<span class="branchCov" title="Branch 0 was taken 12 times"> + </span><span class="branchCov" title="Branch 1 was taken 46285 times"> + </span>]:<span class="lineCov">      46297 :     if (!data) // returns nullptr in case of empty buffer</span>
 <span class="lineNum">     552 </span>                :<span class="lineCov">         12 :         return &quot;&quot;;</span>
-<span class="lineNum">     553 </span>                :<span class="lineCov">      95154 :     std::string rv(data, size);</span>
-<span class="lineNum">     554 </span>        [<span class="branchCov" title="Branch 1 was taken 47577 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      47577 :     evbuffer_drain(buf, size);</span>
-<span class="lineNum">     555 </span>                :<span class="lineCov">      47577 :     return rv;</span>
+<span class="lineNum">     553 </span>                :<span class="lineCov">      92570 :     std::string rv(data, size);</span>
+<span class="lineNum">     554 </span>        [<span class="branchCov" title="Branch 1 was taken 46285 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      46285 :     evbuffer_drain(buf, size);</span>
+<span class="lineNum">     555 </span>                :<span class="lineCov">      46285 :     return rv;</span>
 <a name="556"><span class="lineNum">     556 </span>                :            : }</a>
 <span class="lineNum">     557 </span>                :            : 
-<span class="lineNum">     558 </span>                :<span class="lineCov">      47960 : void HTTPRequest::WriteHeader(const std::string&amp; hdr, const std::string&amp; value)</span>
+<span class="lineNum">     558 </span>                :<span class="lineCov">      46668 : void HTTPRequest::WriteHeader(const std::string&amp; hdr, const std::string&amp; value)</span>
 <span class="lineNum">     559 </span>                :            : {
-<span class="lineNum">     560 </span>                :<span class="lineCov">      47960 :     struct evkeyvalq* headers = evhttp_request_get_output_headers(req);</span>
-<span class="lineNum">     561 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 47960 times"> + </span>]:<span class="lineCov">      47960 :     assert(headers);</span>
-<span class="lineNum">     562 </span>                :<span class="lineCov">      47960 :     evhttp_add_header(headers, hdr.c_str(), value.c_str());</span>
-<span class="lineNum">     563 </span>                :<span class="lineCov">      47960 : }</span>
+<span class="lineNum">     560 </span>                :<span class="lineCov">      46668 :     struct evkeyvalq* headers = evhttp_request_get_output_headers(req);</span>
+<span class="lineNum">     561 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 46668 times"> + </span>]:<span class="lineCov">      46668 :     assert(headers);</span>
+<span class="lineNum">     562 </span>                :<span class="lineCov">      46668 :     evhttp_add_header(headers, hdr.c_str(), value.c_str());</span>
+<span class="lineNum">     563 </span>                :<span class="lineCov">      46668 : }</span>
 <span class="lineNum">     564 </span>                :            : 
 <span class="lineNum">     565 </span>                :            : /** Closure sent to main thread to request a reply to be sent to
 <span class="lineNum">     566 </span>                :            :  * a HTTP request.
 <span class="lineNum">     567 </span>                :            :  * Replies must be sent in the main loop in the main http thread,
 <span class="lineNum">     568 </span>                :            :  * this cannot be done from worker threads.
 <span class="lineNum">     569 </span>                :            :  */
-<span class="lineNum">     570 </span>                :<span class="lineCov">      47616 : void HTTPRequest::WriteReply(int nStatus, const std::string&amp; strReply)</span>
+<span class="lineNum">     570 </span>                :<span class="lineCov">      46324 : void HTTPRequest::WriteReply(int nStatus, const std::string&amp; strReply)</span>
 <span class="lineNum">     571 </span>                :            : {
-<span class="lineNum">     572 </span>[<span class="branchCov" title="Branch 0 was taken 47616 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 47616 times"> + </span>]:<span class="lineCov">      47616 :     assert(!replySent &amp;&amp; req);</span>
-<span class="lineNum">     573 </span>        [<span class="branchCov" title="Branch 1 was taken 346 times"> + </span><span class="branchCov" title="Branch 2 was taken 47270 times"> + </span>]:<span class="lineCov">      47616 :     if (ShutdownRequested()) {</span>
+<span class="lineNum">     572 </span>[<span class="branchCov" title="Branch 0 was taken 46324 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 46324 times"> + </span>]:<span class="lineCov">      46324 :     assert(!replySent &amp;&amp; req);</span>
+<span class="lineNum">     573 </span>        [<span class="branchCov" title="Branch 1 was taken 346 times"> + </span><span class="branchCov" title="Branch 2 was taken 45978 times"> + </span>]:<span class="lineCov">      46324 :     if (ShutdownRequested()) {</span>
 <span class="lineNum">     574 </span>[<span class="branchCov" title="Branch 1 was taken 346 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 346 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        692 :         WriteHeader(&quot;Connection&quot;, &quot;close&quot;);</span>
 <span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 346 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
 <span class="lineNum">     575 </span>                :            :     }
 <span class="lineNum">     576 </span>                :            :     // Send event to main http thread to send reply message
-<span class="lineNum">     577 </span>                :<span class="lineCov">      47616 :     struct evbuffer* evb = evhttp_request_get_output_buffer(req);</span>
-<span class="lineNum">     578 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 47616 times"> + </span>]:<span class="lineCov">      47616 :     assert(evb);</span>
-<a name="579"><span class="lineNum">     579 </span>                :<span class="lineCov">      47616 :     evbuffer_add(evb, strReply.data(), strReply.size());</span></a>
-<span class="lineNum">     580 </span>                :<span class="lineCov">      47616 :     auto req_copy = req;</span>
-<span class="lineNum">     581 </span>                :<span class="lineCov">      47616 :     HTTPEvent* ev = new HTTPEvent(eventBase, true, [req_copy, nStatus]{</span>
-<span class="lineNum">     582 </span>                :<span class="lineCov">      47616 :         evhttp_send_reply(req_copy, nStatus, nullptr, nullptr);</span>
+<span class="lineNum">     577 </span>                :<span class="lineCov">      46324 :     struct evbuffer* evb = evhttp_request_get_output_buffer(req);</span>
+<span class="lineNum">     578 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 46324 times"> + </span>]:<span class="lineCov">      46324 :     assert(evb);</span>
+<a name="579"><span class="lineNum">     579 </span>                :<span class="lineCov">      46324 :     evbuffer_add(evb, strReply.data(), strReply.size());</span></a>
+<span class="lineNum">     580 </span>                :<span class="lineCov">      46324 :     auto req_copy = req;</span>
+<span class="lineNum">     581 </span>                :<span class="lineCov">      46324 :     HTTPEvent* ev = new HTTPEvent(eventBase, true, [req_copy, nStatus]{</span>
+<span class="lineNum">     582 </span>                :<span class="lineCov">      46324 :         evhttp_send_reply(req_copy, nStatus, nullptr, nullptr);</span>
 <span class="lineNum">     583 </span>                :            :         // Re-enable reading from the socket. This is the second part of the libevent
 <span class="lineNum">     584 </span>                :            :         // workaround above.
-<span class="lineNum">     585 </span>[<span class="branchCov" title="Branch 1 was taken 47616 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 47616 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      47616 :         if (event_get_version_number() &gt;= 0x02010600 &amp;&amp; event_get_version_number() &lt; 0x02020001) {</span>
-<span class="lineNum">     586 </span>                :<span class="lineCov">      47616 :             evhttp_connection* conn = evhttp_request_get_connection(req_copy);</span>
-<span class="lineNum">     587 </span>        [<span class="branchCov" title="Branch 0 was taken 47616 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      47616 :             if (conn) {</span>
-<span class="lineNum">     588 </span>                :<span class="lineCov">      47616 :                 bufferevent* bev = evhttp_connection_get_bufferevent(conn);</span>
-<span class="lineNum">     589 </span>        [<span class="branchCov" title="Branch 0 was taken 47616 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      47616 :                 if (bev) {</span>
-<span class="lineNum">     590 </span>                :<span class="lineCov">      47616 :                     bufferevent_enable(bev, EV_READ | EV_WRITE);</span>
+<span class="lineNum">     585 </span>[<span class="branchCov" title="Branch 1 was taken 46324 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 46324 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      46324 :         if (event_get_version_number() &gt;= 0x02010600 &amp;&amp; event_get_version_number() &lt; 0x02020001) {</span>
+<span class="lineNum">     586 </span>                :<span class="lineCov">      46324 :             evhttp_connection* conn = evhttp_request_get_connection(req_copy);</span>
+<span class="lineNum">     587 </span>        [<span class="branchCov" title="Branch 0 was taken 46324 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      46324 :             if (conn) {</span>
+<span class="lineNum">     588 </span>                :<span class="lineCov">      46324 :                 bufferevent* bev = evhttp_connection_get_bufferevent(conn);</span>
+<span class="lineNum">     589 </span>        [<span class="branchCov" title="Branch 0 was taken 46324 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      46324 :                 if (bev) {</span>
+<span class="lineNum">     590 </span>                :<span class="lineCov">      46324 :                     bufferevent_enable(bev, EV_READ | EV_WRITE);</span>
 <span class="lineNum">     591 </span>                :            :                 }
 <span class="lineNum">     592 </span>                :            :             }
 <span class="lineNum">     593 </span>                :            :         }
-<span class="lineNum">     594 </span>[<span class="branchCov" title="Branch 2 was taken 47616 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 47616 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">      47616 :     });</span>
-<span class="lineNum">     595 </span>                :<span class="lineCov">      47616 :     ev-&gt;trigger(nullptr);</span>
-<span class="lineNum">     596 </span>                :<span class="lineCov">      47616 :     replySent = true;</span>
-<span class="lineNum">     597 </span>                :<span class="lineCov">      47616 :     req = nullptr; // transferred back to main thread</span>
-<a name="598"><span class="lineNum">     598 </span>                :<span class="lineCov">      47616 : }</span></a>
+<span class="lineNum">     594 </span>[<span class="branchCov" title="Branch 2 was taken 46324 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 46324 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">      46324 :     });</span>
+<span class="lineNum">     595 </span>                :<span class="lineCov">      46324 :     ev-&gt;trigger(nullptr);</span>
+<span class="lineNum">     596 </span>                :<span class="lineCov">      46324 :     replySent = true;</span>
+<span class="lineNum">     597 </span>                :<span class="lineCov">      46324 :     req = nullptr; // transferred back to main thread</span>
+<a name="598"><span class="lineNum">     598 </span>                :<span class="lineCov">      46324 : }</span></a>
 <span class="lineNum">     599 </span>                :            : 
-<span class="lineNum">     600 </span>                :<span class="lineCov">     142815 : CService HTTPRequest::GetPeer() const</span>
+<span class="lineNum">     600 </span>                :<span class="lineCov">     138939 : CService HTTPRequest::GetPeer() const</span>
 <span class="lineNum">     601 </span>                :            : {
-<span class="lineNum">     602 </span>                :<span class="lineCov">     142815 :     evhttp_connection* con = evhttp_request_get_connection(req);</span>
-<span class="lineNum">     603 </span>                :<span class="lineCov">     142815 :     CService peer;</span>
-<span class="lineNum">     604 </span>        [<span class="branchCov" title="Branch 0 was taken 142815 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     142815 :     if (con) {</span>
+<span class="lineNum">     602 </span>                :<span class="lineCov">     138939 :     evhttp_connection* con = evhttp_request_get_connection(req);</span>
+<span class="lineNum">     603 </span>                :<span class="lineCov">     138939 :     CService peer;</span>
+<span class="lineNum">     604 </span>        [<span class="branchCov" title="Branch 0 was taken 138939 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     138939 :     if (con) {</span>
 <span class="lineNum">     605 </span>                :            :         // evhttp retains ownership over returned address string
-<span class="lineNum">     606 </span>                :<span class="lineCov">     142815 :         const char* address = &quot;&quot;;</span>
-<span class="lineNum">     607 </span>                :<span class="lineCov">     142815 :         uint16_t port = 0;</span>
-<span class="lineNum">     608 </span>                :<span class="lineCov">     142815 :         evhttp_connection_get_peer(con, (char**)&amp;address, &amp;port);</span>
-<span class="lineNum">     609 </span>                :<span class="lineCov">     142815 :         peer = LookupNumeric(address, port);</span>
+<span class="lineNum">     606 </span>                :<span class="lineCov">     138939 :         const char* address = &quot;&quot;;</span>
+<span class="lineNum">     607 </span>                :<span class="lineCov">     138939 :         uint16_t port = 0;</span>
+<span class="lineNum">     608 </span>                :<span class="lineCov">     138939 :         evhttp_connection_get_peer(con, (char**)&amp;address, &amp;port);</span>
+<span class="lineNum">     609 </span>                :<span class="lineCov">     138939 :         peer = LookupNumeric(address, port);</span>
 <span class="lineNum">     610 </span>                :            :     }
-<span class="lineNum">     611 </span>                :<span class="lineCov">     142815 :     return peer;</span>
+<span class="lineNum">     611 </span>                :<span class="lineCov">     138939 :     return peer;</span>
 <a name="612"><span class="lineNum">     612 </span>                :            : }</a>
 <span class="lineNum">     613 </span>                :            : 
-<span class="lineNum">     614 </span>                :<span class="lineCov">     142804 : std::string HTTPRequest::GetURI() const</span>
+<span class="lineNum">     614 </span>                :<span class="lineCov">     138928 : std::string HTTPRequest::GetURI() const</span>
 <span class="lineNum">     615 </span>                :            : {
-<span class="lineNum">     616 </span>[<span class="branchCov" title="Branch 1 was taken 142804 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 142804 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     142804 :     return evhttp_request_get_uri(req);</span>
+<span class="lineNum">     616 </span>[<span class="branchCov" title="Branch 1 was taken 138928 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 138928 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     138928 :     return evhttp_request_get_uri(req);</span>
 <a name="617"><span class="lineNum">     617 </span>                :            : }</a>
 <span class="lineNum">     618 </span>                :            : 
-<span class="lineNum">     619 </span>                :<span class="lineCov">     142813 : HTTPRequest::RequestMethod HTTPRequest::GetRequestMethod() const</span>
+<span class="lineNum">     619 </span>                :<span class="lineCov">     138937 : HTTPRequest::RequestMethod HTTPRequest::GetRequestMethod() const</span>
 <span class="lineNum">     620 </span>                :            : {
-<span class="lineNum">     621 </span>  [<span class="branchCov" title="Branch 1 was taken 142761 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span> :<span class="lineCov">     142813 :     switch (evhttp_request_get_command(req)) {</span>
+<span class="lineNum">     621 </span>  [<span class="branchCov" title="Branch 1 was taken 138885 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span> :<span class="lineCov">     138937 :     switch (evhttp_request_get_command(req)) {</span>
 <span class="lineNum">         </span>            <span class="branchCov" title="Branch 5 was taken 52 times"> + </span>]
 <span class="lineNum">     622 </span>                :            :     case EVHTTP_REQ_GET:
 <span class="lineNum">     623 </span>                :            :         return GET;
 <span class="lineNum">     624 </span>                :            :         break;
-<span class="lineNum">     625 </span>                :<span class="lineCov">     142761 :     case EVHTTP_REQ_POST:</span>
-<span class="lineNum">     626 </span>                :<span class="lineCov">     142761 :         return POST;</span>
+<span class="lineNum">     625 </span>                :<span class="lineCov">     138885 :     case EVHTTP_REQ_POST:</span>
+<span class="lineNum">     626 </span>                :<span class="lineCov">     138885 :         return POST;</span>
 <span class="lineNum">     627 </span>                :            :         break;
 <span class="lineNum">     628 </span>                :<span class="lineNoCov">          0 :     case EVHTTP_REQ_HEAD:</span>
 <span class="lineNum">     629 </span>                :<span class="lineNoCov">          0 :         return HEAD;</span>
