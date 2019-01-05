@@ -1,0 +1,1109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/policy/fees.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/policy</a> - fees.cpp<span style="font-size: 80%;"> (source / <a href="fees.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">273</td>
+            <td class="headerCovTableEntry">490</td>
+            <td class="headerCovTableEntryLo">55.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">25</td>
+            <td class="headerCovTableEntry">36</td>
+            <td class="headerCovTableEntryLo">69.4 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">137</td>
+            <td class="headerCovTableEntry">470</td>
+            <td class="headerCovTableEntryLo">29.1 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #include &lt;policy/fees.h&gt;
+<span class="lineNum">       7 </span>                :            : #include &lt;policy/policy.h&gt;
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : #include &lt;clientversion.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;primitives/transaction.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;streams.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;txmempool.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;util/system.h&gt;
+<span class="lineNum">      14 </span>                :            : 
+<span class="lineNum">      15 </span>                :            : static constexpr double INF_FEERATE = 1e99;
+<span class="lineNum">      16 </span>                :            : 
+<span class="lineNum">      17 </span>                :<span class="lineNoCov">          0 : std::string StringForFeeEstimateHorizon(FeeEstimateHorizon horizon) {</span>
+<span class="lineNum">      18 </span>                :            :     static const std::map&lt;FeeEstimateHorizon, std::string&gt; horizon_strings = {
+<span class="lineNum">      19 </span>                :            :         {FeeEstimateHorizon::SHORT_HALFLIFE, &quot;short&quot;},
+<span class="lineNum">      20 </span>                :            :         {FeeEstimateHorizon::MED_HALFLIFE, &quot;medium&quot;},
+<span class="lineNum">      21 </span>                :            :         {FeeEstimateHorizon::LONG_HALFLIFE, &quot;long&quot;},
+<span class="lineNum">      22 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :     };</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
+<span class="lineNum">      23 </span>                :<span class="lineNoCov">          0 :     auto horizon_string = horizon_strings.find(horizon);</span>
+<span class="lineNum">      24 </span>                :            : 
+<span class="lineNum">      25 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (horizon_string == horizon_strings.end()) return &quot;unknown&quot;;</span>
+<span class="lineNum">      26 </span>                :            : 
+<span class="lineNum">      27 </span>                :<span class="lineNoCov">          0 :     return horizon_string-&gt;second;</span>
+<span class="lineNum">      28 </span>                :            : }
+<span class="lineNum">      29 </span>                :            : 
+<span class="lineNum">      30 </span>                :<span class="lineCov">          1 : std::string StringForFeeReason(FeeReason reason) {</span>
+<span class="lineNum">      31 </span>                :            :     static const std::map&lt;FeeReason, std::string&gt; fee_reason_strings = {
+<span class="lineNum">      32 </span>                :            :         {FeeReason::NONE, &quot;None&quot;},
+<span class="lineNum">      33 </span>                :            :         {FeeReason::HALF_ESTIMATE, &quot;Half Target 60% Threshold&quot;},
+<span class="lineNum">      34 </span>                :            :         {FeeReason::FULL_ESTIMATE, &quot;Target 85% Threshold&quot;},
+<span class="lineNum">      35 </span>                :            :         {FeeReason::DOUBLE_ESTIMATE, &quot;Double Target 95% Threshold&quot;},
+<span class="lineNum">      36 </span>                :            :         {FeeReason::CONSERVATIVE, &quot;Conservative Double Target longer horizon&quot;},
+<span class="lineNum">      37 </span>                :            :         {FeeReason::MEMPOOL_MIN, &quot;Mempool Min Fee&quot;},
+<span class="lineNum">      38 </span>                :            :         {FeeReason::PAYTXFEE, &quot;PayTxFee set&quot;},
+<span class="lineNum">      39 </span>                :            :         {FeeReason::FALLBACK, &quot;Fallback fee&quot;},
+<span class="lineNum">      40 </span>                :            :         {FeeReason::REQUIRED, &quot;Minimum Required Fee&quot;},
+<span class="lineNum">      41 </span>                :            :         {FeeReason::MAXTXFEE, &quot;MaxTxFee limit&quot;}
+<span class="lineNum">      42 </span>[<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         12 :     };</span>
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 6 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 10 was taken 10 times"> + </span><span class="branchCov" title="Branch 11 was taken 1 time"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
+<span class="lineNum">      43 </span>                :<span class="lineCov">          1 :     auto reason_string = fee_reason_strings.find(reason);</span>
+<span class="lineNum">      44 </span>                :            : 
+<span class="lineNum">      45 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :     if (reason_string == fee_reason_strings.end()) return &quot;Unknown&quot;;</span>
+<span class="lineNum">      46 </span>                :            : 
+<span class="lineNum">      47 </span>                :<span class="lineCov">          1 :     return reason_string-&gt;second;</span>
+<span class="lineNum">      48 </span>                :            : }
+<span class="lineNum">      49 </span>                :            : 
+<span class="lineNum">      50 </span>                :<span class="lineNoCov">          0 : bool FeeModeFromString(const std::string&amp; mode_string, FeeEstimateMode&amp; fee_estimate_mode) {</span>
+<span class="lineNum">      51 </span>                :            :     static const std::map&lt;std::string, FeeEstimateMode&gt; fee_modes = {
+<span class="lineNum">      52 </span>                :            :         {&quot;UNSET&quot;, FeeEstimateMode::UNSET},
+<span class="lineNum">      53 </span>                :            :         {&quot;ECONOMICAL&quot;, FeeEstimateMode::ECONOMICAL},
+<span class="lineNum">      54 </span>                :            :         {&quot;CONSERVATIVE&quot;, FeeEstimateMode::CONSERVATIVE},
+<span class="lineNum">      55 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :     };</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
+<span class="lineNum">      56 </span>                :<span class="lineNoCov">          0 :     auto mode = fee_modes.find(mode_string);</span>
+<span class="lineNum">      57 </span>                :            : 
+<span class="lineNum">      58 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (mode == fee_modes.end()) return false;</span>
+<span class="lineNum">      59 </span>                :            : 
+<span class="lineNum">      60 </span>                :<span class="lineNoCov">          0 :     fee_estimate_mode = mode-&gt;second;</span>
+<span class="lineNum">      61 </span>                :<span class="lineNoCov">          0 :     return true;</span>
+<span class="lineNum">      62 </span>                :            : }
+<span class="lineNum">      63 </span>                :            : 
+<span class="lineNum">      64 </span>                :            : /**
+<span class="lineNum">      65 </span>                :            :  * We will instantiate an instance of this class to track transactions that were
+<span class="lineNum">      66 </span>                :            :  * included in a block. We will lump transactions into a bucket according to their
+<span class="lineNum">      67 </span>                :            :  * approximate feerate and then track how long it took for those txs to be included in a block
+<span class="lineNum">      68 </span>                :            :  *
+<span class="lineNum">      69 </span>                :            :  * The tracking of unconfirmed (mempool) transactions is completely independent of the
+<a name="70"><span class="lineNum">      70 </span>                :            :  * historical tracking of transactions that have been confirmed in a block.</a>
+<span class="lineNum">      71 </span>                :            :  */
+<span class="lineNum">      72 </span>                :<span class="lineCov">        657 : class TxConfirmStats</span>
+<span class="lineNum">      73 </span>                :            : {
+<span class="lineNum">      74 </span>                :            : private:
+<span class="lineNum">      75 </span>                :            :     //Define the buckets we will group transactions into
+<span class="lineNum">      76 </span>                :            :     const std::vector&lt;double&gt;&amp; buckets;              // The upper-bound of the range for the bucket (inclusive)
+<span class="lineNum">      77 </span>                :            :     const std::map&lt;double, unsigned int&gt;&amp; bucketMap; // Map of bucket upper-bound to index into all vectors by bucket
+<span class="lineNum">      78 </span>                :            : 
+<span class="lineNum">      79 </span>                :            :     // For each bucket X:
+<span class="lineNum">      80 </span>                :            :     // Count the total # of txs in each bucket
+<span class="lineNum">      81 </span>                :            :     // Track the historical moving average of this total over blocks
+<span class="lineNum">      82 </span>                :            :     std::vector&lt;double&gt; txCtAvg;
+<span class="lineNum">      83 </span>                :            : 
+<span class="lineNum">      84 </span>                :            :     // Count the total # of txs confirmed within Y blocks in each bucket
+<span class="lineNum">      85 </span>                :            :     // Track the historical moving average of theses totals over blocks
+<span class="lineNum">      86 </span>                :            :     std::vector&lt;std::vector&lt;double&gt;&gt; confAvg; // confAvg[Y][X]
+<span class="lineNum">      87 </span>                :            : 
+<span class="lineNum">      88 </span>                :            :     // Track moving avg of txs which have been evicted from the mempool
+<span class="lineNum">      89 </span>                :            :     // after failing to be confirmed within Y blocks
+<span class="lineNum">      90 </span>                :            :     std::vector&lt;std::vector&lt;double&gt;&gt; failAvg; // failAvg[Y][X]
+<span class="lineNum">      91 </span>                :            : 
+<span class="lineNum">      92 </span>                :            :     // Sum the total feerate of all tx's in each bucket
+<span class="lineNum">      93 </span>                :            :     // Track the historical moving average of this total over blocks
+<span class="lineNum">      94 </span>                :            :     std::vector&lt;double&gt; avg;
+<span class="lineNum">      95 </span>                :            : 
+<span class="lineNum">      96 </span>                :            :     // Combine the conf counts with tx counts to calculate the confirmation % for each Y,X
+<span class="lineNum">      97 </span>                :            :     // Combine the total value with the tx counts to calculate the avg feerate per bucket
+<span class="lineNum">      98 </span>                :            : 
+<span class="lineNum">      99 </span>                :            :     double decay;
+<span class="lineNum">     100 </span>                :            : 
+<span class="lineNum">     101 </span>                :            :     // Resolution (# of blocks) with which confirmations are tracked
+<span class="lineNum">     102 </span>                :            :     unsigned int scale;
+<span class="lineNum">     103 </span>                :            : 
+<span class="lineNum">     104 </span>                :            :     // Mempool counts of outstanding transactions
+<span class="lineNum">     105 </span>                :            :     // For each bucket X, track the number of transactions in the mempool
+<span class="lineNum">     106 </span>                :            :     // that are unconfirmed for each possible confirmation value Y
+<span class="lineNum">     107 </span>                :            :     std::vector&lt;std::vector&lt;int&gt; &gt; unconfTxs;  //unconfTxs[Y][X]
+<span class="lineNum">     108 </span>                :            :     // transactions still unconfirmed after GetMaxConfirms for each bucket
+<span class="lineNum">     109 </span>                :            :     std::vector&lt;int&gt; oldUnconfTxs;
+<span class="lineNum">     110 </span>                :            : 
+<span class="lineNum">     111 </span>                :            :     void resizeInMemoryCounters(size_t newbuckets);
+<span class="lineNum">     112 </span>                :            : 
+<span class="lineNum">     113 </span>                :            : public:
+<span class="lineNum">     114 </span>                :            :     /**
+<span class="lineNum">     115 </span>                :            :      * Create new TxConfirmStats. This is called by BlockPolicyEstimator's
+<span class="lineNum">     116 </span>                :            :      * constructor with default values.
+<span class="lineNum">     117 </span>                :            :      * @param defaultBuckets contains the upper limits for the bucket boundaries
+<span class="lineNum">     118 </span>                :            :      * @param maxPeriods max number of periods to track
+<span class="lineNum">     119 </span>                :            :      * @param decay how much to decay the historical moving average per block
+<span class="lineNum">     120 </span>                :            :      */
+<span class="lineNum">     121 </span>                :            :     TxConfirmStats(const std::vector&lt;double&gt;&amp; defaultBuckets, const std::map&lt;double, unsigned int&gt;&amp; defaultBucketMap,
+<span class="lineNum">     122 </span>                :            :                    unsigned int maxPeriods, double decay, unsigned int scale);
+<span class="lineNum">     123 </span>                :            : 
+<span class="lineNum">     124 </span>                :            :     /** Roll the circular buffer for unconfirmed txs*/
+<span class="lineNum">     125 </span>                :            :     void ClearCurrent(unsigned int nBlockHeight);
+<span class="lineNum">     126 </span>                :            : 
+<span class="lineNum">     127 </span>                :            :     /**
+<span class="lineNum">     128 </span>                :            :      * Record a new transaction data point in the current block stats
+<span class="lineNum">     129 </span>                :            :      * @param blocksToConfirm the number of blocks it took this transaction to confirm
+<span class="lineNum">     130 </span>                :            :      * @param val the feerate of the transaction
+<span class="lineNum">     131 </span>                :            :      * @warning blocksToConfirm is 1-based and has to be &gt;= 1
+<span class="lineNum">     132 </span>                :            :      */
+<span class="lineNum">     133 </span>                :            :     void Record(int blocksToConfirm, double val);
+<span class="lineNum">     134 </span>                :            : 
+<span class="lineNum">     135 </span>                :            :     /** Record a new transaction entering the mempool*/
+<span class="lineNum">     136 </span>                :            :     unsigned int NewTx(unsigned int nBlockHeight, double val);
+<span class="lineNum">     137 </span>                :            : 
+<span class="lineNum">     138 </span>                :            :     /** Remove a transaction from mempool tracking stats*/
+<span class="lineNum">     139 </span>                :            :     void removeTx(unsigned int entryHeight, unsigned int nBestSeenHeight,
+<span class="lineNum">     140 </span>                :            :                   unsigned int bucketIndex, bool inBlock);
+<span class="lineNum">     141 </span>                :            : 
+<span class="lineNum">     142 </span>                :            :     /** Update our estimates by decaying our historical moving average and updating
+<span class="lineNum">     143 </span>                :            :         with the data gathered from the current block */
+<span class="lineNum">     144 </span>                :            :     void UpdateMovingAverages();
+<span class="lineNum">     145 </span>                :            : 
+<span class="lineNum">     146 </span>                :            :     /**
+<span class="lineNum">     147 </span>                :            :      * Calculate a feerate estimate.  Find the lowest value bucket (or range of buckets
+<span class="lineNum">     148 </span>                :            :      * to make sure we have enough data points) whose transactions still have sufficient likelihood
+<span class="lineNum">     149 </span>                :            :      * of being confirmed within the target number of confirmations
+<span class="lineNum">     150 </span>                :            :      * @param confTarget target number of confirmations
+<span class="lineNum">     151 </span>                :            :      * @param sufficientTxVal required average number of transactions per block in a bucket range
+<span class="lineNum">     152 </span>                :            :      * @param minSuccess the success probability we require
+<span class="lineNum">     153 </span>                :            :      * @param requireGreater return the lowest feerate such that all higher values pass minSuccess OR
+<span class="lineNum">     154 </span>                :            :      *        return the highest feerate such that all lower values fail minSuccess
+<span class="lineNum">     155 </span>                :            :      * @param nBlockHeight the current block height
+<span class="lineNum">     156 </span>                :            :      */
+<span class="lineNum">     157 </span>                :            :     double EstimateMedianVal(int confTarget, double sufficientTxVal,
+<span class="lineNum">     158 </span>                :            :                              double minSuccess, bool requireGreater, unsigned int nBlockHeight,
+<span class="lineNum">     159 </span>                :            :                              EstimationResult *result = nullptr) const;
+<span class="lineNum">     160 </span>                :            : 
+<span class="lineNum">     161 </span>                :            :     /** Return the max number of confirms we're tracking */
+<span class="lineNum">     162 </span>                :<span class="lineCov">    1114508 :     unsigned int GetMaxConfirms() const { return scale * confAvg.size(); }</span>
+<span class="lineNum">     163 </span>                :            : 
+<span class="lineNum">     164 </span>                :            :     /** Write state of estimation data to a file*/
+<span class="lineNum">     165 </span>                :            :     void Write(CAutoFile&amp; fileout) const;
+<span class="lineNum">     166 </span>                :            : 
+<span class="lineNum">     167 </span>                :            :     /**
+<span class="lineNum">     168 </span>                :            :      * Read saved state of estimation data from a file and replace all internal data structures and
+<span class="lineNum">     169 </span>                :            :      * variables with this state.
+<span class="lineNum">     170 </span>                :            :      */
+<span class="lineNum">     171 </span>                :            :     void Read(CAutoFile&amp; filein, int nFileVersion, size_t numBuckets);
+<span class="lineNum">     172 </span>                :            : };
+<a name="173"><span class="lineNum">     173 </span>                :            : </a>
+<span class="lineNum">     174 </span>                :            : 
+<span class="lineNum">     175 </span>                :<span class="lineCov">        219 : TxConfirmStats::TxConfirmStats(const std::vector&lt;double&gt;&amp; defaultBuckets,</span>
+<span class="lineNum">     176 </span>                :            :                                 const std::map&lt;double, unsigned int&gt;&amp; defaultBucketMap,
+<span class="lineNum">     177 </span>                :<span class="lineCov">        219 :                                unsigned int maxPeriods, double _decay, unsigned int _scale)</span>
+<span class="lineNum">     178 </span>                :<span class="lineNoCov">          0 :     : buckets(defaultBuckets), bucketMap(defaultBucketMap)</span>
+<span class="lineNum">     179 </span>                :            : {
+<span class="lineNum">     180 </span>                :<span class="lineCov">        219 :     decay = _decay;</span>
+<span class="lineNum">     181 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 219 times"> + </span>]:<span class="lineCov">        219 :     assert(_scale != 0 &amp;&amp; &quot;_scale must be non-zero&quot;);</span>
+<span class="lineNum">     182 </span>                :<span class="lineCov">        219 :     scale = _scale;</span>
+<span class="lineNum">     183 </span>        [<span class="branchCov" title="Branch 1 was taken 219 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        219 :     confAvg.resize(maxPeriods);</span>
+<span class="lineNum">     184 </span>        [<span class="branchCov" title="Branch 0 was taken 5694 times"> + </span><span class="branchCov" title="Branch 1 was taken 219 times"> + </span>]:<span class="lineCov">       5913 :     for (unsigned int i = 0; i &lt; maxPeriods; i++) {</span>
+<span class="lineNum">     185 </span>        [<span class="branchCov" title="Branch 1 was taken 5694 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       5694 :         confAvg[i].resize(buckets.size());</span>
+<span class="lineNum">     186 </span>                :            :     }
+<span class="lineNum">     187 </span>        [<span class="branchCov" title="Branch 1 was taken 219 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        219 :     failAvg.resize(maxPeriods);</span>
+<span class="lineNum">     188 </span>        [<span class="branchCov" title="Branch 0 was taken 5694 times"> + </span><span class="branchCov" title="Branch 1 was taken 219 times"> + </span>]:<span class="lineCov">       5913 :     for (unsigned int i = 0; i &lt; maxPeriods; i++) {</span>
+<span class="lineNum">     189 </span>        [<span class="branchCov" title="Branch 1 was taken 5694 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       5694 :         failAvg[i].resize(buckets.size());</span>
+<span class="lineNum">     190 </span>                :            :     }
+<span class="lineNum">     191 </span>                :            : 
+<span class="lineNum">     192 </span>        [<span class="branchCov" title="Branch 1 was taken 219 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        219 :     txCtAvg.resize(buckets.size());</span>
+<span class="lineNum">     193 </span>        [<span class="branchCov" title="Branch 1 was taken 219 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        219 :     avg.resize(buckets.size());</span>
+<span class="lineNum">     194 </span>                :            : 
+<span class="lineNum">     195 </span>        [<span class="branchCov" title="Branch 1 was taken 219 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        219 :     resizeInMemoryCounters(buckets.size());</span>
+<a name="196"><span class="lineNum">     196 </span>                :<span class="lineCov">        219 : }</span></a>
+<span class="lineNum">     197 </span>                :            : 
+<span class="lineNum">     198 </span>                :<span class="lineCov">        219 : void TxConfirmStats::resizeInMemoryCounters(size_t newbuckets) {</span>
+<span class="lineNum">     199 </span>                :            :     // newbuckets must be passed in because the buckets referred to during Read have not been updated yet.
+<span class="lineNum">     200 </span>                :<span class="lineCov">        438 :     unconfTxs.resize(GetMaxConfirms());</span>
+<span class="lineNum">     201 </span>        [<span class="branchCov" title="Branch 1 was taken 77964 times"> + </span><span class="branchCov" title="Branch 2 was taken 219 times"> + </span>]:<span class="lineCov">      78183 :     for (unsigned int i = 0; i &lt; unconfTxs.size(); i++) {</span>
+<span class="lineNum">     202 </span>                :<span class="lineCov">      77964 :         unconfTxs[i].resize(newbuckets);</span>
+<span class="lineNum">     203 </span>                :            :     }
+<span class="lineNum">     204 </span>                :<span class="lineCov">        219 :     oldUnconfTxs.resize(newbuckets);</span>
+<span class="lineNum">     205 </span>                :<span class="lineCov">        219 : }</span>
+<a name="206"><span class="lineNum">     206 </span>                :            : </a>
+<span class="lineNum">     207 </span>                :            : // Roll the unconfirmed txs circular buffer
+<span class="lineNum">     208 </span>                :<span class="lineCov">       3660 : void TxConfirmStats::ClearCurrent(unsigned int nBlockHeight)</span>
+<span class="lineNum">     209 </span>                :            : {
+<span class="lineNum">     210 </span>        [<span class="branchCov" title="Branch 0 was taken 695400 times"> + </span><span class="branchCov" title="Branch 1 was taken 3660 times"> + </span>]:<span class="lineCov">     699060 :     for (unsigned int j = 0; j &lt; buckets.size(); j++) {</span>
+<span class="lineNum">     211 </span>                :<span class="lineCov">    3477000 :         oldUnconfTxs[j] += unconfTxs[nBlockHeight%unconfTxs.size()][j];</span>
+<span class="lineNum">     212 </span>                :<span class="lineCov">    2781600 :         unconfTxs[nBlockHeight%unconfTxs.size()][j] = 0;</span>
+<span class="lineNum">     213 </span>                :            :     }
+<span class="lineNum">     214 </span>                :<span class="lineCov">       3660 : }</span>
+<span class="lineNum">     215 </span>                :            : 
+<span class="lineNum">     216 </span>                :            : 
+<span class="lineNum">     217 </span>                :<span class="lineCov">      73680 : void TxConfirmStats::Record(int blocksToConfirm, double val)</span>
+<span class="lineNum">     218 </span>                :            : {
+<span class="lineNum">     219 </span>                :            :     // blocksToConfirm is 1-based
+<span class="lineNum">     220 </span>        [<span class="branchCov" title="Branch 0 was taken 73680 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      73680 :     if (blocksToConfirm &lt; 1)</span>
+<span class="lineNum">     221 </span>                :            :         return;
+<span class="lineNum">     222 </span>                :<span class="lineCov">      73680 :     int periodsToConfirm = (blocksToConfirm + scale - 1)/scale;</span>
+<span class="lineNum">     223 </span>                :<span class="lineCov">     221040 :     unsigned int bucketindex = bucketMap.lower_bound(val)-&gt;second;</span>
+<span class="lineNum">     224 </span>        [<span class="branchCov" title="Branch 0 was taken 1890080 times"> + </span><span class="branchCov" title="Branch 1 was taken 73680 times"> + </span>]:<span class="lineCov">    1963760 :     for (size_t i = periodsToConfirm; i &lt;= confAvg.size(); i++) {</span>
+<span class="lineNum">     225 </span>                :<span class="lineCov">    5670240 :         confAvg[i - 1][bucketindex]++;</span>
+<span class="lineNum">     226 </span>                :            :     }
+<span class="lineNum">     227 </span>                :<span class="lineCov">     147360 :     txCtAvg[bucketindex]++;</span>
+<span class="lineNum">     228 </span>                :<span class="lineCov">      73680 :     avg[bucketindex] += val;</span>
+<a name="229"><span class="lineNum">     229 </span>                :            : }</a>
+<span class="lineNum">     230 </span>                :            : 
+<span class="lineNum">     231 </span>                :<span class="lineCov">       3660 : void TxConfirmStats::UpdateMovingAverages()</span>
+<span class="lineNum">     232 </span>                :            : {
+<span class="lineNum">     233 </span>        [<span class="branchCov" title="Branch 0 was taken 695400 times"> + </span><span class="branchCov" title="Branch 1 was taken 3660 times"> + </span>]:<span class="lineCov">     699060 :     for (unsigned int j = 0; j &lt; buckets.size(); j++) {</span>
+<span class="lineNum">     234 </span>        [<span class="branchCov" title="Branch 0 was taken 695400 times"> + </span><span class="branchCov" title="Branch 1 was taken 18080400 times"> + </span>]:<span class="lineCov">   18775800 :         for (unsigned int i = 0; i &lt; confAvg.size(); i++)</span>
+<span class="lineNum">     235 </span>                :<span class="lineCov">   54241200 :             confAvg[i][j] = confAvg[i][j] * decay;</span>
+<span class="lineNum">     236 </span>        [<span class="branchCov" title="Branch 0 was taken 18080400 times"> + </span><span class="branchCov" title="Branch 1 was taken 695400 times"> + </span>]:<span class="lineCov">   18775800 :         for (unsigned int i = 0; i &lt; failAvg.size(); i++)</span>
+<span class="lineNum">     237 </span>                :<span class="lineCov">   54241200 :             failAvg[i][j] = failAvg[i][j] * decay;</span>
+<span class="lineNum">     238 </span>                :<span class="lineCov">    1390800 :         avg[j] = avg[j] * decay;</span>
+<span class="lineNum">     239 </span>                :<span class="lineCov">    1390800 :         txCtAvg[j] = txCtAvg[j] * decay;</span>
+<span class="lineNum">     240 </span>                :            :     }
+<span class="lineNum">     241 </span>                :<span class="lineCov">       3660 : }</span>
+<a name="242"><span class="lineNum">     242 </span>                :            : </a>
+<span class="lineNum">     243 </span>                :            : // returns -1 on error conditions
+<span class="lineNum">     244 </span>                :<span class="lineCov">         88 : double TxConfirmStats::EstimateMedianVal(int confTarget, double sufficientTxVal,</span>
+<span class="lineNum">     245 </span>                :            :                                          double successBreakPoint, bool requireGreater,
+<span class="lineNum">     246 </span>                :            :                                          unsigned int nBlockHeight, EstimationResult *result) const
+<span class="lineNum">     247 </span>                :            : {
+<span class="lineNum">     248 </span>                :            :     // Counters for a bucket (or range of buckets)
+<span class="lineNum">     249 </span>                :<span class="lineCov">         88 :     double nConf = 0; // Number of tx's confirmed within the confTarget</span>
+<span class="lineNum">     250 </span>                :<span class="lineCov">         88 :     double totalNum = 0; // Total number of tx's that were ever confirmed</span>
+<span class="lineNum">     251 </span>                :<span class="lineCov">         88 :     int extraNum = 0;  // Number of tx's still in mempool for confTarget or longer</span>
+<span class="lineNum">     252 </span>                :<span class="lineCov">         88 :     double failNum = 0; // Number of tx's that were never confirmed but removed from the mempool after confTarget</span>
+<span class="lineNum">     253 </span>                :<span class="lineCov">         88 :     int periodTarget = (confTarget + scale - 1)/scale;</span>
+<span class="lineNum">     254 </span>                :            : 
+<span class="lineNum">     255 </span>                :<span class="lineCov">        176 :     int maxbucketindex = buckets.size() - 1;</span>
+<span class="lineNum">     256 </span>                :            : 
+<span class="lineNum">     257 </span>                :            :     // requireGreater means we are looking for the lowest feerate such that all higher
+<span class="lineNum">     258 </span>                :            :     // values pass, so we start at maxbucketindex (highest feerate) and look at successively
+<span class="lineNum">     259 </span>                :            :     // smaller buckets until we reach failure.  Otherwise, we are looking for the highest
+<span class="lineNum">     260 </span>                :            :     // feerate such that all lower values fail, and we go in the opposite direction.
+<span class="lineNum">     261 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 88 times"> + </span>]:<span class="lineCov">         88 :     unsigned int startbucket = requireGreater ? maxbucketindex : 0;</span>
+<span class="lineNum">     262 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 88 times"> + </span>]:<span class="lineCov">         88 :     int step = requireGreater ? -1 : 1;</span>
+<span class="lineNum">     263 </span>                :            : 
+<span class="lineNum">     264 </span>                :            :     // We'll combine buckets until we have enough samples.
+<span class="lineNum">     265 </span>                :            :     // The near and far variables will define the range we've combined
+<span class="lineNum">     266 </span>                :            :     // The best variables are the last range we saw which still had a high
+<span class="lineNum">     267 </span>                :            :     // enough confirmation rate to count as success.
+<span class="lineNum">     268 </span>                :            :     // The cur variables are the current range we're counting.
+<span class="lineNum">     269 </span>                :<span class="lineCov">         88 :     unsigned int curNearBucket = startbucket;</span>
+<span class="lineNum">     270 </span>                :<span class="lineCov">         88 :     unsigned int bestNearBucket = startbucket;</span>
+<span class="lineNum">     271 </span>                :<span class="lineCov">         88 :     unsigned int curFarBucket = startbucket;</span>
+<span class="lineNum">     272 </span>                :<span class="lineCov">         88 :     unsigned int bestFarBucket = startbucket;</span>
+<span class="lineNum">     273 </span>                :            : 
+<span class="lineNum">     274 </span>                :<span class="lineCov">         88 :     bool foundAnswer = false;</span>
+<span class="lineNum">     275 </span>                :<span class="lineCov">        176 :     unsigned int bins = unconfTxs.size();</span>
+<span class="lineNum">     276 </span>                :<span class="lineCov">         88 :     bool newBucketRange = true;</span>
+<span class="lineNum">     277 </span>                :<span class="lineCov">         88 :     bool passing = true;</span>
+<span class="lineNum">     278 </span>                :<span class="lineCov">         88 :     EstimatorBucket passBucket;</span>
+<span class="lineNum">     279 </span>                :<span class="lineCov">         88 :     EstimatorBucket failBucket;</span>
+<span class="lineNum">     280 </span>                :            : 
+<span class="lineNum">     281 </span>                :            :     // Start counting from highest(default) or lowest feerate transactions
+<span class="lineNum">     282 </span>        [<span class="branchCov" title="Branch 0 was taken 16720 times"> + </span><span class="branchCov" title="Branch 1 was taken 88 times"> + </span>]:<span class="lineCov">      16808 :     for (int bucket = startbucket; bucket &gt;= 0 &amp;&amp; bucket &lt;= maxbucketindex; bucket += step) {</span>
+<span class="lineNum">     283 </span>        [<span class="branchCov" title="Branch 0 was taken 689 times"> + </span><span class="branchCov" title="Branch 1 was taken 16031 times"> + </span>]:<span class="lineCov">      16720 :         if (newBucketRange) {</span>
+<span class="lineNum">     284 </span>                :<span class="lineCov">        689 :             curNearBucket = bucket;</span>
+<span class="lineNum">     285 </span>                :<span class="lineCov">        689 :             newBucketRange = false;</span>
+<span class="lineNum">     286 </span>                :            :         }
+<span class="lineNum">     287 </span>                :<span class="lineCov">      16720 :         curFarBucket = bucket;</span>
+<span class="lineNum">     288 </span>                :<span class="lineCov">      50160 :         nConf += confAvg[periodTarget - 1][bucket];</span>
+<span class="lineNum">     289 </span>                :<span class="lineCov">      33440 :         totalNum += txCtAvg[bucket];</span>
+<span class="lineNum">     290 </span>                :<span class="lineCov">      50160 :         failNum += failAvg[periodTarget - 1][bucket];</span>
+<span class="lineNum">     291 </span>        [<span class="branchCov" title="Branch 0 was taken 538460 times"> + </span><span class="branchCov" title="Branch 1 was taken 16720 times"> + </span>]:<span class="lineCov">     555180 :         for (unsigned int confct = confTarget; confct &lt; GetMaxConfirms(); confct++)</span>
+<span class="lineNum">     292 </span>                :<span class="lineCov">    1615380 :             extraNum += unconfTxs[(nBlockHeight - confct)%bins][bucket];</span>
+<span class="lineNum">     293 </span>                :<span class="lineCov">      33440 :         extraNum += oldUnconfTxs[bucket];</span>
+<span class="lineNum">     294 </span>                :            :         // If we have enough transaction data points in this range of buckets,
+<span class="lineNum">     295 </span>                :            :         // we can test for success
+<span class="lineNum">     296 </span>                :            :         // (Only count the confirmed data points, so that each confirmation count
+<span class="lineNum">     297 </span>                :            :         // will be looking at the same amount of data and same bucket breaks)
+<span class="lineNum">     298 </span>        [<span class="branchCov" title="Branch 0 was taken 3978 times"> + </span><span class="branchCov" title="Branch 1 was taken 12742 times"> + </span>]:<span class="lineCov">      16720 :         if (totalNum &gt;= sufficientTxVal / (1 - decay)) {</span>
+<span class="lineNum">     299 </span>                :<span class="lineCov">       3978 :             double curPct = nConf / (totalNum + failNum + extraNum);</span>
+<span class="lineNum">     300 </span>                :            : 
+<span class="lineNum">     301 </span>                :            :             // Check to see if we are no longer getting confirmed at the success rate
+<span class="lineNum">     302 </span>[<span class="branchCov" title="Branch 0 was taken 3978 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 601 times"> + </span><span class="branchCov" title="Branch 3 was taken 3377 times"> + </span>]:<span class="lineCov">       3978 :             if ((requireGreater &amp;&amp; curPct &lt; successBreakPoint) || (!requireGreater &amp;&amp; curPct &gt; successBreakPoint)) {</span>
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 601 times"> + </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">     303 </span>        [<span class="branchCov" title="Branch 0 was taken 40 times"> + </span><span class="branchCov" title="Branch 1 was taken 3337 times"> + </span>]:<span class="lineCov">       3377 :                 if (passing == true) {</span>
+<span class="lineNum">     304 </span>                :            :                     // First time we hit a failure record the failed bucket
+<span class="lineNum">     305 </span>                :<span class="lineCov">         40 :                     unsigned int failMinBucket = std::min(curNearBucket, curFarBucket);</span>
+<span class="lineNum">     306 </span>                :<span class="lineCov">         40 :                     unsigned int failMaxBucket = std::max(curNearBucket, curFarBucket);</span>
+<span class="lineNum">     307 </span>        [<span class="branchCov" title="Branch 0 was taken 40 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         40 :                     failBucket.start = failMinBucket ? buckets[failMinBucket - 1] : 0;</span>
+<span class="lineNum">     308 </span>                :<span class="lineCov">         80 :                     failBucket.end = buckets[failMaxBucket];</span>
+<span class="lineNum">     309 </span>                :<span class="lineCov">         40 :                     failBucket.withinTarget = nConf;</span>
+<span class="lineNum">     310 </span>                :<span class="lineCov">         40 :                     failBucket.totalConfirmed = totalNum;</span>
+<span class="lineNum">     311 </span>                :<span class="lineCov">         40 :                     failBucket.inMempool = extraNum;</span>
+<span class="lineNum">     312 </span>                :<span class="lineCov">         40 :                     failBucket.leftMempool = failNum;</span>
+<span class="lineNum">     313 </span>                :<span class="lineCov">         40 :                     passing = false;</span>
+<span class="lineNum">     314 </span>                :            :                 }
+<span class="lineNum">     315 </span>                :<span class="lineCov">       3377 :                 continue;</span>
+<span class="lineNum">     316 </span>                :            :             }
+<span class="lineNum">     317 </span>                :            :             // Otherwise update the cumulative stats, and the bucket variables
+<span class="lineNum">     318 </span>                :            :             // and reset the counters
+<span class="lineNum">     319 </span>                :            :             else {
+<span class="lineNum">     320 </span>                :<span class="lineCov">       1202 :                 failBucket = EstimatorBucket(); // Reset any failed bucket, currently passing</span>
+<span class="lineNum">     321 </span>                :<span class="lineCov">        601 :                 foundAnswer = true;</span>
+<span class="lineNum">     322 </span>                :<span class="lineCov">        601 :                 passing = true;</span>
+<span class="lineNum">     323 </span>                :<span class="lineCov">        601 :                 passBucket.withinTarget = nConf;</span>
+<span class="lineNum">     324 </span>                :<span class="lineCov">        601 :                 nConf = 0;</span>
+<span class="lineNum">     325 </span>                :<span class="lineCov">        601 :                 passBucket.totalConfirmed = totalNum;</span>
+<span class="lineNum">     326 </span>                :<span class="lineCov">        601 :                 totalNum = 0;</span>
+<span class="lineNum">     327 </span>                :<span class="lineCov">        601 :                 passBucket.inMempool = extraNum;</span>
+<span class="lineNum">     328 </span>                :<span class="lineCov">        601 :                 passBucket.leftMempool = failNum;</span>
+<span class="lineNum">     329 </span>                :<span class="lineCov">        601 :                 failNum = 0;</span>
+<span class="lineNum">     330 </span>                :<span class="lineCov">        601 :                 extraNum = 0;</span>
+<span class="lineNum">     331 </span>                :<span class="lineCov">        601 :                 bestNearBucket = curNearBucket;</span>
+<span class="lineNum">     332 </span>                :<span class="lineCov">        601 :                 bestFarBucket = curFarBucket;</span>
+<span class="lineNum">     333 </span>                :<span class="lineCov">        601 :                 newBucketRange = true;</span>
+<span class="lineNum">     334 </span>                :            :             }
+<span class="lineNum">     335 </span>                :            :         }
+<span class="lineNum">     336 </span>                :            :     }
+<span class="lineNum">     337 </span>                :            : 
+<span class="lineNum">     338 </span>                :<span class="lineCov">         88 :     double median = -1;</span>
+<span class="lineNum">     339 </span>                :<span class="lineCov">         88 :     double txSum = 0;</span>
+<span class="lineNum">     340 </span>                :            : 
+<span class="lineNum">     341 </span>                :            :     // Calculate the &quot;average&quot; feerate of the best bucket range that met success conditions
+<span class="lineNum">     342 </span>                :            :     // Find the bucket with the median transaction and then report the average feerate from that bucket
+<span class="lineNum">     343 </span>                :            :     // This is a compromise between finding the median which we can't since we don't save all tx's
+<span class="lineNum">     344 </span>                :            :     // and reporting the average which is less accurate
+<span class="lineNum">     345 </span>                :<span class="lineCov">         88 :     unsigned int minBucket = std::min(bestNearBucket, bestFarBucket);</span>
+<span class="lineNum">     346 </span>                :<span class="lineCov">         88 :     unsigned int maxBucket = std::max(bestNearBucket, bestFarBucket);</span>
+<span class="lineNum">     347 </span>        [<span class="branchCov" title="Branch 0 was taken 957 times"> + </span><span class="branchCov" title="Branch 1 was taken 88 times"> + </span>]:<span class="lineCov">       1045 :     for (unsigned int j = minBucket; j &lt;= maxBucket; j++) {</span>
+<span class="lineNum">     348 </span>                :<span class="lineCov">       1914 :         txSum += txCtAvg[j];</span>
+<span class="lineNum">     349 </span>                :            :     }
+<span class="lineNum">     350 </span>        [<span class="branchCov" title="Branch 0 was taken 72 times"> + </span><span class="branchCov" title="Branch 1 was taken 16 times"> + </span>]:<span class="lineCov">         88 :     if (foundAnswer &amp;&amp; txSum != 0) {</span>
+<span class="lineNum">     351 </span>                :<span class="lineCov">         72 :         txSum = txSum / 2;</span>
+<span class="lineNum">     352 </span>        [<span class="branchCov" title="Branch 0 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         72 :         for (unsigned int j = minBucket; j &lt;= maxBucket; j++) {</span>
+<span class="lineNum">     353 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 72 times"> + </span>]:<span class="lineCov">         72 :             if (txCtAvg[j] &lt; txSum)</span>
+<span class="lineNum">     354 </span>                :<span class="lineNoCov">          0 :                 txSum -= txCtAvg[j];</span>
+<span class="lineNum">     355 </span>                :            :             else { // we're in the right bucket
+<span class="lineNum">     356 </span>                :<span class="lineCov">        144 :                 median = avg[j] / txCtAvg[j];</span>
+<span class="lineNum">     357 </span>                :<span class="lineCov">         72 :                 break;</span>
+<span class="lineNum">     358 </span>                :            :             }
+<span class="lineNum">     359 </span>                :            :         }
+<span class="lineNum">     360 </span>                :            : 
+<span class="lineNum">     361 </span>        [<span class="branchCov" title="Branch 0 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         72 :         passBucket.start = minBucket ? buckets[minBucket-1] : 0;</span>
+<span class="lineNum">     362 </span>                :<span class="lineCov">         72 :         passBucket.end = buckets[maxBucket];</span>
+<span class="lineNum">     363 </span>                :            :     }
+<span class="lineNum">     364 </span>                :            : 
+<span class="lineNum">     365 </span>                :            :     // If we were passing until we reached last few buckets with insufficient data, then report those as failed
+<span class="lineNum">     366 </span>        [<span class="branchCov" title="Branch 0 was taken 48 times"> + </span><span class="branchCov" title="Branch 1 was taken 40 times"> + </span>]:<span class="lineCov">         88 :     if (passing &amp;&amp; !newBucketRange) {</span>
+<span class="lineNum">     367 </span>                :<span class="lineCov">         48 :         unsigned int failMinBucket = std::min(curNearBucket, curFarBucket);</span>
+<span class="lineNum">     368 </span>                :<span class="lineCov">         48 :         unsigned int failMaxBucket = std::max(curNearBucket, curFarBucket);</span>
+<span class="lineNum">     369 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 48 times"> + </span>]:<span class="lineCov">         48 :         failBucket.start = failMinBucket ? buckets[failMinBucket - 1] : 0;</span>
+<span class="lineNum">     370 </span>                :<span class="lineCov">         96 :         failBucket.end = buckets[failMaxBucket];</span>
+<span class="lineNum">     371 </span>                :<span class="lineCov">         48 :         failBucket.withinTarget = nConf;</span>
+<span class="lineNum">     372 </span>                :<span class="lineCov">         48 :         failBucket.totalConfirmed = totalNum;</span>
+<span class="lineNum">     373 </span>                :<span class="lineCov">         48 :         failBucket.inMempool = extraNum;</span>
+<span class="lineNum">     374 </span>                :<span class="lineCov">         48 :         failBucket.leftMempool = failNum;</span>
+<span class="lineNum">     375 </span>                :            :     }
+<span class="lineNum">     376 </span>                :            : 
+<span class="lineNum">     377 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 88 times"> + </span>]:<span class="lineCov">         88 :     LogPrint(BCLog::ESTIMATEFEE, &quot;FeeEst: %d %s%.0f%% decay %.5f: feerate: %g from (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out) Fail: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out)\n&quot;,</span>
+<span class="lineNum">     378 </span>                :<span class="lineCov">        176 :              confTarget, requireGreater ? &quot;&gt;&quot; : &quot;&lt;&quot;, 100.0 * successBreakPoint, decay,</span>
+<span class="lineNum">     379 </span>                :            :              median, passBucket.start, passBucket.end,
+<span class="lineNum">     380 </span>                :<span class="lineCov">        176 :              100 * passBucket.withinTarget / (passBucket.totalConfirmed + passBucket.inMempool + passBucket.leftMempool),</span>
+<span class="lineNum">     381 </span>                :            :              passBucket.withinTarget, passBucket.totalConfirmed, passBucket.inMempool, passBucket.leftMempool,
+<span class="lineNum">     382 </span>                :            :              failBucket.start, failBucket.end,
+<span class="lineNum">     383 </span>                :<span class="lineCov">        176 :              100 * failBucket.withinTarget / (failBucket.totalConfirmed + failBucket.inMempool + failBucket.leftMempool),</span>
+<span class="lineNum">     384 </span>                :            :              failBucket.withinTarget, failBucket.totalConfirmed, failBucket.inMempool, failBucket.leftMempool);
+<span class="lineNum">     385 </span>                :            : 
+<span class="lineNum">     386 </span>                :            : 
+<span class="lineNum">     387 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 88 times"> + </span>]:<span class="lineCov">         88 :     if (result) {</span>
+<span class="lineNum">     388 </span>                :<span class="lineNoCov">          0 :         result-&gt;pass = passBucket;</span>
+<span class="lineNum">     389 </span>                :<span class="lineNoCov">          0 :         result-&gt;fail = failBucket;</span>
+<span class="lineNum">     390 </span>                :<span class="lineNoCov">          0 :         result-&gt;decay = decay;</span>
+<span class="lineNum">     391 </span>                :<span class="lineNoCov">          0 :         result-&gt;scale = scale;</span>
+<span class="lineNum">     392 </span>                :            :     }
+<span class="lineNum">     393 </span>                :<span class="lineCov">         88 :     return median;</span>
+<a name="394"><span class="lineNum">     394 </span>                :            : }</a>
+<span class="lineNum">     395 </span>                :            : 
+<span class="lineNum">     396 </span>                :<span class="lineNoCov">          0 : void TxConfirmStats::Write(CAutoFile&amp; fileout) const</span>
+<span class="lineNum">     397 </span>                :            : {
+<span class="lineNum">     398 </span>                :<span class="lineNoCov">          0 :     fileout &lt;&lt; decay;</span>
+<span class="lineNum">     399 </span>                :<span class="lineNoCov">          0 :     fileout &lt;&lt; scale;</span>
+<span class="lineNum">     400 </span>                :<span class="lineNoCov">          0 :     fileout &lt;&lt; avg;</span>
+<span class="lineNum">     401 </span>                :<span class="lineNoCov">          0 :     fileout &lt;&lt; txCtAvg;</span>
+<span class="lineNum">     402 </span>                :<span class="lineNoCov">          0 :     fileout &lt;&lt; confAvg;</span>
+<span class="lineNum">     403 </span>                :<span class="lineNoCov">          0 :     fileout &lt;&lt; failAvg;</span>
+<a name="404"><span class="lineNum">     404 </span>                :<span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">     405 </span>                :            : 
+<span class="lineNum">     406 </span>                :<span class="lineNoCov">          0 : void TxConfirmStats::Read(CAutoFile&amp; filein, int nFileVersion, size_t numBuckets)</span>
+<span class="lineNum">     407 </span>                :            : {
+<span class="lineNum">     408 </span>                :            :     // Read data file and do some very basic sanity checking
+<span class="lineNum">     409 </span>                :            :     // buckets and bucketMap are not updated yet, so don't access them
+<span class="lineNum">     410 </span>                :            :     // If there is a read failure, we'll just discard this entire object anyway
+<span class="lineNum">     411 </span>                :            :     size_t maxConfirms, maxPeriods;
+<span class="lineNum">     412 </span>                :            : 
+<span class="lineNum">     413 </span>                :            :     // The current version will store the decay with each individual TxConfirmStats and also keep a scale factor
+<span class="lineNum">     414 </span>                :<span class="lineNoCov">          0 :     filein &gt;&gt; decay;</span>
+<span class="lineNum">     415 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (decay &lt;= 0 || decay &gt;= 1) {</span>
+<span class="lineNum">     416 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw std::runtime_error(&quot;Corrupt estimates file. Decay must be between 0 and 1 (non-inclusive)&quot;);</span>
+<span class="lineNum">     417 </span>                :            :     }
+<span class="lineNum">     418 </span>                :<span class="lineNoCov">          0 :     filein &gt;&gt; scale;</span>
+<span class="lineNum">     419 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (scale == 0) {</span>
+<span class="lineNum">     420 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw std::runtime_error(&quot;Corrupt estimates file. Scale must be non-zero&quot;);</span>
+<span class="lineNum">     421 </span>                :            :     }
+<span class="lineNum">     422 </span>                :            : 
+<span class="lineNum">     423 </span>                :<span class="lineNoCov">          0 :     filein &gt;&gt; avg;</span>
+<span class="lineNum">     424 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (avg.size() != numBuckets) {</span>
+<span class="lineNum">     425 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw std::runtime_error(&quot;Corrupt estimates file. Mismatch in feerate average bucket count&quot;);</span>
+<span class="lineNum">     426 </span>                :            :     }
+<span class="lineNum">     427 </span>                :<span class="lineNoCov">          0 :     filein &gt;&gt; txCtAvg;</span>
+<span class="lineNum">     428 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (txCtAvg.size() != numBuckets) {</span>
+<span class="lineNum">     429 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw std::runtime_error(&quot;Corrupt estimates file. Mismatch in tx count bucket count&quot;);</span>
+<span class="lineNum">     430 </span>                :            :     }
+<span class="lineNum">     431 </span>                :<span class="lineNoCov">          0 :     filein &gt;&gt; confAvg;</span>
+<span class="lineNum">     432 </span>                :<span class="lineNoCov">          0 :     maxPeriods = confAvg.size();</span>
+<span class="lineNum">     433 </span>                :<span class="lineNoCov">          0 :     maxConfirms = scale * maxPeriods;</span>
+<span class="lineNum">     434 </span>                :            : 
+<span class="lineNum">     435 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (maxConfirms &lt;= 0 || maxConfirms &gt; 6 * 24 * 7) { // one week</span>
+<span class="lineNum">     436 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw std::runtime_error(&quot;Corrupt estimates file.  Must maintain estimates for between 1 and 1008 (one week) confirms&quot;);</span>
+<span class="lineNum">     437 </span>                :            :     }
+<span class="lineNum">     438 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     for (unsigned int i = 0; i &lt; maxPeriods; i++) {</span>
+<span class="lineNum">     439 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (confAvg[i].size() != numBuckets) {</span>
+<span class="lineNum">     440 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::runtime_error(&quot;Corrupt estimates file. Mismatch in feerate conf average bucket count&quot;);</span>
+<span class="lineNum">     441 </span>                :            :         }
+<span class="lineNum">     442 </span>                :            :     }
+<span class="lineNum">     443 </span>                :            : 
+<span class="lineNum">     444 </span>                :<span class="lineNoCov">          0 :     filein &gt;&gt; failAvg;</span>
+<span class="lineNum">     445 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (maxPeriods != failAvg.size()) {</span>
+<span class="lineNum">     446 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw std::runtime_error(&quot;Corrupt estimates file. Mismatch in confirms tracked for failures&quot;);</span>
+<span class="lineNum">     447 </span>                :            :     }
+<span class="lineNum">     448 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     for (unsigned int i = 0; i &lt; maxPeriods; i++) {</span>
+<span class="lineNum">     449 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (failAvg[i].size() != numBuckets) {</span>
+<span class="lineNum">     450 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::runtime_error(&quot;Corrupt estimates file. Mismatch in one of failure average bucket counts&quot;);</span>
+<span class="lineNum">     451 </span>                :            :         }
+<span class="lineNum">     452 </span>                :            :     }
+<span class="lineNum">     453 </span>                :            : 
+<span class="lineNum">     454 </span>                :            :     // Resize the current block variables which aren't stored in the data file
+<span class="lineNum">     455 </span>                :            :     // to match the number of confirms and buckets
+<span class="lineNum">     456 </span>                :<span class="lineNoCov">          0 :     resizeInMemoryCounters(numBuckets);</span>
+<span class="lineNum">     457 </span>                :            : 
+<span class="lineNum">     458 </span>                :<span class="lineNoCov">          0 :     LogPrint(BCLog::ESTIMATEFEE, &quot;Reading estimates: %u buckets counting confirms up to %u blocks\n&quot;,</span>
+<span class="lineNum">     459 </span>                :            :              numBuckets, maxConfirms);
+<span class="lineNum">     460 </span>                :<span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     461 </span>                :            : 
+<span class="lineNum">     462 </span>                :<span class="lineCov">      73680 : unsigned int TxConfirmStats::NewTx(unsigned int nBlockHeight, double val)</span>
+<span class="lineNum">     463 </span>                :            : {
+<span class="lineNum">     464 </span>                :<span class="lineCov">     221040 :     unsigned int bucketindex = bucketMap.lower_bound(val)-&gt;second;</span>
+<span class="lineNum">     465 </span>                :<span class="lineCov">     147360 :     unsigned int blockIndex = nBlockHeight % unconfTxs.size();</span>
+<span class="lineNum">     466 </span>                :<span class="lineCov">     221040 :     unconfTxs[blockIndex][bucketindex]++;</span>
+<span class="lineNum">     467 </span>                :<span class="lineCov">      73680 :     return bucketindex;</span>
+<a name="468"><span class="lineNum">     468 </span>                :            : }</a>
+<span class="lineNum">     469 </span>                :            : 
+<span class="lineNum">     470 </span>                :<span class="lineCov">      73680 : void TxConfirmStats::removeTx(unsigned int entryHeight, unsigned int nBestSeenHeight, unsigned int bucketindex, bool inBlock)</span>
+<span class="lineNum">     471 </span>                :            : {
+<span class="lineNum">     472 </span>                :            :     //nBestSeenHeight is not updated yet for the new block
+<span class="lineNum">     473 </span>                :<span class="lineCov">      73680 :     int blocksAgo = nBestSeenHeight - entryHeight;</span>
+<span class="lineNum">     474 </span>        [<span class="branchCov" title="Branch 0 was taken 73680 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      73680 :     if (nBestSeenHeight == 0)  // the BlockPolicyEstimator hasn't seen any blocks yet</span>
+<span class="lineNum">     475 </span>                :            :         blocksAgo = 0;
+<span class="lineNum">     476 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 73680 times"> + </span>]:<span class="lineCov">      73680 :     if (blocksAgo &lt; 0) {</span>
+<span class="lineNum">     477 </span>                :<span class="lineNoCov">          0 :         LogPrint(BCLog::ESTIMATEFEE, &quot;Blockpolicy error, blocks ago is negative for mempool tx\n&quot;);</span>
+<span class="lineNum">     478 </span>                :<span class="lineNoCov">          0 :         return;  //This can't happen because we call this with our best seen height, no entries can have higher</span>
+<span class="lineNum">     479 </span>                :            :     }
+<span class="lineNum">     480 </span>                :            : 
+<span class="lineNum">     481 </span>        [<span class="branchCov" title="Branch 0 was taken 200 times"> + </span><span class="branchCov" title="Branch 1 was taken 73480 times"> + </span>]:<span class="lineCov">      73680 :     if (blocksAgo &gt;= (int)unconfTxs.size()) {</span>
+<span class="lineNum">     482 </span>        [<span class="branchCov" title="Branch 0 was taken 200 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        200 :         if (oldUnconfTxs[bucketindex] &gt; 0) {</span>
+<span class="lineNum">     483 </span>                :<span class="lineCov">        200 :             oldUnconfTxs[bucketindex]--;</span>
+<span class="lineNum">     484 </span>                :            :         } else {
+<span class="lineNum">     485 </span>                :<span class="lineNoCov">          0 :             LogPrint(BCLog::ESTIMATEFEE, &quot;Blockpolicy error, mempool tx removed from &gt;25 blocks,bucketIndex=%u already\n&quot;,</span>
+<span class="lineNum">     486 </span>                :            :                      bucketindex);
+<span class="lineNum">     487 </span>                :            :         }
+<span class="lineNum">     488 </span>                :            :     }
+<span class="lineNum">     489 </span>                :            :     else {
+<span class="lineNum">     490 </span>                :<span class="lineCov">      73480 :         unsigned int blockIndex = entryHeight % unconfTxs.size();</span>
+<span class="lineNum">     491 </span>        [<span class="branchCov" title="Branch 0 was taken 73480 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      73480 :         if (unconfTxs[blockIndex][bucketindex] &gt; 0) {</span>
+<span class="lineNum">     492 </span>                :<span class="lineCov">      73480 :             unconfTxs[blockIndex][bucketindex]--;</span>
+<span class="lineNum">     493 </span>                :            :         } else {
+<span class="lineNum">     494 </span>                :<span class="lineCov">      73480 :             LogPrint(BCLog::ESTIMATEFEE, &quot;Blockpolicy error, mempool tx removed from blockIndex=%u,bucketIndex=%u already\n&quot;,</span>
+<span class="lineNum">     495 </span>                :            :                      blockIndex, bucketindex);
+<span class="lineNum">     496 </span>                :            :         }
+<span class="lineNum">     497 </span>                :            :     }
+<span class="lineNum">     498 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 73680 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">      73680 :     if (!inBlock &amp;&amp; (unsigned int)blocksAgo &gt;= scale) { // Only counts as a failure if not confirmed for entire period</span>
+<span class="lineNum">     499 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         assert(scale != 0);</span>
+<span class="lineNum">     500 </span>                :<span class="lineNoCov">          0 :         unsigned int periodsAgo = blocksAgo / scale;</span>
+<span class="lineNum">     501 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         for (size_t i = 0; i &lt; periodsAgo &amp;&amp; i &lt; failAvg.size(); i++) {</span>
+<span class="lineNum">     502 </span>                :<span class="lineNoCov">          0 :             failAvg[i][bucketindex]++;</span>
+<span class="lineNum">     503 </span>                :            :         }
+<span class="lineNum">     504 </span>                :            :     }
+<span class="lineNum">     505 </span>                :            : }
+<span class="lineNum">     506 </span>                :            : 
+<span class="lineNum">     507 </span>                :            : // This function is called from CTxMemPool::removeUnchecked to ensure
+<span class="lineNum">     508 </span>                :            : // txs removed from the mempool for any reason are no longer
+<span class="lineNum">     509 </span>                :            : // tracked. Txs that were part of a block have already been removed in
+<span class="lineNum">     510 </span>                :            : // processBlockTx to ensure they are never double tracked, but it is
+<span class="lineNum">     511 </span>                :            : // of no harm to try to remove them again.
+<span class="lineNum">     512 </span>                :<span class="lineCov">      49163 : bool CBlockPolicyEstimator::removeTx(uint256 hash, bool inBlock)</span>
+<span class="lineNum">     513 </span>                :            : {
+<span class="lineNum">     514 </span>                :<span class="lineCov">      98326 :     LOCK(m_cs_fee_estimator);</span>
+<span class="lineNum">     515 </span>                :<span class="lineCov">      98326 :     std::map&lt;uint256, TxStatsInfo&gt;::iterator pos = mapMemPoolTxs.find(hash);</span>
+<span class="lineNum">     516 </span>        [<span class="branchCov" title="Branch 0 was taken 24560 times"> + </span><span class="branchCov" title="Branch 1 was taken 24603 times"> + </span>]:<span class="lineCov">      49163 :     if (pos != mapMemPoolTxs.end()) {</span>
+<span class="lineNum">     517 </span>        [<span class="branchCov" title="Branch 1 was taken 24560 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      24560 :         feeStats-&gt;removeTx(pos-&gt;second.blockHeight, nBestSeenHeight, pos-&gt;second.bucketIndex, inBlock);</span>
+<span class="lineNum">     518 </span>        [<span class="branchCov" title="Branch 1 was taken 24560 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      24560 :         shortStats-&gt;removeTx(pos-&gt;second.blockHeight, nBestSeenHeight, pos-&gt;second.bucketIndex, inBlock);</span>
+<span class="lineNum">     519 </span>        [<span class="branchCov" title="Branch 1 was taken 24560 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      24560 :         longStats-&gt;removeTx(pos-&gt;second.blockHeight, nBestSeenHeight, pos-&gt;second.bucketIndex, inBlock);</span>
+<span class="lineNum">     520 </span>                :<span class="lineCov">      24560 :         mapMemPoolTxs.erase(hash);</span>
+<span class="lineNum">     521 </span>                :<span class="lineCov">      24560 :         return true;</span>
+<span class="lineNum">     522 </span>                :            :     } else {
+<span class="lineNum">     523 </span>                :            :         return false;
+<span class="lineNum">     524 </span>                :            :     }
+<span class="lineNum">     525 </span>                :            : }
+<span class="lineNum">     526 </span>                :            : 
+<span class="lineNum">     527 </span>                :<span class="lineCov">         73 : CBlockPolicyEstimator::CBlockPolicyEstimator()</span>
+<span class="lineNum">     528 </span>                :<span class="lineNoCov">          0 :     : nBestSeenHeight(0), firstRecordedHeight(0), historicalFirst(0), historicalBest(0), trackedTxs(0), untrackedTxs(0)</span>
+<span class="lineNum">     529 </span>                :            : {
+<span class="lineNum">     530 </span>                :            :     static_assert(MIN_BUCKET_FEERATE &gt; 0, &quot;Min feerate must be nonzero&quot;);
+<span class="lineNum">     531 </span>                :<span class="lineCov">         73 :     size_t bucketIndex = 0;</span>
+<span class="lineNum">     532 </span>        [<span class="branchCov" title="Branch 0 was taken 13797 times"> + </span><span class="branchCov" title="Branch 1 was taken 73 times"> + </span>]:<span class="lineCov">      13870 :     for (double bucketBoundary = MIN_BUCKET_FEERATE; bucketBoundary &lt;= MAX_BUCKET_FEERATE; bucketBoundary *= FEE_SPACING, bucketIndex++) {</span>
+<span class="lineNum">     533 </span>        [<span class="branchCov" title="Branch 1 was taken 13797 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      13797 :         buckets.push_back(bucketBoundary);</span>
+<span class="lineNum">     534 </span>        [<span class="branchCov" title="Branch 1 was taken 13797 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      13797 :         bucketMap[bucketBoundary] = bucketIndex;</span>
+<span class="lineNum">     535 </span>                :            :     }
+<span class="lineNum">     536 </span>        [<span class="branchCov" title="Branch 1 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         73 :     buckets.push_back(INF_FEERATE);</span>
+<span class="lineNum">     537 </span>        [<span class="branchCov" title="Branch 1 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         73 :     bucketMap[INF_FEERATE] = bucketIndex;</span>
+<span class="lineNum">     538 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 73 times"> + </span>]:<span class="lineCov">         73 :     assert(bucketMap.size() == buckets.size());</span>
+<span class="lineNum">     539 </span>                :            : 
+<span class="lineNum">     540 </span>[<span class="branchCov" title="Branch 1 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         73 :     feeStats = std::unique_ptr&lt;TxConfirmStats&gt;(new TxConfirmStats(buckets, bucketMap, MED_BLOCK_PERIODS, MED_DECAY, MED_SCALE));</span>
+<span class="lineNum">     541 </span>[<span class="branchCov" title="Branch 1 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         73 :     shortStats = std::unique_ptr&lt;TxConfirmStats&gt;(new TxConfirmStats(buckets, bucketMap, SHORT_BLOCK_PERIODS, SHORT_DECAY, SHORT_SCALE));</span>
+<span class="lineNum">     542 </span>[<span class="branchCov" title="Branch 1 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         73 :     longStats = std::unique_ptr&lt;TxConfirmStats&gt;(new TxConfirmStats(buckets, bucketMap, LONG_BLOCK_PERIODS, LONG_DECAY, LONG_SCALE));</span>
+<span class="lineNum">     543 </span>                :<span class="lineCov">         73 : }</span>
+<span class="lineNum">     544 </span>                :            : 
+<span class="lineNum">     545 </span>                :<span class="lineCov">        146 : CBlockPolicyEstimator::~CBlockPolicyEstimator()</span>
+<span class="lineNum">     546 </span>                :            : {
+<span class="lineNum">     547 </span>                :<span class="lineCov">         73 : }</span>
+<span class="lineNum">     548 </span>                :            : 
+<span class="lineNum">     549 </span>                :<span class="lineCov">      26754 : void CBlockPolicyEstimator::processTransaction(const CTxMemPoolEntry&amp; entry, bool validFeeEstimate)</span>
+<span class="lineNum">     550 </span>                :            : {
+<span class="lineNum">     551 </span>                :<span class="lineCov">      51314 :     LOCK(m_cs_fee_estimator);</span>
+<span class="lineNum">     552 </span>                :<span class="lineCov">      26754 :     unsigned int txHeight = entry.GetHeight();</span>
+<span class="lineNum">     553 </span>                :<span class="lineCov">      26754 :     uint256 hash = entry.GetTx().GetHash();</span>
+<span class="lineNum">     554 </span>                :<span class="lineCov">      53508 :     if (mapMemPoolTxs.count(hash)) {</span>
+<span class="lineNum">     555 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LogPrint(BCLog::ESTIMATEFEE, &quot;Blockpolicy error mempool tx %s already being tracked\n&quot;,</span>
+<span class="lineNum">     556 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                  hash.ToString().c_str());</span>
+<span class="lineNum">     557 </span>                :<span class="lineCov">      26754 :         return;</span>
+<span class="lineNum">     558 </span>                :            :     }
+<span class="lineNum">     559 </span>                :            : 
+<span class="lineNum">     560 </span>        [<span class="branchCov" title="Branch 0 was taken 24563 times"> + </span><span class="branchCov" title="Branch 1 was taken 2191 times"> + </span>]:<span class="lineCov">      26754 :     if (txHeight != nBestSeenHeight) {</span>
+<span class="lineNum">     561 </span>                :            :         // Ignore side chains and re-orgs; assuming they are random they don't
+<span class="lineNum">     562 </span>                :            :         // affect the estimate.  We'll potentially double count transactions in 1-block reorgs.
+<span class="lineNum">     563 </span>                :            :         // Ignore txs if BlockPolicyEstimator is not in sync with chainActive.Tip().
+<span class="lineNum">     564 </span>                :            :         // It will be synced next time a block is processed.
+<span class="lineNum">     565 </span>                :            :         return;
+<span class="lineNum">     566 </span>                :            :     }
+<span class="lineNum">     567 </span>                :            : 
+<span class="lineNum">     568 </span>                :            :     // Only want to be updating estimates when our blockchain is synced,
+<span class="lineNum">     569 </span>                :            :     // otherwise we'll miscalculate how many blocks its taking to get included.
+<span class="lineNum">     570 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 24560 times"> + </span>]:<span class="lineCov">      24563 :     if (!validFeeEstimate) {</span>
+<span class="lineNum">     571 </span>                :<span class="lineCov">          3 :         untrackedTxs++;</span>
+<span class="lineNum">     572 </span>                :<span class="lineCov">          3 :         return;</span>
+<span class="lineNum">     573 </span>                :            :     }
+<span class="lineNum">     574 </span>                :<span class="lineCov">      24560 :     trackedTxs++;</span>
+<span class="lineNum">     575 </span>                :            : 
+<span class="lineNum">     576 </span>                :            :     // Feerates are stored and reported as BTC-per-kb:
+<span class="lineNum">     577 </span>[<span class="branchCov" title="Branch 1 was taken 24560 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 24560 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      24560 :     CFeeRate feeRate(entry.GetFee(), entry.GetTxSize());</span>
+<span class="lineNum">     578 </span>                :            : 
+<span class="lineNum">     579 </span>        [<span class="branchCov" title="Branch 1 was taken 24560 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      24560 :     mapMemPoolTxs[hash].blockHeight = txHeight;</span>
+<span class="lineNum">     580 </span>                :<span class="lineCov">      24560 :     unsigned int bucketIndex = feeStats-&gt;NewTx(txHeight, (double)feeRate.GetFeePerK());</span>
+<span class="lineNum">     581 </span>        [<span class="branchCov" title="Branch 1 was taken 24560 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      24560 :     mapMemPoolTxs[hash].bucketIndex = bucketIndex;</span>
+<span class="lineNum">     582 </span>                :<span class="lineCov">      24560 :     unsigned int bucketIndex2 = shortStats-&gt;NewTx(txHeight, (double)feeRate.GetFeePerK());</span>
+<span class="lineNum">     583 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 24560 times"> + </span>]:<span class="lineCov">      24560 :     assert(bucketIndex == bucketIndex2);</span>
+<span class="lineNum">     584 </span>                :<span class="lineCov">      24560 :     unsigned int bucketIndex3 = longStats-&gt;NewTx(txHeight, (double)feeRate.GetFeePerK());</span>
+<span class="lineNum">     585 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 24560 times"> + </span>]:<span class="lineCov">      24560 :     assert(bucketIndex == bucketIndex3);</span>
+<a name="586"><span class="lineNum">     586 </span>                :            : }</a>
+<span class="lineNum">     587 </span>                :            : 
+<span class="lineNum">     588 </span>                :<span class="lineCov">      24561 : bool CBlockPolicyEstimator::processBlockTx(unsigned int nBlockHeight, const CTxMemPoolEntry* entry)</span>
+<span class="lineNum">     589 </span>                :            : {
+<span class="lineNum">     590 </span>        [<span class="branchCov" title="Branch 1 was taken 24560 times"> + </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span>]:<span class="lineCov">      24561 :     if (!removeTx(entry-&gt;GetTx().GetHash(), true)) {</span>
+<span class="lineNum">     591 </span>                :            :         // This transaction wasn't being tracked for fee estimation
+<span class="lineNum">     592 </span>                :            :         return false;
+<span class="lineNum">     593 </span>                :            :     }
+<span class="lineNum">     594 </span>                :            : 
+<span class="lineNum">     595 </span>                :            :     // How many blocks did it take for miners to include this transaction?
+<span class="lineNum">     596 </span>                :            :     // blocksToConfirm is 1-based, so a transaction included in the earliest
+<span class="lineNum">     597 </span>                :            :     // possible block has confirmation count of 1
+<span class="lineNum">     598 </span>                :<span class="lineCov">      24560 :     int blocksToConfirm = nBlockHeight - entry-&gt;GetHeight();</span>
+<span class="lineNum">     599 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 24560 times"> + </span>]:<span class="lineCov">      24560 :     if (blocksToConfirm &lt;= 0) {</span>
+<span class="lineNum">     600 </span>                :            :         // This can't happen because we don't process transactions from a block with a height
+<span class="lineNum">     601 </span>                :            :         // lower than our greatest seen height
+<span class="lineNum">     602 </span>                :<span class="lineNoCov">          0 :         LogPrint(BCLog::ESTIMATEFEE, &quot;Blockpolicy error Transaction had negative blocksToConfirm\n&quot;);</span>
+<span class="lineNum">     603 </span>                :<span class="lineNoCov">          0 :         return false;</span>
+<span class="lineNum">     604 </span>                :            :     }
+<span class="lineNum">     605 </span>                :            : 
+<span class="lineNum">     606 </span>                :            :     // Feerates are stored and reported as BTC-per-kb:
+<span class="lineNum">     607 </span>                :<span class="lineCov">      24560 :     CFeeRate feeRate(entry-&gt;GetFee(), entry-&gt;GetTxSize());</span>
+<span class="lineNum">     608 </span>                :            : 
+<span class="lineNum">     609 </span>                :<span class="lineCov">      24560 :     feeStats-&gt;Record(blocksToConfirm, (double)feeRate.GetFeePerK());</span>
+<span class="lineNum">     610 </span>                :<span class="lineCov">      24560 :     shortStats-&gt;Record(blocksToConfirm, (double)feeRate.GetFeePerK());</span>
+<span class="lineNum">     611 </span>                :<span class="lineCov">      24560 :     longStats-&gt;Record(blocksToConfirm, (double)feeRate.GetFeePerK());</span>
+<span class="lineNum">     612 </span>                :<span class="lineCov">      24560 :     return true;</span>
+<span class="lineNum">     613 </span>                :            : }
+<span class="lineNum">     614 </span>                :            : 
+<span class="lineNum">     615 </span>                :<span class="lineCov">       1997 : void CBlockPolicyEstimator::processBlock(unsigned int nBlockHeight,</span>
+<span class="lineNum">     616 </span>                :            :                                          std::vector&lt;const CTxMemPoolEntry*&gt;&amp; entries)
+<span class="lineNum">     617 </span>                :            : {
+<span class="lineNum">     618 </span>                :<span class="lineCov">       3217 :     LOCK(m_cs_fee_estimator);</span>
+<span class="lineNum">     619 </span>        [<span class="branchCov" title="Branch 0 was taken 1220 times"> + </span><span class="branchCov" title="Branch 1 was taken 777 times"> + </span>]:<span class="lineCov">       1997 :     if (nBlockHeight &lt;= nBestSeenHeight) {</span>
+<span class="lineNum">     620 </span>                :            :         // Ignore side chains and re-orgs; assuming they are random
+<span class="lineNum">     621 </span>                :            :         // they don't affect the estimate.
+<span class="lineNum">     622 </span>                :            :         // And if an attacker can re-org the chain at will, then
+<span class="lineNum">     623 </span>                :            :         // you've got much bigger problems than &quot;attacker can influence
+<span class="lineNum">     624 </span>                :            :         // transaction fees.&quot;
+<span class="lineNum">     625 </span>                :<span class="lineCov">       1997 :         return;</span>
+<span class="lineNum">     626 </span>                :            :     }
+<span class="lineNum">     627 </span>                :            : 
+<span class="lineNum">     628 </span>                :            :     // Must update nBestSeenHeight in sync with ClearCurrent so that
+<span class="lineNum">     629 </span>                :            :     // calls to removeTx (via processBlockTx) correctly calculate age
+<span class="lineNum">     630 </span>                :            :     // of unconfirmed txs to remove from tracking.
+<span class="lineNum">     631 </span>                :<span class="lineCov">       1220 :     nBestSeenHeight = nBlockHeight;</span>
+<span class="lineNum">     632 </span>                :            : 
+<span class="lineNum">     633 </span>                :            :     // Update unconfirmed circular buffer
+<span class="lineNum">     634 </span>                :<span class="lineCov">       1220 :     feeStats-&gt;ClearCurrent(nBlockHeight);</span>
+<span class="lineNum">     635 </span>                :<span class="lineCov">       1220 :     shortStats-&gt;ClearCurrent(nBlockHeight);</span>
+<span class="lineNum">     636 </span>                :<span class="lineCov">       1220 :     longStats-&gt;ClearCurrent(nBlockHeight);</span>
+<span class="lineNum">     637 </span>                :            : 
+<span class="lineNum">     638 </span>                :            :     // Decay all exponential averages
+<span class="lineNum">     639 </span>                :<span class="lineCov">       1220 :     feeStats-&gt;UpdateMovingAverages();</span>
+<span class="lineNum">     640 </span>                :<span class="lineCov">       1220 :     shortStats-&gt;UpdateMovingAverages();</span>
+<span class="lineNum">     641 </span>                :<span class="lineCov">       1220 :     longStats-&gt;UpdateMovingAverages();</span>
+<span class="lineNum">     642 </span>                :            : 
+<span class="lineNum">     643 </span>                :<span class="lineCov">       1220 :     unsigned int countedTxs = 0;</span>
+<span class="lineNum">     644 </span>                :            :     // Update averages with data points from current block
+<span class="lineNum">     645 </span>        [<span class="branchCov" title="Branch 0 was taken 24561 times"> + </span><span class="branchCov" title="Branch 1 was taken 1220 times"> + </span>]:<span class="lineCov">      25781 :     for (const auto&amp; entry : entries) {</span>
+<span class="lineNum">     646 </span>[<span class="branchCov" title="Branch 1 was taken 24561 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 24560 times"> + </span><span class="branchCov" title="Branch 4 was taken 1 time"> + </span>]:<span class="lineCov">      24561 :         if (processBlockTx(nBlockHeight, entry))</span>
+<span class="lineNum">     647 </span>                :<span class="lineCov">      24560 :             countedTxs++;</span>
+<span class="lineNum">     648 </span>                :            :     }
+<span class="lineNum">     649 </span>                :            : 
+<span class="lineNum">     650 </span>[<span class="branchCov" title="Branch 0 was taken 556 times"> + </span><span class="branchCov" title="Branch 1 was taken 664 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 555 times"> + </span>]:<span class="lineCov">       1220 :     if (firstRecordedHeight == 0 &amp;&amp; countedTxs &gt; 0) {</span>
+<span class="lineNum">     651 </span>                :<span class="lineCov">          1 :         firstRecordedHeight = nBestSeenHeight;</span>
+<span class="lineNum">     652 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :         LogPrint(BCLog::ESTIMATEFEE, &quot;Blockpolicy first recorded height %u\n&quot;, firstRecordedHeight);</span>
+<span class="lineNum">     653 </span>                :            :     }
+<span class="lineNum">     654 </span>                :            : 
+<span class="lineNum">     655 </span>                :            : 
+<span class="lineNum">     656 </span>        [<span class="branchCov" title="Branch 1 was taken 1220 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1220 :     LogPrint(BCLog::ESTIMATEFEE, &quot;Blockpolicy estimates updated by %u of %u block txs, since last block %u of %u tracked, mempool map size %u, max target %u from %s\n&quot;,</span>
+<span class="lineNum">     657 </span>                :<span class="lineCov">       4880 :              countedTxs, entries.size(), trackedTxs, trackedTxs + untrackedTxs, mapMemPoolTxs.size(),</span>
+<span class="lineNum">     658 </span>        [<span class="branchCov" title="Branch 2 was taken 1220 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       1220 :              MaxUsableEstimate(), HistoricalBlockSpan() &gt; BlockSpan() ? &quot;historical&quot; : &quot;current&quot;);</span>
+<span class="lineNum">     659 </span>                :            : 
+<span class="lineNum">     660 </span>                :<span class="lineCov">       1220 :     trackedTxs = 0;</span>
+<span class="lineNum">     661 </span>                :<span class="lineCov">       1220 :     untrackedTxs = 0;</span>
+<a name="662"><span class="lineNum">     662 </span>                :            : }</a>
+<span class="lineNum">     663 </span>                :            : 
+<span class="lineNum">     664 </span>                :<span class="lineCov">         94 : CFeeRate CBlockPolicyEstimator::estimateFee(int confTarget) const</span>
+<span class="lineNum">     665 </span>                :            : {
+<span class="lineNum">     666 </span>                :            :     // It's not possible to get reasonable estimates for confTarget of 1
+<span class="lineNum">     667 </span>        [<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 88 times"> + </span>]:<span class="lineCov">         94 :     if (confTarget &lt;= 1)</span>
+<span class="lineNum">     668 </span>                :<span class="lineCov">          6 :         return CFeeRate(0);</span>
+<span class="lineNum">     669 </span>                :            : 
+<span class="lineNum">     670 </span>                :<span class="lineCov">         88 :     return estimateRawFee(confTarget, DOUBLE_SUCCESS_PCT, FeeEstimateHorizon::MED_HALFLIFE);</span>
+<a name="671"><span class="lineNum">     671 </span>                :            : }</a>
+<span class="lineNum">     672 </span>                :            : 
+<span class="lineNum">     673 </span>                :<span class="lineCov">         88 : CFeeRate CBlockPolicyEstimator::estimateRawFee(int confTarget, double successThreshold, FeeEstimateHorizon horizon, EstimationResult* result) const</span>
+<span class="lineNum">     674 </span>                :            : {
+<span class="lineNum">     675 </span>                :            :     TxConfirmStats* stats;
+<span class="lineNum">     676 </span>                :<span class="lineCov">         88 :     double sufficientTxs = SUFFICIENT_FEETXS;</span>
+<span class="lineNum">     677 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 88 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">         88 :     switch (horizon) {</span>
+<span class="lineNum">     678 </span>                :<span class="lineNoCov">          0 :     case FeeEstimateHorizon::SHORT_HALFLIFE: {</span>
+<span class="lineNum">     679 </span>                :<span class="lineNoCov">          0 :         stats = shortStats.get();</span>
+<span class="lineNum">     680 </span>                :<span class="lineNoCov">          0 :         sufficientTxs = SUFFICIENT_TXS_SHORT;</span>
+<span class="lineNum">     681 </span>                :<span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">     682 </span>                :            :     }
+<span class="lineNum">     683 </span>                :<span class="lineCov">         88 :     case FeeEstimateHorizon::MED_HALFLIFE: {</span>
+<span class="lineNum">     684 </span>                :<span class="lineCov">        176 :         stats = feeStats.get();</span>
+<span class="lineNum">     685 </span>                :<span class="lineCov">         88 :         break;</span>
+<span class="lineNum">     686 </span>                :            :     }
+<span class="lineNum">     687 </span>                :<span class="lineNoCov">          0 :     case FeeEstimateHorizon::LONG_HALFLIFE: {</span>
+<span class="lineNum">     688 </span>                :<span class="lineNoCov">          0 :         stats = longStats.get();</span>
+<span class="lineNum">     689 </span>                :<span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">     690 </span>                :            :     }
+<span class="lineNum">     691 </span>                :<span class="lineNoCov">          0 :     default: {</span>
+<span class="lineNum">     692 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw std::out_of_range(&quot;CBlockPolicyEstimator::estimateRawFee unknown FeeEstimateHorizon&quot;);</span>
+<span class="lineNum">     693 </span>                :            :     }
+<span class="lineNum">     694 </span>                :            :     }
+<span class="lineNum">     695 </span>                :            : 
+<span class="lineNum">     696 </span>                :<span class="lineCov">        176 :     LOCK(m_cs_fee_estimator);</span>
+<span class="lineNum">     697 </span>                :            :     // Return failure if trying to analyze a target we're not tracking
+<span class="lineNum">     698 </span>[<span class="branchCov" title="Branch 0 was taken 88 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 88 times"> + </span>]:<span class="lineCov">         88 :     if (confTarget &lt;= 0 || (unsigned int)confTarget &gt; stats-&gt;GetMaxConfirms())</span>
+<span class="lineNum">     699 </span>                :<span class="lineNoCov">          0 :         return CFeeRate(0);</span>
+<span class="lineNum">     700 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 88 times"> + </span>]:<span class="lineCov">         88 :     if (successThreshold &gt; 1)</span>
+<span class="lineNum">     701 </span>                :<span class="lineNoCov">          0 :         return CFeeRate(0);</span>
+<span class="lineNum">     702 </span>                :            : 
+<span class="lineNum">     703 </span>        [<span class="branchCov" title="Branch 1 was taken 88 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         88 :     double median = stats-&gt;EstimateMedianVal(confTarget, sufficientTxs, successThreshold, true, nBestSeenHeight, result);</span>
+<span class="lineNum">     704 </span>                :            : 
+<span class="lineNum">     705 </span>        [<span class="branchCov" title="Branch 0 was taken 16 times"> + </span><span class="branchCov" title="Branch 1 was taken 72 times"> + </span>]:<span class="lineCov">         88 :     if (median &lt; 0)</span>
+<span class="lineNum">     706 </span>                :<span class="lineCov">         16 :         return CFeeRate(0);</span>
+<span class="lineNum">     707 </span>                :            : 
+<span class="lineNum">     708 </span>                :<span class="lineCov">         72 :     return CFeeRate(llround(median));</span>
+<a name="709"><span class="lineNum">     709 </span>                :            : }</a>
+<span class="lineNum">     710 </span>                :            : 
+<span class="lineNum">     711 </span>                :<span class="lineCov">        109 : unsigned int CBlockPolicyEstimator::HighestTargetTracked(FeeEstimateHorizon horizon) const</span>
+<span class="lineNum">     712 </span>                :            : {
+<span class="lineNum">     713 </span>                :<span class="lineCov">        218 :     LOCK(m_cs_fee_estimator);</span>
+<span class="lineNum">     714 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 109 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        109 :     switch (horizon) {</span>
+<span class="lineNum">     715 </span>                :<span class="lineNoCov">          0 :     case FeeEstimateHorizon::SHORT_HALFLIFE: {</span>
+<span class="lineNum">     716 </span>                :<span class="lineNoCov">          0 :         return shortStats-&gt;GetMaxConfirms();</span>
+<span class="lineNum">     717 </span>                :            :     }
+<span class="lineNum">     718 </span>                :<span class="lineNoCov">          0 :     case FeeEstimateHorizon::MED_HALFLIFE: {</span>
+<span class="lineNum">     719 </span>                :<span class="lineNoCov">          0 :         return feeStats-&gt;GetMaxConfirms();</span>
+<span class="lineNum">     720 </span>                :            :     }
+<span class="lineNum">     721 </span>                :<span class="lineCov">        109 :     case FeeEstimateHorizon::LONG_HALFLIFE: {</span>
+<span class="lineNum">     722 </span>                :<span class="lineCov">        109 :         return longStats-&gt;GetMaxConfirms();</span>
+<span class="lineNum">     723 </span>                :            :     }
+<span class="lineNum">     724 </span>                :<span class="lineNoCov">          0 :     default: {</span>
+<span class="lineNum">     725 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw std::out_of_range(&quot;CBlockPolicyEstimator::HighestTargetTracked unknown FeeEstimateHorizon&quot;);</span>
+<span class="lineNum">     726 </span>                :            :     }
+<span class="lineNum">     727 </span>                :            :     }
+<a name="728"><span class="lineNum">     728 </span>                :            : }</a>
+<span class="lineNum">     729 </span>                :            : 
+<span class="lineNum">     730 </span>                :<span class="lineCov">       2659 : unsigned int CBlockPolicyEstimator::BlockSpan() const</span>
+<span class="lineNum">     731 </span>                :            : {
+<span class="lineNum">     732 </span>        [<span class="branchCov" title="Branch 0 was taken 1330 times"> + </span><span class="branchCov" title="Branch 1 was taken 1329 times"> + </span>]:<span class="lineCov">       2659 :     if (firstRecordedHeight == 0) return 0;</span>
+<span class="lineNum">     733 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1330 times"> + </span>]:<span class="lineCov">       1330 :     assert(nBestSeenHeight &gt;= firstRecordedHeight);</span>
+<span class="lineNum">     734 </span>                :            : 
+<span class="lineNum">     735 </span>                :<span class="lineCov">       1330 :     return nBestSeenHeight - firstRecordedHeight;</span>
+<a name="736"><span class="lineNum">     736 </span>                :            : }</a>
+<span class="lineNum">     737 </span>                :            : 
+<span class="lineNum">     738 </span>                :<span class="lineCov">       2659 : unsigned int CBlockPolicyEstimator::HistoricalBlockSpan() const</span>
+<span class="lineNum">     739 </span>                :            : {
+<span class="lineNum">     740 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2659 times"> + </span>]:<span class="lineCov">       2659 :     if (historicalFirst == 0) return 0;</span>
+<span class="lineNum">     741 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     assert(historicalBest &gt;= historicalFirst);</span>
+<span class="lineNum">     742 </span>                :            : 
+<span class="lineNum">     743 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (nBestSeenHeight - historicalBest &gt; OLDEST_ESTIMATE_HISTORY) return 0;</span>
+<span class="lineNum">     744 </span>                :            : 
+<span class="lineNum">     745 </span>                :<span class="lineNoCov">          0 :     return historicalBest - historicalFirst;</span>
+<a name="746"><span class="lineNum">     746 </span>                :            : }</a>
+<span class="lineNum">     747 </span>                :            : 
+<span class="lineNum">     748 </span>                :<span class="lineCov">       1439 : unsigned int CBlockPolicyEstimator::MaxUsableEstimate() const</span>
+<span class="lineNum">     749 </span>                :            : {
+<span class="lineNum">     750 </span>                :            :     // Block spans are divided by 2 to make sure there are enough potential failing data points for the estimate
+<span class="lineNum">     751 </span>                :<span class="lineCov">       1439 :     return std::min(longStats-&gt;GetMaxConfirms(), std::max(BlockSpan(), HistoricalBlockSpan()) / 2);</span>
+<span class="lineNum">     752 </span>                :            : }
+<span class="lineNum">     753 </span>                :            : 
+<span class="lineNum">     754 </span>                :            : /** Return a fee estimate at the required successThreshold from the shortest
+<span class="lineNum">     755 </span>                :            :  * time horizon which tracks confirmations up to the desired target.  If
+<a name="756"><span class="lineNum">     756 </span>                :            :  * checkShorterHorizon is requested, also allow short time horizon estimates</a>
+<span class="lineNum">     757 </span>                :            :  * for a lower target to reduce the given answer */
+<span class="lineNum">     758 </span>                :<span class="lineNoCov">          0 : double CBlockPolicyEstimator::estimateCombinedFee(unsigned int confTarget, double successThreshold, bool checkShorterHorizon, EstimationResult *result) const</span>
+<span class="lineNum">     759 </span>                :            : {
+<span class="lineNum">     760 </span>                :<span class="lineNoCov">          0 :     double estimate = -1;</span>
+<span class="lineNum">     761 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (confTarget &gt;= 1 &amp;&amp; confTarget &lt;= longStats-&gt;GetMaxConfirms()) {</span>
+<span class="lineNum">     762 </span>                :            :         // Find estimate from shortest time horizon possible
+<span class="lineNum">     763 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (confTarget &lt;= shortStats-&gt;GetMaxConfirms()) { // short horizon</span>
+<span class="lineNum">     764 </span>                :<span class="lineNoCov">          0 :             estimate = shortStats-&gt;EstimateMedianVal(confTarget, SUFFICIENT_TXS_SHORT, successThreshold, true, nBestSeenHeight, result);</span>
+<span class="lineNum">     765 </span>                :            :         }
+<span class="lineNum">     766 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         else if (confTarget &lt;= feeStats-&gt;GetMaxConfirms()) { // medium horizon</span>
+<span class="lineNum">     767 </span>                :<span class="lineNoCov">          0 :             estimate = feeStats-&gt;EstimateMedianVal(confTarget, SUFFICIENT_FEETXS, successThreshold, true, nBestSeenHeight, result);</span>
+<span class="lineNum">     768 </span>                :            :         }
+<span class="lineNum">     769 </span>                :            :         else { // long horizon
+<span class="lineNum">     770 </span>                :<span class="lineNoCov">          0 :             estimate = longStats-&gt;EstimateMedianVal(confTarget, SUFFICIENT_FEETXS, successThreshold, true, nBestSeenHeight, result);</span>
+<span class="lineNum">     771 </span>                :            :         }
+<span class="lineNum">     772 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (checkShorterHorizon) {</span>
+<span class="lineNum">     773 </span>                :<span class="lineNoCov">          0 :             EstimationResult tempResult;</span>
+<span class="lineNum">     774 </span>                :            :             // If a lower confTarget from a more recent horizon returns a lower answer use it.
+<span class="lineNum">     775 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (confTarget &gt; feeStats-&gt;GetMaxConfirms()) {</span>
+<span class="lineNum">     776 </span>                :<span class="lineNoCov">          0 :                 double medMax = feeStats-&gt;EstimateMedianVal(feeStats-&gt;GetMaxConfirms(), SUFFICIENT_FEETXS, successThreshold, true, nBestSeenHeight, &amp;tempResult);</span>
+<span class="lineNum">     777 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 if (medMax &gt; 0 &amp;&amp; (estimate == -1 || medMax &lt; estimate)) {</span>
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">     778 </span>                :<span class="lineNoCov">          0 :                     estimate = medMax;</span>
+<span class="lineNum">     779 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (result) *result = tempResult;</span>
+<span class="lineNum">     780 </span>                :            :                 }
+<span class="lineNum">     781 </span>                :            :             }
+<span class="lineNum">     782 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (confTarget &gt; shortStats-&gt;GetMaxConfirms()) {</span>
+<span class="lineNum">     783 </span>                :<span class="lineNoCov">          0 :                 double shortMax = shortStats-&gt;EstimateMedianVal(shortStats-&gt;GetMaxConfirms(), SUFFICIENT_TXS_SHORT, successThreshold, true, nBestSeenHeight, &amp;tempResult);</span>
+<span class="lineNum">     784 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 if (shortMax &gt; 0 &amp;&amp; (estimate == -1 || shortMax &lt; estimate)) {</span>
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">     785 </span>                :<span class="lineNoCov">          0 :                     estimate = shortMax;</span>
+<span class="lineNum">     786 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (result) *result = tempResult;</span>
+<span class="lineNum">     787 </span>                :            :                 }
+<span class="lineNum">     788 </span>                :            :             }
+<span class="lineNum">     789 </span>                :            :         }
+<span class="lineNum">     790 </span>                :            :     }
+<span class="lineNum">     791 </span>                :<span class="lineNoCov">          0 :     return estimate;</span>
+<span class="lineNum">     792 </span>                :            : }
+<span class="lineNum">     793 </span>                :            : 
+<span class="lineNum">     794 </span>                :            : /** Ensure that for a conservative estimate, the DOUBLE_SUCCESS_PCT is also met
+<a name="795"><span class="lineNum">     795 </span>                :            :  * at 2 * target for any longer time horizons.</a>
+<span class="lineNum">     796 </span>                :            :  */
+<span class="lineNum">     797 </span>                :<span class="lineNoCov">          0 : double CBlockPolicyEstimator::estimateConservativeFee(unsigned int doubleTarget, EstimationResult *result) const</span>
+<span class="lineNum">     798 </span>                :            : {
+<span class="lineNum">     799 </span>                :<span class="lineNoCov">          0 :     double estimate = -1;</span>
+<span class="lineNum">     800 </span>                :<span class="lineNoCov">          0 :     EstimationResult tempResult;</span>
+<span class="lineNum">     801 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (doubleTarget &lt;= shortStats-&gt;GetMaxConfirms()) {</span>
+<span class="lineNum">     802 </span>                :<span class="lineNoCov">          0 :         estimate = feeStats-&gt;EstimateMedianVal(doubleTarget, SUFFICIENT_FEETXS, DOUBLE_SUCCESS_PCT, true, nBestSeenHeight, result);</span>
+<span class="lineNum">     803 </span>                :            :     }
+<span class="lineNum">     804 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (doubleTarget &lt;= feeStats-&gt;GetMaxConfirms()) {</span>
+<span class="lineNum">     805 </span>                :<span class="lineNoCov">          0 :         double longEstimate = longStats-&gt;EstimateMedianVal(doubleTarget, SUFFICIENT_FEETXS, DOUBLE_SUCCESS_PCT, true, nBestSeenHeight, &amp;tempResult);</span>
+<span class="lineNum">     806 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (longEstimate &gt; estimate) {</span>
+<span class="lineNum">     807 </span>                :<span class="lineNoCov">          0 :             estimate = longEstimate;</span>
+<span class="lineNum">     808 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (result) *result = tempResult;</span>
+<span class="lineNum">     809 </span>                :            :         }
+<span class="lineNum">     810 </span>                :            :     }
+<span class="lineNum">     811 </span>                :<span class="lineNoCov">          0 :     return estimate;</span>
+<span class="lineNum">     812 </span>                :            : }
+<span class="lineNum">     813 </span>                :            : 
+<span class="lineNum">     814 </span>                :            : /** estimateSmartFee returns the max of the feerates calculated with a 60%
+<span class="lineNum">     815 </span>                :            :  * threshold required at target / 2, an 85% threshold required at target and a
+<span class="lineNum">     816 </span>                :            :  * 95% threshold required at 2 * target.  Each calculation is performed at the
+<span class="lineNum">     817 </span>                :            :  * shortest time horizon which tracks the required target.  Conservative
+<span class="lineNum">     818 </span>                :            :  * estimates, however, required the 95% threshold at 2 * target be met for any
+<a name="819"><span class="lineNum">     819 </span>                :            :  * longer time horizons also.</a>
+<span class="lineNum">     820 </span>                :            :  */
+<span class="lineNum">     821 </span>                :<span class="lineCov">        219 : CFeeRate CBlockPolicyEstimator::estimateSmartFee(int confTarget, FeeCalculation *feeCalc, bool conservative) const</span>
+<span class="lineNum">     822 </span>                :            : {
+<span class="lineNum">     823 </span>                :<span class="lineCov">        438 :     LOCK(m_cs_fee_estimator);</span>
+<span class="lineNum">     824 </span>                :            : 
+<span class="lineNum">     825 </span>        [<span class="branchCov" title="Branch 0 was taken 110 times"> + </span><span class="branchCov" title="Branch 1 was taken 109 times"> + </span>]:<span class="lineCov">        219 :     if (feeCalc) {</span>
+<span class="lineNum">     826 </span>                :<span class="lineCov">        110 :         feeCalc-&gt;desiredTarget = confTarget;</span>
+<span class="lineNum">     827 </span>                :<span class="lineCov">        110 :         feeCalc-&gt;returnedTarget = confTarget;</span>
+<span class="lineNum">     828 </span>                :            :     }
+<span class="lineNum">     829 </span>                :            : 
+<span class="lineNum">     830 </span>                :<span class="lineCov">        219 :     double median = -1;</span>
+<span class="lineNum">     831 </span>                :<span class="lineCov">        219 :     EstimationResult tempResult;</span>
+<span class="lineNum">     832 </span>                :            : 
+<span class="lineNum">     833 </span>                :            :     // Return failure if trying to analyze a target we're not tracking
+<span class="lineNum">     834 </span>[<span class="branchCov" title="Branch 0 was taken 219 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 219 times"> + </span>]:<span class="lineCov">        219 :     if (confTarget &lt;= 0 || (unsigned int)confTarget &gt; longStats-&gt;GetMaxConfirms()) {</span>
+<span class="lineNum">     835 </span>                :<span class="lineNoCov">          0 :         return CFeeRate(0);  // error condition</span>
+<span class="lineNum">     836 </span>                :            :     }
+<span class="lineNum">     837 </span>                :            : 
+<span class="lineNum">     838 </span>                :            :     // It's not possible to get reasonable estimates for confTarget of 1
+<span class="lineNum">     839 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 219 times"> + </span>]:<span class="lineCov">        219 :     if (confTarget == 1) confTarget = 2;</span>
+<span class="lineNum">     840 </span>                :            : 
+<span class="lineNum">     841 </span>                :<span class="lineCov">        219 :     unsigned int maxUsableEstimate = MaxUsableEstimate();</span>
+<span class="lineNum">     842 </span>        [<span class="branchCov" title="Branch 0 was taken 219 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        219 :     if ((unsigned int)confTarget &gt; maxUsableEstimate) {</span>
+<span class="lineNum">     843 </span>                :<span class="lineCov">        219 :         confTarget = maxUsableEstimate;</span>
+<span class="lineNum">     844 </span>                :            :     }
+<span class="lineNum">     845 </span>        [<span class="branchCov" title="Branch 0 was taken 110 times"> + </span><span class="branchCov" title="Branch 1 was taken 109 times"> + </span>]:<span class="lineCov">        219 :     if (feeCalc) feeCalc-&gt;returnedTarget = confTarget;</span>
+<span class="lineNum">     846 </span>                :            : 
+<span class="lineNum">     847 </span>        [<span class="branchCov" title="Branch 0 was taken 219 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        219 :     if (confTarget &lt;= 1) return CFeeRate(0); // error condition</span>
+<span class="lineNum">     848 </span>                :            : 
+<span class="lineNum">     849 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     assert(confTarget &gt; 0); //estimateCombinedFee and estimateConservativeFee take unsigned ints</span>
+<span class="lineNum">     850 </span>                :            :     /** true is passed to estimateCombined fee for target/2 and target so
+<span class="lineNum">     851 </span>                :            :      * that we check the max confirms for shorter time horizons as well.
+<span class="lineNum">     852 </span>                :            :      * This is necessary to preserve monotonically increasing estimates.
+<span class="lineNum">     853 </span>                :            :      * For non-conservative estimates we do the same thing for 2*target, but
+<span class="lineNum">     854 </span>                :            :      * for conservative estimates we want to skip these shorter horizons
+<span class="lineNum">     855 </span>                :            :      * checks for 2*target because we are taking the max over all time
+<span class="lineNum">     856 </span>                :            :      * horizons so we already have monotonically increasing estimates and
+<span class="lineNum">     857 </span>                :            :      * the purpose of conservative estimates is not to let short term
+<span class="lineNum">     858 </span>                :            :      * fluctuations lower our estimates by too much.
+<span class="lineNum">     859 </span>                :            :      */
+<span class="lineNum">     860 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     double halfEst = estimateCombinedFee(confTarget/2, HALF_SUCCESS_PCT, true, &amp;tempResult);</span>
+<span class="lineNum">     861 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (feeCalc) {</span>
+<span class="lineNum">     862 </span>                :<span class="lineNoCov">          0 :         feeCalc-&gt;est = tempResult;</span>
+<span class="lineNum">     863 </span>                :<span class="lineNoCov">          0 :         feeCalc-&gt;reason = FeeReason::HALF_ESTIMATE;</span>
+<span class="lineNum">     864 </span>                :            :     }
+<span class="lineNum">     865 </span>                :<span class="lineNoCov">          0 :     median = halfEst;</span>
+<span class="lineNum">     866 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     double actualEst = estimateCombinedFee(confTarget, SUCCESS_PCT, true, &amp;tempResult);</span>
+<span class="lineNum">     867 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (actualEst &gt; median) {</span>
+<span class="lineNum">     868 </span>                :<span class="lineNoCov">          0 :         median = actualEst;</span>
+<span class="lineNum">     869 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (feeCalc) {</span>
+<span class="lineNum">     870 </span>                :<span class="lineNoCov">          0 :             feeCalc-&gt;est = tempResult;</span>
+<span class="lineNum">     871 </span>                :<span class="lineNoCov">          0 :             feeCalc-&gt;reason = FeeReason::FULL_ESTIMATE;</span>
+<span class="lineNum">     872 </span>                :            :         }
+<span class="lineNum">     873 </span>                :            :     }
+<span class="lineNum">     874 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     double doubleEst = estimateCombinedFee(2 * confTarget, DOUBLE_SUCCESS_PCT, !conservative, &amp;tempResult);</span>
+<span class="lineNum">     875 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (doubleEst &gt; median) {</span>
+<span class="lineNum">     876 </span>                :<span class="lineNoCov">          0 :         median = doubleEst;</span>
+<span class="lineNum">     877 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (feeCalc) {</span>
+<span class="lineNum">     878 </span>                :<span class="lineNoCov">          0 :             feeCalc-&gt;est = tempResult;</span>
+<span class="lineNum">     879 </span>                :<span class="lineNoCov">          0 :             feeCalc-&gt;reason = FeeReason::DOUBLE_ESTIMATE;</span>
+<span class="lineNum">     880 </span>                :            :         }
+<span class="lineNum">     881 </span>                :            :     }
+<span class="lineNum">     882 </span>                :            : 
+<span class="lineNum">     883 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (conservative || median == -1) {</span>
+<span class="lineNum">     884 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         double consEst =  estimateConservativeFee(2 * confTarget, &amp;tempResult);</span>
+<span class="lineNum">     885 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (consEst &gt; median) {</span>
+<span class="lineNum">     886 </span>                :<span class="lineNoCov">          0 :             median = consEst;</span>
+<span class="lineNum">     887 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (feeCalc) {</span>
+<span class="lineNum">     888 </span>                :<span class="lineNoCov">          0 :                 feeCalc-&gt;est = tempResult;</span>
+<span class="lineNum">     889 </span>                :<span class="lineNoCov">          0 :                 feeCalc-&gt;reason = FeeReason::CONSERVATIVE;</span>
+<span class="lineNum">     890 </span>                :            :             }
+<span class="lineNum">     891 </span>                :            :         }
+<span class="lineNum">     892 </span>                :            :     }
+<span class="lineNum">     893 </span>                :            : 
+<span class="lineNum">     894 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (median &lt; 0) return CFeeRate(0); // error condition</span>
+<span class="lineNum">     895 </span>                :            : 
+<span class="lineNum">     896 </span>                :<span class="lineNoCov">          0 :     return CFeeRate(llround(median));</span>
+<span class="lineNum">     897 </span>                :            : }
+<a name="898"><span class="lineNum">     898 </span>                :            : </a>
+<span class="lineNum">     899 </span>                :            : 
+<span class="lineNum">     900 </span>                :<span class="lineNoCov">          0 : bool CBlockPolicyEstimator::Write(CAutoFile&amp; fileout) const</span>
+<span class="lineNum">     901 </span>                :            : {
+<span class="lineNum">     902 </span>                :            :     try {
+<span class="lineNum">     903 </span>  [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LOCK(m_cs_fee_estimator);</span>
+<span class="lineNum">     904 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         fileout &lt;&lt; 149900; // version required to read: 0.14.99 or later</span>
+<span class="lineNum">     905 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         fileout &lt;&lt; CLIENT_VERSION; // version that wrote the file</span>
+<span class="lineNum">     906 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         fileout &lt;&lt; nBestSeenHeight;</span>
+<span class="lineNum">     907 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (BlockSpan() &gt; HistoricalBlockSpan()/2) {</span>
+<span class="lineNum">     908 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             fileout &lt;&lt; firstRecordedHeight &lt;&lt; nBestSeenHeight;</span>
+<span class="lineNum">     909 </span>                :            :         }
+<span class="lineNum">     910 </span>                :            :         else {
+<span class="lineNum">     911 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             fileout &lt;&lt; historicalFirst &lt;&lt; historicalBest;</span>
+<span class="lineNum">     912 </span>                :            :         }
+<span class="lineNum">     913 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         fileout &lt;&lt; buckets;</span>
+<span class="lineNum">     914 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         feeStats-&gt;Write(fileout);</span>
+<span class="lineNum">     915 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         shortStats-&gt;Write(fileout);</span>
+<span class="lineNum">     916 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         longStats-&gt;Write(fileout);</span>
+<span class="lineNum">     917 </span>                :            :     }
+<span class="lineNum">     918 </span>                :<span class="lineNoCov">          0 :     catch (const std::exception&amp;) {</span>
+<span class="lineNum">     919 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LogPrintf(&quot;CBlockPolicyEstimator::Write(): unable to write policy estimator data (non-fatal)\n&quot;);</span>
+<span class="lineNum">     920 </span>                :            :         return false;
+<span class="lineNum">     921 </span>                :            :     }
+<span class="lineNum">     922 </span>                :<span class="lineNoCov">          0 :     return true;</span>
+<span class="lineNum">     923 </span>                :            : }
+<span class="lineNum">     924 </span>                :            : 
+<span class="lineNum">     925 </span>                :<span class="lineNoCov">          0 : bool CBlockPolicyEstimator::Read(CAutoFile&amp; filein)</span>
+<span class="lineNum">     926 </span>                :            : {
+<span class="lineNum">     927 </span>                :            :     try {
+<span class="lineNum">     928 </span>  [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LOCK(m_cs_fee_estimator);</span>
+<span class="lineNum">     929 </span>                :            :         int nVersionRequired, nVersionThatWrote;
+<span class="lineNum">     930 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         filein &gt;&gt; nVersionRequired &gt;&gt; nVersionThatWrote;</span>
+<span class="lineNum">     931 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (nVersionRequired &gt; CLIENT_VERSION)</span>
+<span class="lineNum">     932 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             return error(&quot;CBlockPolicyEstimator::Read(): up-version (%d) fee estimate file&quot;, nVersionRequired);</span>
+<span class="lineNum">     933 </span>                :            : 
+<span class="lineNum">     934 </span>                :            :         // Read fee estimates file into temporary variables so existing data
+<span class="lineNum">     935 </span>                :            :         // structures aren't corrupted if there is an exception.
+<span class="lineNum">     936 </span>                :            :         unsigned int nFileBestSeenHeight;
+<span class="lineNum">     937 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         filein &gt;&gt; nFileBestSeenHeight;</span>
+<span class="lineNum">     938 </span>                :            : 
+<span class="lineNum">     939 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (nVersionRequired &lt; 149900) {</span>
+<span class="lineNum">     940 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             LogPrintf(&quot;%s: incompatible old fee estimation data (non-fatal). Version: %d\n&quot;, __func__, nVersionRequired);</span>
+<span class="lineNum">     941 </span>                :            :         } else { // New format introduced in 149900
+<span class="lineNum">     942 </span>                :            :             unsigned int nFileHistoricalFirst, nFileHistoricalBest;
+<span class="lineNum">     943 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             filein &gt;&gt; nFileHistoricalFirst &gt;&gt; nFileHistoricalBest;</span>
+<span class="lineNum">     944 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (nFileHistoricalFirst &gt; nFileHistoricalBest || nFileHistoricalBest &gt; nFileBestSeenHeight) {</span>
+<span class="lineNum">     945 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 throw std::runtime_error(&quot;Corrupt estimates file. Historical block range for estimates is invalid&quot;);</span>
+<span class="lineNum">     946 </span>                :            :             }
+<span class="lineNum">     947 </span>                :<span class="lineNoCov">          0 :             std::vector&lt;double&gt; fileBuckets;</span>
+<span class="lineNum">     948 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             filein &gt;&gt; fileBuckets;</span>
+<span class="lineNum">     949 </span>                :<span class="lineNoCov">          0 :             size_t numBuckets = fileBuckets.size();</span>
+<span class="lineNum">     950 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (numBuckets &lt;= 1 || numBuckets &gt; 1000)</span>
+<span class="lineNum">     951 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 throw std::runtime_error(&quot;Corrupt estimates file. Must have between 2 and 1000 feerate buckets&quot;);</span>
+<span class="lineNum">     952 </span>                :            : 
+<span class="lineNum">     953 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             std::unique_ptr&lt;TxConfirmStats&gt; fileFeeStats(new TxConfirmStats(buckets, bucketMap, MED_BLOCK_PERIODS, MED_DECAY, MED_SCALE));</span>
+<span class="lineNum">     954 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             std::unique_ptr&lt;TxConfirmStats&gt; fileShortStats(new TxConfirmStats(buckets, bucketMap, SHORT_BLOCK_PERIODS, SHORT_DECAY, SHORT_SCALE));</span>
+<span class="lineNum">     955 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             std::unique_ptr&lt;TxConfirmStats&gt; fileLongStats(new TxConfirmStats(buckets, bucketMap, LONG_BLOCK_PERIODS, LONG_DECAY, LONG_SCALE));</span>
+<span class="lineNum">     956 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             fileFeeStats-&gt;Read(filein, nVersionThatWrote, numBuckets);</span>
+<span class="lineNum">     957 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             fileShortStats-&gt;Read(filein, nVersionThatWrote, numBuckets);</span>
+<span class="lineNum">     958 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             fileLongStats-&gt;Read(filein, nVersionThatWrote, numBuckets);</span>
+<span class="lineNum">     959 </span>                :            : 
+<span class="lineNum">     960 </span>                :            :             // Fee estimates file parsed correctly
+<span class="lineNum">     961 </span>                :            :             // Copy buckets from file and refresh our bucketmap
+<span class="lineNum">     962 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             buckets = fileBuckets;</span>
+<span class="lineNum">     963 </span>                :<span class="lineNoCov">          0 :             bucketMap.clear();</span>
+<span class="lineNum">     964 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             for (unsigned int i = 0; i &lt; buckets.size(); i++) {</span>
+<span class="lineNum">     965 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 bucketMap[buckets[i]] = i;</span>
+<span class="lineNum">     966 </span>                :            :             }
+<span class="lineNum">     967 </span>                :            : 
+<span class="lineNum">     968 </span>                :            :             // Destroy old TxConfirmStats and point to new ones that already reference buckets and bucketMap
+<span class="lineNum">     969 </span>                :<span class="lineNoCov">          0 :             feeStats = std::move(fileFeeStats);</span>
+<span class="lineNum">     970 </span>                :<span class="lineNoCov">          0 :             shortStats = std::move(fileShortStats);</span>
+<span class="lineNum">     971 </span>                :<span class="lineNoCov">          0 :             longStats = std::move(fileLongStats);</span>
+<span class="lineNum">     972 </span>                :            : 
+<span class="lineNum">     973 </span>                :<span class="lineNoCov">          0 :             nBestSeenHeight = nFileBestSeenHeight;</span>
+<span class="lineNum">     974 </span>                :<span class="lineNoCov">          0 :             historicalFirst = nFileHistoricalFirst;</span>
+<span class="lineNum">     975 </span>                :<span class="lineNoCov">          0 :             historicalBest = nFileHistoricalBest;</span>
+<span class="lineNum">     976 </span>                :            :         }
+<span class="lineNum">     977 </span>                :            :     }
+<span class="lineNum">     978 </span>                :<span class="lineNoCov">          0 :     catch (const std::exception&amp; e) {</span>
+<span class="lineNum">     979 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LogPrintf(&quot;CBlockPolicyEstimator::Read(): unable to read policy estimator data (non-fatal): %s\n&quot;,e.what());</span>
+<span class="lineNum">     980 </span>                :            :         return false;
+<span class="lineNum">     981 </span>                :            :     }
+<span class="lineNum">     982 </span>                :<span class="lineNoCov">          0 :     return true;</span>
+<span class="lineNum">     983 </span>                :            : }
+<span class="lineNum">     984 </span>                :            : 
+<span class="lineNum">     985 </span>                :<span class="lineNoCov">          0 : void CBlockPolicyEstimator::FlushUnconfirmed() {</span>
+<span class="lineNum">     986 </span>                :<span class="lineNoCov">          0 :     int64_t startclear = GetTimeMicros();</span>
+<span class="lineNum">     987 </span>                :<span class="lineNoCov">          0 :     LOCK(m_cs_fee_estimator);</span>
+<span class="lineNum">     988 </span>                :<span class="lineNoCov">          0 :     size_t num_entries = mapMemPoolTxs.size();</span>
+<span class="lineNum">     989 </span>                :            :     // Remove every entry in mapMemPoolTxs
+<span class="lineNum">     990 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     while (!mapMemPoolTxs.empty()) {</span>
+<span class="lineNum">     991 </span>                :<span class="lineNoCov">          0 :         auto mi = mapMemPoolTxs.begin();</span>
+<span class="lineNum">     992 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         removeTx(mi-&gt;first, false); // this calls erase() on mapMemPoolTxs</span>
+<span class="lineNum">     993 </span>                :            :     }
+<span class="lineNum">     994 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     int64_t endclear = GetTimeMicros();</span>
+<span class="lineNum">     995 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     LogPrint(BCLog::ESTIMATEFEE, &quot;Recorded %u unconfirmed txs from mempool in %gs\n&quot;, num_entries, (endclear - startclear)*0.000001);</span>
+<span class="lineNum">     996 </span>                :<span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     997 </span>                :            : 
+<span class="lineNum">     998 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 : FeeFilterRounder::FeeFilterRounder(const CFeeRate&amp; minIncrementalFee)</span>
+<span class="lineNum">     999 </span>                :            : {
+<span class="lineNum">    1000 </span>                :<span class="lineNoCov">          0 :     CAmount minFeeLimit = std::max(CAmount(1), minIncrementalFee.GetFeePerK() / 2);</span>
+<span class="lineNum">    1001 </span>                :<span class="lineNoCov">          0 :     feeset.insert(0);</span>
+<span class="lineNum">    1002 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     for (double bucketBoundary = minFeeLimit; bucketBoundary &lt;= MAX_FILTER_FEERATE; bucketBoundary *= FEE_FILTER_SPACING) {</span>
+<span class="lineNum">    1003 </span>                :<span class="lineNoCov">          0 :         feeset.insert(bucketBoundary);</span>
+<span class="lineNum">    1004 </span>                :            :     }
+<span class="lineNum">    1005 </span>                :<span class="lineNoCov">          0 : }</span>
+<span class="lineNum">    1006 </span>                :            : 
+<span class="lineNum">    1007 </span>                :<span class="lineNoCov">          0 : CAmount FeeFilterRounder::round(CAmount currentMinFee)</span>
+<span class="lineNum">    1008 </span>                :            : {
+<span class="lineNum">    1009 </span>                :<span class="lineNoCov">          0 :     std::set&lt;double&gt;::iterator it = feeset.lower_bound(currentMinFee);</span>
+<span class="lineNum">    1010 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if ((it != feeset.begin() &amp;&amp; insecure_rand.rand32() % 3 != 0) || it == feeset.end()) {</span>
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">    1011 </span>                :            :         it--;
+<a name="1012"><span class="lineNum">    1012 </span>                :            :     }</a>
+<span class="lineNum">    1013 </span>                :<span class="lineNoCov">          0 :     return static_cast&lt;CAmount&gt;(*it);</span>
+<span class="lineNum">    1014 </span>[<span class="branchCov" title="Branch 1 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        288 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

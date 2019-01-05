@@ -1,0 +1,713 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/script/script.h</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/script</a> - script.h<span style="font-size: 80%;"> (source / <a href="script.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">133</td>
+            <td class="headerCovTableEntry">139</td>
+            <td class="headerCovTableEntryHi">95.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">32</td>
+            <td class="headerCovTableEntry">37</td>
+            <td class="headerCovTableEntryMed">86.5 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">132</td>
+            <td class="headerCovTableEntry">225</td>
+            <td class="headerCovTableEntryLo">58.7 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #ifndef BITCOIN_SCRIPT_SCRIPT_H
+<span class="lineNum">       7 </span>                :            : #define BITCOIN_SCRIPT_SCRIPT_H
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : #include &lt;crypto/common.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;prevector.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;serialize.h&gt;
+<span class="lineNum">      12 </span>                :            : 
+<span class="lineNum">      13 </span>                :            : #include &lt;assert.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;climits&gt;
+<span class="lineNum">      15 </span>                :            : #include &lt;limits&gt;
+<span class="lineNum">      16 </span>                :            : #include &lt;stdexcept&gt;
+<span class="lineNum">      17 </span>                :            : #include &lt;stdint.h&gt;
+<span class="lineNum">      18 </span>                :            : #include &lt;string.h&gt;
+<span class="lineNum">      19 </span>                :            : #include &lt;string&gt;
+<span class="lineNum">      20 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">      21 </span>                :            : 
+<span class="lineNum">      22 </span>                :            : // Maximum number of bytes pushable to the stack
+<span class="lineNum">      23 </span>                :            : static const unsigned int MAX_SCRIPT_ELEMENT_SIZE = 520;
+<span class="lineNum">      24 </span>                :            : 
+<span class="lineNum">      25 </span>                :            : // Maximum number of non-push operations per script
+<span class="lineNum">      26 </span>                :            : static const int MAX_OPS_PER_SCRIPT = 201;
+<span class="lineNum">      27 </span>                :            : 
+<span class="lineNum">      28 </span>                :            : // Maximum number of public keys per multisig
+<span class="lineNum">      29 </span>                :            : static const int MAX_PUBKEYS_PER_MULTISIG = 20;
+<span class="lineNum">      30 </span>                :            : 
+<span class="lineNum">      31 </span>                :            : // Maximum script length in bytes
+<span class="lineNum">      32 </span>                :            : static const int MAX_SCRIPT_SIZE = 10000;
+<span class="lineNum">      33 </span>                :            : 
+<span class="lineNum">      34 </span>                :            : // Maximum number of values on script interpreter stack
+<span class="lineNum">      35 </span>                :            : static const int MAX_STACK_SIZE = 1000;
+<span class="lineNum">      36 </span>                :            : 
+<span class="lineNum">      37 </span>                :            : // Threshold for nLockTime: below this value it is interpreted as block number,
+<span class="lineNum">      38 </span>                :            : // otherwise as UNIX timestamp.
+<span class="lineNum">      39 </span>                :            : static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
+<span class="lineNum">      40 </span>                :            : 
+<span class="lineNum">      41 </span>                :            : // Maximum nLockTime. Since a lock time indicates the last invalid timestamp, a
+<span class="lineNum">      42 </span>                :            : // transaction with this lock time will never be valid unless lock time
+<span class="lineNum">      43 </span>                :            : // checking is disabled (by setting all input sequence numbers to
+<span class="lineNum">      44 </span>                :            : // SEQUENCE_FINAL).
+<span class="lineNum">      45 </span>                :            : static const uint32_t LOCKTIME_MAX = 0xFFFFFFFFU;
+<a name="46"><span class="lineNum">      46 </span>                :            : </a>
+<span class="lineNum">      47 </span>                :            : template &lt;typename T&gt;
+<span class="lineNum">      48 </span>                :<span class="lineCov">      14491 : std::vector&lt;unsigned char&gt; ToByteVector(const T&amp; in)</span>
+<span class="lineNum">      49 </span>                :            : {
+<span class="lineNum">      50 </span>                :<span class="lineCov">      14491 :     return std::vector&lt;unsigned char&gt;(in.begin(), in.end());</span>
+<span class="lineNum">      51 </span>                :            : }
+<span class="lineNum">      52 </span>                :            : 
+<span class="lineNum">      53 </span>                :            : /** Script opcodes */
+<span class="lineNum">      54 </span>                :            : enum opcodetype
+<span class="lineNum">      55 </span>                :            : {
+<span class="lineNum">      56 </span>                :            :     // push value
+<span class="lineNum">      57 </span>                :            :     OP_0 = 0x00,
+<span class="lineNum">      58 </span>                :            :     OP_FALSE = OP_0,
+<span class="lineNum">      59 </span>                :            :     OP_PUSHDATA1 = 0x4c,
+<span class="lineNum">      60 </span>                :            :     OP_PUSHDATA2 = 0x4d,
+<span class="lineNum">      61 </span>                :            :     OP_PUSHDATA4 = 0x4e,
+<span class="lineNum">      62 </span>                :            :     OP_1NEGATE = 0x4f,
+<span class="lineNum">      63 </span>                :            :     OP_RESERVED = 0x50,
+<span class="lineNum">      64 </span>                :            :     OP_1 = 0x51,
+<span class="lineNum">      65 </span>                :            :     OP_TRUE=OP_1,
+<span class="lineNum">      66 </span>                :            :     OP_2 = 0x52,
+<span class="lineNum">      67 </span>                :            :     OP_3 = 0x53,
+<span class="lineNum">      68 </span>                :            :     OP_4 = 0x54,
+<span class="lineNum">      69 </span>                :            :     OP_5 = 0x55,
+<span class="lineNum">      70 </span>                :            :     OP_6 = 0x56,
+<span class="lineNum">      71 </span>                :            :     OP_7 = 0x57,
+<span class="lineNum">      72 </span>                :            :     OP_8 = 0x58,
+<span class="lineNum">      73 </span>                :            :     OP_9 = 0x59,
+<span class="lineNum">      74 </span>                :            :     OP_10 = 0x5a,
+<span class="lineNum">      75 </span>                :            :     OP_11 = 0x5b,
+<span class="lineNum">      76 </span>                :            :     OP_12 = 0x5c,
+<span class="lineNum">      77 </span>                :            :     OP_13 = 0x5d,
+<span class="lineNum">      78 </span>                :            :     OP_14 = 0x5e,
+<span class="lineNum">      79 </span>                :            :     OP_15 = 0x5f,
+<span class="lineNum">      80 </span>                :            :     OP_16 = 0x60,
+<span class="lineNum">      81 </span>                :            : 
+<span class="lineNum">      82 </span>                :            :     // control
+<span class="lineNum">      83 </span>                :            :     OP_NOP = 0x61,
+<span class="lineNum">      84 </span>                :            :     OP_VER = 0x62,
+<span class="lineNum">      85 </span>                :            :     OP_IF = 0x63,
+<span class="lineNum">      86 </span>                :            :     OP_NOTIF = 0x64,
+<span class="lineNum">      87 </span>                :            :     OP_VERIF = 0x65,
+<span class="lineNum">      88 </span>                :            :     OP_VERNOTIF = 0x66,
+<span class="lineNum">      89 </span>                :            :     OP_ELSE = 0x67,
+<span class="lineNum">      90 </span>                :            :     OP_ENDIF = 0x68,
+<span class="lineNum">      91 </span>                :            :     OP_VERIFY = 0x69,
+<span class="lineNum">      92 </span>                :            :     OP_RETURN = 0x6a,
+<span class="lineNum">      93 </span>                :            : 
+<span class="lineNum">      94 </span>                :            :     // stack ops
+<span class="lineNum">      95 </span>                :            :     OP_TOALTSTACK = 0x6b,
+<span class="lineNum">      96 </span>                :            :     OP_FROMALTSTACK = 0x6c,
+<span class="lineNum">      97 </span>                :            :     OP_2DROP = 0x6d,
+<span class="lineNum">      98 </span>                :            :     OP_2DUP = 0x6e,
+<span class="lineNum">      99 </span>                :            :     OP_3DUP = 0x6f,
+<span class="lineNum">     100 </span>                :            :     OP_2OVER = 0x70,
+<span class="lineNum">     101 </span>                :            :     OP_2ROT = 0x71,
+<span class="lineNum">     102 </span>                :            :     OP_2SWAP = 0x72,
+<span class="lineNum">     103 </span>                :            :     OP_IFDUP = 0x73,
+<span class="lineNum">     104 </span>                :            :     OP_DEPTH = 0x74,
+<span class="lineNum">     105 </span>                :            :     OP_DROP = 0x75,
+<span class="lineNum">     106 </span>                :            :     OP_DUP = 0x76,
+<span class="lineNum">     107 </span>                :            :     OP_NIP = 0x77,
+<span class="lineNum">     108 </span>                :            :     OP_OVER = 0x78,
+<span class="lineNum">     109 </span>                :            :     OP_PICK = 0x79,
+<span class="lineNum">     110 </span>                :            :     OP_ROLL = 0x7a,
+<span class="lineNum">     111 </span>                :            :     OP_ROT = 0x7b,
+<span class="lineNum">     112 </span>                :            :     OP_SWAP = 0x7c,
+<span class="lineNum">     113 </span>                :            :     OP_TUCK = 0x7d,
+<span class="lineNum">     114 </span>                :            : 
+<span class="lineNum">     115 </span>                :            :     // splice ops
+<span class="lineNum">     116 </span>                :            :     OP_CAT = 0x7e,
+<span class="lineNum">     117 </span>                :            :     OP_SUBSTR = 0x7f,
+<span class="lineNum">     118 </span>                :            :     OP_LEFT = 0x80,
+<span class="lineNum">     119 </span>                :            :     OP_RIGHT = 0x81,
+<span class="lineNum">     120 </span>                :            :     OP_SIZE = 0x82,
+<span class="lineNum">     121 </span>                :            : 
+<span class="lineNum">     122 </span>                :            :     // bit logic
+<span class="lineNum">     123 </span>                :            :     OP_INVERT = 0x83,
+<span class="lineNum">     124 </span>                :            :     OP_AND = 0x84,
+<span class="lineNum">     125 </span>                :            :     OP_OR = 0x85,
+<span class="lineNum">     126 </span>                :            :     OP_XOR = 0x86,
+<span class="lineNum">     127 </span>                :            :     OP_EQUAL = 0x87,
+<span class="lineNum">     128 </span>                :            :     OP_EQUALVERIFY = 0x88,
+<span class="lineNum">     129 </span>                :            :     OP_RESERVED1 = 0x89,
+<span class="lineNum">     130 </span>                :            :     OP_RESERVED2 = 0x8a,
+<span class="lineNum">     131 </span>                :            : 
+<span class="lineNum">     132 </span>                :            :     // numeric
+<span class="lineNum">     133 </span>                :            :     OP_1ADD = 0x8b,
+<span class="lineNum">     134 </span>                :            :     OP_1SUB = 0x8c,
+<span class="lineNum">     135 </span>                :            :     OP_2MUL = 0x8d,
+<span class="lineNum">     136 </span>                :            :     OP_2DIV = 0x8e,
+<span class="lineNum">     137 </span>                :            :     OP_NEGATE = 0x8f,
+<span class="lineNum">     138 </span>                :            :     OP_ABS = 0x90,
+<span class="lineNum">     139 </span>                :            :     OP_NOT = 0x91,
+<span class="lineNum">     140 </span>                :            :     OP_0NOTEQUAL = 0x92,
+<span class="lineNum">     141 </span>                :            : 
+<span class="lineNum">     142 </span>                :            :     OP_ADD = 0x93,
+<span class="lineNum">     143 </span>                :            :     OP_SUB = 0x94,
+<span class="lineNum">     144 </span>                :            :     OP_MUL = 0x95,
+<span class="lineNum">     145 </span>                :            :     OP_DIV = 0x96,
+<span class="lineNum">     146 </span>                :            :     OP_MOD = 0x97,
+<span class="lineNum">     147 </span>                :            :     OP_LSHIFT = 0x98,
+<span class="lineNum">     148 </span>                :            :     OP_RSHIFT = 0x99,
+<span class="lineNum">     149 </span>                :            : 
+<span class="lineNum">     150 </span>                :            :     OP_BOOLAND = 0x9a,
+<span class="lineNum">     151 </span>                :            :     OP_BOOLOR = 0x9b,
+<span class="lineNum">     152 </span>                :            :     OP_NUMEQUAL = 0x9c,
+<span class="lineNum">     153 </span>                :            :     OP_NUMEQUALVERIFY = 0x9d,
+<span class="lineNum">     154 </span>                :            :     OP_NUMNOTEQUAL = 0x9e,
+<span class="lineNum">     155 </span>                :            :     OP_LESSTHAN = 0x9f,
+<span class="lineNum">     156 </span>                :            :     OP_GREATERTHAN = 0xa0,
+<span class="lineNum">     157 </span>                :            :     OP_LESSTHANOREQUAL = 0xa1,
+<span class="lineNum">     158 </span>                :            :     OP_GREATERTHANOREQUAL = 0xa2,
+<span class="lineNum">     159 </span>                :            :     OP_MIN = 0xa3,
+<span class="lineNum">     160 </span>                :            :     OP_MAX = 0xa4,
+<span class="lineNum">     161 </span>                :            : 
+<span class="lineNum">     162 </span>                :            :     OP_WITHIN = 0xa5,
+<span class="lineNum">     163 </span>                :            : 
+<span class="lineNum">     164 </span>                :            :     // crypto
+<span class="lineNum">     165 </span>                :            :     OP_RIPEMD160 = 0xa6,
+<span class="lineNum">     166 </span>                :            :     OP_SHA1 = 0xa7,
+<span class="lineNum">     167 </span>                :            :     OP_SHA256 = 0xa8,
+<span class="lineNum">     168 </span>                :            :     OP_HASH160 = 0xa9,
+<span class="lineNum">     169 </span>                :            :     OP_HASH256 = 0xaa,
+<span class="lineNum">     170 </span>                :            :     OP_CODESEPARATOR = 0xab,
+<span class="lineNum">     171 </span>                :            :     OP_CHECKSIG = 0xac,
+<span class="lineNum">     172 </span>                :            :     OP_CHECKSIGVERIFY = 0xad,
+<span class="lineNum">     173 </span>                :            :     OP_CHECKMULTISIG = 0xae,
+<span class="lineNum">     174 </span>                :            :     OP_CHECKMULTISIGVERIFY = 0xaf,
+<span class="lineNum">     175 </span>                :            : 
+<span class="lineNum">     176 </span>                :            :     // expansion
+<span class="lineNum">     177 </span>                :            :     OP_NOP1 = 0xb0,
+<span class="lineNum">     178 </span>                :            :     OP_CHECKLOCKTIMEVERIFY = 0xb1,
+<span class="lineNum">     179 </span>                :            :     OP_NOP2 = OP_CHECKLOCKTIMEVERIFY,
+<span class="lineNum">     180 </span>                :            :     OP_CHECKSEQUENCEVERIFY = 0xb2,
+<span class="lineNum">     181 </span>                :            :     OP_NOP3 = OP_CHECKSEQUENCEVERIFY,
+<span class="lineNum">     182 </span>                :            :     OP_NOP4 = 0xb3,
+<span class="lineNum">     183 </span>                :            :     OP_NOP5 = 0xb4,
+<span class="lineNum">     184 </span>                :            :     OP_NOP6 = 0xb5,
+<span class="lineNum">     185 </span>                :            :     OP_NOP7 = 0xb6,
+<span class="lineNum">     186 </span>                :            :     OP_NOP8 = 0xb7,
+<span class="lineNum">     187 </span>                :            :     OP_NOP9 = 0xb8,
+<span class="lineNum">     188 </span>                :            :     OP_NOP10 = 0xb9,
+<span class="lineNum">     189 </span>                :            : 
+<span class="lineNum">     190 </span>                :            :     OP_INVALIDOPCODE = 0xff,
+<span class="lineNum">     191 </span>                :            : };
+<span class="lineNum">     192 </span>                :            : 
+<span class="lineNum">     193 </span>                :            : // Maximum value that an opcode can be
+<span class="lineNum">     194 </span>                :            : static const unsigned int MAX_OPCODE = OP_NOP10;
+<span class="lineNum">     195 </span>                :            : 
+<a name="196"><span class="lineNum">     196 </span>                :            : const char* GetOpName(opcodetype opcode);</a>
+<span class="lineNum">     197 </span>                :            : 
+<span class="lineNum">     198 </span>                :<span class="lineCov">       1334 : class scriptnum_error : public std::runtime_error</span>
+<span class="lineNum">     199 </span>                :            : {
+<span class="lineNum">     200 </span>                :            : public:
+<span class="lineNum">     201 </span>[<span class="branchCov" title="Branch 1 was taken 126 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 541 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        667 :     explicit scriptnum_error(const std::string&amp; str) : std::runtime_error(str) {}</span>
+<span class="lineNum">     202 </span>                :            : };
+<span class="lineNum">     203 </span>                :            : 
+<span class="lineNum">     204 </span>                :            : class CScriptNum
+<span class="lineNum">     205 </span>                :            : {
+<span class="lineNum">     206 </span>                :            : /**
+<span class="lineNum">     207 </span>                :            :  * Numeric opcodes (OP_1ADD, etc) are restricted to operating on 4-byte integers.
+<span class="lineNum">     208 </span>                :            :  * The semantics are subtle, though: operands must be in the range [-2^31 +1...2^31 -1],
+<span class="lineNum">     209 </span>                :            :  * but results may overflow (and are valid as long as they are not used in a subsequent
+<span class="lineNum">     210 </span>                :            :  * numeric operation). CScriptNum enforces those semantics by storing results as
+<span class="lineNum">     211 </span>                :            :  * an int64 and allowing out-of-range values to be returned as a vector of bytes but
+<span class="lineNum">     212 </span>                :            :  * throwing an exception if arithmetic is done or the result is interpreted as an integer.
+<span class="lineNum">     213 </span>                :            :  */
+<span class="lineNum">     214 </span>                :            : public:
+<span class="lineNum">     215 </span>                :            : 
+<span class="lineNum">     216 </span>                :            :     explicit CScriptNum(const int64_t&amp; n)
+<span class="lineNum">     217 </span>                :<span class="lineCov">     112421 :     {</span>
+<span class="lineNum">     218 </span>                :<span class="lineCov">     112421 :         m_value = n;</span>
+<span class="lineNum">     219 </span>                :            :     }
+<span class="lineNum">     220 </span>                :            : 
+<a name="221"><span class="lineNum">     221 </span>                :            :     static const size_t nDefaultMaxNumSize = 4;</a>
+<span class="lineNum">     222 </span>                :            : 
+<span class="lineNum">     223 </span>                :<span class="lineCov">      50114 :     explicit CScriptNum(const std::vector&lt;unsigned char&gt;&amp; vch, bool fRequireMinimal,</span>
+<span class="lineNum">     224 </span>                :            :                         const size_t nMaxNumSize = nDefaultMaxNumSize)
+<span class="lineNum">     225 </span>                :<span class="lineCov">      50114 :     {</span>
+<span class="lineNum">     226 </span>        [<span class="branchCov" title="Branch 0 was taken 126 times"> + </span><span class="branchCov" title="Branch 1 was taken 49988 times"> + </span>]:<span class="lineCov">      50114 :         if (vch.size() &gt; nMaxNumSize) {</span>
+<span class="lineNum">     227 </span>        [<span class="branchCov" title="Branch 2 was taken 126 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        252 :             throw scriptnum_error(&quot;script number overflow&quot;);</span>
+<span class="lineNum">     228 </span>                :            :         }
+<span class="lineNum">     229 </span>[<span class="branchCov" title="Branch 0 was taken 11249 times"> + </span><span class="branchCov" title="Branch 1 was taken 38739 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 9723 times"> + </span><span class="branchCov" title="Branch 3 was taken 1526 times"> + </span>]:<span class="lineCov">      49988 :         if (fRequireMinimal &amp;&amp; vch.size() &gt; 0) {</span>
+<span class="lineNum">     230 </span>                :            :             // Check that the number is encoded with the minimum possible
+<span class="lineNum">     231 </span>                :            :             // number of bytes.
+<span class="lineNum">     232 </span>                :            :             //
+<span class="lineNum">     233 </span>                :            :             // If the most-significant-byte - excluding the sign bit - is zero
+<span class="lineNum">     234 </span>                :            :             // then we're not minimal. Note how this test also rejects the
+<span class="lineNum">     235 </span>                :            :             // negative-zero encoding, 0x80.
+<span class="lineNum">     236 </span>        [<span class="branchCov" title="Branch 0 was taken 541 times"> + </span><span class="branchCov" title="Branch 1 was taken 9182 times"> + </span>]:<span class="lineCov">       9723 :             if ((vch.back() &amp; 0x7f) == 0) {</span>
+<span class="lineNum">     237 </span>                :            :                 // One exception: if there's more than one byte and the most
+<span class="lineNum">     238 </span>                :            :                 // significant bit of the second-most-significant-byte is set
+<span class="lineNum">     239 </span>                :            :                 // it would conflict with the sign bit. An example of this case
+<span class="lineNum">     240 </span>                :            :                 // is +-255, which encode to 0xff00 and 0xff80 respectively.
+<span class="lineNum">     241 </span>                :            :                 // (big-endian).
+<span class="lineNum">     242 </span>[<span class="branchCov" title="Branch 0 was taken 491 times"> + </span><span class="branchCov" title="Branch 1 was taken 50 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 491 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        541 :                 if (vch.size() &lt;= 1 || (vch[vch.size() - 2] &amp; 0x80) == 0) {</span>
+<span class="lineNum">     243 </span>        [<span class="branchCov" title="Branch 2 was taken 541 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       1082 :                     throw scriptnum_error(&quot;non-minimally encoded script number&quot;);</span>
+<span class="lineNum">     244 </span>                :            :                 }
+<span class="lineNum">     245 </span>                :            :             }
+<span class="lineNum">     246 </span>                :            :         }
+<span class="lineNum">     247 </span>                :<span class="lineCov">      49447 :         m_value = set_vch(vch);</span>
+<span class="lineNum">     248 </span>                :<span class="lineCov">      49447 :     }</span>
+<span class="lineNum">     249 </span>                :            : 
+<span class="lineNum">     250 </span>                :<span class="lineCov">       4676 :     inline bool operator==(const int64_t&amp; rhs) const    { return m_value == rhs; }</span>
+<span class="lineNum">     251 </span>                :<span class="lineCov">       3522 :     inline bool operator!=(const int64_t&amp; rhs) const    { return m_value != rhs; }</span>
+<span class="lineNum">     252 </span>                :<span class="lineCov">       3143 :     inline bool operator&lt;=(const int64_t&amp; rhs) const    { return m_value &lt;= rhs; }</span>
+<span class="lineNum">     253 </span>                :<span class="lineCov">      28050 :     inline bool operator&lt; (const int64_t&amp; rhs) const    { return m_value &lt;  rhs; }</span>
+<span class="lineNum">     254 </span>                :<span class="lineCov">       2960 :     inline bool operator&gt;=(const int64_t&amp; rhs) const    { return m_value &gt;= rhs; }</span>
+<span class="lineNum">     255 </span>                :<span class="lineCov">      11289 :     inline bool operator&gt; (const int64_t&amp; rhs) const    { return m_value &gt;  rhs; }</span>
+<span class="lineNum">     256 </span>                :            : 
+<span class="lineNum">     257 </span>                :<span class="lineCov">       6544 :     inline bool operator==(const CScriptNum&amp; rhs) const { return operator==(rhs.m_value); }</span>
+<span class="lineNum">     258 </span>                :<span class="lineCov">       4236 :     inline bool operator!=(const CScriptNum&amp; rhs) const { return operator!=(rhs.m_value); }</span>
+<span class="lineNum">     259 </span>                :<span class="lineCov">       3478 :     inline bool operator&lt;=(const CScriptNum&amp; rhs) const { return operator&lt;=(rhs.m_value); }</span>
+<span class="lineNum">     260 </span>                :<span class="lineCov">       3864 :     inline bool operator&lt; (const CScriptNum&amp; rhs) const { return operator&lt; (rhs.m_value); }</span>
+<span class="lineNum">     261 </span>                :<span class="lineCov">       3088 :     inline bool operator&gt;=(const CScriptNum&amp; rhs) const { return operator&gt;=(rhs.m_value); }</span>
+<span class="lineNum">     262 </span>                :<span class="lineCov">       3334 :     inline bool operator&gt; (const CScriptNum&amp; rhs) const { return operator&gt; (rhs.m_value); }</span>
+<span class="lineNum">     263 </span>                :            : 
+<span class="lineNum">     264 </span>                :<span class="lineCov">       9544 :     inline CScriptNum operator+(   const int64_t&amp; rhs)    const { return CScriptNum(m_value + rhs);}</span>
+<span class="lineNum">     265 </span>                :<span class="lineCov">      11424 :     inline CScriptNum operator-(   const int64_t&amp; rhs)    const { return CScriptNum(m_value - rhs);}</span>
+<span class="lineNum">     266 </span>                :<span class="lineCov">       3928 :     inline CScriptNum operator+(   const CScriptNum&amp; rhs) const { return operator+(rhs.m_value);   }</span>
+<span class="lineNum">     267 </span>                :<span class="lineCov">       5808 :     inline CScriptNum operator-(   const CScriptNum&amp; rhs) const { return operator-(rhs.m_value);   }</span>
+<span class="lineNum">     268 </span>                :            : 
+<span class="lineNum">     269 </span>                :<span class="lineCov">        120 :     inline CScriptNum&amp; operator+=( const CScriptNum&amp; rhs)       { return operator+=(rhs.m_value);  }</span>
+<span class="lineNum">     270 </span>                :<span class="lineCov">         54 :     inline CScriptNum&amp; operator-=( const CScriptNum&amp; rhs)       { return operator-=(rhs.m_value);  }</span>
+<span class="lineNum">     271 </span>                :            : 
+<span class="lineNum">     272 </span>                :<span class="lineCov">      16482 :     inline CScriptNum operator&amp;(   const int64_t&amp; rhs)    const { return CScriptNum(m_value &amp; rhs);}</span>
+<span class="lineNum">     273 </span>                :            :     inline CScriptNum operator&amp;(   const CScriptNum&amp; rhs) const { return operator&amp;(rhs.m_value);   }
+<span class="lineNum">     274 </span>                :            : 
+<a name="275"><span class="lineNum">     275 </span>                :            :     inline CScriptNum&amp; operator&amp;=( const CScriptNum&amp; rhs)       { return operator&amp;=(rhs.m_value);  }</a>
+<span class="lineNum">     276 </span>                :            : 
+<span class="lineNum">     277 </span>                :<span class="lineCov">       1508 :     inline CScriptNum operator-()                         const</span>
+<span class="lineNum">     278 </span>                :            :     {
+<span class="lineNum">     279 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1508 times"> + </span>]:<span class="lineCov">       1508 :         assert(m_value != std::numeric_limits&lt;int64_t&gt;::min());</span>
+<span class="lineNum">     280 </span>                :<span class="lineCov">       3016 :         return CScriptNum(-m_value);</span>
+<span class="lineNum">     281 </span>                :            :     }
+<span class="lineNum">     282 </span>                :            : 
+<span class="lineNum">     283 </span>                :            :     inline CScriptNum&amp; operator=( const int64_t&amp; rhs)
+<span class="lineNum">     284 </span>                :            :     {
+<span class="lineNum">     285 </span>                :<span class="lineCov">       2965 :         m_value = rhs;</span>
+<span class="lineNum">     286 </span>                :            :         return *this;
+<a name="287"><span class="lineNum">     287 </span>                :            :     }</a>
+<span class="lineNum">     288 </span>                :            : 
+<span class="lineNum">     289 </span>                :<span class="lineCov">        120 :     inline CScriptNum&amp; operator+=( const int64_t&amp; rhs)</span>
+<span class="lineNum">     290 </span>                :            :     {
+<span class="lineNum">     291 </span>[<span class="branchCov" title="Branch 0 was taken 120 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 120 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        120 :         assert(rhs == 0 || (rhs &gt; 0 &amp;&amp; m_value &lt;= std::numeric_limits&lt;int64_t&gt;::max() - rhs) ||</span>
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 120 times"> + </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]
+<span class="lineNum">     292 </span>                :            :                            (rhs &lt; 0 &amp;&amp; m_value &gt;= std::numeric_limits&lt;int64_t&gt;::min() - rhs));
+<span class="lineNum">     293 </span>                :<span class="lineCov">        120 :         m_value += rhs;</span>
+<span class="lineNum">     294 </span>                :<span class="lineCov">        120 :         return *this;</span>
+<a name="295"><span class="lineNum">     295 </span>                :            :     }</a>
+<span class="lineNum">     296 </span>                :            : 
+<span class="lineNum">     297 </span>                :<span class="lineCov">         54 :     inline CScriptNum&amp; operator-=( const int64_t&amp; rhs)</span>
+<span class="lineNum">     298 </span>                :            :     {
+<span class="lineNum">     299 </span>[<span class="branchCov" title="Branch 0 was taken 54 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 54 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">         54 :         assert(rhs == 0 || (rhs &gt; 0 &amp;&amp; m_value &gt;= std::numeric_limits&lt;int64_t&gt;::min() + rhs) ||</span>
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 54 times"> + </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]
+<span class="lineNum">     300 </span>                :            :                            (rhs &lt; 0 &amp;&amp; m_value &lt;= std::numeric_limits&lt;int64_t&gt;::max() + rhs));
+<span class="lineNum">     301 </span>                :<span class="lineCov">         54 :         m_value -= rhs;</span>
+<span class="lineNum">     302 </span>                :<span class="lineCov">         54 :         return *this;</span>
+<span class="lineNum">     303 </span>                :            :     }
+<span class="lineNum">     304 </span>                :            : 
+<span class="lineNum">     305 </span>                :            :     inline CScriptNum&amp; operator&amp;=( const int64_t&amp; rhs)
+<span class="lineNum">     306 </span>                :            :     {
+<span class="lineNum">     307 </span>                :            :         m_value &amp;= rhs;
+<span class="lineNum">     308 </span>                :            :         return *this;
+<span class="lineNum">     309 </span>                :            :     }
+<span class="lineNum">     310 </span>                :            : 
+<span class="lineNum">     311 </span>                :            :     int getint() const
+<span class="lineNum">     312 </span>                :            :     {
+<span class="lineNum">     313 </span>[<span class="branchCov" title="Branch 0 was taken 353 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 12324 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">      39523 :         if (m_value &gt; std::numeric_limits&lt;int&gt;::max())</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 12248 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchCov" title="Branch 0 was taken 306 times"> + </span><span class="branchCov" title="Branch 1 was taken 45 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 2 was taken 306 times"> + </span><span class="branchCov" title="Branch 3 was taken 45 times"> + </span>][<span class="branchCov" title="Branch 4 was taken 306 times"> + </span><span class="branchCov" title="Branch 5 was taken 45 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 12455 times"> + </span><span class="branchCov" title="Branch 7 was taken 1090 times"> + </span>]
+<span class="lineNum">     314 </span>                :            :             return std::numeric_limits&lt;int&gt;::max();
+<span class="lineNum">     315 </span>[<span class="branchCov" title="Branch 0 was taken 632 times"> + </span><span class="branchCov" title="Branch 1 was taken 27 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 12603 times"> + </span><span class="branchCov" title="Branch 3 was taken 27 times"> + </span>]:<span class="lineCov">      38298 :         else if (m_value &lt; std::numeric_limits&lt;int&gt;::min())</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 12527 times"> + </span><span class="branchCov" title="Branch 5 was taken 27 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 11662 times"> + </span><span class="branchCov" title="Branch 7 was taken 793 times"> + </span>]
+<span class="lineNum">     316 </span>                :            :             return std::numeric_limits&lt;int&gt;::min();
+<span class="lineNum">     317 </span>                :<span class="lineCov">      37424 :         return m_value;</span>
+<span class="lineNum">     318 </span>                :            :     }
+<span class="lineNum">     319 </span>                :            : 
+<span class="lineNum">     320 </span>                :            :     std::vector&lt;unsigned char&gt; getvch() const
+<span class="lineNum">     321 </span>                :            :     {
+<span class="lineNum">     322 </span>[<span class="branchCov" title="Branch 1 was taken 87822 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1230 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     113021 :         return serialize(m_value);</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 497 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 1676 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 13 was taken 2522 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 13545 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
+<a name="323"><span class="lineNum">     323 </span>                :            :     }</a>
+<span class="lineNum">     324 </span>                :            : 
+<span class="lineNum">     325 </span>                :<span class="lineCov">     183066 :     static std::vector&lt;unsigned char&gt; serialize(const int64_t&amp; value)</span>
+<span class="lineNum">     326 </span>                :            :     {
+<span class="lineNum">     327 </span>        [<span class="branchCov" title="Branch 0 was taken 7380 times"> + </span><span class="branchCov" title="Branch 1 was taken 175686 times"> + </span>]:<span class="lineCov">     183066 :         if(value == 0)</span>
+<span class="lineNum">     328 </span>                :            :             return std::vector&lt;unsigned char&gt;();
+<span class="lineNum">     329 </span>                :            : 
+<span class="lineNum">     330 </span>                :<span class="lineCov">     175686 :         std::vector&lt;unsigned char&gt; result;</span>
+<span class="lineNum">     331 </span>                :<span class="lineCov">     175686 :         const bool neg = value &lt; 0;</span>
+<span class="lineNum">     332 </span>        [<span class="branchCov" title="Branch 0 was taken 5958 times"> + </span><span class="branchCov" title="Branch 1 was taken 169728 times"> + </span>]:<span class="lineCov">     175686 :         uint64_t absvalue = neg ? -value : value;</span>
+<span class="lineNum">     333 </span>                :            : 
+<span class="lineNum">     334 </span>        [<span class="branchCov" title="Branch 0 was taken 264773 times"> + </span><span class="branchCov" title="Branch 1 was taken 175686 times"> + </span>]:<span class="lineCov">     440459 :         while(absvalue)</span>
+<span class="lineNum">     335 </span>                :            :         {
+<span class="lineNum">     336 </span>                :<span class="lineCov">     529546 :             result.push_back(absvalue &amp; 0xff);</span>
+<span class="lineNum">     337 </span>                :<span class="lineCov">     264773 :             absvalue &gt;&gt;= 8;</span>
+<span class="lineNum">     338 </span>                :            :         }
+<span class="lineNum">     339 </span>                :            : 
+<span class="lineNum">     340 </span>                :            : //    - If the most significant byte is &gt;= 0x80 and the value is positive, push a
+<span class="lineNum">     341 </span>                :            : //    new zero-byte to make the significant byte &lt; 0x80 again.
+<span class="lineNum">     342 </span>                :            : 
+<span class="lineNum">     343 </span>                :            : //    - If the most significant byte is &gt;= 0x80 and the value is negative, push a
+<span class="lineNum">     344 </span>                :            : //    new 0x80 byte that will be popped off when converting to an integral.
+<span class="lineNum">     345 </span>                :            : 
+<span class="lineNum">     346 </span>                :            : //    - If the most significant byte is &lt; 0x80 and the value is negative, add
+<span class="lineNum">     347 </span>                :            : //    0x80 to it, since it will be subtracted and interpreted as a negative when
+<span class="lineNum">     348 </span>                :            : //    converting to an integral.
+<span class="lineNum">     349 </span>                :            : 
+<span class="lineNum">     350 </span>        [<span class="branchCov" title="Branch 0 was taken 37312 times"> + </span><span class="branchCov" title="Branch 1 was taken 138374 times"> + </span>]:<span class="lineCov">     175686 :         if (result.back() &amp; 0x80)</span>
+<span class="lineNum">     351 </span>        [<span class="branchCov" title="Branch 0 was taken 35353 times"> + </span><span class="branchCov" title="Branch 1 was taken 1959 times"> + </span>]:<span class="lineCov">      74624 :             result.push_back(neg ? 0x80 : 0);</span>
+<span class="lineNum">     352 </span>        [<span class="branchCov" title="Branch 0 was taken 3999 times"> + </span><span class="branchCov" title="Branch 1 was taken 134375 times"> + </span>]:<span class="lineCov">     138374 :         else if (neg)</span>
+<span class="lineNum">     353 </span>                :<span class="lineCov">       3999 :             result.back() |= 0x80;</span>
+<span class="lineNum">     354 </span>                :            : 
+<span class="lineNum">     355 </span>                :<span class="lineCov">     175686 :         return result;</span>
+<span class="lineNum">     356 </span>                :            :     }
+<a name="357"><span class="lineNum">     357 </span>                :            : </a>
+<span class="lineNum">     358 </span>                :            : private:
+<span class="lineNum">     359 </span>                :<span class="lineCov">      49447 :     static int64_t set_vch(const std::vector&lt;unsigned char&gt;&amp; vch)</span>
+<span class="lineNum">     360 </span>                :            :     {
+<span class="lineNum">     361 </span>        [<span class="branchCov" title="Branch 0 was taken 26388 times"> + </span><span class="branchCov" title="Branch 1 was taken 23059 times"> + </span>]:<span class="lineCov">      49447 :       if (vch.empty())</span>
+<span class="lineNum">     362 </span>                :            :           return 0;
+<span class="lineNum">     363 </span>                :            : 
+<span class="lineNum">     364 </span>                :            :       int64_t result = 0;
+<span class="lineNum">     365 </span>        [<span class="branchCov" title="Branch 0 was taken 30139 times"> + </span><span class="branchCov" title="Branch 1 was taken 26388 times"> + </span>]:<span class="lineCov">      56527 :       for (size_t i = 0; i != vch.size(); ++i)</span>
+<span class="lineNum">     366 </span>                :<span class="lineCov">      30139 :           result |= static_cast&lt;int64_t&gt;(vch[i]) &lt;&lt; 8*i;</span>
+<span class="lineNum">     367 </span>                :            : 
+<span class="lineNum">     368 </span>                :            :       // If the input vector's most significant byte is 0x80, remove it from
+<span class="lineNum">     369 </span>                :            :       // the result's msb and return a negative.
+<span class="lineNum">     370 </span>        [<span class="branchCov" title="Branch 0 was taken 1447 times"> + </span><span class="branchCov" title="Branch 1 was taken 24941 times"> + </span>]:<span class="lineCov">      26388 :       if (vch.back() &amp; 0x80)</span>
+<span class="lineNum">     371 </span>                :<span class="lineCov">       1447 :           return -((int64_t)(result &amp; ~(0x80ULL &lt;&lt; (8 * (vch.size() - 1)))));</span>
+<span class="lineNum">     372 </span>                :            : 
+<span class="lineNum">     373 </span>                :            :       return result;
+<span class="lineNum">     374 </span>                :            :     }
+<span class="lineNum">     375 </span>                :            : 
+<span class="lineNum">     376 </span>                :            :     int64_t m_value;
+<span class="lineNum">     377 </span>                :            : };
+<span class="lineNum">     378 </span>                :            : 
+<span class="lineNum">     379 </span>                :            : /**
+<span class="lineNum">     380 </span>                :            :  * We use a prevector for the script to reduce the considerable memory overhead
+<span class="lineNum">     381 </span>                :            :  *  of vectors in cases where they normally contain a small number of small elements.
+<span class="lineNum">     382 </span>                :            :  * Tests in October 2015 showed use of this reduced dbcache memory usage by 23%
+<span class="lineNum">     383 </span>                :            :  *  and made an initial sync 13% faster.
+<span class="lineNum">     384 </span>                :            :  */
+<span class="lineNum">     385 </span>                :            : typedef prevector&lt;28, unsigned char&gt; CScriptBase;
+<span class="lineNum">     386 </span>                :            : 
+<span class="lineNum">     387 </span>                :            : bool GetScriptOp(CScriptBase::const_iterator&amp; pc, CScriptBase::const_iterator end, opcodetype&amp; opcodeRet, std::vector&lt;unsigned char&gt;* pvchRet);
+<a name="388"><span class="lineNum">     388 </span>                :            : </a>
+<span class="lineNum">     389 </span>                :            : /** Serialized script, used inside transaction inputs and outputs */
+<span class="lineNum">     390 </span>                :<span class="lineCov">    6460892 : class CScript : public CScriptBase</span>
+<a name="391"><span class="lineNum">     391 </span>                :            : {</a>
+<span class="lineNum">     392 </span>                :            : protected:
+<span class="lineNum">     393 </span>                :<span class="lineCov">      74895 :     CScript&amp; push_int64(int64_t n)</span>
+<span class="lineNum">     394 </span>                :            :     {
+<span class="lineNum">     395 </span>        [<span class="branchCov" title="Branch 0 was taken 1990 times"> + </span><span class="branchCov" title="Branch 1 was taken 72905 times"> + </span>]:<span class="lineCov">      74895 :         if (n == -1 || (n &gt;= 1 &amp;&amp; n &lt;= 16))</span>
+<span class="lineNum">     396 </span>                :            :         {
+<span class="lineNum">     397 </span>                :<span class="lineCov">       1990 :             push_back(n + (OP_1 - 1));</span>
+<span class="lineNum">     398 </span>                :            :         }
+<span class="lineNum">     399 </span>        [<span class="branchCov" title="Branch 0 was taken 2860 times"> + </span><span class="branchCov" title="Branch 1 was taken 70045 times"> + </span>]:<span class="lineCov">      72905 :         else if (n == 0)</span>
+<span class="lineNum">     400 </span>                :            :         {
+<span class="lineNum">     401 </span>                :<span class="lineCov">       2860 :             push_back(OP_0);</span>
+<span class="lineNum">     402 </span>                :            :         }
+<span class="lineNum">     403 </span>                :            :         else
+<span class="lineNum">     404 </span>                :            :         {
+<span class="lineNum">     405 </span>                :<span class="lineCov">     140090 :             *this &lt;&lt; CScriptNum::serialize(n);</span>
+<span class="lineNum">     406 </span>                :            :         }
+<span class="lineNum">     407 </span>                :<span class="lineCov">      74895 :         return *this;</span>
+<span class="lineNum">     408 </span>                :            :     }
+<span class="lineNum">     409 </span>                :            : public:
+<span class="lineNum">     410 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">   39001895 :     CScript() { }</span>
+<span class="lineNum">     411 </span>                :<span class="lineCov">     128811 :     CScript(const_iterator pbegin, const_iterator pend) : CScriptBase(pbegin, pend) { }</span>
+<span class="lineNum">     412 </span>                :<span class="lineCov">      52963 :     CScript(std::vector&lt;unsigned char&gt;::const_iterator pbegin, std::vector&lt;unsigned char&gt;::const_iterator pend) : CScriptBase(pbegin, pend) { }</span>
+<a name="413"><span class="lineNum">     413 </span>                :<span class="lineCov">        576 :     CScript(const unsigned char* pbegin, const unsigned char* pend) : CScriptBase(pbegin, pend) { }</span></a>
+<span class="lineNum">     414 </span>                :            : 
+<span class="lineNum">     415 </span>                :<span class="lineCov">   31399263 :     ADD_SERIALIZE_METHODS;</span>
+<span class="lineNum">     416 </span>                :            : 
+<span class="lineNum">     417 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
+<span class="lineNum">     418 </span>                :            :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {
+<span class="lineNum">     419 </span>                :<span class="lineCov">   31446340 :         READWRITEAS(CScriptBase, *this);</span>
+<a name="420"><span class="lineNum">     420 </span>                :            :     }</a>
+<span class="lineNum">     421 </span>                :            : 
+<span class="lineNum">     422 </span>                :<span class="lineCov">       1130 :     CScript&amp; operator+=(const CScript&amp; b)</span>
+<span class="lineNum">     423 </span>                :            :     {
+<span class="lineNum">     424 </span>                :<span class="lineCov">       4520 :         reserve(size() + b.size());</span>
+<span class="lineNum">     425 </span>                :<span class="lineCov">       1130 :         insert(end(), b.begin(), b.end());</span>
+<span class="lineNum">     426 </span>                :<span class="lineCov">       1130 :         return *this;</span>
+<span class="lineNum">     427 </span>                :            :     }
+<span class="lineNum">     428 </span>                :            : 
+<span class="lineNum">     429 </span>                :            :     friend CScript operator+(const CScript&amp; a, const CScript&amp; b)
+<span class="lineNum">     430 </span>                :            :     {
+<span class="lineNum">     431 </span>                :<span class="lineCov">       1122 :         CScript ret = a;</span>
+<span class="lineNum">     432 </span>                :<span class="lineCov">       1122 :         ret += b;</span>
+<span class="lineNum">     433 </span>                :            :         return ret;
+<span class="lineNum">     434 </span>                :            :     }
+<span class="lineNum">     435 </span>                :            : 
+<a name="436"><span class="lineNum">     436 </span>                :            :     CScript(int64_t b)        { operator&lt;&lt;(b); }</a>
+<span class="lineNum">     437 </span>                :            : 
+<span class="lineNum">     438 </span>        [<span class="branchCov" title="Branch 1 was taken 50000 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      50000 :     explicit CScript(opcodetype b)     { operator&lt;&lt;(b); }</span>
+<span class="lineNum">     439 </span>                :            :     explicit CScript(const CScriptNum&amp; b) { operator&lt;&lt;(b); }
+<span class="lineNum">     440 </span>                :<span class="lineCov">      94513 :     explicit CScript(const std::vector&lt;unsigned char&gt;&amp; b) { operator&lt;&lt;(b); }</span>
+<span class="lineNum">     441 </span>                :            : 
+<span class="lineNum">     442 </span>                :            : 
+<a name="443"><span class="lineNum">     443 </span>        [<span class="branchCov" title="Branch 1 was taken 1123 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      74880 :     CScript&amp; operator&lt;&lt;(int64_t b) { return push_int64(b); }</span></a>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 4 was taken 1219 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 72426 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span> 
+<span class="lineNum">         </span>         <span class="branchCov" title="Branch 10 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 7 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span><span class="branchCov" title="Branch 10 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 13 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span><span class="branchCov" title="Branch 16 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 19 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span><span class="branchCov" title="Branch 22 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 13 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchCov" title="Branch 16 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 19 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>][<span class="branchCov" title="Branch 22 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 25 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span>][<span class="branchCov" title="Branch 28 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchCov" title="Branch 40 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 43 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 44 was not taken"> - </span>][<span class="branchCov" title="Branch 46 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 47 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 49 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 50 was not taken"> - </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 52 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 53 was not taken"> - </span><span class="branchCov" title="Branch 55 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 56 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 5 was taken 16 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>][<span class="branchCov" title="Branch 8 was taken 34 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     444 </span>                :            : 
+<span class="lineNum">     445 </span>                :<span class="lineCov">    1666771 :     CScript&amp; operator&lt;&lt;(opcodetype opcode)</span>
+<span class="lineNum">     446 </span>                :            :     {
+<span class="lineNum">     447 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1666771 times"> + </span>]:<span class="lineCov">    1666771 :         if (opcode &lt; 0 || opcode &gt; 0xff)</span>
+<span class="lineNum">     448 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::runtime_error(&quot;CScript::operator&lt;&lt;(): invalid opcode&quot;);</span>
+<span class="lineNum">     449 </span>                :<span class="lineCov">    1666771 :         insert(end(), (unsigned char)opcode);</span>
+<span class="lineNum">     450 </span>                :<span class="lineCov">    1666771 :         return *this;</span>
+<a name="451"><span class="lineNum">     451 </span>                :            :     }</a>
+<span class="lineNum">     452 </span>                :            : 
+<span class="lineNum">     453 </span>                :<span class="lineCov">       4820 :     CScript&amp; operator&lt;&lt;(const CScriptNum&amp; b)</span>
+<span class="lineNum">     454 </span>                :            :     {
+<span class="lineNum">     455 </span>                :<span class="lineCov">       4820 :         *this &lt;&lt; b.getvch();</span>
+<span class="lineNum">     456 </span>                :<span class="lineCov">       4820 :         return *this;</span>
+<a name="457"><span class="lineNum">     457 </span>                :            :     }</a>
+<span class="lineNum">     458 </span>                :            : 
+<span class="lineNum">     459 </span>                :<span class="lineCov">     225081 :     CScript&amp; operator&lt;&lt;(const std::vector&lt;unsigned char&gt;&amp; b)</span>
+<span class="lineNum">     460 </span>                :            :     {
+<span class="lineNum">     461 </span>        [<span class="branchCov" title="Branch 0 was taken 224543 times"> + </span><span class="branchCov" title="Branch 1 was taken 538 times"> + </span>]:<span class="lineCov">     225081 :         if (b.size() &lt; OP_PUSHDATA1)</span>
+<span class="lineNum">     462 </span>                :            :         {
+<span class="lineNum">     463 </span>                :<span class="lineCov">     224543 :             insert(end(), (unsigned char)b.size());</span>
+<span class="lineNum">     464 </span>                :            :         }
+<span class="lineNum">     465 </span>        [<span class="branchCov" title="Branch 0 was taken 194 times"> + </span><span class="branchCov" title="Branch 1 was taken 344 times"> + </span>]:<span class="lineCov">        538 :         else if (b.size() &lt;= 0xff)</span>
+<span class="lineNum">     466 </span>                :            :         {
+<span class="lineNum">     467 </span>                :<span class="lineCov">        194 :             insert(end(), OP_PUSHDATA1);</span>
+<span class="lineNum">     468 </span>                :<span class="lineCov">        194 :             insert(end(), (unsigned char)b.size());</span>
+<span class="lineNum">     469 </span>                :            :         }
+<span class="lineNum">     470 </span>        [<span class="branchCov" title="Branch 0 was taken 344 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        344 :         else if (b.size() &lt;= 0xffff)</span>
+<span class="lineNum">     471 </span>                :            :         {
+<span class="lineNum">     472 </span>                :<span class="lineCov">        344 :             insert(end(), OP_PUSHDATA2);</span>
+<span class="lineNum">     473 </span>                :            :             uint8_t _data[2];
+<span class="lineNum">     474 </span>                :<span class="lineCov">        688 :             WriteLE16(_data, b.size());</span>
+<span class="lineNum">     475 </span>                :<span class="lineCov">        344 :             insert(end(), _data, _data + sizeof(_data));</span>
+<span class="lineNum">     476 </span>                :            :         }
+<span class="lineNum">     477 </span>                :            :         else
+<span class="lineNum">     478 </span>                :            :         {
+<span class="lineNum">     479 </span>                :<span class="lineNoCov">          0 :             insert(end(), OP_PUSHDATA4);</span>
+<span class="lineNum">     480 </span>                :            :             uint8_t _data[4];
+<span class="lineNum">     481 </span>                :<span class="lineNoCov">          0 :             WriteLE32(_data, b.size());</span>
+<span class="lineNum">     482 </span>                :<span class="lineNoCov">          0 :             insert(end(), _data, _data + sizeof(_data));</span>
+<span class="lineNum">     483 </span>                :            :         }
+<span class="lineNum">     484 </span>                :<span class="lineCov">     225081 :         insert(end(), b.begin(), b.end());</span>
+<span class="lineNum">     485 </span>                :<span class="lineCov">     225081 :         return *this;</span>
+<span class="lineNum">     486 </span>                :            :     }
+<span class="lineNum">     487 </span>                :            : 
+<span class="lineNum">     488 </span>                :            :     CScript&amp; operator&lt;&lt;(const CScript&amp; b)
+<span class="lineNum">     489 </span>                :            :     {
+<span class="lineNum">     490 </span>                :            :         // I'm not sure if this should push the script or concatenate scripts.
+<span class="lineNum">     491 </span>                :            :         // If there's ever a use for pushing a script onto a script, delete this member fn
+<span class="lineNum">     492 </span>                :            :         assert(!&quot;Warning: Pushing a CScript onto a CScript with &lt;&lt; is probably not intended, use + to concatenate!&quot;);
+<span class="lineNum">     493 </span>                :            :         return *this;
+<span class="lineNum">     494 </span>                :            :     }
+<a name="495"><span class="lineNum">     495 </span>                :            : </a>
+<span class="lineNum">     496 </span>                :            : 
+<span class="lineNum">     497 </span>                :<span class="lineCov">    1395327 :     bool GetOp(const_iterator&amp; pc, opcodetype&amp; opcodeRet, std::vector&lt;unsigned char&gt;&amp; vchRet) const</span>
+<span class="lineNum">     498 </span>                :            :     {
+<span class="lineNum">     499 </span>                :<span class="lineCov">    1395327 :         return GetScriptOp(pc, end(), opcodeRet, &amp;vchRet);</span>
+<a name="500"><span class="lineNum">     500 </span>                :            :     }</a>
+<span class="lineNum">     501 </span>                :            : 
+<span class="lineNum">     502 </span>                :<span class="lineCov">    2154501 :     bool GetOp(const_iterator&amp; pc, opcodetype&amp; opcodeRet) const</span>
+<span class="lineNum">     503 </span>                :            :     {
+<span class="lineNum">     504 </span>                :<span class="lineCov">    2154501 :         return GetScriptOp(pc, end(), opcodeRet, nullptr);</span>
+<span class="lineNum">     505 </span>                :            :     }
+<span class="lineNum">     506 </span>                :            : 
+<a name="507"><span class="lineNum">     507 </span>                :            : </a>
+<span class="lineNum">     508 </span>                :            :     /** Encode/decode small integers: */
+<span class="lineNum">     509 </span>                :<span class="lineCov">      59616 :     static int DecodeOP_N(opcodetype opcode)</span>
+<span class="lineNum">     510 </span>                :            :     {
+<span class="lineNum">     511 </span>        [<span class="branchCov" title="Branch 0 was taken 397 times"> + </span><span class="branchCov" title="Branch 1 was taken 59219 times"> + </span>]:<span class="lineCov">      59616 :         if (opcode == OP_0)</span>
+<span class="lineNum">     512 </span>                :            :             return 0;
+<span class="lineNum">     513 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 397 times"> + </span>]:<span class="lineCov">        397 :         assert(opcode &gt;= OP_1 &amp;&amp; opcode &lt;= OP_16);</span>
+<span class="lineNum">     514 </span>                :<span class="lineCov">        397 :         return (int)opcode - (int)(OP_1 - 1);</span>
+<span class="lineNum">     515 </span>                :            :     }
+<span class="lineNum">     516 </span>                :            :     static opcodetype EncodeOP_N(int n)
+<span class="lineNum">     517 </span>                :            :     {
+<span class="lineNum">     518 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 95 times"> + </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 95 times"> + </span>]:<span class="lineCov">        196 :         assert(n &gt;= 0 &amp;&amp; n &lt;= 16);</span>
+<span class="lineNum">         </span>        [<span class="branchNoCov" title="Branch 6 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 6 times"> + </span>]
+<span class="lineNum">     519 </span>[<span class="branchCov" title="Branch 0 was taken 95 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 95 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        196 :         if (n == 0)</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
+<span class="lineNum">     520 </span>                :            :             return OP_0;
+<span class="lineNum">     521 </span>                :<span class="lineCov">        196 :         return (opcodetype)(OP_1+n-1);</span>
+<span class="lineNum">     522 </span>                :            :     }
+<span class="lineNum">     523 </span>                :            : 
+<span class="lineNum">     524 </span>                :            :     /**
+<span class="lineNum">     525 </span>                :            :      * Pre-version-0.6, Bitcoin always counted CHECKMULTISIGs
+<span class="lineNum">     526 </span>                :            :      * as 20 sigops. With pay-to-script-hash, that changed:
+<span class="lineNum">     527 </span>                :            :      * CHECKMULTISIGs serialized in scriptSigs are
+<span class="lineNum">     528 </span>                :            :      * counted more accurately, assuming they are of the form
+<span class="lineNum">     529 </span>                :            :      *  ... OP_N CHECKMULTISIG ...
+<span class="lineNum">     530 </span>                :            :      */
+<span class="lineNum">     531 </span>                :            :     unsigned int GetSigOpCount(bool fAccurate) const;
+<span class="lineNum">     532 </span>                :            : 
+<span class="lineNum">     533 </span>                :            :     /**
+<span class="lineNum">     534 </span>                :            :      * Accurately count sigOps, including sigOps in
+<span class="lineNum">     535 </span>                :            :      * pay-to-script-hash transactions:
+<span class="lineNum">     536 </span>                :            :      */
+<span class="lineNum">     537 </span>                :            :     unsigned int GetSigOpCount(const CScript&amp; scriptSig) const;
+<span class="lineNum">     538 </span>                :            : 
+<span class="lineNum">     539 </span>                :            :     bool IsPayToScriptHash() const;
+<span class="lineNum">     540 </span>                :            :     bool IsPayToWitnessScriptHash() const;
+<span class="lineNum">     541 </span>                :            :     bool IsWitnessProgram(int&amp; version, std::vector&lt;unsigned char&gt;&amp; program) const;
+<span class="lineNum">     542 </span>                :            : 
+<span class="lineNum">     543 </span>                :            :     /** Called by IsStandardTx and P2SH/BIP62 VerifyScript (which makes it consensus-critical). */
+<span class="lineNum">     544 </span>                :            :     bool IsPushOnly(const_iterator pc) const;
+<span class="lineNum">     545 </span>                :            :     bool IsPushOnly() const;
+<span class="lineNum">     546 </span>                :            : 
+<span class="lineNum">     547 </span>                :            :     /** Check if the script contains valid OP_CODES */
+<span class="lineNum">     548 </span>                :            :     bool HasValidOps() const;
+<span class="lineNum">     549 </span>                :            : 
+<span class="lineNum">     550 </span>                :            :     /**
+<span class="lineNum">     551 </span>                :            :      * Returns whether the script is guaranteed to fail at execution,
+<span class="lineNum">     552 </span>                :            :      * regardless of the initial stack. This allows outputs to be pruned
+<span class="lineNum">     553 </span>                :            :      * instantly when entering the UTXO set.
+<span class="lineNum">     554 </span>                :            :      */
+<span class="lineNum">     555 </span>                :            :     bool IsUnspendable() const
+<span class="lineNum">     556 </span>                :            :     {
+<span class="lineNum">     557 </span>[<span class="branchCov" title="Branch 0 was taken 68671 times"> + </span><span class="branchCov" title="Branch 1 was taken 2204 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 63726 times"> + </span><span class="branchCov" title="Branch 3 was taken 4945 times"> + </span>]:<span class="lineCov">     139546 :         return (size() &gt; 0 &amp;&amp; *begin() == OP_RETURN) || (size() &gt; MAX_SCRIPT_SIZE);</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 65784 times"> + </span><span class="branchCov" title="Branch 5 was taken 146 times"> + </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<a name="558"><span class="lineNum">     558 </span>                :            :     }</a>
+<span class="lineNum">     559 </span>                :            : 
+<span class="lineNum">     560 </span>                :<span class="lineCov">   16778906 :     void clear()</span>
+<span class="lineNum">     561 </span>                :            :     {
+<span class="lineNum">     562 </span>                :            :         // The default prevector::clear() does not release memory
+<span class="lineNum">     563 </span>                :<span class="lineCov">   33557812 :         CScriptBase::clear();</span>
+<span class="lineNum">     564 </span>                :<span class="lineCov">   33557812 :         shrink_to_fit();</span>
+<span class="lineNum">     565 </span>                :<span class="lineCov">   16778906 :     }</span>
+<a name="566"><span class="lineNum">     566 </span>                :            : };</a>
+<span class="lineNum">     567 </span>                :            : 
+<span class="lineNum">     568 </span>        [<span class="branchCov" title="Branch 1 was taken 557860 times"> + </span><span class="branchCov" title="Branch 2 was taken 1911 times"> + </span>]:<span class="lineCov">    2564408 : struct CScriptWitness</span>
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchCov" title="Branch 11 was taken 18 times"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 5 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 7 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]
+<span class="lineNum">         </span>   [<span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 21 was taken 35 times"> + </span><span class="branchNoCov" title="Branch 22 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 35 was taken 523 times"> + </span><span class="branchNoCov" title="Branch 36 was not taken"> - </span>][<span class="branchCov" title="Branch 42 was taken 1480 times"> + </span><span class="branchNoCov" title="Branch 43 was not taken"> - </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">     569 </span>                :            : {
+<span class="lineNum">     570 </span>                :            :     // Note that this encodes the data elements being pushed, rather than
+<span class="lineNum">     571 </span>                :            :     // encoding them as a CScript that pushes them.
+<span class="lineNum">     572 </span>                :            :     std::vector&lt;std::vector&lt;unsigned char&gt; &gt; stack;
+<span class="lineNum">     573 </span>                :            : 
+<span class="lineNum">     574 </span>                :            :     // Some compilers complain without a default constructor
+<span class="lineNum">     575 </span>                :<span class="lineCov">    2353796 :     CScriptWitness() { }</span>
+<span class="lineNum">     576 </span>                :            : 
+<span class="lineNum">     577 </span>                :<span class="lineCov">     899360 :     bool IsNull() const { return stack.empty(); }</span>
+<span class="lineNum">     578 </span>                :            : 
+<span class="lineNum">     579 </span>                :<span class="lineCov">         79 :     void SetNull() { stack.clear(); stack.shrink_to_fit(); }</span>
+<span class="lineNum">     580 </span>                :            : 
+<span class="lineNum">     581 </span>                :            :     std::string ToString() const;
+<span class="lineNum">     582 </span>                :            : };
+<span class="lineNum">     583 </span>                :            : 
+<span class="lineNum">     584 </span>                :            : class CReserveScript
+<span class="lineNum">     585 </span>                :            : {
+<a name="586"><span class="lineNum">     586 </span>                :            : public:</a>
+<span class="lineNum">     587 </span>                :            :     CScript reserveScript;
+<a name="588"><span class="lineNum">     588 </span>                :<span class="lineNoCov">          0 :     virtual void KeepScript() {}</span></a>
+<span class="lineNum">     589 </span>                :<span class="lineCov">          2 :     CReserveScript() {}</span>
+<span class="lineNum">     590 </span>                :<span class="lineNoCov">          0 :     virtual ~CReserveScript() {}</span>
+<span class="lineNum">     591 </span>                :            : };
+<span class="lineNum">     592 </span>                :            : 
+<span class="lineNum">     593 </span>                :            : #endif // BITCOIN_SCRIPT_SCRIPT_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

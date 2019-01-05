@@ -1,0 +1,287 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/script/ismine.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/script</a> - ismine.cpp<span style="font-size: 80%;"> (source / <a href="ismine.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">69</td>
+            <td class="headerCovTableEntry">71</td>
+            <td class="headerCovTableEntryHi">97.2 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">91</td>
+            <td class="headerCovTableEntry">119</td>
+            <td class="headerCovTableEntryMed">76.5 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #include &lt;script/ismine.h&gt;
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;key.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;keystore.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;script/script.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;script/sign.h&gt;
+<span class="lineNum">      12 </span>                :            : 
+<span class="lineNum">      13 </span>                :            : 
+<span class="lineNum">      14 </span>                :            : typedef std::vector&lt;unsigned char&gt; valtype;
+<span class="lineNum">      15 </span>                :            : 
+<span class="lineNum">      16 </span>                :            : namespace {
+<span class="lineNum">      17 </span>                :            : 
+<span class="lineNum">      18 </span>                :            : /**
+<span class="lineNum">      19 </span>                :            :  * This is an enum that tracks the execution context of a script, similar to
+<span class="lineNum">      20 </span>                :            :  * SigVersion in script/interpreter. It is separate however because we want to
+<span class="lineNum">      21 </span>                :            :  * distinguish between top-level scriptPubKey execution and P2SH redeemScript
+<span class="lineNum">      22 </span>                :            :  * execution (a distinction that has no impact on consensus rules).
+<span class="lineNum">      23 </span>                :            :  */
+<span class="lineNum">      24 </span>                :            : enum class IsMineSigVersion
+<span class="lineNum">      25 </span>                :            : {
+<span class="lineNum">      26 </span>                :            :     TOP = 0,        //!&lt; scriptPubKey execution
+<span class="lineNum">      27 </span>                :            :     P2SH = 1,       //!&lt; P2SH redeemScript
+<span class="lineNum">      28 </span>                :            :     WITNESS_V0 = 2, //!&lt; P2WSH witness script execution
+<span class="lineNum">      29 </span>                :            : };
+<span class="lineNum">      30 </span>                :            : 
+<span class="lineNum">      31 </span>                :            : /**
+<span class="lineNum">      32 </span>                :            :  * This is an internal representation of isminetype + invalidity.
+<span class="lineNum">      33 </span>                :            :  * Its order is significant, as we return the max of all explored
+<span class="lineNum">      34 </span>                :            :  * possibilities.
+<span class="lineNum">      35 </span>                :            :  */
+<span class="lineNum">      36 </span>                :            : enum class IsMineResult
+<span class="lineNum">      37 </span>                :            : {
+<span class="lineNum">      38 </span>                :            :     NO = 0,         //!&lt; Not ours
+<span class="lineNum">      39 </span>                :            :     WATCH_ONLY = 1, //!&lt; Included in watch-only balance
+<span class="lineNum">      40 </span>                :            :     SPENDABLE = 2,  //!&lt; Included in all balances
+<span class="lineNum">      41 </span>                :            :     INVALID = 3,    //!&lt; Not spendable by anyone (uncompressed pubkey in segwit, P2SH inside P2SH or witness, witness inside witness)
+<a name="42"><span class="lineNum">      42 </span>                :            : };</a>
+<span class="lineNum">      43 </span>                :            : 
+<span class="lineNum">      44 </span>                :<span class="lineCov">     169685 : bool PermitsUncompressed(IsMineSigVersion sigversion)</span>
+<span class="lineNum">      45 </span>                :            : {
+<span class="lineNum">      46 </span>                :<span class="lineCov">     169685 :     return sigversion == IsMineSigVersion::TOP || sigversion == IsMineSigVersion::P2SH;</span>
+<a name="47"><span class="lineNum">      47 </span>                :            : }</a>
+<span class="lineNum">      48 </span>                :            : 
+<span class="lineNum">      49 </span>                :<span class="lineCov">       1801 : bool HaveKeys(const std::vector&lt;valtype&gt;&amp; pubkeys, const CKeyStore&amp; keystore)</span>
+<span class="lineNum">      50 </span>                :            : {
+<span class="lineNum">      51 </span>        [<span class="branchCov" title="Branch 0 was taken 3408 times"> + </span><span class="branchCov" title="Branch 1 was taken 1421 times"> + </span>]:<span class="lineCov">       4829 :     for (const valtype&amp; pubkey : pubkeys) {</span>
+<span class="lineNum">      52 </span>        [<span class="branchCov" title="Branch 2 was taken 3408 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       3408 :         CKeyID keyID = CPubKey(pubkey).GetID();</span>
+<span class="lineNum">      53 </span>[<span class="branchCov" title="Branch 1 was taken 3408 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 380 times"> + </span><span class="branchCov" title="Branch 4 was taken 3028 times"> + </span>]:<span class="lineCov">       3408 :         if (!keystore.HaveKey(keyID)) return false;</span>
+<span class="lineNum">      54 </span>                :            :     }
+<span class="lineNum">      55 </span>                :<span class="lineCov">       1801 :     return true;</span>
+<a name="56"><span class="lineNum">      56 </span>                :            : }</a>
+<span class="lineNum">      57 </span>                :            : 
+<span class="lineNum">      58 </span>                :<span class="lineCov">     555393 : IsMineResult IsMineInner(const CKeyStore&amp; keystore, const CScript&amp; scriptPubKey, IsMineSigVersion sigversion)</span>
+<span class="lineNum">      59 </span>                :            : {
+<span class="lineNum">      60 </span>                :<span class="lineCov">     555393 :     IsMineResult ret = IsMineResult::NO;</span>
+<span class="lineNum">      61 </span>                :            : 
+<span class="lineNum">      62 </span>                :<span class="lineCov">     555393 :     std::vector&lt;valtype&gt; vSolutions;</span>
+<span class="lineNum">      63 </span>        [<span class="branchCov" title="Branch 1 was taken 555393 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     555393 :     txnouttype whichType = Solver(scriptPubKey, vSolutions);</span>
+<span class="lineNum">      64 </span>                :            : 
+<span class="lineNum">      65 </span>                :<span class="lineCov">     555393 :     CKeyID keyID;</span>
+<span class="lineNum">      66 </span>  [<span class="branchCov" title="Branch 0 was taken 7048 times"> + </span><span class="branchCov" title="Branch 1 was taken 50535 times"> + </span><span class="branchCov" title="Branch 2 was taken 160676 times"> + </span><span class="branchCov" title="Branch 3 was taken 169108 times"> + </span> :<span class="lineCov">     555393 :     switch (whichType)</span>
+<span class="lineNum">         </span>      <span class="branchCov" title="Branch 4 was taken 18521 times"> + </span><span class="branchCov" title="Branch 5 was taken 2187 times"> + </span><span class="branchCov" title="Branch 6 was taken 147318 times"> + </span>]
+<span class="lineNum">      67 </span>                :            :     {
+<span class="lineNum">      68 </span>                :            :     case TX_NONSTANDARD:
+<span class="lineNum">      69 </span>                :            :     case TX_NULL_DATA:
+<span class="lineNum">      70 </span>                :            :     case TX_WITNESS_UNKNOWN:
+<span class="lineNum">      71 </span>                :            :         break;
+<span class="lineNum">      72 </span>                :<span class="lineCov">       7048 :     case TX_PUBKEY:</span>
+<span class="lineNum">      73 </span>        [<span class="branchCov" title="Branch 2 was taken 7048 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       7048 :         keyID = CPubKey(vSolutions[0]).GetID();</span>
+<span class="lineNum">      74 </span>[<span class="branchCov" title="Branch 0 was taken 291 times"> + </span><span class="branchCov" title="Branch 1 was taken 6757 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 185 times"> + </span><span class="branchCov" title="Branch 3 was taken 106 times"> + </span>]:<span class="lineCov">       7048 :         if (!PermitsUncompressed(sigversion) &amp;&amp; vSolutions[0].size() != 33) {</span>
+<span class="lineNum">      75 </span>                :            :             return IsMineResult::INVALID;
+<span class="lineNum">      76 </span>                :            :         }
+<span class="lineNum">      77 </span>[<span class="branchCov" title="Branch 1 was taken 6942 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 356 times"> + </span><span class="branchCov" title="Branch 4 was taken 6586 times"> + </span>]:<span class="lineCov">       6942 :         if (keystore.HaveKey(keyID)) {</span>
+<span class="lineNum">      78 </span>                :<span class="lineCov">        356 :             ret = std::max(ret, IsMineResult::SPENDABLE);</span>
+<span class="lineNum">      79 </span>                :            :         }
+<span class="lineNum">      80 </span>                :            :         break;
+<span class="lineNum">      81 </span>                :<span class="lineCov">      50535 :     case TX_WITNESS_V0_KEYHASH:</span>
+<span class="lineNum">      82 </span>                :            :     {
+<span class="lineNum">      83 </span>        [<span class="branchCov" title="Branch 0 was taken 50534 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">      50535 :         if (sigversion == IsMineSigVersion::WITNESS_V0) {</span>
+<span class="lineNum">      84 </span>                :            :             // P2WPKH inside P2WSH is invalid.
+<span class="lineNum">      85 </span>                :            :             return IsMineResult::INVALID;
+<span class="lineNum">      86 </span>                :            :         }
+<span class="lineNum">      87 </span>[<span class="branchCov" title="Branch 0 was taken 6599 times"> + </span><span class="branchCov" title="Branch 1 was taken 43935 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 6599 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">      57133 :         if (sigversion == IsMineSigVersion::TOP &amp;&amp; !keystore.HaveCScript(CScriptID(CScript() &lt;&lt; OP_0 &lt;&lt; vSolutions[0]))) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 6599 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 6599 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 12 was taken 2126 times"> + </span><span class="branchCov" title="Branch 13 was taken 4473 times"> + </span>][<span class="branchCov" title="Branch 14 was taken 4473 times"> + </span><span class="branchCov" title="Branch 15 was taken 43935 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 16 was taken 48408 times"> + </span><span class="branchCov" title="Branch 17 was taken 2126 times"> + </span>]
+<span class="lineNum">      88 </span>                :            :             // We do not support bare witness outputs unless the P2SH version of it would be
+<span class="lineNum">      89 </span>                :            :             // acceptable as well. This protects against matching before segwit activates.
+<span class="lineNum">      90 </span>                :            :             // This also applies to the P2WSH case.
+<span class="lineNum">      91 </span>                :            :             break;
+<span class="lineNum">      92 </span>                :            :         }
+<span class="lineNum">      93 </span>[<span class="branchCov" title="Branch 1 was taken 48408 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 48408 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      48408 :         ret = std::max(ret, IsMineInner(keystore, GetScriptForDestination(CKeyID(uint160(vSolutions[0]))), IsMineSigVersion::WITNESS_V0));</span>
+<span class="lineNum">      94 </span>                :<span class="lineCov">      48408 :         break;</span>
+<span class="lineNum">      95 </span>                :            :     }
+<span class="lineNum">      96 </span>                :<span class="lineCov">     160676 :     case TX_PUBKEYHASH:</span>
+<span class="lineNum">      97 </span>                :<span class="lineCov">     482028 :         keyID = CKeyID(uint160(vSolutions[0]));</span>
+<span class="lineNum">      98 </span>        [<span class="branchCov" title="Branch 0 was taken 48727 times"> + </span><span class="branchCov" title="Branch 1 was taken 111949 times"> + </span>]:<span class="lineCov">     160676 :         if (!PermitsUncompressed(sigversion)) {</span>
+<span class="lineNum">      99 </span>                :<span class="lineCov">      48727 :             CPubKey pubkey;</span>
+<span class="lineNum">     100 </span>[<span class="branchCov" title="Branch 1 was taken 48727 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 48699 times"> + </span><span class="branchCov" title="Branch 4 was taken 28 times"> + </span>]:<span class="lineCov">      48727 :             if (keystore.GetPubKey(keyID, pubkey) &amp;&amp; !pubkey.IsCompressed()) {</span>
+<span class="lineNum">     101 </span>                :<span class="lineCov">      48727 :                 return IsMineResult::INVALID;</span>
+<span class="lineNum">     102 </span>                :            :             }
+<span class="lineNum">     103 </span>                :            :         }
+<span class="lineNum">     104 </span>[<span class="branchCov" title="Branch 1 was taken 160463 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 116559 times"> + </span><span class="branchCov" title="Branch 4 was taken 43904 times"> + </span>]:<span class="lineCov">     160463 :         if (keystore.HaveKey(keyID)) {</span>
+<span class="lineNum">     105 </span>                :<span class="lineCov">     116559 :             ret = std::max(ret, IsMineResult::SPENDABLE);</span>
+<span class="lineNum">     106 </span>                :            :         }
+<span class="lineNum">     107 </span>                :            :         break;
+<span class="lineNum">     108 </span>                :<span class="lineCov">     169108 :     case TX_SCRIPTHASH:</span>
+<span class="lineNum">     109 </span>                :            :     {
+<span class="lineNum">     110 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 169106 times"> + </span>]:<span class="lineCov">     169108 :         if (sigversion != IsMineSigVersion::TOP) {</span>
+<span class="lineNum">     111 </span>                :            :             // P2SH inside P2WSH or P2SH is invalid.
+<span class="lineNum">     112 </span>                :<span class="lineCov">          2 :             return IsMineResult::INVALID;</span>
+<span class="lineNum">     113 </span>                :            :         }
+<span class="lineNum">     114 </span>                :<span class="lineCov">     507318 :         CScriptID scriptID = CScriptID(uint160(vSolutions[0]));</span>
+<span class="lineNum">     115 </span>                :<span class="lineCov">     169106 :         CScript subscript;</span>
+<span class="lineNum">     116 </span>[<span class="branchCov" title="Branch 1 was taken 169106 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 45883 times"> + </span><span class="branchCov" title="Branch 4 was taken 123223 times"> + </span>]:<span class="lineCov">     169106 :         if (keystore.GetCScript(scriptID, subscript)) {</span>
+<span class="lineNum">     117 </span>        [<span class="branchCov" title="Branch 1 was taken 45883 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      91766 :             ret = std::max(ret, IsMineInner(keystore, subscript, IsMineSigVersion::P2SH));</span>
+<span class="lineNum">     118 </span>                :            :         }
+<span class="lineNum">     119 </span>                :            :         break;
+<span class="lineNum">     120 </span>                :            :     }
+<span class="lineNum">     121 </span>                :<span class="lineCov">      18521 :     case TX_WITNESS_V0_SCRIPTHASH:</span>
+<span class="lineNum">     122 </span>                :            :     {
+<span class="lineNum">     123 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 18520 times"> + </span>]:<span class="lineCov">      18521 :         if (sigversion == IsMineSigVersion::WITNESS_V0) {</span>
+<span class="lineNum">     124 </span>                :            :             // P2WSH inside P2WSH is invalid.
+<span class="lineNum">     125 </span>                :<span class="lineCov">          1 :             return IsMineResult::INVALID;</span>
+<span class="lineNum">     126 </span>                :            :         }
+<span class="lineNum">     127 </span>[<span class="branchCov" title="Branch 0 was taken 17472 times"> + </span><span class="branchCov" title="Branch 1 was taken 1048 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 17472 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">      35992 :         if (sigversion == IsMineSigVersion::TOP &amp;&amp; !keystore.HaveCScript(CScriptID(CScript() &lt;&lt; OP_0 &lt;&lt; vSolutions[0]))) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 17472 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 17472 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 12 was taken 16484 times"> + </span><span class="branchCov" title="Branch 13 was taken 988 times"> + </span>][<span class="branchCov" title="Branch 14 was taken 988 times"> + </span><span class="branchCov" title="Branch 15 was taken 1048 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 16 was taken 2036 times"> + </span><span class="branchCov" title="Branch 17 was taken 16484 times"> + </span>]
+<span class="lineNum">     128 </span>                :            :             break;
+<span class="lineNum">     129 </span>                :            :         }
+<span class="lineNum">     130 </span>                :<span class="lineCov">       2036 :         uint160 hash;</span>
+<span class="lineNum">     131 </span>[<span class="branchCov" title="Branch 1 was taken 2036 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2036 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       2036 :         CRIPEMD160().Write(&amp;vSolutions[0][0], vSolutions[0].size()).Finalize(hash.begin());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 2036 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     132 </span>                :<span class="lineCov">       2036 :         CScriptID scriptID = CScriptID(hash);</span>
+<span class="lineNum">     133 </span>                :<span class="lineNoCov">          0 :         CScript subscript;</span>
+<span class="lineNum">     134 </span>[<span class="branchCov" title="Branch 1 was taken 2036 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 2036 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       2036 :         if (keystore.GetCScript(scriptID, subscript)) {</span>
+<span class="lineNum">     135 </span>        [<span class="branchCov" title="Branch 1 was taken 2036 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       4072 :             ret = std::max(ret, IsMineInner(keystore, subscript, IsMineSigVersion::WITNESS_V0));</span>
+<span class="lineNum">     136 </span>                :            :         }
+<span class="lineNum">     137 </span>                :            :         break;
+<span class="lineNum">     138 </span>                :            :     }
+<span class="lineNum">     139 </span>                :            : 
+<span class="lineNum">     140 </span>                :<span class="lineCov">       2187 :     case TX_MULTISIG:</span>
+<span class="lineNum">     141 </span>                :            :     {
+<span class="lineNum">     142 </span>                :            :         // Never treat bare multisig outputs as ours (they can still be made watchonly-though)
+<span class="lineNum">     143 </span>        [<span class="branchCov" title="Branch 0 was taken 1961 times"> + </span><span class="branchCov" title="Branch 1 was taken 226 times"> + </span>]:<span class="lineCov">       2187 :         if (sigversion == IsMineSigVersion::TOP) {</span>
+<span class="lineNum">     144 </span>                :            :             break;
+<span class="lineNum">     145 </span>                :            :         }
+<span class="lineNum">     146 </span>                :            : 
+<span class="lineNum">     147 </span>                :            :         // Only consider transactions &quot;mine&quot; if we own ALL the
+<span class="lineNum">     148 </span>                :            :         // keys involved. Multi-signature transactions that are
+<span class="lineNum">     149 </span>                :            :         // partially owned (somebody else has a key that can spend
+<span class="lineNum">     150 </span>                :            :         // them) enable spend-out-from-under-you attacks, especially
+<span class="lineNum">     151 </span>                :            :         // in shared-wallet situations.
+<span class="lineNum">     152 </span>        [<span class="branchCov" title="Branch 1 was taken 1961 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1961 :         std::vector&lt;valtype&gt; keys(vSolutions.begin()+1, vSolutions.begin()+vSolutions.size()-1);</span>
+<span class="lineNum">     153 </span>        [<span class="branchCov" title="Branch 0 was taken 1395 times"> + </span><span class="branchCov" title="Branch 1 was taken 566 times"> + </span>]:<span class="lineCov">       1961 :         if (!PermitsUncompressed(sigversion)) {</span>
+<span class="lineNum">     154 </span>        [<span class="branchCov" title="Branch 0 was taken 2705 times"> + </span><span class="branchCov" title="Branch 1 was taken 1235 times"> + </span>]:<span class="lineCov">       3940 :             for (size_t i = 0; i &lt; keys.size(); i++) {</span>
+<span class="lineNum">     155 </span>        [<span class="branchCov" title="Branch 0 was taken 160 times"> + </span><span class="branchCov" title="Branch 1 was taken 2545 times"> + </span>]:<span class="lineCov">       2705 :                 if (keys[i].size() != 33) {</span>
+<span class="lineNum">     156 </span>                :<span class="lineCov">        160 :                     return IsMineResult::INVALID;</span>
+<span class="lineNum">     157 </span>                :            :                 }
+<span class="lineNum">     158 </span>                :            :             }
+<span class="lineNum">     159 </span>                :            :         }
+<span class="lineNum">     160 </span>[<span class="branchCov" title="Branch 1 was taken 1801 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 1421 times"> + </span><span class="branchCov" title="Branch 4 was taken 380 times"> + </span>]:<span class="lineCov">       1801 :         if (HaveKeys(keys, keystore)) {</span>
+<span class="lineNum">     161 </span>                :<span class="lineCov">       1421 :             ret = std::max(ret, IsMineResult::SPENDABLE);</span>
+<span class="lineNum">     162 </span>                :            :         }
+<span class="lineNum">     163 </span>                :<span class="lineCov">       2027 :         break;</span>
+<span class="lineNum">     164 </span>                :            :     }
+<span class="lineNum">     165 </span>                :            :     }
+<span class="lineNum">     166 </span>                :            : 
+<span class="lineNum">     167 </span>[<span class="branchCov" title="Branch 0 was taken 340438 times"> + </span><span class="branchCov" title="Branch 1 was taken 214472 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 340438 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">     554910 :     if (ret == IsMineResult::NO &amp;&amp; keystore.HaveWatchOnly(scriptPubKey)) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 5 was taken 2399 times"> + </span><span class="branchCov" title="Branch 6 was taken 338039 times"> + </span>]
+<span class="lineNum">     168 </span>                :<span class="lineCov">       2399 :         ret = std::max(ret, IsMineResult::WATCH_ONLY);</span>
+<span class="lineNum">     169 </span>                :            :     }
+<span class="lineNum">     170 </span>                :<span class="lineCov">     554910 :     return ret;</span>
+<span class="lineNum">     171 </span>                :            : }
+<span class="lineNum">     172 </span>                :            : 
+<a name="173"><span class="lineNum">     173 </span>                :            : } // namespace</a>
+<span class="lineNum">     174 </span>                :            : 
+<span class="lineNum">     175 </span>                :<span class="lineCov">     459066 : isminetype IsMine(const CKeyStore&amp; keystore, const CScript&amp; scriptPubKey)</span>
+<span class="lineNum">     176 </span>                :            : {
+<span class="lineNum">     177 </span>  [<span class="branchCov" title="Branch 1 was taken 2399 times"> + </span><span class="branchCov" title="Branch 2 was taken 118336 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 338331 times"> + </span>]:<span class="lineCov">     459066 :     switch (IsMineInner(keystore, scriptPubKey, IsMineSigVersion::TOP)) {</span>
+<span class="lineNum">     178 </span>                :            :     case IsMineResult::INVALID:
+<span class="lineNum">     179 </span>                :            :     case IsMineResult::NO:
+<span class="lineNum">     180 </span>                :            :         return ISMINE_NO;
+<span class="lineNum">     181 </span>                :<span class="lineCov">       2399 :     case IsMineResult::WATCH_ONLY:</span>
+<span class="lineNum">     182 </span>                :<span class="lineCov">       2399 :         return ISMINE_WATCH_ONLY;</span>
+<span class="lineNum">     183 </span>                :<span class="lineCov">     118336 :     case IsMineResult::SPENDABLE:</span>
+<span class="lineNum">     184 </span>                :<span class="lineCov">     118336 :         return ISMINE_SPENDABLE;</span>
+<span class="lineNum">     185 </span>                :            :     }
+<span class="lineNum">     186 </span>                :<span class="lineNoCov">          0 :     assert(false);</span>
+<a name="187"><span class="lineNum">     187 </span>                :            : }</a>
+<span class="lineNum">     188 </span>                :            : 
+<span class="lineNum">     189 </span>                :<span class="lineCov">       5334 : isminetype IsMine(const CKeyStore&amp; keystore, const CTxDestination&amp; dest)</span>
+<span class="lineNum">     190 </span>                :            : {
+<span class="lineNum">     191 </span>                :<span class="lineCov">       5334 :     CScript script = GetScriptForDestination(dest);</span>
+<span class="lineNum">     192 </span>        [<span class="branchCov" title="Branch 1 was taken 5334 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      10668 :     return IsMine(keystore, script);</span>
+<span class="lineNum">     193 </span>                :            : }
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

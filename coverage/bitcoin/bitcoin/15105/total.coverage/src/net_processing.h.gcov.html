@@ -1,0 +1,175 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/net_processing.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - net_processing.h<span style="font-size: 80%;"> (source / <a href="net_processing.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntryHi">-</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntryHi">-</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #ifndef BITCOIN_NET_PROCESSING_H
+<span class="lineNum">       7 </span>                :            : #define BITCOIN_NET_PROCESSING_H
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : #include &lt;net.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;validationinterface.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;consensus/params.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;sync.h&gt;
+<span class="lineNum">      13 </span>                :            : 
+<span class="lineNum">      14 </span>                :            : extern CCriticalSection cs_main;
+<span class="lineNum">      15 </span>                :            : 
+<span class="lineNum">      16 </span>                :            : /** Default for -maxorphantx, maximum number of orphan transactions kept in memory */
+<span class="lineNum">      17 </span>                :            : static const unsigned int DEFAULT_MAX_ORPHAN_TRANSACTIONS = 100;
+<span class="lineNum">      18 </span>                :            : /** Default number of orphan+recently-replaced txn to keep around for block reconstruction */
+<span class="lineNum">      19 </span>                :            : static const unsigned int DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN = 100;
+<span class="lineNum">      20 </span>                :            : /** Default for BIP61 (sending reject messages) */
+<span class="lineNum">      21 </span>                :            : static constexpr bool DEFAULT_ENABLE_BIP61{false};
+<span class="lineNum">      22 </span>                :            : 
+<span class="lineNum">      23 </span>                :            : class PeerLogicValidation final : public CValidationInterface, public NetEventsInterface {
+<span class="lineNum">      24 </span>                :            : private:
+<span class="lineNum">      25 </span>                :            :     CConnman* const connman;
+<span class="lineNum">      26 </span>                :            : 
+<span class="lineNum">      27 </span>                :            : public:
+<span class="lineNum">      28 </span>                :            :     explicit PeerLogicValidation(CConnman* connman, CScheduler &amp;scheduler, bool enable_bip61);
+<span class="lineNum">      29 </span>                :            : 
+<span class="lineNum">      30 </span>                :            :     /**
+<span class="lineNum">      31 </span>                :            :      * Overridden from CValidationInterface.
+<span class="lineNum">      32 </span>                :            :      */
+<span class="lineNum">      33 </span>                :            :     void BlockConnected(const std::shared_ptr&lt;const CBlock&gt;&amp; pblock, const CBlockIndex* pindexConnected, const std::vector&lt;CTransactionRef&gt;&amp; vtxConflicted) override;
+<span class="lineNum">      34 </span>                :            :     /**
+<span class="lineNum">      35 </span>                :            :      * Overridden from CValidationInterface.
+<span class="lineNum">      36 </span>                :            :      */
+<span class="lineNum">      37 </span>                :            :     void UpdatedBlockTip(const CBlockIndex *pindexNew, const CBlockIndex *pindexFork, bool fInitialDownload) override;
+<span class="lineNum">      38 </span>                :            :     /**
+<span class="lineNum">      39 </span>                :            :      * Overridden from CValidationInterface.
+<span class="lineNum">      40 </span>                :            :      */
+<span class="lineNum">      41 </span>                :            :     void BlockChecked(const CBlock&amp; block, const CValidationState&amp; state) override;
+<span class="lineNum">      42 </span>                :            :     /**
+<span class="lineNum">      43 </span>                :            :      * Overridden from CValidationInterface.
+<span class="lineNum">      44 </span>                :            :      */
+<span class="lineNum">      45 </span>                :            :     void NewPoWValidBlock(const CBlockIndex *pindex, const std::shared_ptr&lt;const CBlock&gt;&amp; pblock) override;
+<span class="lineNum">      46 </span>                :            : 
+<span class="lineNum">      47 </span>                :            :     /** Initialize a peer by adding it to mapNodeState and pushing a message requesting its version */
+<span class="lineNum">      48 </span>                :            :     void InitializeNode(CNode* pnode) override;
+<span class="lineNum">      49 </span>                :            :     /** Handle removal of a peer by updating various state and removing it from mapNodeState */
+<span class="lineNum">      50 </span>                :            :     void FinalizeNode(NodeId nodeid, bool&amp; fUpdateConnectionTime) override;
+<span class="lineNum">      51 </span>                :            :     /**
+<span class="lineNum">      52 </span>                :            :     * Process protocol messages received from a given node
+<span class="lineNum">      53 </span>                :            :     *
+<span class="lineNum">      54 </span>                :            :     * @param[in]   pfrom           The node which we have received messages from.
+<span class="lineNum">      55 </span>                :            :     * @param[in]   interrupt       Interrupt condition for processing threads
+<span class="lineNum">      56 </span>                :            :     */
+<span class="lineNum">      57 </span>                :            :     bool ProcessMessages(CNode* pfrom, std::atomic&lt;bool&gt;&amp; interrupt) override;
+<span class="lineNum">      58 </span>                :            :     /**
+<span class="lineNum">      59 </span>                :            :     * Send queued protocol messages to be sent to a give node.
+<span class="lineNum">      60 </span>                :            :     *
+<span class="lineNum">      61 </span>                :            :     * @param[in]   pto             The node which we are sending messages to.
+<span class="lineNum">      62 </span>                :            :     * @return                      True if there is more work to be done
+<span class="lineNum">      63 </span>                :            :     */
+<span class="lineNum">      64 </span>                :            :     bool SendMessages(CNode* pto) override EXCLUSIVE_LOCKS_REQUIRED(pto-&gt;cs_sendProcessing);
+<span class="lineNum">      65 </span>                :            : 
+<span class="lineNum">      66 </span>                :            :     /** Consider evicting an outbound peer based on the amount of time they've been behind our tip */
+<span class="lineNum">      67 </span>                :            :     void ConsiderEviction(CNode *pto, int64_t time_in_seconds) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+<span class="lineNum">      68 </span>                :            :     /** Evict extra outbound peers. If we think our tip may be stale, connect to an extra outbound */
+<span class="lineNum">      69 </span>                :            :     void CheckForStaleTipAndEvictPeers(const Consensus::Params &amp;consensusParams);
+<span class="lineNum">      70 </span>                :            :     /** If we have extra outbound peers, try to disconnect the one with the oldest block announcement */
+<span class="lineNum">      71 </span>                :            :     void EvictExtraOutboundPeers(int64_t time_in_seconds) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+<span class="lineNum">      72 </span>                :            : 
+<span class="lineNum">      73 </span>                :            : private:
+<span class="lineNum">      74 </span>                :            :     int64_t m_stale_tip_check_time; //!&lt; Next time to check for stale tip
+<span class="lineNum">      75 </span>                :            : 
+<span class="lineNum">      76 </span>                :            :     /** Enable BIP61 (sending reject messages) */
+<span class="lineNum">      77 </span>                :            :     const bool m_enable_bip61;
+<span class="lineNum">      78 </span>                :            : };
+<span class="lineNum">      79 </span>                :            : 
+<span class="lineNum">      80 </span>                :<span class="lineCov">       6680 : struct CNodeStateStats {</span>
+<span class="lineNum">      81 </span>                :            :     int nMisbehavior = 0;
+<span class="lineNum">      82 </span>                :            :     int nSyncHeight = -1;
+<span class="lineNum">      83 </span>                :            :     int nCommonHeight = -1;
+<span class="lineNum">      84 </span>                :            :     std::vector&lt;int&gt; vHeightInFlight;
+<span class="lineNum">      85 </span>                :            : };
+<span class="lineNum">      86 </span>                :            : 
+<span class="lineNum">      87 </span>                :            : /** Get statistics from node state */
+<span class="lineNum">      88 </span>                :            : bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &amp;stats);
+<span class="lineNum">      89 </span>                :            : 
+<span class="lineNum">      90 </span>                :            : #endif // BITCOIN_NET_PROCESSING_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

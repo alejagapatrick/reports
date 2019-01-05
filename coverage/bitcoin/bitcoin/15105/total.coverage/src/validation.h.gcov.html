@@ -1,0 +1,594 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/validation.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - validation.h<span style="font-size: 80%;"> (source / <a href="validation.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">20</td>
+            <td class="headerCovTableEntry">20</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">14</td>
+            <td class="headerCovTableEntryLo">28.6 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #ifndef BITCOIN_VALIDATION_H
+<span class="lineNum">       7 </span>                :            : #define BITCOIN_VALIDATION_H
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : #if defined(HAVE_CONFIG_H)
+<span class="lineNum">      10 </span>                :            : #include &lt;config/bitcoin-config.h&gt;
+<span class="lineNum">      11 </span>                :            : #endif
+<span class="lineNum">      12 </span>                :            : 
+<span class="lineNum">      13 </span>                :            : #include &lt;amount.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;coins.h&gt;
+<span class="lineNum">      15 </span>                :            : #include &lt;crypto/common.h&gt; // for ReadLE64
+<span class="lineNum">      16 </span>                :            : #include &lt;fs.h&gt;
+<span class="lineNum">      17 </span>                :            : #include &lt;protocol.h&gt; // For CMessageHeader::MessageStartChars
+<span class="lineNum">      18 </span>                :            : #include &lt;policy/feerate.h&gt;
+<span class="lineNum">      19 </span>                :            : #include &lt;script/script_error.h&gt;
+<span class="lineNum">      20 </span>                :            : #include &lt;sync.h&gt;
+<span class="lineNum">      21 </span>                :            : #include &lt;versionbits.h&gt;
+<span class="lineNum">      22 </span>                :            : 
+<span class="lineNum">      23 </span>                :            : #include &lt;algorithm&gt;
+<span class="lineNum">      24 </span>                :            : #include &lt;exception&gt;
+<span class="lineNum">      25 </span>                :            : #include &lt;map&gt;
+<span class="lineNum">      26 </span>                :            : #include &lt;memory&gt;
+<span class="lineNum">      27 </span>                :            : #include &lt;set&gt;
+<span class="lineNum">      28 </span>                :            : #include &lt;stdint.h&gt;
+<span class="lineNum">      29 </span>                :            : #include &lt;string&gt;
+<span class="lineNum">      30 </span>                :            : #include &lt;utility&gt;
+<span class="lineNum">      31 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">      32 </span>                :            : 
+<span class="lineNum">      33 </span>                :            : #include &lt;atomic&gt;
+<span class="lineNum">      34 </span>                :            : 
+<span class="lineNum">      35 </span>                :            : class CBlockIndex;
+<span class="lineNum">      36 </span>                :            : class CBlockTreeDB;
+<span class="lineNum">      37 </span>                :            : class CChainParams;
+<span class="lineNum">      38 </span>                :            : class CCoinsViewDB;
+<span class="lineNum">      39 </span>                :            : class CInv;
+<span class="lineNum">      40 </span>                :            : class CConnman;
+<span class="lineNum">      41 </span>                :            : class CScriptCheck;
+<span class="lineNum">      42 </span>                :            : class CBlockPolicyEstimator;
+<span class="lineNum">      43 </span>                :            : class CTxMemPool;
+<span class="lineNum">      44 </span>                :            : class CValidationState;
+<span class="lineNum">      45 </span>                :            : struct ChainTxData;
+<span class="lineNum">      46 </span>                :            : 
+<span class="lineNum">      47 </span>                :            : struct PrecomputedTransactionData;
+<span class="lineNum">      48 </span>                :            : struct LockPoints;
+<span class="lineNum">      49 </span>                :            : 
+<span class="lineNum">      50 </span>                :            : /** Default for -whitelistrelay. */
+<span class="lineNum">      51 </span>                :            : static const bool DEFAULT_WHITELISTRELAY = true;
+<span class="lineNum">      52 </span>                :            : /** Default for -whitelistforcerelay. */
+<span class="lineNum">      53 </span>                :            : static const bool DEFAULT_WHITELISTFORCERELAY = true;
+<span class="lineNum">      54 </span>                :            : /** Default for -minrelaytxfee, minimum relay fee for transactions */
+<span class="lineNum">      55 </span>                :            : static const unsigned int DEFAULT_MIN_RELAY_TX_FEE = 1000;
+<span class="lineNum">      56 </span>                :            : //! -maxtxfee default
+<span class="lineNum">      57 </span>                :            : static const CAmount DEFAULT_TRANSACTION_MAXFEE = COIN / 10;
+<span class="lineNum">      58 </span>                :            : //! Discourage users to set fees higher than this amount (in satoshis) per kB
+<span class="lineNum">      59 </span>                :            : static const CAmount HIGH_TX_FEE_PER_KB = COIN / 100;
+<span class="lineNum">      60 </span>                :            : //! -maxtxfee will warn if called with a higher fee than this amount (in satoshis)
+<span class="lineNum">      61 </span>                :            : static const CAmount HIGH_MAX_TX_FEE = 100 * HIGH_TX_FEE_PER_KB;
+<span class="lineNum">      62 </span>                :            : /** Default for -limitancestorcount, max number of in-mempool ancestors */
+<span class="lineNum">      63 </span>                :            : static const unsigned int DEFAULT_ANCESTOR_LIMIT = 25;
+<span class="lineNum">      64 </span>                :            : /** Default for -limitancestorsize, maximum kilobytes of tx + all in-mempool ancestors */
+<span class="lineNum">      65 </span>                :            : static const unsigned int DEFAULT_ANCESTOR_SIZE_LIMIT = 101;
+<span class="lineNum">      66 </span>                :            : /** Default for -limitdescendantcount, max number of in-mempool descendants */
+<span class="lineNum">      67 </span>                :            : static const unsigned int DEFAULT_DESCENDANT_LIMIT = 25;
+<span class="lineNum">      68 </span>                :            : /** Default for -limitdescendantsize, maximum kilobytes of in-mempool descendants */
+<span class="lineNum">      69 </span>                :            : static const unsigned int DEFAULT_DESCENDANT_SIZE_LIMIT = 101;
+<span class="lineNum">      70 </span>                :            : /** Default for -mempoolexpiry, expiration time for mempool transactions in hours */
+<span class="lineNum">      71 </span>                :            : static const unsigned int DEFAULT_MEMPOOL_EXPIRY = 336;
+<span class="lineNum">      72 </span>                :            : /** Maximum kilobytes for transactions to store for processing during reorg */
+<span class="lineNum">      73 </span>                :            : static const unsigned int MAX_DISCONNECTED_TX_POOL_SIZE = 20000;
+<span class="lineNum">      74 </span>                :            : /** The maximum size of a blk?????.dat file (since 0.8) */
+<span class="lineNum">      75 </span>                :            : static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
+<span class="lineNum">      76 </span>                :            : /** The pre-allocation chunk size for blk?????.dat files (since 0.8) */
+<span class="lineNum">      77 </span>                :            : static const unsigned int BLOCKFILE_CHUNK_SIZE = 0x1000000; // 16 MiB
+<span class="lineNum">      78 </span>                :            : /** The pre-allocation chunk size for rev?????.dat files (since 0.8) */
+<span class="lineNum">      79 </span>                :            : static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
+<span class="lineNum">      80 </span>                :            : 
+<span class="lineNum">      81 </span>                :            : /** Maximum number of script-checking threads allowed */
+<span class="lineNum">      82 </span>                :            : static const int MAX_SCRIPTCHECK_THREADS = 16;
+<span class="lineNum">      83 </span>                :            : /** -par default (number of script-checking threads, 0 = auto) */
+<span class="lineNum">      84 </span>                :            : static const int DEFAULT_SCRIPTCHECK_THREADS = 0;
+<span class="lineNum">      85 </span>                :            : /** Number of blocks that can be requested at any given time from a single peer. */
+<span class="lineNum">      86 </span>                :            : static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 16;
+<span class="lineNum">      87 </span>                :            : /** Timeout in seconds during which a peer must stall block download progress before being disconnected. */
+<span class="lineNum">      88 </span>                :            : static const unsigned int BLOCK_STALLING_TIMEOUT = 2;
+<span class="lineNum">      89 </span>                :            : /** Number of headers sent in one getheaders result. We rely on the assumption that if a peer sends
+<span class="lineNum">      90 </span>                :            :  *  less than this number, we reached its tip. Changing this value is a protocol upgrade. */
+<span class="lineNum">      91 </span>                :            : static const unsigned int MAX_HEADERS_RESULTS = 2000;
+<span class="lineNum">      92 </span>                :            : /** Maximum depth of blocks we're willing to serve as compact blocks to peers
+<span class="lineNum">      93 </span>                :            :  *  when requested. For older blocks, a regular BLOCK response will be sent. */
+<span class="lineNum">      94 </span>                :            : static const int MAX_CMPCTBLOCK_DEPTH = 5;
+<span class="lineNum">      95 </span>                :            : /** Maximum depth of blocks we're willing to respond to GETBLOCKTXN requests for. */
+<span class="lineNum">      96 </span>                :            : static const int MAX_BLOCKTXN_DEPTH = 10;
+<span class="lineNum">      97 </span>                :            : /** Size of the &quot;block download window&quot;: how far ahead of our current height do we fetch?
+<span class="lineNum">      98 </span>                :            :  *  Larger windows tolerate larger download speed differences between peer, but increase the potential
+<span class="lineNum">      99 </span>                :            :  *  degree of disordering of blocks on disk (which make reindexing and pruning harder). We'll probably
+<span class="lineNum">     100 </span>                :            :  *  want to make this a per-peer adaptive value at some point. */
+<span class="lineNum">     101 </span>                :            : static const unsigned int BLOCK_DOWNLOAD_WINDOW = 1024;
+<span class="lineNum">     102 </span>                :            : /** Time to wait (in seconds) between writing blocks/block index to disk. */
+<span class="lineNum">     103 </span>                :            : static const unsigned int DATABASE_WRITE_INTERVAL = 60 * 60;
+<span class="lineNum">     104 </span>                :            : /** Time to wait (in seconds) between flushing chainstate to disk. */
+<span class="lineNum">     105 </span>                :            : static const unsigned int DATABASE_FLUSH_INTERVAL = 24 * 60 * 60;
+<span class="lineNum">     106 </span>                :            : /** Maximum length of reject messages. */
+<span class="lineNum">     107 </span>                :            : static const unsigned int MAX_REJECT_MESSAGE_LENGTH = 111;
+<span class="lineNum">     108 </span>                :            : /** Block download timeout base, expressed in millionths of the block interval (i.e. 10 min) */
+<span class="lineNum">     109 </span>                :            : static const int64_t BLOCK_DOWNLOAD_TIMEOUT_BASE = 1000000;
+<span class="lineNum">     110 </span>                :            : /** Additional block download timeout per parallel downloading peer (i.e. 5 min) */
+<span class="lineNum">     111 </span>                :            : static const int64_t BLOCK_DOWNLOAD_TIMEOUT_PER_PEER = 500000;
+<span class="lineNum">     112 </span>                :            : 
+<span class="lineNum">     113 </span>                :            : static const int64_t DEFAULT_MAX_TIP_AGE = 24 * 60 * 60;
+<span class="lineNum">     114 </span>                :            : /** Maximum age of our tip in seconds for us to be considered current for fee estimation */
+<span class="lineNum">     115 </span>                :            : static const int64_t MAX_FEE_ESTIMATION_TIP_AGE = 3 * 60 * 60;
+<span class="lineNum">     116 </span>                :            : 
+<span class="lineNum">     117 </span>                :            : /** Default for -permitbaremultisig */
+<span class="lineNum">     118 </span>                :            : static const bool DEFAULT_PERMIT_BAREMULTISIG = true;
+<span class="lineNum">     119 </span>                :            : static const bool DEFAULT_CHECKPOINTS_ENABLED = true;
+<span class="lineNum">     120 </span>                :            : static const bool DEFAULT_TXINDEX = false;
+<span class="lineNum">     121 </span>                :            : static const unsigned int DEFAULT_BANSCORE_THRESHOLD = 100;
+<span class="lineNum">     122 </span>                :            : /** Default for -persistmempool */
+<span class="lineNum">     123 </span>                :            : static const bool DEFAULT_PERSIST_MEMPOOL = true;
+<span class="lineNum">     124 </span>                :            : /** Default for -mempoolreplacement */
+<span class="lineNum">     125 </span>                :            : static const bool DEFAULT_ENABLE_REPLACEMENT = true;
+<span class="lineNum">     126 </span>                :            : /** Default for using fee filter */
+<span class="lineNum">     127 </span>                :            : static const bool DEFAULT_FEEFILTER = true;
+<span class="lineNum">     128 </span>                :            : 
+<span class="lineNum">     129 </span>                :            : /** Maximum number of headers to announce when relaying blocks with headers message.*/
+<span class="lineNum">     130 </span>                :            : static const unsigned int MAX_BLOCKS_TO_ANNOUNCE = 8;
+<span class="lineNum">     131 </span>                :            : 
+<span class="lineNum">     132 </span>                :            : /** Maximum number of unconnecting headers announcements before DoS score */
+<span class="lineNum">     133 </span>                :            : static const int MAX_UNCONNECTING_HEADERS = 10;
+<span class="lineNum">     134 </span>                :            : 
+<span class="lineNum">     135 </span>                :            : static const bool DEFAULT_PEERBLOOMFILTERS = true;
+<span class="lineNum">     136 </span>                :            : 
+<span class="lineNum">     137 </span>                :            : /** Default for -stopatheight */
+<span class="lineNum">     138 </span>                :            : static const int DEFAULT_STOPATHEIGHT = 0;
+<span class="lineNum">     139 </span>                :            : 
+<span class="lineNum">     140 </span>                :            : struct BlockHasher
+<span class="lineNum">     141 </span>                :            : {
+<span class="lineNum">     142 </span>                :            :     // this used to call `GetCheapHash()` in uint256, which was later moved; the
+<span class="lineNum">     143 </span>                :            :     // cheap hash function simply calls ReadLE64() however, so the end result is
+<span class="lineNum">     144 </span>                :            :     // identical
+<span class="lineNum">     145 </span>                :<span class="lineCov">    2488478 :     size_t operator()(const uint256&amp; hash) const { return ReadLE64(hash.begin()); }</span>
+<span class="lineNum">     146 </span>                :            : };
+<span class="lineNum">     147 </span>                :            : 
+<span class="lineNum">     148 </span>                :            : extern CScript COINBASE_FLAGS;
+<span class="lineNum">     149 </span>                :            : extern CCriticalSection cs_main;
+<span class="lineNum">     150 </span>                :            : extern CBlockPolicyEstimator feeEstimator;
+<span class="lineNum">     151 </span>                :            : extern CTxMemPool mempool;
+<span class="lineNum">     152 </span>                :            : extern std::atomic_bool g_is_mempool_loaded;
+<span class="lineNum">     153 </span>                :            : typedef std::unordered_map&lt;uint256, CBlockIndex*, BlockHasher&gt; BlockMap;
+<span class="lineNum">     154 </span>                :            : extern BlockMap&amp; mapBlockIndex;
+<span class="lineNum">     155 </span>                :            : extern uint64_t nLastBlockTx;
+<span class="lineNum">     156 </span>                :            : extern uint64_t nLastBlockWeight;
+<span class="lineNum">     157 </span>                :            : extern const std::string strMessageMagic;
+<span class="lineNum">     158 </span>                :            : extern Mutex g_best_block_mutex;
+<span class="lineNum">     159 </span>                :            : extern std::condition_variable g_best_block_cv;
+<span class="lineNum">     160 </span>                :            : extern uint256 g_best_block;
+<span class="lineNum">     161 </span>                :            : extern std::atomic_bool fImporting;
+<span class="lineNum">     162 </span>                :            : extern std::atomic_bool fReindex;
+<span class="lineNum">     163 </span>                :            : extern int nScriptCheckThreads;
+<span class="lineNum">     164 </span>                :            : extern bool fIsBareMultisigStd;
+<span class="lineNum">     165 </span>                :            : extern bool fRequireStandard;
+<span class="lineNum">     166 </span>                :            : extern bool fCheckBlockIndex;
+<span class="lineNum">     167 </span>                :            : extern bool fCheckpointsEnabled;
+<span class="lineNum">     168 </span>                :            : extern size_t nCoinCacheUsage;
+<span class="lineNum">     169 </span>                :            : /** A fee rate smaller than this is considered zero fee (for relaying, mining and transaction creation) */
+<span class="lineNum">     170 </span>                :            : extern CFeeRate minRelayTxFee;
+<span class="lineNum">     171 </span>                :            : /** Absolute maximum transaction fee (in satoshis) used by wallet and mempool (rejects high fee in sendrawtransaction) */
+<span class="lineNum">     172 </span>                :            : extern CAmount maxTxFee;
+<span class="lineNum">     173 </span>                :            : /** If the tip is older than this (in seconds), the node is considered to be in initial block download. */
+<span class="lineNum">     174 </span>                :            : extern int64_t nMaxTipAge;
+<span class="lineNum">     175 </span>                :            : extern bool fEnableReplacement;
+<span class="lineNum">     176 </span>                :            : 
+<span class="lineNum">     177 </span>                :            : /** Block hash whose ancestors we will assume to have valid scripts without checking them. */
+<span class="lineNum">     178 </span>                :            : extern uint256 hashAssumeValid;
+<span class="lineNum">     179 </span>                :            : 
+<span class="lineNum">     180 </span>                :            : /** Minimum work we will assume exists on some valid chain. */
+<span class="lineNum">     181 </span>                :            : extern arith_uint256 nMinimumChainWork;
+<span class="lineNum">     182 </span>                :            : 
+<span class="lineNum">     183 </span>                :            : /** Best header we've seen so far (used for getheaders queries' starting points). */
+<span class="lineNum">     184 </span>                :            : extern CBlockIndex *pindexBestHeader;
+<span class="lineNum">     185 </span>                :            : 
+<span class="lineNum">     186 </span>                :            : /** Minimum disk space required - used in CheckDiskSpace() */
+<span class="lineNum">     187 </span>                :            : static const uint64_t nMinDiskSpace = 52428800;
+<span class="lineNum">     188 </span>                :            : 
+<span class="lineNum">     189 </span>                :            : /** Pruning-related variables and constants */
+<span class="lineNum">     190 </span>                :            : /** True if any block files have ever been pruned. */
+<span class="lineNum">     191 </span>                :            : extern bool fHavePruned;
+<span class="lineNum">     192 </span>                :            : /** True if we're running in -prune mode. */
+<span class="lineNum">     193 </span>                :            : extern bool fPruneMode;
+<span class="lineNum">     194 </span>                :            : /** Number of MiB of block files that we're trying to stay below. */
+<span class="lineNum">     195 </span>                :            : extern uint64_t nPruneTarget;
+<span class="lineNum">     196 </span>                :            : /** Block files containing a block-height within MIN_BLOCKS_TO_KEEP of chainActive.Tip() will not be pruned. */
+<span class="lineNum">     197 </span>                :            : static const unsigned int MIN_BLOCKS_TO_KEEP = 288;
+<span class="lineNum">     198 </span>                :            : /** Minimum blocks required to signal NODE_NETWORK_LIMITED */
+<span class="lineNum">     199 </span>                :            : static const unsigned int NODE_NETWORK_LIMITED_MIN_BLOCKS = 288;
+<span class="lineNum">     200 </span>                :            : 
+<span class="lineNum">     201 </span>                :            : static const signed int DEFAULT_CHECKBLOCKS = 6;
+<span class="lineNum">     202 </span>                :            : static const unsigned int DEFAULT_CHECKLEVEL = 3;
+<span class="lineNum">     203 </span>                :            : 
+<span class="lineNum">     204 </span>                :            : // Require that user allocate at least 550MB for block &amp; undo files (blk???.dat and rev???.dat)
+<span class="lineNum">     205 </span>                :            : // At 1MB per block, 288 blocks = 288MB.
+<span class="lineNum">     206 </span>                :            : // Add 15% for Undo data = 331MB
+<span class="lineNum">     207 </span>                :            : // Add 20% for Orphan block rate = 397MB
+<span class="lineNum">     208 </span>                :            : // We want the low water mark after pruning to be at least 397 MB and since we prune in
+<span class="lineNum">     209 </span>                :            : // full block file chunks, we need the high water mark which triggers the prune to be
+<span class="lineNum">     210 </span>                :            : // one 128MB block file + added 15% undo data = 147MB greater for a total of 545MB
+<span class="lineNum">     211 </span>                :            : // Setting the target to &gt; than 550MB will make it likely we can respect the target.
+<span class="lineNum">     212 </span>                :            : static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 550 * 1024 * 1024;
+<span class="lineNum">     213 </span>                :            : 
+<span class="lineNum">     214 </span>                :            : /**
+<span class="lineNum">     215 </span>                :            :  * Process an incoming block. This only returns after the best known valid
+<span class="lineNum">     216 </span>                :            :  * block is made active. Note that it does not, however, guarantee that the
+<span class="lineNum">     217 </span>                :            :  * specific block passed to it has been checked for validity!
+<span class="lineNum">     218 </span>                :            :  *
+<span class="lineNum">     219 </span>                :            :  * If you want to *possibly* get feedback on whether pblock is valid, you must
+<span class="lineNum">     220 </span>                :            :  * install a CValidationInterface (see validationinterface.h) - this will have
+<span class="lineNum">     221 </span>                :            :  * its BlockChecked method called whenever *any* block completes validation.
+<span class="lineNum">     222 </span>                :            :  *
+<span class="lineNum">     223 </span>                :            :  * Note that we guarantee that either the proof-of-work is valid on pblock, or
+<span class="lineNum">     224 </span>                :            :  * (and possibly also) BlockChecked will have been called.
+<span class="lineNum">     225 </span>                :            :  *
+<span class="lineNum">     226 </span>                :            :  * May not be called in a
+<span class="lineNum">     227 </span>                :            :  * validationinterface callback.
+<span class="lineNum">     228 </span>                :            :  *
+<span class="lineNum">     229 </span>                :            :  * @param[in]   pblock  The block we want to process.
+<span class="lineNum">     230 </span>                :            :  * @param[in]   fForceProcessing Process this block even if unrequested; used for non-network block sources and whitelisted peers.
+<span class="lineNum">     231 </span>                :            :  * @param[out]  fNewBlock A boolean which is set to indicate if the block was first received via this call
+<span class="lineNum">     232 </span>                :            :  * @return True if state.IsValid()
+<span class="lineNum">     233 </span>                :            :  */
+<span class="lineNum">     234 </span>                :            : bool ProcessNewBlock(const CChainParams&amp; chainparams, const std::shared_ptr&lt;const CBlock&gt; pblock, bool fForceProcessing, bool* fNewBlock) LOCKS_EXCLUDED(cs_main);
+<span class="lineNum">     235 </span>                :            : 
+<span class="lineNum">     236 </span>                :            : /**
+<span class="lineNum">     237 </span>                :            :  * Process incoming block headers.
+<span class="lineNum">     238 </span>                :            :  *
+<span class="lineNum">     239 </span>                :            :  * May not be called in a
+<span class="lineNum">     240 </span>                :            :  * validationinterface callback.
+<span class="lineNum">     241 </span>                :            :  *
+<span class="lineNum">     242 </span>                :            :  * @param[in]  block The block headers themselves
+<span class="lineNum">     243 </span>                :            :  * @param[out] state This may be set to an Error state if any error occurred processing them
+<span class="lineNum">     244 </span>                :            :  * @param[in]  chainparams The params for the chain we want to connect to
+<span class="lineNum">     245 </span>                :            :  * @param[out] ppindex If set, the pointer will be set to point to the last new block index object for the given headers
+<span class="lineNum">     246 </span>                :            :  * @param[out] first_invalid First header that fails validation, if one exists
+<span class="lineNum">     247 </span>                :            :  */
+<span class="lineNum">     248 </span>                :            : bool ProcessNewBlockHeaders(const std::vector&lt;CBlockHeader&gt;&amp; block, CValidationState&amp; state, const CChainParams&amp; chainparams, const CBlockIndex** ppindex = nullptr, CBlockHeader* first_invalid = nullptr) LOCKS_EXCLUDED(cs_main);
+<span class="lineNum">     249 </span>                :            : 
+<span class="lineNum">     250 </span>                :            : /** Check whether enough disk space is available for an incoming block */
+<span class="lineNum">     251 </span>                :            : bool CheckDiskSpace(uint64_t nAdditionalBytes = 0, bool blocks_dir = false);
+<span class="lineNum">     252 </span>                :            : /** Open a block file (blk?????.dat) */
+<span class="lineNum">     253 </span>                :            : FILE* OpenBlockFile(const CDiskBlockPos &amp;pos, bool fReadOnly = false);
+<span class="lineNum">     254 </span>                :            : /** Translation to a filesystem path */
+<span class="lineNum">     255 </span>                :            : fs::path GetBlockPosFilename(const CDiskBlockPos &amp;pos, const char *prefix);
+<span class="lineNum">     256 </span>                :            : /** Import blocks from an external file */
+<span class="lineNum">     257 </span>                :            : bool LoadExternalBlockFile(const CChainParams&amp; chainparams, FILE* fileIn, CDiskBlockPos *dbp = nullptr);
+<span class="lineNum">     258 </span>                :            : /** Ensures we have a genesis block in the block tree, possibly writing one to disk. */
+<span class="lineNum">     259 </span>                :            : bool LoadGenesisBlock(const CChainParams&amp; chainparams);
+<span class="lineNum">     260 </span>                :            : /** Load the block tree and coins database from disk,
+<span class="lineNum">     261 </span>                :            :  * initializing state if we're running with -reindex. */
+<span class="lineNum">     262 </span>                :            : bool LoadBlockIndex(const CChainParams&amp; chainparams) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+<span class="lineNum">     263 </span>                :            : /** Update the chain tip based on database information. */
+<span class="lineNum">     264 </span>                :            : bool LoadChainTip(const CChainParams&amp; chainparams) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+<span class="lineNum">     265 </span>                :            : /** Unload database information */
+<span class="lineNum">     266 </span>                :            : void UnloadBlockIndex();
+<span class="lineNum">     267 </span>                :            : /** Run an instance of the script checking thread */
+<span class="lineNum">     268 </span>                :            : void ThreadScriptCheck();
+<span class="lineNum">     269 </span>                :            : /** Check whether we are doing an initial block download (synchronizing from disk or network) */
+<span class="lineNum">     270 </span>                :            : bool IsInitialBlockDownload();
+<span class="lineNum">     271 </span>                :            : /** Retrieve a transaction (from memory pool, or from disk, if possible) */
+<span class="lineNum">     272 </span>                :            : bool GetTransaction(const uint256&amp; hash, CTransactionRef&amp; tx, const Consensus::Params&amp; params, uint256&amp; hashBlock, bool fAllowSlow = false, CBlockIndex* blockIndex = nullptr);
+<span class="lineNum">     273 </span>                :            : /**
+<span class="lineNum">     274 </span>                :            :  * Find the best known block, and make it the tip of the block chain
+<span class="lineNum">     275 </span>                :            :  *
+<span class="lineNum">     276 </span>                :            :  * May not be called with cs_main held. May not be called in a
+<span class="lineNum">     277 </span>                :            :  * validationinterface callback.
+<span class="lineNum">     278 </span>                :            :  */
+<span class="lineNum">     279 </span>                :            : bool ActivateBestChain(CValidationState&amp; state, const CChainParams&amp; chainparams, std::shared_ptr&lt;const CBlock&gt; pblock = std::shared_ptr&lt;const CBlock&gt;());
+<span class="lineNum">     280 </span>                :            : CAmount GetBlockSubsidy(int nHeight, const Consensus::Params&amp; consensusParams);
+<span class="lineNum">     281 </span>                :            : 
+<span class="lineNum">     282 </span>                :            : /** Guess verification progress (as a fraction between 0.0=genesis and 1.0=current tip). */
+<span class="lineNum">     283 </span>                :            : double GuessVerificationProgress(const ChainTxData&amp; data, const CBlockIndex* pindex);
+<span class="lineNum">     284 </span>                :            : 
+<span class="lineNum">     285 </span>                :            : /** Calculate the amount of disk space the block &amp; undo files currently use */
+<span class="lineNum">     286 </span>                :            : uint64_t CalculateCurrentUsage();
+<span class="lineNum">     287 </span>                :            : 
+<span class="lineNum">     288 </span>                :            : /**
+<span class="lineNum">     289 </span>                :            :  *  Mark one block file as pruned.
+<span class="lineNum">     290 </span>                :            :  */
+<span class="lineNum">     291 </span>                :            : void PruneOneBlockFile(const int fileNumber);
+<span class="lineNum">     292 </span>                :            : 
+<span class="lineNum">     293 </span>                :            : /**
+<span class="lineNum">     294 </span>                :            :  *  Actually unlink the specified files
+<span class="lineNum">     295 </span>                :            :  */
+<span class="lineNum">     296 </span>                :            : void UnlinkPrunedFiles(const std::set&lt;int&gt;&amp; setFilesToPrune);
+<span class="lineNum">     297 </span>                :            : 
+<span class="lineNum">     298 </span>                :            : /** Flush all state, indexes and buffers to disk. */
+<span class="lineNum">     299 </span>                :            : void FlushStateToDisk();
+<span class="lineNum">     300 </span>                :            : /** Prune block files and flush state to disk. */
+<span class="lineNum">     301 </span>                :            : void PruneAndFlush();
+<span class="lineNum">     302 </span>                :            : /** Prune block files up to a given height */
+<span class="lineNum">     303 </span>                :            : void PruneBlockFilesManual(int nManualPruneHeight);
+<span class="lineNum">     304 </span>                :            : 
+<span class="lineNum">     305 </span>                :            : /** (try to) add transaction to memory pool
+<span class="lineNum">     306 </span>                :            :  * plTxnReplaced will be appended to with all transactions replaced from mempool **/
+<span class="lineNum">     307 </span>                :            : bool AcceptToMemoryPool(CTxMemPool&amp; pool, CValidationState &amp;state, const CTransactionRef &amp;tx,
+<span class="lineNum">     308 </span>                :            :                         bool* pfMissingInputs, std::list&lt;CTransactionRef&gt;* plTxnReplaced,
+<span class="lineNum">     309 </span>                :            :                         bool bypass_limits, const CAmount nAbsurdFee, bool test_accept=false) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+<span class="lineNum">     310 </span>                :            : 
+<span class="lineNum">     311 </span>                :            : /** Convert CValidationState to a human-readable message for logging */
+<span class="lineNum">     312 </span>                :            : std::string FormatStateMessage(const CValidationState &amp;state);
+<span class="lineNum">     313 </span>                :            : 
+<span class="lineNum">     314 </span>                :            : /** Get the BIP9 state for a given deployment at the current tip. */
+<span class="lineNum">     315 </span>                :            : ThresholdState VersionBitsTipState(const Consensus::Params&amp; params, Consensus::DeploymentPos pos);
+<span class="lineNum">     316 </span>                :            : 
+<span class="lineNum">     317 </span>                :            : /** Get the numerical statistics for the BIP9 state for a given deployment at the current tip. */
+<span class="lineNum">     318 </span>                :            : BIP9Stats VersionBitsTipStatistics(const Consensus::Params&amp; params, Consensus::DeploymentPos pos);
+<span class="lineNum">     319 </span>                :            : 
+<span class="lineNum">     320 </span>                :            : /** Get the block height at which the BIP9 deployment switched into the state for the block building on the current tip. */
+<span class="lineNum">     321 </span>                :            : int VersionBitsTipStateSinceHeight(const Consensus::Params&amp; params, Consensus::DeploymentPos pos);
+<span class="lineNum">     322 </span>                :            : 
+<span class="lineNum">     323 </span>                :            : 
+<span class="lineNum">     324 </span>                :            : /** Apply the effects of this transaction on the UTXO set represented by view */
+<span class="lineNum">     325 </span>                :            : void UpdateCoins(const CTransaction&amp; tx, CCoinsViewCache&amp; inputs, int nHeight);
+<span class="lineNum">     326 </span>                :            : 
+<span class="lineNum">     327 </span>                :            : /** Transaction validation functions */
+<span class="lineNum">     328 </span>                :            : 
+<span class="lineNum">     329 </span>                :            : /**
+<span class="lineNum">     330 </span>                :            :  * Check if transaction will be final in the next block to be created.
+<span class="lineNum">     331 </span>                :            :  *
+<span class="lineNum">     332 </span>                :            :  * Calls IsFinalTx() with current block height and appropriate block time.
+<span class="lineNum">     333 </span>                :            :  *
+<span class="lineNum">     334 </span>                :            :  * See consensus/consensus.h for flag definitions.
+<span class="lineNum">     335 </span>                :            :  */
+<span class="lineNum">     336 </span>                :            : bool CheckFinalTx(const CTransaction &amp;tx, int flags = -1) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+<span class="lineNum">     337 </span>                :            : 
+<span class="lineNum">     338 </span>                :            : /**
+<span class="lineNum">     339 </span>                :            :  * Test whether the LockPoints height and time are still valid on the current chain
+<span class="lineNum">     340 </span>                :            :  */
+<span class="lineNum">     341 </span>                :            : bool TestLockPointValidity(const LockPoints* lp) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+<span class="lineNum">     342 </span>                :            : 
+<span class="lineNum">     343 </span>                :            : /**
+<span class="lineNum">     344 </span>                :            :  * Check if transaction will be BIP 68 final in the next block to be created.
+<span class="lineNum">     345 </span>                :            :  *
+<span class="lineNum">     346 </span>                :            :  * Simulates calling SequenceLocks() with data from the tip of the current active chain.
+<span class="lineNum">     347 </span>                :            :  * Optionally stores in LockPoints the resulting height and time calculated and the hash
+<span class="lineNum">     348 </span>                :            :  * of the block needed for calculation or skips the calculation and uses the LockPoints
+<span class="lineNum">     349 </span>                :            :  * passed in for evaluation.
+<span class="lineNum">     350 </span>                :            :  * The LockPoints should not be considered valid if CheckSequenceLocks returns false.
+<span class="lineNum">     351 </span>                :            :  *
+<span class="lineNum">     352 </span>                :            :  * See consensus/consensus.h for flag definitions.
+<span class="lineNum">     353 </span>                :            :  */
+<span class="lineNum">     354 </span>                :            : bool CheckSequenceLocks(const CTxMemPool&amp; pool, const CTransaction&amp; tx, int flags, LockPoints* lp = nullptr, bool useExistingLockPoints = false) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+<span class="lineNum">     355 </span>                :            : 
+<span class="lineNum">     356 </span>                :            : /**
+<span class="lineNum">     357 </span>                :            :  * Closure representing one script verification
+<a name="358"><span class="lineNum">     358 </span>                :            :  * Note that this stores references to the spending transaction</a>
+<span class="lineNum">     359 </span>                :            :  */
+<span class="lineNum">     360 </span>                :<span class="lineCov">     424981 : class CScriptCheck</span>
+<span class="lineNum">     361 </span>                :            : {
+<span class="lineNum">     362 </span>                :            : private:
+<span class="lineNum">     363 </span>                :            :     CTxOut m_tx_out;
+<span class="lineNum">     364 </span>                :            :     const CTransaction *ptxTo;
+<span class="lineNum">     365 </span>                :            :     unsigned int nIn;
+<span class="lineNum">     366 </span>                :            :     unsigned int nFlags;
+<span class="lineNum">     367 </span>                :            :     bool cacheStore;
+<span class="lineNum">     368 </span>                :            :     ScriptError error;
+<span class="lineNum">     369 </span>                :            :     PrecomputedTransactionData *txdata;
+<span class="lineNum">     370 </span>                :            : 
+<span class="lineNum">     371 </span>                :            : public:
+<span class="lineNum">     372 </span>                :<span class="lineCov">      58818 :     CScriptCheck(): ptxTo(nullptr), nIn(0), nFlags(0), cacheStore(false), error(SCRIPT_ERR_UNKNOWN_ERROR) {}</span>
+<span class="lineNum">     373 </span>                :<span class="lineCov">     383487 :     CScriptCheck(const CTxOut&amp; outIn, const CTransaction&amp; txToIn, unsigned int nInIn, unsigned int nFlagsIn, bool cacheIn, PrecomputedTransactionData* txdataIn) :</span>
+<span class="lineNum">     374 </span>                :<span class="lineCov">     766974 :         m_tx_out(outIn), ptxTo(&amp;txToIn), nIn(nInIn), nFlags(nFlagsIn), cacheStore(cacheIn), error(SCRIPT_ERR_UNKNOWN_ERROR), txdata(txdataIn) { }</span>
+<span class="lineNum">     375 </span>                :            : 
+<a name="376"><span class="lineNum">     376 </span>                :            :     bool operator()();</a>
+<span class="lineNum">     377 </span>                :            : 
+<span class="lineNum">     378 </span>                :<span class="lineCov">     241993 :     void swap(CScriptCheck &amp;check) {</span>
+<span class="lineNum">     379 </span>                :<span class="lineCov">     483986 :         std::swap(ptxTo, check.ptxTo);</span>
+<span class="lineNum">     380 </span>                :<span class="lineCov">     241993 :         std::swap(m_tx_out, check.m_tx_out);</span>
+<span class="lineNum">     381 </span>                :<span class="lineCov">     483986 :         std::swap(nIn, check.nIn);</span>
+<span class="lineNum">     382 </span>                :<span class="lineCov">     483986 :         std::swap(nFlags, check.nFlags);</span>
+<span class="lineNum">     383 </span>                :<span class="lineCov">     483986 :         std::swap(cacheStore, check.cacheStore);</span>
+<span class="lineNum">     384 </span>                :<span class="lineCov">     483986 :         std::swap(error, check.error);</span>
+<span class="lineNum">     385 </span>                :<span class="lineCov">     483986 :         std::swap(txdata, check.txdata);</span>
+<span class="lineNum">     386 </span>                :<span class="lineCov">     241993 :     }</span>
+<span class="lineNum">     387 </span>                :            : 
+<span class="lineNum">     388 </span>                :<span class="lineCov">      63501 :     ScriptError GetScriptError() const { return error; }</span>
+<span class="lineNum">     389 </span>                :            : };
+<span class="lineNum">     390 </span>                :            : 
+<span class="lineNum">     391 </span>                :            : /** Initializes the script-execution cache */
+<span class="lineNum">     392 </span>                :            : void InitScriptExecutionCache();
+<span class="lineNum">     393 </span>                :            : 
+<span class="lineNum">     394 </span>                :            : 
+<span class="lineNum">     395 </span>                :            : /** Functions for disk access for blocks */
+<span class="lineNum">     396 </span>                :            : bool ReadBlockFromDisk(CBlock&amp; block, const CDiskBlockPos&amp; pos, const Consensus::Params&amp; consensusParams);
+<span class="lineNum">     397 </span>                :            : bool ReadBlockFromDisk(CBlock&amp; block, const CBlockIndex* pindex, const Consensus::Params&amp; consensusParams);
+<span class="lineNum">     398 </span>                :            : bool ReadRawBlockFromDisk(std::vector&lt;uint8_t&gt;&amp; block, const CDiskBlockPos&amp; pos, const CMessageHeader::MessageStartChars&amp; message_start);
+<span class="lineNum">     399 </span>                :            : bool ReadRawBlockFromDisk(std::vector&lt;uint8_t&gt;&amp; block, const CBlockIndex* pindex, const CMessageHeader::MessageStartChars&amp; message_start);
+<span class="lineNum">     400 </span>                :            : 
+<span class="lineNum">     401 </span>                :            : /** Functions for validating blocks and updating the block tree */
+<span class="lineNum">     402 </span>                :            : 
+<span class="lineNum">     403 </span>                :            : /** Context-independent validity checks */
+<span class="lineNum">     404 </span>                :            : bool CheckBlock(const CBlock&amp; block, CValidationState&amp; state, const Consensus::Params&amp; consensusParams, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
+<span class="lineNum">     405 </span>                :            : 
+<span class="lineNum">     406 </span>                :            : /** Check a block is completely valid from start to finish (only works on top of our current best block) */
+<span class="lineNum">     407 </span>                :            : bool TestBlockValidity(CValidationState&amp; state, const CChainParams&amp; chainparams, const CBlock&amp; block, CBlockIndex* pindexPrev, bool fCheckPOW = true, bool fCheckMerkleRoot = true) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+<span class="lineNum">     408 </span>                :            : 
+<span class="lineNum">     409 </span>                :            : /** Check whether witness commitments are required for block. */
+<span class="lineNum">     410 </span>                :            : bool IsWitnessEnabled(const CBlockIndex* pindexPrev, const Consensus::Params&amp; params);
+<span class="lineNum">     411 </span>                :            : 
+<span class="lineNum">     412 </span>                :            : /** Check whether NULLDUMMY (BIP 147) has activated. */
+<span class="lineNum">     413 </span>                :            : bool IsNullDummyEnabled(const CBlockIndex* pindexPrev, const Consensus::Params&amp; params);
+<span class="lineNum">     414 </span>                :            : 
+<span class="lineNum">     415 </span>                :            : /** When there are blocks in the active chain with missing data, rewind the chainstate and remove them from the block index */
+<span class="lineNum">     416 </span>                :            : bool RewindBlockIndex(const CChainParams&amp; params);
+<span class="lineNum">     417 </span>                :            : 
+<span class="lineNum">     418 </span>                :            : /** Update uncommitted block structures (currently: only the witness reserved value). This is safe for submitted blocks. */
+<span class="lineNum">     419 </span>                :            : void UpdateUncommittedBlockStructures(CBlock&amp; block, const CBlockIndex* pindexPrev, const Consensus::Params&amp; consensusParams);
+<span class="lineNum">     420 </span>                :            : 
+<span class="lineNum">     421 </span>                :            : /** Produce the necessary coinbase commitment for a block (modifies the hash, don't call for mined blocks). */
+<span class="lineNum">     422 </span>                :            : std::vector&lt;unsigned char&gt; GenerateCoinbaseCommitment(CBlock&amp; block, const CBlockIndex* pindexPrev, const Consensus::Params&amp; consensusParams);
+<span class="lineNum">     423 </span>                :            : 
+<span class="lineNum">     424 </span>                :            : /** RAII wrapper for VerifyDB: Verify consistency of the block and coin databases */
+<span class="lineNum">     425 </span>                :            : class CVerifyDB {
+<span class="lineNum">     426 </span>                :            : public:
+<span class="lineNum">     427 </span>                :            :     CVerifyDB();
+<span class="lineNum">     428 </span>                :            :     ~CVerifyDB();
+<span class="lineNum">     429 </span>                :            :     bool VerifyDB(const CChainParams&amp; chainparams, CCoinsView *coinsview, int nCheckLevel, int nCheckDepth);
+<span class="lineNum">     430 </span>                :            : };
+<span class="lineNum">     431 </span>                :            : 
+<span class="lineNum">     432 </span>                :            : /** Replay blocks that aren't fully applied to the database. */
+<a name="433"><span class="lineNum">     433 </span>                :            : bool ReplayBlocks(const CChainParams&amp; params, CCoinsView* view);</a>
+<span class="lineNum">     434 </span>                :            : 
+<span class="lineNum">     435 </span>                :<span class="lineCov">     926550 : inline CBlockIndex* LookupBlockIndex(const uint256&amp; hash)</span>
+<span class="lineNum">     436 </span>                :            : {
+<span class="lineNum">     437 </span>                :<span class="lineCov">     926550 :     AssertLockHeld(cs_main);</span>
+<span class="lineNum">     438 </span>                :<span class="lineCov">    2779650 :     BlockMap::const_iterator it = mapBlockIndex.find(hash);</span>
+<span class="lineNum">     439 </span>        [<span class="branchCov" title="Branch 0 was taken 914416 times"> + </span><span class="branchCov" title="Branch 1 was taken 12134 times"> + </span>]:<span class="lineCov">     926550 :     return it == mapBlockIndex.end() ? nullptr : it-&gt;second;</span>
+<span class="lineNum">     440 </span>                :            : }
+<span class="lineNum">     441 </span>                :            : 
+<span class="lineNum">     442 </span>                :            : /** Find the last common block between the parameter chain and a locator. */
+<span class="lineNum">     443 </span>                :            : CBlockIndex* FindForkInGlobalIndex(const CChain&amp; chain, const CBlockLocator&amp; locator) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+<span class="lineNum">     444 </span>                :            : 
+<span class="lineNum">     445 </span>                :            : /** Mark a block as precious and reorganize.
+<span class="lineNum">     446 </span>                :            :  *
+<span class="lineNum">     447 </span>                :            :  * May not be called in a
+<span class="lineNum">     448 </span>                :            :  * validationinterface callback.
+<span class="lineNum">     449 </span>                :            :  */
+<span class="lineNum">     450 </span>                :            : bool PreciousBlock(CValidationState&amp; state, const CChainParams&amp; params, CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
+<span class="lineNum">     451 </span>                :            : 
+<span class="lineNum">     452 </span>                :            : /** Mark a block as invalid. */
+<span class="lineNum">     453 </span>                :            : bool InvalidateBlock(CValidationState&amp; state, const CChainParams&amp; chainparams, CBlockIndex* pindex) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+<span class="lineNum">     454 </span>                :            : 
+<span class="lineNum">     455 </span>                :            : /** Remove invalidity status from a block and its descendants. */
+<span class="lineNum">     456 </span>                :            : void ResetBlockFailureFlags(CBlockIndex* pindex) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+<span class="lineNum">     457 </span>                :            : 
+<span class="lineNum">     458 </span>                :            : /** The currently-connected chain of blocks (protected by cs_main). */
+<span class="lineNum">     459 </span>                :            : extern CChain&amp; chainActive;
+<span class="lineNum">     460 </span>                :            : 
+<span class="lineNum">     461 </span>                :            : /** Global variable that points to the coins database (protected by cs_main) */
+<span class="lineNum">     462 </span>                :            : extern std::unique_ptr&lt;CCoinsViewDB&gt; pcoinsdbview;
+<span class="lineNum">     463 </span>                :            : 
+<span class="lineNum">     464 </span>                :            : /** Global variable that points to the active CCoinsView (protected by cs_main) */
+<span class="lineNum">     465 </span>                :            : extern std::unique_ptr&lt;CCoinsViewCache&gt; pcoinsTip;
+<span class="lineNum">     466 </span>                :            : 
+<span class="lineNum">     467 </span>                :            : /** Global variable that points to the active block tree (protected by cs_main) */
+<span class="lineNum">     468 </span>                :            : extern std::unique_ptr&lt;CBlockTreeDB&gt; pblocktree;
+<span class="lineNum">     469 </span>                :            : 
+<span class="lineNum">     470 </span>                :            : /**
+<span class="lineNum">     471 </span>                :            :  * Return the spend height, which is one more than the inputs.GetBestBlock().
+<span class="lineNum">     472 </span>                :            :  * While checking, GetBestBlock() refers to the parent block. (protected by cs_main)
+<span class="lineNum">     473 </span>                :            :  * This is also true for mempool checks.
+<span class="lineNum">     474 </span>                :            :  */
+<span class="lineNum">     475 </span>                :            : int GetSpendHeight(const CCoinsViewCache&amp; inputs);
+<span class="lineNum">     476 </span>                :            : 
+<span class="lineNum">     477 </span>                :            : extern VersionBitsCache versionbitscache;
+<span class="lineNum">     478 </span>                :            : 
+<span class="lineNum">     479 </span>                :            : /**
+<span class="lineNum">     480 </span>                :            :  * Determine what nVersion a new block should use.
+<span class="lineNum">     481 </span>                :            :  */
+<span class="lineNum">     482 </span>                :            : int32_t ComputeBlockVersion(const CBlockIndex* pindexPrev, const Consensus::Params&amp; params);
+<span class="lineNum">     483 </span>                :            : 
+<span class="lineNum">     484 </span>                :            : /** Reject codes greater or equal to this can be returned by AcceptToMemPool
+<span class="lineNum">     485 </span>                :            :  * for transactions, to signal internal conditions. They cannot and should not
+<span class="lineNum">     486 </span>                :            :  * be sent over the P2P network.
+<span class="lineNum">     487 </span>                :            :  */
+<span class="lineNum">     488 </span>                :            : static const unsigned int REJECT_INTERNAL = 0x100;
+<span class="lineNum">     489 </span>                :            : /** Too high fee. Can not be triggered by P2P transactions */
+<span class="lineNum">     490 </span>                :            : static const unsigned int REJECT_HIGHFEE = 0x100;
+<span class="lineNum">     491 </span>                :            : 
+<span class="lineNum">     492 </span>                :            : /** Get block file info entry for one block file */
+<span class="lineNum">     493 </span>                :            : CBlockFileInfo* GetBlockFileInfo(size_t n);
+<span class="lineNum">     494 </span>                :            : 
+<span class="lineNum">     495 </span>                :            : /** Dump the mempool to disk. */
+<span class="lineNum">     496 </span>                :            : bool DumpMempool();
+<span class="lineNum">     497 </span>                :            : 
+<span class="lineNum">     498 </span>                :            : /** Load the mempool from disk. */
+<span class="lineNum">     499 </span>                :            : bool LoadMempool();
+<span class="lineNum">     500 </span>                :            : 
+<span class="lineNum">     501 </span>                :            : //! Check whether the block associated with this index entry is pruned or not.
+<span class="lineNum">     502 </span>                :            : inline bool IsBlockPruned(const CBlockIndex* pblockindex)
+<span class="lineNum">     503 </span>                :            : {
+<span class="lineNum">     504 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">       4479 :     return (fHavePruned &amp;&amp; !(pblockindex-&gt;nStatus &amp; BLOCK_HAVE_DATA) &amp;&amp; pblockindex-&gt;nTx &gt; 0);</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 4474 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">     505 </span>                :            : }
+<span class="lineNum">     506 </span>                :            : 
+<span class="lineNum">     507 </span>                :            : #endif // BITCOIN_VALIDATION_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
