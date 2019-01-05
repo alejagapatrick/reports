@@ -1,0 +1,399 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/coins.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - coins.h<span style="font-size: 80%;"> (source / <a href="coins.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">31</td>
+            <td class="headerCovTableEntry">35</td>
+            <td class="headerCovTableEntryMed">88.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntry">12</td>
+            <td class="headerCovTableEntryLo">41.7 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntryLo">37.5 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #ifndef BITCOIN_COINS_H
+<span class="lineNum">       7 </span>                :            : #define BITCOIN_COINS_H
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : #include &lt;primitives/transaction.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;compressor.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;core_memusage.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;crypto/siphash.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;memusage.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;serialize.h&gt;
+<span class="lineNum">      15 </span>                :            : #include &lt;uint256.h&gt;
+<span class="lineNum">      16 </span>                :            : 
+<span class="lineNum">      17 </span>                :            : #include &lt;assert.h&gt;
+<span class="lineNum">      18 </span>                :            : #include &lt;stdint.h&gt;
+<span class="lineNum">      19 </span>                :            : 
+<span class="lineNum">      20 </span>                :            : #include &lt;unordered_map&gt;
+<span class="lineNum">      21 </span>                :            : 
+<span class="lineNum">      22 </span>                :            : /**
+<span class="lineNum">      23 </span>                :            :  * A UTXO entry.
+<span class="lineNum">      24 </span>                :            :  *
+<span class="lineNum">      25 </span>                :            :  * Serialized format:
+<span class="lineNum">      26 </span>                :            :  * - VARINT((coinbase ? 1 : 0) | (height &lt;&lt; 1))
+<a name="27"><span class="lineNum">      27 </span>                :            :  * - the non-spent CTxOut (via CTxOutCompressor)</a>
+<span class="lineNum">      28 </span>                :            :  */
+<span class="lineNum">      29 </span>                :<span class="lineCov">  150012036 : class Coin</span>
+<span class="lineNum">      30 </span>                :            : {
+<span class="lineNum">      31 </span>                :            : public:
+<span class="lineNum">      32 </span>                :            :     //! unspent transaction output
+<span class="lineNum">      33 </span>                :            :     CTxOut out;
+<span class="lineNum">      34 </span>                :            : 
+<span class="lineNum">      35 </span>                :            :     //! whether containing transaction was a coinbase
+<span class="lineNum">      36 </span>                :            :     unsigned int fCoinBase : 1;
+<span class="lineNum">      37 </span>                :            : 
+<span class="lineNum">      38 </span>                :            :     //! at which height this containing transaction was included in the active block chain
+<span class="lineNum">      39 </span>                :            :     uint32_t nHeight : 31;
+<span class="lineNum">      40 </span>                :            : 
+<span class="lineNum">      41 </span>                :            :     //! construct a Coin from a CTxOut and height/coinbase information.
+<span class="lineNum">      42 </span>                :<span class="lineCov">        114 :     Coin(CTxOut&amp;&amp; outIn, int nHeightIn, bool fCoinBaseIn) : out(std::move(outIn)), fCoinBase(fCoinBaseIn), nHeight(nHeightIn) {}</span>
+<span class="lineNum">      43 </span>                :<span class="lineCov">   28339838 :     Coin(const CTxOut&amp; outIn, int nHeightIn, bool fCoinBaseIn) : out(outIn), fCoinBase(fCoinBaseIn),nHeight(nHeightIn) {}</span>
+<span class="lineNum">      44 </span>                :            : 
+<span class="lineNum">      45 </span>                :            :     void Clear() {
+<span class="lineNum">      46 </span>                :<span class="lineCov">   18038968 :         out.SetNull();</span>
+<span class="lineNum">      47 </span>                :<span class="lineCov">    9019484 :         fCoinBase = false;</span>
+<span class="lineNum">      48 </span>                :<span class="lineCov">    9019484 :         nHeight = 0;</span>
+<span class="lineNum">      49 </span>                :            :     }
+<span class="lineNum">      50 </span>                :            : 
+<span class="lineNum">      51 </span>                :            :     //! empty constructor
+<span class="lineNum">      52 </span>                :<span class="lineCov">   98016608 :     Coin() : fCoinBase(false), nHeight(0) { }</span>
+<span class="lineNum">      53 </span>                :            : 
+<span class="lineNum">      54 </span>                :            :     bool IsCoinBase() const {
+<span class="lineNum">      55 </span>                :<span class="lineCov">    9008096 :         return fCoinBase;</span>
+<span class="lineNum">      56 </span>                :            :     }
+<a name="57"><span class="lineNum">      57 </span>                :            : </a>
+<span class="lineNum">      58 </span>                :            :     template&lt;typename Stream&gt;
+<span class="lineNum">      59 </span>                :<span class="lineCov">      88140 :     void Serialize(Stream &amp;s) const {</span>
+<span class="lineNum">      60 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 88140 times"> + </span>]:<span class="lineCov">      88140 :         assert(!IsSpent());</span>
+<span class="lineNum">      61 </span>                :<span class="lineCov">      88140 :         uint32_t code = nHeight * 2 + fCoinBase;</span>
+<span class="lineNum">      62 </span>                :<span class="lineCov">      88140 :         ::Serialize(s, VARINT(code));</span>
+<span class="lineNum">      63 </span>                :<span class="lineCov">     264420 :         ::Serialize(s, CTxOutCompressor(REF(out)));</span>
+<span class="lineNum">      64 </span>                :<span class="lineCov">      88140 :     }</span>
+<a name="65"><span class="lineNum">      65 </span>                :            : </a>
+<span class="lineNum">      66 </span>                :            :     template&lt;typename Stream&gt;
+<span class="lineNum">      67 </span>                :<span class="lineCov">      12633 :     void Unserialize(Stream &amp;s) {</span>
+<span class="lineNum">      68 </span>                :<span class="lineCov">      12633 :         uint32_t code = 0;</span>
+<span class="lineNum">      69 </span>                :<span class="lineCov">      12633 :         ::Unserialize(s, VARINT(code));</span>
+<span class="lineNum">      70 </span>                :<span class="lineCov">      12633 :         nHeight = code &gt;&gt; 1;</span>
+<span class="lineNum">      71 </span>                :<span class="lineCov">      12633 :         fCoinBase = code &amp; 1;</span>
+<span class="lineNum">      72 </span>                :<span class="lineCov">      37897 :         ::Unserialize(s, CTxOutCompressor(out));</span>
+<span class="lineNum">      73 </span>                :<span class="lineCov">      12631 :     }</span>
+<span class="lineNum">      74 </span>                :            : 
+<span class="lineNum">      75 </span>                :            :     bool IsSpent() const {
+<span class="lineNum">      76 </span>                :<span class="lineCov">  170967296 :         return out.IsNull();</span>
+<span class="lineNum">      77 </span>                :            :     }
+<span class="lineNum">      78 </span>                :            : 
+<span class="lineNum">      79 </span>                :            :     size_t DynamicMemoryUsage() const {
+<span class="lineNum">      80 </span>                :<span class="lineCov">   66447440 :         return memusage::DynamicUsage(out.scriptPubKey);</span>
+<span class="lineNum">      81 </span>                :            :     }
+<span class="lineNum">      82 </span>                :            : };
+<span class="lineNum">      83 </span>                :            : 
+<span class="lineNum">      84 </span>                :            : class SaltedOutpointHasher
+<span class="lineNum">      85 </span>                :            : {
+<span class="lineNum">      86 </span>                :            : private:
+<span class="lineNum">      87 </span>                :            :     /** Salt */
+<span class="lineNum">      88 </span>                :            :     const uint64_t k0, k1;
+<span class="lineNum">      89 </span>                :            : 
+<span class="lineNum">      90 </span>                :            : public:
+<span class="lineNum">      91 </span>                :            :     SaltedOutpointHasher();
+<span class="lineNum">      92 </span>                :            : 
+<span class="lineNum">      93 </span>                :            :     /**
+<span class="lineNum">      94 </span>                :            :      * This *must* return size_t. With Boost 1.46 on 32-bit systems the
+<span class="lineNum">      95 </span>                :            :      * unordered_map will behave unpredictably if the custom hasher returns a
+<span class="lineNum">      96 </span>                :            :      * uint64_t, resulting in failures when syncing the chain (#4634).
+<span class="lineNum">      97 </span>                :            :      */
+<span class="lineNum">      98 </span>                :            :     size_t operator()(const COutPoint&amp; id) const {
+<span class="lineNum">      99 </span>  [<span class="branchCov" title="Branch 1 was taken 13682050 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 9764866 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">   91961053 :         return SipHashUint256Extra(k0, k1, id.hash, id.n);</span>
+<span class="lineNum">     100 </span>                :            :     }
+<span class="lineNum">     101 </span>                :            : };
+<span class="lineNum">     102 </span>                :            : 
+<span class="lineNum">     103 </span>                :<span class="lineCov">   45421444 : struct CCoinsCacheEntry</span>
+<span class="lineNum">     104 </span>                :            : {
+<span class="lineNum">     105 </span>                :            :     Coin coin; // The actual cached data.
+<span class="lineNum">     106 </span>                :            :     unsigned char flags;
+<span class="lineNum">     107 </span>                :            : 
+<span class="lineNum">     108 </span>                :            :     enum Flags {
+<span class="lineNum">     109 </span>                :            :         DIRTY = (1 &lt;&lt; 0), // This cache entry is potentially different from the version in the parent view.
+<span class="lineNum">     110 </span>                :            :         FRESH = (1 &lt;&lt; 1), // The parent view does not have this entry (or it is pruned).
+<span class="lineNum">     111 </span>                :            :         /* Note that FRESH is a performance optimization with which we can
+<span class="lineNum">     112 </span>                :            :          * erase coins that are fully spent if we know we do not need to
+<span class="lineNum">     113 </span>                :            :          * flush the changes to the parent cache.  It is always safe to
+<span class="lineNum">     114 </span>                :            :          * not mark FRESH if that condition is not guaranteed.
+<span class="lineNum">     115 </span>                :            :          */
+<span class="lineNum">     116 </span>                :            :     };
+<span class="lineNum">     117 </span>                :            : 
+<span class="lineNum">     118 </span>                :<span class="lineCov">   27845090 :     CCoinsCacheEntry() : flags(0) {}</span>
+<span class="lineNum">     119 </span>                :<span class="lineCov">    9764866 :     explicit CCoinsCacheEntry(Coin&amp;&amp; coin_) : coin(std::move(coin_)), flags(0) {}</span>
+<span class="lineNum">     120 </span>                :            : };
+<span class="lineNum">     121 </span>                :            : 
+<span class="lineNum">     122 </span>                :            : typedef std::unordered_map&lt;COutPoint, CCoinsCacheEntry, SaltedOutpointHasher&gt; CCoinsMap;
+<span class="lineNum">     123 </span>                :            : 
+<span class="lineNum">     124 </span>                :            : /** Cursor for iterating over CoinsView state */
+<span class="lineNum">     125 </span>                :            : class CCoinsViewCursor
+<span class="lineNum">     126 </span>                :            : {
+<span class="lineNum">     127 </span>                :            : public:
+<span class="lineNum">     128 </span>                :<span class="lineCov">         37 :     CCoinsViewCursor(const uint256 &amp;hashBlockIn): hashBlock(hashBlockIn) {}</span>
+<span class="lineNum">     129 </span>                :            :     virtual ~CCoinsViewCursor() {}
+<span class="lineNum">     130 </span>                :            : 
+<span class="lineNum">     131 </span>                :            :     virtual bool GetKey(COutPoint &amp;key) const = 0;
+<span class="lineNum">     132 </span>                :            :     virtual bool GetValue(Coin &amp;coin) const = 0;
+<span class="lineNum">     133 </span>                :            :     virtual unsigned int GetValueSize() const = 0;
+<span class="lineNum">     134 </span>                :            : 
+<span class="lineNum">     135 </span>                :            :     virtual bool Valid() const = 0;
+<span class="lineNum">     136 </span>                :            :     virtual void Next() = 0;
+<span class="lineNum">     137 </span>                :            : 
+<span class="lineNum">     138 </span>                :            :     //! Get best block at the time this cursor was created
+<span class="lineNum">     139 </span>                :            :     const uint256 &amp;GetBestBlock() const { return hashBlock; }
+<span class="lineNum">     140 </span>                :            : private:
+<span class="lineNum">     141 </span>                :            :     uint256 hashBlock;
+<span class="lineNum">     142 </span>                :            : };
+<span class="lineNum">     143 </span>                :            : 
+<span class="lineNum">     144 </span>                :            : /** Abstract view on the open txout dataset. */
+<span class="lineNum">     145 </span>                :<span class="lineCov">        198 : class CCoinsView</span>
+<span class="lineNum">     146 </span>                :            : {
+<span class="lineNum">     147 </span>                :            : public:
+<span class="lineNum">     148 </span>                :            :     /** Retrieve the Coin (unspent transaction output) for a given outpoint.
+<span class="lineNum">     149 </span>                :            :      *  Returns true only when an unspent coin was found, which is returned in coin.
+<span class="lineNum">     150 </span>                :            :      *  When false is returned, coin's value is unspecified.
+<span class="lineNum">     151 </span>                :            :      */
+<span class="lineNum">     152 </span>                :            :     virtual bool GetCoin(const COutPoint &amp;outpoint, Coin &amp;coin) const;
+<span class="lineNum">     153 </span>                :            : 
+<span class="lineNum">     154 </span>                :            :     //! Just check whether a given outpoint is unspent.
+<span class="lineNum">     155 </span>                :            :     virtual bool HaveCoin(const COutPoint &amp;outpoint) const;
+<span class="lineNum">     156 </span>                :            : 
+<span class="lineNum">     157 </span>                :            :     //! Retrieve the block hash whose state this CCoinsView currently represents
+<span class="lineNum">     158 </span>                :            :     virtual uint256 GetBestBlock() const;
+<span class="lineNum">     159 </span>                :            : 
+<span class="lineNum">     160 </span>                :            :     //! Retrieve the range of blocks that may have been only partially written.
+<span class="lineNum">     161 </span>                :            :     //! If the database is in a consistent state, the result is the empty vector.
+<span class="lineNum">     162 </span>                :            :     //! Otherwise, a two-element vector is returned consisting of the new and
+<span class="lineNum">     163 </span>                :            :     //! the old block hash, in that order.
+<span class="lineNum">     164 </span>                :            :     virtual std::vector&lt;uint256&gt; GetHeadBlocks() const;
+<span class="lineNum">     165 </span>                :            : 
+<span class="lineNum">     166 </span>                :            :     //! Do a bulk modification (multiple Coin changes + BestBlock change).
+<span class="lineNum">     167 </span>                :            :     //! The passed mapCoins can be modified.
+<span class="lineNum">     168 </span>                :            :     virtual bool BatchWrite(CCoinsMap &amp;mapCoins, const uint256 &amp;hashBlock);
+<span class="lineNum">     169 </span>                :            : 
+<span class="lineNum">     170 </span>                :            :     //! Get a cursor to iterate over the whole state
+<span class="lineNum">     171 </span>                :            :     virtual CCoinsViewCursor *Cursor() const;
+<a name="172"><span class="lineNum">     172 </span>                :            : </a>
+<span class="lineNum">     173 </span>                :            :     //! As we use CCoinsViews polymorphically, have a virtual destructor
+<span class="lineNum">     174 </span>                :<span class="lineNoCov">          0 :     virtual ~CCoinsView() {}</span>
+<a name="175"><span class="lineNum">     175 </span>                :            : </a>
+<span class="lineNum">     176 </span>                :            :     //! Estimate database size (0 if not implemented)
+<span class="lineNum">     177 </span>                :<span class="lineNoCov">          0 :     virtual size_t EstimateSize() const { return 0; }</span>
+<span class="lineNum">     178 </span>                :            : };
+<span class="lineNum">     179 </span>                :            : 
+<a name="180"><span class="lineNum">     180 </span>                :            : </a>
+<span class="lineNum">     181 </span>                :            : /** CCoinsView backed by another CCoinsView */
+<span class="lineNum">     182 </span>                :<span class="lineCov">     418120 : class CCoinsViewBacked : public CCoinsView</span>
+<span class="lineNum">     183 </span>                :            : {
+<span class="lineNum">     184 </span>                :            : protected:
+<span class="lineNum">     185 </span>                :            :     CCoinsView *base;
+<span class="lineNum">     186 </span>                :            : 
+<span class="lineNum">     187 </span>                :            : public:
+<span class="lineNum">     188 </span>                :            :     CCoinsViewBacked(CCoinsView *viewIn);
+<span class="lineNum">     189 </span>                :            :     bool GetCoin(const COutPoint &amp;outpoint, Coin &amp;coin) const override;
+<span class="lineNum">     190 </span>                :            :     bool HaveCoin(const COutPoint &amp;outpoint) const override;
+<span class="lineNum">     191 </span>                :            :     uint256 GetBestBlock() const override;
+<span class="lineNum">     192 </span>                :            :     std::vector&lt;uint256&gt; GetHeadBlocks() const override;
+<span class="lineNum">     193 </span>                :            :     void SetBackend(CCoinsView &amp;viewIn);
+<span class="lineNum">     194 </span>                :            :     bool BatchWrite(CCoinsMap &amp;mapCoins, const uint256 &amp;hashBlock) override;
+<span class="lineNum">     195 </span>                :            :     CCoinsViewCursor *Cursor() const override;
+<span class="lineNum">     196 </span>                :            :     size_t EstimateSize() const override;
+<span class="lineNum">     197 </span>                :            : };
+<span class="lineNum">     198 </span>                :            : 
+<a name="199"><span class="lineNum">     199 </span>                :            : </a>
+<span class="lineNum">     200 </span>                :            : /** CCoinsView that adds a memory cache for transactions to another CCoinsView */
+<span class="lineNum">     201 </span>                :<span class="lineCov">       5509 : class CCoinsViewCache : public CCoinsViewBacked</span>
+<span class="lineNum">     202 </span>                :            : {
+<span class="lineNum">     203 </span>                :            : protected:
+<span class="lineNum">     204 </span>                :            :     /**
+<span class="lineNum">     205 </span>                :            :      * Make mutable so that we can &quot;fill the cache&quot; even from Get-methods
+<span class="lineNum">     206 </span>                :            :      * declared as &quot;const&quot;.
+<span class="lineNum">     207 </span>                :            :      */
+<span class="lineNum">     208 </span>                :            :     mutable uint256 hashBlock;
+<span class="lineNum">     209 </span>                :            :     mutable CCoinsMap cacheCoins;
+<span class="lineNum">     210 </span>                :            : 
+<span class="lineNum">     211 </span>                :            :     /* Cached dynamic memory usage for the inner Coin objects. */
+<span class="lineNum">     212 </span>                :            :     mutable size_t cachedCoinsUsage;
+<span class="lineNum">     213 </span>                :            : 
+<span class="lineNum">     214 </span>                :            : public:
+<span class="lineNum">     215 </span>                :            :     CCoinsViewCache(CCoinsView *baseIn);
+<span class="lineNum">     216 </span>                :            : 
+<span class="lineNum">     217 </span>                :            :     /**
+<span class="lineNum">     218 </span>                :            :      * By deleting the copy constructor, we prevent accidentally using it when one intends to create a cache on top of a base cache.
+<span class="lineNum">     219 </span>                :            :      */
+<span class="lineNum">     220 </span>                :            :     CCoinsViewCache(const CCoinsViewCache &amp;) = delete;
+<span class="lineNum">     221 </span>                :            : 
+<span class="lineNum">     222 </span>                :            :     // Standard CCoinsView methods
+<span class="lineNum">     223 </span>                :            :     bool GetCoin(const COutPoint &amp;outpoint, Coin &amp;coin) const override;
+<span class="lineNum">     224 </span>                :            :     bool HaveCoin(const COutPoint &amp;outpoint) const override;
+<span class="lineNum">     225 </span>                :            :     uint256 GetBestBlock() const override;
+<a name="226"><span class="lineNum">     226 </span>                :            :     void SetBestBlock(const uint256 &amp;hashBlock);</a>
+<span class="lineNum">     227 </span>                :            :     bool BatchWrite(CCoinsMap &amp;mapCoins, const uint256 &amp;hashBlock) override;
+<span class="lineNum">     228 </span>                :<span class="lineNoCov">          0 :     CCoinsViewCursor* Cursor() const override {</span>
+<span class="lineNum">     229 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw std::logic_error(&quot;CCoinsViewCache cursor iteration not supported.&quot;);</span>
+<span class="lineNum">     230 </span>                :            :     }
+<span class="lineNum">     231 </span>                :            : 
+<span class="lineNum">     232 </span>                :            :     /**
+<span class="lineNum">     233 </span>                :            :      * Check if we have the given utxo already loaded in this cache.
+<span class="lineNum">     234 </span>                :            :      * The semantics are the same as HaveCoin(), but no calls to
+<span class="lineNum">     235 </span>                :            :      * the backing CCoinsView are made.
+<span class="lineNum">     236 </span>                :            :      */
+<span class="lineNum">     237 </span>                :            :     bool HaveCoinInCache(const COutPoint &amp;outpoint) const;
+<span class="lineNum">     238 </span>                :            : 
+<span class="lineNum">     239 </span>                :            :     /**
+<span class="lineNum">     240 </span>                :            :      * Return a reference to Coin in the cache, or a pruned one if not found. This is
+<span class="lineNum">     241 </span>                :            :      * more efficient than GetCoin.
+<span class="lineNum">     242 </span>                :            :      *
+<span class="lineNum">     243 </span>                :            :      * Generally, do not hold the reference returned for more than a short scope.
+<span class="lineNum">     244 </span>                :            :      * While the current implementation allows for modifications to the contents
+<span class="lineNum">     245 </span>                :            :      * of the cache while holding the reference, this behavior should not be relied
+<span class="lineNum">     246 </span>                :            :      * on! To be safe, best to not hold the returned reference through any other
+<span class="lineNum">     247 </span>                :            :      * calls to this cache.
+<span class="lineNum">     248 </span>                :            :      */
+<span class="lineNum">     249 </span>                :            :     const Coin&amp; AccessCoin(const COutPoint &amp;output) const;
+<span class="lineNum">     250 </span>                :            : 
+<span class="lineNum">     251 </span>                :            :     /**
+<span class="lineNum">     252 </span>                :            :      * Add a coin. Set potential_overwrite to true if a non-pruned version may
+<span class="lineNum">     253 </span>                :            :      * already exist.
+<span class="lineNum">     254 </span>                :            :      */
+<span class="lineNum">     255 </span>                :            :     void AddCoin(const COutPoint&amp; outpoint, Coin&amp;&amp; coin, bool potential_overwrite);
+<span class="lineNum">     256 </span>                :            : 
+<span class="lineNum">     257 </span>                :            :     /**
+<span class="lineNum">     258 </span>                :            :      * Spend a coin. Pass moveto in order to get the deleted data.
+<span class="lineNum">     259 </span>                :            :      * If no unspent output exists for the passed outpoint, this call
+<span class="lineNum">     260 </span>                :            :      * has no effect.
+<span class="lineNum">     261 </span>                :            :      */
+<span class="lineNum">     262 </span>                :            :     bool SpendCoin(const COutPoint &amp;outpoint, Coin* moveto = nullptr);
+<span class="lineNum">     263 </span>                :            : 
+<span class="lineNum">     264 </span>                :            :     /**
+<span class="lineNum">     265 </span>                :            :      * Push the modifications applied to this cache to its base.
+<span class="lineNum">     266 </span>                :            :      * Failure to call this method before destruction will cause the changes to be forgotten.
+<span class="lineNum">     267 </span>                :            :      * If false is returned, the state of this cache (and its backing view) will be undefined.
+<span class="lineNum">     268 </span>                :            :      */
+<span class="lineNum">     269 </span>                :            :     bool Flush();
+<span class="lineNum">     270 </span>                :            : 
+<span class="lineNum">     271 </span>                :            :     /**
+<span class="lineNum">     272 </span>                :            :      * Removes the UTXO with the given outpoint from the cache, if it is
+<span class="lineNum">     273 </span>                :            :      * not modified.
+<span class="lineNum">     274 </span>                :            :      */
+<span class="lineNum">     275 </span>                :            :     void Uncache(const COutPoint &amp;outpoint);
+<span class="lineNum">     276 </span>                :            : 
+<span class="lineNum">     277 </span>                :            :     //! Calculate the size of the cache (in number of transaction outputs)
+<span class="lineNum">     278 </span>                :            :     unsigned int GetCacheSize() const;
+<span class="lineNum">     279 </span>                :            : 
+<span class="lineNum">     280 </span>                :            :     //! Calculate the size of the cache (in bytes)
+<span class="lineNum">     281 </span>                :            :     size_t DynamicMemoryUsage() const;
+<span class="lineNum">     282 </span>                :            : 
+<span class="lineNum">     283 </span>                :            :     /**
+<span class="lineNum">     284 </span>                :            :      * Amount of bitcoins coming in to a transaction
+<span class="lineNum">     285 </span>                :            :      * Note that lightweight clients may not know anything besides the hash of previous transactions,
+<span class="lineNum">     286 </span>                :            :      * so may not be able to calculate this.
+<span class="lineNum">     287 </span>                :            :      *
+<span class="lineNum">     288 </span>                :            :      * @param[in] tx    transaction for which we are checking input total
+<span class="lineNum">     289 </span>                :            :      * @return  Sum of value of all inputs (scriptSigs)
+<span class="lineNum">     290 </span>                :            :      */
+<span class="lineNum">     291 </span>                :            :     CAmount GetValueIn(const CTransaction&amp; tx) const;
+<span class="lineNum">     292 </span>                :            : 
+<span class="lineNum">     293 </span>                :            :     //! Check whether all prevouts of the transaction are present in the UTXO set represented by this view
+<span class="lineNum">     294 </span>                :            :     bool HaveInputs(const CTransaction&amp; tx) const;
+<span class="lineNum">     295 </span>                :            : 
+<span class="lineNum">     296 </span>                :            : private:
+<span class="lineNum">     297 </span>                :            :     CCoinsMap::iterator FetchCoin(const COutPoint &amp;outpoint) const;
+<span class="lineNum">     298 </span>                :            : };
+<span class="lineNum">     299 </span>                :            : 
+<span class="lineNum">     300 </span>                :            : //! Utility function to add all of a transaction's outputs to a cache.
+<span class="lineNum">     301 </span>                :            : // When check is false, this assumes that overwrites are only possible for coinbase transactions.
+<span class="lineNum">     302 </span>                :            : // When check is true, the underlying view may be queried to determine whether an addition is
+<span class="lineNum">     303 </span>                :            : // an overwrite.
+<span class="lineNum">     304 </span>                :            : // TODO: pass in a boolean to limit these possible overwrites to known
+<span class="lineNum">     305 </span>                :            : // (pre-BIP34) cases.
+<span class="lineNum">     306 </span>                :            : void AddCoins(CCoinsViewCache&amp; cache, const CTransaction&amp; tx, int nHeight, bool check = false);
+<span class="lineNum">     307 </span>                :            : 
+<span class="lineNum">     308 </span>                :            : //! Utility function to find any unspent output with a given txid.
+<span class="lineNum">     309 </span>                :            : // This function can be quite expensive because in the event of a transaction
+<span class="lineNum">     310 </span>                :            : // which is not found in the cache, it can cause up to MAX_OUTPUTS_PER_BLOCK
+<span class="lineNum">     311 </span>                :            : // lookups to database, so it should be used with care.
+<span class="lineNum">     312 </span>                :            : const Coin&amp; AccessByTxid(const CCoinsViewCache&amp; cache, const uint256&amp; txid);
+<span class="lineNum">     313 </span>                :            : 
+<span class="lineNum">     314 </span>                :            : #endif // BITCOIN_COINS_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

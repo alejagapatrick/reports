@@ -1,0 +1,546 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/miner.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - miner.cpp<span style="font-size: 80%;"> (source / <a href="miner.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">198</td>
+            <td class="headerCovTableEntry">208</td>
+            <td class="headerCovTableEntryHi">95.2 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">18</td>
+            <td class="headerCovTableEntry">18</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">116</td>
+            <td class="headerCovTableEntry">206</td>
+            <td class="headerCovTableEntryLo">56.3 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #include &lt;miner.h&gt;
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;amount.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;chain.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;chainparams.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;coins.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;consensus/consensus.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;consensus/tx_verify.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;consensus/merkle.h&gt;
+<span class="lineNum">      15 </span>                :            : #include &lt;consensus/validation.h&gt;
+<span class="lineNum">      16 </span>                :            : #include &lt;hash.h&gt;
+<span class="lineNum">      17 </span>                :            : #include &lt;net.h&gt;
+<span class="lineNum">      18 </span>                :            : #include &lt;policy/feerate.h&gt;
+<span class="lineNum">      19 </span>                :            : #include &lt;policy/policy.h&gt;
+<span class="lineNum">      20 </span>                :            : #include &lt;pow.h&gt;
+<span class="lineNum">      21 </span>                :            : #include &lt;primitives/transaction.h&gt;
+<span class="lineNum">      22 </span>                :            : #include &lt;script/standard.h&gt;
+<span class="lineNum">      23 </span>                :            : #include &lt;timedata.h&gt;
+<span class="lineNum">      24 </span>                :            : #include &lt;util/system.h&gt;
+<span class="lineNum">      25 </span>                :            : #include &lt;util/moneystr.h&gt;
+<span class="lineNum">      26 </span>                :            : #include &lt;validationinterface.h&gt;
+<span class="lineNum">      27 </span>                :            : 
+<span class="lineNum">      28 </span>                :            : #include &lt;algorithm&gt;
+<span class="lineNum">      29 </span>                :            : #include &lt;queue&gt;
+<span class="lineNum">      30 </span>                :            : #include &lt;utility&gt;
+<span class="lineNum">      31 </span>                :            : 
+<span class="lineNum">      32 </span>                :            : // Unconfirmed transactions in the memory pool often depend on other
+<span class="lineNum">      33 </span>                :            : // transactions in the memory pool. When we select transactions from the
+<span class="lineNum">      34 </span>                :            : // pool, we select by highest fee rate of a transaction combined with all
+<span class="lineNum">      35 </span>                :            : // its ancestors.
+<span class="lineNum">      36 </span>                :            : 
+<span class="lineNum">      37 </span>                :            : uint64_t nLastBlockTx = 0;
+<a name="38"><span class="lineNum">      38 </span>                :            : uint64_t nLastBlockWeight = 0;</a>
+<span class="lineNum">      39 </span>                :            : 
+<span class="lineNum">      40 </span>                :<span class="lineCov">       1260 : int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params&amp; consensusParams, const CBlockIndex* pindexPrev)</span>
+<span class="lineNum">      41 </span>                :            : {
+<span class="lineNum">      42 </span>                :<span class="lineCov">       1260 :     int64_t nOldTime = pblock-&gt;nTime;</span>
+<span class="lineNum">      43 </span>                :<span class="lineCov">       1260 :     int64_t nNewTime = std::max(pindexPrev-&gt;GetMedianTimePast()+1, GetAdjustedTime());</span>
+<span class="lineNum">      44 </span>                :            : 
+<span class="lineNum">      45 </span>        [<span class="branchCov" title="Branch 0 was taken 1110 times"> + </span><span class="branchCov" title="Branch 1 was taken 150 times"> + </span>]:<span class="lineCov">       1260 :     if (nOldTime &lt; nNewTime)</span>
+<span class="lineNum">      46 </span>                :<span class="lineCov">       1110 :         pblock-&gt;nTime = nNewTime;</span>
+<span class="lineNum">      47 </span>                :            : 
+<span class="lineNum">      48 </span>                :            :     // Updating time can change work required on testnet:
+<span class="lineNum">      49 </span>        [<span class="branchCov" title="Branch 0 was taken 1241 times"> + </span><span class="branchCov" title="Branch 1 was taken 19 times"> + </span>]:<span class="lineCov">       1260 :     if (consensusParams.fPowAllowMinDifficultyBlocks)</span>
+<span class="lineNum">      50 </span>                :<span class="lineCov">       1241 :         pblock-&gt;nBits = GetNextWorkRequired(pindexPrev, pblock, consensusParams);</span>
+<span class="lineNum">      51 </span>                :            : 
+<span class="lineNum">      52 </span>                :<span class="lineCov">       1260 :     return nNewTime - nOldTime;</span>
+<a name="53"><span class="lineNum">      53 </span>                :            : }</a>
+<span class="lineNum">      54 </span>                :            : 
+<span class="lineNum">      55 </span>                :<span class="lineCov">       1260 : BlockAssembler::Options::Options() {</span>
+<span class="lineNum">      56 </span>                :<span class="lineCov">       1260 :     blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);</span>
+<span class="lineNum">      57 </span>                :<span class="lineCov">       1260 :     nBlockMaxWeight = DEFAULT_BLOCK_MAX_WEIGHT;</span>
+<a name="58"><span class="lineNum">      58 </span>                :<span class="lineCov">       1260 : }</span></a>
+<span class="lineNum">      59 </span>                :            : 
+<span class="lineNum">      60 </span>                :<span class="lineCov">       1260 : BlockAssembler::BlockAssembler(const CChainParams&amp; params, const Options&amp; options) : chainparams(params)</span>
+<span class="lineNum">      61 </span>                :            : {
+<span class="lineNum">      62 </span>                :<span class="lineCov">       1260 :     blockMinFeeRate = options.blockMinFeeRate;</span>
+<span class="lineNum">      63 </span>                :            :     // Limit weight to between 4K and MAX_BLOCK_WEIGHT-4K for sanity:
+<span class="lineNum">      64 </span>                :<span class="lineCov">       3780 :     nBlockMaxWeight = std::max&lt;size_t&gt;(4000, std::min&lt;size_t&gt;(MAX_BLOCK_WEIGHT - 4000, options.nBlockMaxWeight));</span>
+<a name="65"><span class="lineNum">      65 </span>                :<span class="lineCov">       1260 : }</span></a>
+<span class="lineNum">      66 </span>                :            : 
+<span class="lineNum">      67 </span>                :<span class="lineCov">       1241 : static BlockAssembler::Options DefaultOptions()</span>
+<span class="lineNum">      68 </span>                :            : {
+<span class="lineNum">      69 </span>                :            :     // Block resource limits
+<span class="lineNum">      70 </span>                :            :     // If -blockmaxweight is not given, limit to DEFAULT_BLOCK_MAX_WEIGHT
+<span class="lineNum">      71 </span>                :<span class="lineCov">       1241 :     BlockAssembler::Options options;</span>
+<span class="lineNum">      72 </span>[<span class="branchCov" title="Branch 1 was taken 1241 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1241 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1241 :     options.nBlockMaxWeight = gArgs.GetArg(&quot;-blockmaxweight&quot;, DEFAULT_BLOCK_MAX_WEIGHT);</span>
+<span class="lineNum">      73 </span>                :<span class="lineCov">       1241 :     CAmount n = 0;</span>
+<span class="lineNum">      74 </span>[<span class="branchCov" title="Branch 1 was taken 1241 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1241 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       2482 :     if (gArgs.IsArgSet(&quot;-blockmintxfee&quot;) &amp;&amp; ParseMoney(gArgs.GetArg(&quot;-blockmintxfee&quot;, &quot;&quot;), n)) {</span>
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 6 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 1241 times"> + </span>][<span class="branchNoExec" title="Branch 9 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>][<span class="branchNoExec" title="Branch 15 was not executed"> # </span><span class="branchNoExec" title="Branch 16 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>][<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 22 was not taken"> - </span><span class="branchCov" title="Branch 23 was taken 1241 times"> + </span>][<span class="branchNoCov" title="Branch 24 was not taken"> - </span><span class="branchCov" title="Branch 25 was taken 1241 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 26 was not taken"> - </span><span class="branchCov" title="Branch 27 was taken 1241 times"> + </span>][<span class="branchNoCov" title="Branch 28 was not taken"> - </span><span class="branchCov" title="Branch 29 was taken 1241 times"> + </span> 
+<span class="lineNum">         </span><span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span><span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span><span class="branchNoExec" title="Branch 34 was not executed"> # </span> 
+<span class="lineNum">         </span>      <span class="branchNoExec" title="Branch 35 was not executed"> # </span><span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>]
+<span class="lineNum">      75 </span>                :<span class="lineNoCov">          0 :         options.blockMinFeeRate = CFeeRate(n);</span>
+<span class="lineNum">      76 </span>                :            :     } else {
+<span class="lineNum">      77 </span>                :<span class="lineCov">       1241 :         options.blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);</span>
+<span class="lineNum">      78 </span>                :            :     }
+<span class="lineNum">      79 </span>                :<span class="lineCov">       1241 :     return options;</span>
+<a name="80"><span class="lineNum">      80 </span>                :            : }</a>
+<span class="lineNum">      81 </span>                :            : 
+<a name="82"><span class="lineNum">      82 </span>                :<span class="lineCov">       2482 : BlockAssembler::BlockAssembler(const CChainParams&amp; params) : BlockAssembler(params, DefaultOptions()) {}</span></a>
+<span class="lineNum">      83 </span>                :            : 
+<span class="lineNum">      84 </span>                :<span class="lineCov">       1260 : void BlockAssembler::resetBlock()</span>
+<span class="lineNum">      85 </span>                :            : {
+<span class="lineNum">      86 </span>                :<span class="lineCov">       2520 :     inBlock.clear();</span>
+<span class="lineNum">      87 </span>                :            : 
+<span class="lineNum">      88 </span>                :            :     // Reserve space for coinbase tx
+<span class="lineNum">      89 </span>                :<span class="lineCov">       1260 :     nBlockWeight = 4000;</span>
+<span class="lineNum">      90 </span>                :<span class="lineCov">       1260 :     nBlockSigOpsCost = 400;</span>
+<span class="lineNum">      91 </span>                :<span class="lineCov">       1260 :     fIncludeWitness = false;</span>
+<span class="lineNum">      92 </span>                :            : 
+<span class="lineNum">      93 </span>                :            :     // These counters do not include coinbase tx
+<span class="lineNum">      94 </span>                :<span class="lineCov">       1260 :     nBlockTx = 0;</span>
+<span class="lineNum">      95 </span>                :<span class="lineCov">       1260 :     nFees = 0;</span>
+<a name="96"><span class="lineNum">      96 </span>                :<span class="lineCov">       1260 : }</span></a>
+<span class="lineNum">      97 </span>                :            : 
+<span class="lineNum">      98 </span>                :<span class="lineCov">       1260 : std::unique_ptr&lt;CBlockTemplate&gt; BlockAssembler::CreateNewBlock(const CScript&amp; scriptPubKeyIn)</span>
+<span class="lineNum">      99 </span>                :            : {
+<span class="lineNum">     100 </span>                :<span class="lineCov">       1260 :     int64_t nTimeStart = GetTimeMicros();</span>
+<span class="lineNum">     101 </span>                :            : 
+<span class="lineNum">     102 </span>                :<span class="lineCov">       1260 :     resetBlock();</span>
+<span class="lineNum">     103 </span>                :            : 
+<span class="lineNum">     104 </span>                :<span class="lineCov">       1260 :     pblocktemplate.reset(new CBlockTemplate());</span>
+<span class="lineNum">     105 </span>                :            : 
+<span class="lineNum">     106 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1260 times"> + </span>]:<span class="lineCov">       1260 :     if(!pblocktemplate.get())</span>
+<span class="lineNum">     107 </span>                :            :         return nullptr;
+<span class="lineNum">     108 </span>                :<span class="lineCov">       2520 :     pblock = &amp;pblocktemplate-&gt;block; // pointer for convenience</span>
+<span class="lineNum">     109 </span>                :            : 
+<span class="lineNum">     110 </span>                :            :     // Add dummy coinbase tx as first transaction
+<span class="lineNum">     111 </span>                :<span class="lineCov">       1260 :     pblock-&gt;vtx.emplace_back();</span>
+<span class="lineNum">     112 </span>                :<span class="lineCov">       3780 :     pblocktemplate-&gt;vTxFees.push_back(-1); // updated at end</span>
+<span class="lineNum">     113 </span>                :<span class="lineCov">       3780 :     pblocktemplate-&gt;vTxSigOpsCost.push_back(-1); // updated at end</span>
+<span class="lineNum">     114 </span>                :            : 
+<span class="lineNum">     115 </span>        [<span class="branchCov" title="Branch 2 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       1265 :     LOCK2(cs_main, mempool.cs);</span>
+<span class="lineNum">     116 </span>                :<span class="lineCov">       2520 :     CBlockIndex* pindexPrev = chainActive.Tip();</span>
+<span class="lineNum">     117 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1260 times"> + </span>]:<span class="lineCov">       1260 :     assert(pindexPrev != nullptr);</span>
+<span class="lineNum">     118 </span>                :<span class="lineCov">       1260 :     nHeight = pindexPrev-&gt;nHeight + 1;</span>
+<span class="lineNum">     119 </span>                :            : 
+<span class="lineNum">     120 </span>        [<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1260 :     pblock-&gt;nVersion = ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());</span>
+<span class="lineNum">     121 </span>                :            :     // -regtest only: allow overriding block.nVersion with
+<span class="lineNum">     122 </span>                :            :     // -blockversion=N to test forking scenarios
+<span class="lineNum">     123 </span>        [<span class="branchCov" title="Branch 0 was taken 1241 times"> + </span><span class="branchCov" title="Branch 1 was taken 19 times"> + </span>]:<span class="lineCov">       1260 :     if (chainparams.MineBlocksOnDemand())</span>
+<span class="lineNum">     124 </span>[<span class="branchCov" title="Branch 1 was taken 1241 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1241 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       2482 :         pblock-&gt;nVersion = gArgs.GetArg(&quot;-blockversion&quot;, pblock-&gt;nVersion);</span>
+<span class="lineNum">     125 </span>                :            : 
+<span class="lineNum">     126 </span>        [<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1260 :     pblock-&gt;nTime = GetAdjustedTime();</span>
+<span class="lineNum">     127 </span>                :<span class="lineCov">       1260 :     const int64_t nMedianTimePast = pindexPrev-&gt;GetMedianTimePast();</span>
+<span class="lineNum">     128 </span>                :            : 
+<span class="lineNum">     129 </span>                :<span class="lineCov">       1260 :     nLockTimeCutoff = (STANDARD_LOCKTIME_VERIFY_FLAGS &amp; LOCKTIME_MEDIAN_TIME_PAST)</span>
+<span class="lineNum">     130 </span>                :            :                        ? nMedianTimePast
+<span class="lineNum">     131 </span>                :            :                        : pblock-&gt;GetBlockTime();
+<span class="lineNum">     132 </span>                :            : 
+<span class="lineNum">     133 </span>                :            :     // Decide whether to include witness transactions
+<span class="lineNum">     134 </span>                :            :     // This is only needed in case the witness softfork activation is reverted
+<span class="lineNum">     135 </span>                :            :     // (which would require a very deep reorganization).
+<span class="lineNum">     136 </span>                :            :     // Note that the mempool would accept transactions with witness data before
+<span class="lineNum">     137 </span>                :            :     // IsWitnessEnabled, but we would only ever mine blocks after IsWitnessEnabled
+<span class="lineNum">     138 </span>                :            :     // unless there is a massive block reorganization with the witness softfork
+<span class="lineNum">     139 </span>                :            :     // not activated.
+<span class="lineNum">     140 </span>                :            :     // TODO: replace this with a call to main to assess validity of a mempool
+<span class="lineNum">     141 </span>                :            :     // transaction (which in most cases can be a no-op).
+<span class="lineNum">     142 </span>        [<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1260 :     fIncludeWitness = IsWitnessEnabled(pindexPrev, chainparams.GetConsensus());</span>
+<span class="lineNum">     143 </span>                :            : 
+<span class="lineNum">     144 </span>                :<span class="lineCov">       1260 :     int nPackagesSelected = 0;</span>
+<span class="lineNum">     145 </span>                :<span class="lineCov">       1260 :     int nDescendantsUpdated = 0;</span>
+<span class="lineNum">     146 </span>        [<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1260 :     addPackageTxs(nPackagesSelected, nDescendantsUpdated);</span>
+<span class="lineNum">     147 </span>                :            : 
+<span class="lineNum">     148 </span>        [<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1260 :     int64_t nTime1 = GetTimeMicros();</span>
+<span class="lineNum">     149 </span>                :            : 
+<span class="lineNum">     150 </span>                :<span class="lineCov">       1260 :     nLastBlockTx = nBlockTx;</span>
+<span class="lineNum">     151 </span>                :<span class="lineCov">       1260 :     nLastBlockWeight = nBlockWeight;</span>
+<span class="lineNum">     152 </span>                :            : 
+<span class="lineNum">     153 </span>                :            :     // Create coinbase transaction.
+<span class="lineNum">     154 </span>        [<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1265 :     CMutableTransaction coinbaseTx;</span>
+<span class="lineNum">     155 </span>        [<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1260 :     coinbaseTx.vin.resize(1);</span>
+<span class="lineNum">     156 </span>                :<span class="lineCov">       2520 :     coinbaseTx.vin[0].prevout.SetNull();</span>
+<span class="lineNum">     157 </span>        [<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1260 :     coinbaseTx.vout.resize(1);</span>
+<span class="lineNum">     158 </span>                :<span class="lineCov">       2520 :     coinbaseTx.vout[0].scriptPubKey = scriptPubKeyIn;</span>
+<span class="lineNum">     159 </span>        [<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1260 :     coinbaseTx.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());</span>
+<span class="lineNum">     160 </span>        [<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1260 :     coinbaseTx.vin[0].scriptSig = CScript() &lt;&lt; nHeight &lt;&lt; OP_0;</span>
+<span class="lineNum">     161 </span>                :<span class="lineCov">       6300 :     pblock-&gt;vtx[0] = MakeTransactionRef(std::move(coinbaseTx));</span>
+<span class="lineNum">     162 </span>        [<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1260 :     pblocktemplate-&gt;vchCoinbaseCommitment = GenerateCoinbaseCommitment(*pblock, pindexPrev, chainparams.GetConsensus());</span>
+<span class="lineNum">     163 </span>                :<span class="lineCov">       3780 :     pblocktemplate-&gt;vTxFees[0] = -nFees;</span>
+<span class="lineNum">     164 </span>                :            : 
+<span class="lineNum">     165 </span>        [<span class="branchCov" title="Branch 2 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       1260 :     LogPrintf(&quot;CreateNewBlock(): block weight: %u txs: %u fees: %ld sigops %d\n&quot;, GetBlockWeight(*pblock), nBlockTx, nFees, nBlockSigOpsCost);</span>
+<span class="lineNum">     166 </span>                :            : 
+<span class="lineNum">     167 </span>                :            :     // Fill in header
+<span class="lineNum">     168 </span>                :<span class="lineCov">       2520 :     pblock-&gt;hashPrevBlock  = pindexPrev-&gt;GetBlockHash();</span>
+<span class="lineNum">     169 </span>        [<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1260 :     UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);</span>
+<span class="lineNum">     170 </span>        [<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1260 :     pblock-&gt;nBits          = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());</span>
+<span class="lineNum">     171 </span>                :<span class="lineCov">       1260 :     pblock-&gt;nNonce         = 0;</span>
+<span class="lineNum">     172 </span>        [<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1260 :     pblocktemplate-&gt;vTxSigOpsCost[0] = WITNESS_SCALE_FACTOR * GetLegacySigOpCount(*pblock-&gt;vtx[0]);</span>
+<span class="lineNum">     173 </span>                :            : 
+<span class="lineNum">     174 </span>                :<span class="lineCov">       1260 :     CValidationState state;</span>
+<span class="lineNum">     175 </span>[<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 5 times"> + </span><span class="branchCov" title="Branch 4 was taken 1255 times"> + </span>]:<span class="lineCov">       1260 :     if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev, false, false)) {</span>
+<span class="lineNum">     176 </span>[<span class="branchCov" title="Branch 2 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">         10 :         throw std::runtime_error(strprintf(&quot;%s: TestBlockValidity failed: %s&quot;, __func__, FormatStateMessage(state)));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     177 </span>                :            :     }
+<span class="lineNum">     178 </span>        [<span class="branchCov" title="Branch 1 was taken 1255 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1255 :     int64_t nTime2 = GetTimeMicros();</span>
+<span class="lineNum">     179 </span>                :            : 
+<span class="lineNum">     180 </span>        [<span class="branchCov" title="Branch 1 was taken 1255 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1255 :     LogPrint(BCLog::BENCH, &quot;CreateNewBlock() packages: %.2fms (%d packages, %d updated descendants), validity: %.2fms (total %.2fms)\n&quot;, 0.001 * (nTime1 - nTimeStart), nPackagesSelected, nDescendantsUpdated, 0.001 * (nTime2 - nTime1), 0.001 * (nTime2 - nTimeStart));</span>
+<span class="lineNum">     181 </span>                :            : 
+<span class="lineNum">     182 </span>                :<span class="lineCov">       2510 :     return std::move(pblocktemplate);</span>
+<a name="183"><span class="lineNum">     183 </span>                :            : }</a>
+<span class="lineNum">     184 </span>                :            : 
+<span class="lineNum">     185 </span>                :<span class="lineCov">         51 : void BlockAssembler::onlyUnconfirmed(CTxMemPool::setEntries&amp; testSet)</span>
+<span class="lineNum">     186 </span>                :            : {
+<span class="lineNum">     187 </span>        [<span class="branchCov" title="Branch 0 was taken 10427 times"> + </span><span class="branchCov" title="Branch 1 was taken 51 times"> + </span>]:<span class="lineCov">      10478 :     for (CTxMemPool::setEntries::iterator iit = testSet.begin(); iit != testSet.end(); ) {</span>
+<span class="lineNum">     188 </span>                :            :         // Only test txs not already in the block
+<span class="lineNum">     189 </span>                :<span class="lineCov">      31281 :         if (inBlock.count(*iit)) {</span>
+<span class="lineNum">     190 </span>                :<span class="lineCov">       8335 :             testSet.erase(iit++);</span>
+<span class="lineNum">     191 </span>                :            :         }
+<span class="lineNum">     192 </span>                :            :         else {
+<span class="lineNum">     193 </span>                :            :             iit++;
+<span class="lineNum">     194 </span>                :            :         }
+<span class="lineNum">     195 </span>                :            :     }
+<a name="196"><span class="lineNum">     196 </span>                :<span class="lineCov">         51 : }</span></a>
+<span class="lineNum">     197 </span>                :            : 
+<span class="lineNum">     198 </span>                :<span class="lineCov">         87 : bool BlockAssembler::TestPackage(uint64_t packageSize, int64_t packageSigOpsCost) const</span>
+<span class="lineNum">     199 </span>                :            : {
+<span class="lineNum">     200 </span>                :            :     // TODO: switch to weight-based accounting for packages instead of vsize-based accounting.
+<span class="lineNum">     201 </span>        [<span class="branchCov" title="Branch 0 was taken 64 times"> + </span><span class="branchCov" title="Branch 1 was taken 23 times"> + </span>]:<span class="lineCov">         87 :     if (nBlockWeight + WITNESS_SCALE_FACTOR * packageSize &gt;= nBlockMaxWeight)</span>
+<span class="lineNum">     202 </span>                :            :         return false;
+<span class="lineNum">     203 </span>        [<span class="branchCov" title="Branch 0 was taken 51 times"> + </span><span class="branchCov" title="Branch 1 was taken 13 times"> + </span>]:<span class="lineCov">         64 :     if (nBlockSigOpsCost + packageSigOpsCost &gt;= MAX_BLOCK_SIGOPS_COST)</span>
+<span class="lineNum">     204 </span>                :            :         return false;
+<span class="lineNum">     205 </span>                :<span class="lineCov">         51 :     return true;</span>
+<span class="lineNum">     206 </span>                :            : }
+<span class="lineNum">     207 </span>                :            : 
+<span class="lineNum">     208 </span>                :            : // Perform transaction-level checks before adding to block:
+<span class="lineNum">     209 </span>                :            : // - transaction finality (locktime)
+<a name="210"><span class="lineNum">     210 </span>                :            : // - premature witness (in case segwit transactions are added to mempool before</a>
+<span class="lineNum">     211 </span>                :            : //   segwit activation)
+<span class="lineNum">     212 </span>                :<span class="lineCov">         51 : bool BlockAssembler::TestPackageTransactions(const CTxMemPool::setEntries&amp; package)</span>
+<span class="lineNum">     213 </span>                :            : {
+<span class="lineNum">     214 </span>        [<span class="branchCov" title="Branch 0 was taken 2143 times"> + </span><span class="branchCov" title="Branch 1 was taken 49 times"> + </span>]:<span class="lineCov">       2192 :     for (CTxMemPool::txiter it : package) {</span>
+<span class="lineNum">     215 </span>        [<span class="branchCov" title="Branch 1 was taken 2141 times"> + </span><span class="branchCov" title="Branch 2 was taken 2 times"> + </span>]:<span class="lineCov">       2143 :         if (!IsFinalTx(it-&gt;GetTx(), nHeight, nLockTimeCutoff))</span>
+<span class="lineNum">     216 </span>                :<span class="lineCov">          2 :             return false;</span>
+<span class="lineNum">     217 </span>[<span class="branchCov" title="Branch 0 was taken 2141 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2141 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       4282 :         if (!fIncludeWitness &amp;&amp; it-&gt;GetTx().HasWitness())</span>
+<span class="lineNum">     218 </span>                :            :             return false;
+<span class="lineNum">     219 </span>                :            :     }
+<span class="lineNum">     220 </span>                :<span class="lineCov">         49 :     return true;</span>
+<a name="221"><span class="lineNum">     221 </span>                :            : }</a>
+<span class="lineNum">     222 </span>                :            : 
+<span class="lineNum">     223 </span>                :<span class="lineCov">       2141 : void BlockAssembler::AddToBlock(CTxMemPool::txiter iter)</span>
+<span class="lineNum">     224 </span>                :            : {
+<span class="lineNum">     225 </span>        [<span class="branchCov" title="Branch 1 was taken 2141 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2141 :     pblock-&gt;vtx.emplace_back(iter-&gt;GetSharedTx());</span>
+<span class="lineNum">     226 </span>                :<span class="lineCov">       2141 :     pblocktemplate-&gt;vTxFees.push_back(iter-&gt;GetFee());</span>
+<span class="lineNum">     227 </span>                :<span class="lineCov">      10705 :     pblocktemplate-&gt;vTxSigOpsCost.push_back(iter-&gt;GetSigOpCost());</span>
+<span class="lineNum">     228 </span>                :<span class="lineCov">       4282 :     nBlockWeight += iter-&gt;GetTxWeight();</span>
+<span class="lineNum">     229 </span>                :<span class="lineCov">       2141 :     ++nBlockTx;</span>
+<span class="lineNum">     230 </span>                :<span class="lineCov">       4282 :     nBlockSigOpsCost += iter-&gt;GetSigOpCost();</span>
+<span class="lineNum">     231 </span>                :<span class="lineCov">       2141 :     nFees += iter-&gt;GetFee();</span>
+<span class="lineNum">     232 </span>                :<span class="lineCov">       4282 :     inBlock.insert(iter);</span>
+<span class="lineNum">     233 </span>                :            : 
+<span class="lineNum">     234 </span>[<span class="branchCov" title="Branch 1 was taken 2141 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2141 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       2141 :     bool fPrintPriority = gArgs.GetBoolArg(&quot;-printpriority&quot;, DEFAULT_PRINTPRIORITY);</span>
+<span class="lineNum">     235 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2141 times"> + </span>]:<span class="lineCov">       2141 :     if (fPrintPriority) {</span>
+<span class="lineNum">     236 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LogPrintf(&quot;fee %s txid %s\n&quot;,</span>
+<span class="lineNum">     237 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                   CFeeRate(iter-&gt;GetModifiedFee(), iter-&gt;GetTxSize()).ToString(),</span>
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>]
+<span class="lineNum">     238 </span>                :<span class="lineNoCov">          0 :                   iter-&gt;GetTx().GetHash().ToString());</span>
+<span class="lineNum">     239 </span>                :            :     }
+<a name="240"><span class="lineNum">     240 </span>                :<span class="lineCov">       2141 : }</span></a>
+<span class="lineNum">     241 </span>                :            : 
+<span class="lineNum">     242 </span>                :<span class="lineCov">       1309 : int BlockAssembler::UpdatePackagesForAdded(const CTxMemPool::setEntries&amp; alreadyAdded,</span>
+<span class="lineNum">     243 </span>                :            :         indexed_modified_transaction_set &amp;mapModifiedTx)
+<span class="lineNum">     244 </span>                :            : {
+<span class="lineNum">     245 </span>                :<span class="lineCov">       1309 :     int nDescendantsUpdated = 0;</span>
+<span class="lineNum">     246 </span>        [<span class="branchCov" title="Branch 0 was taken 2141 times"> + </span><span class="branchCov" title="Branch 1 was taken 1309 times"> + </span>]:<span class="lineCov">       3450 :     for (CTxMemPool::txiter it : alreadyAdded) {</span>
+<span class="lineNum">     247 </span>                :<span class="lineCov">       4282 :         CTxMemPool::setEntries descendants;</span>
+<span class="lineNum">     248 </span>        [<span class="branchCov" title="Branch 1 was taken 2141 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2141 :         mempool.CalculateDescendants(it, descendants);</span>
+<span class="lineNum">     249 </span>                :            :         // Insert all descendants (not yet in block) into the modified set
+<span class="lineNum">     250 </span>        [<span class="branchCov" title="Branch 0 was taken 1011023 times"> + </span><span class="branchCov" title="Branch 1 was taken 2141 times"> + </span>]:<span class="lineCov">    1013164 :         for (CTxMemPool::txiter desc : descendants) {</span>
+<span class="lineNum">     251 </span>                :<span class="lineCov">    1011023 :             if (alreadyAdded.count(desc))</span>
+<span class="lineNum">     252 </span>                :<span class="lineCov">     230766 :                 continue;</span>
+<span class="lineNum">     253 </span>                :<span class="lineCov">     780257 :             ++nDescendantsUpdated;</span>
+<span class="lineNum">     254 </span>                :<span class="lineCov">     780257 :             modtxiter mit = mapModifiedTx.find(desc);</span>
+<span class="lineNum">     255 </span>        [<span class="branchCov" title="Branch 0 was taken 2062 times"> + </span><span class="branchCov" title="Branch 1 was taken 778195 times"> + </span>]:<span class="lineCov">     780257 :             if (mit == mapModifiedTx.end()) {</span>
+<span class="lineNum">     256 </span>                :<span class="lineCov">       2062 :                 CTxMemPoolModifiedEntry modEntry(desc);</span>
+<span class="lineNum">     257 </span>        [<span class="branchCov" title="Branch 1 was taken 2062 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2062 :                 modEntry.nSizeWithAncestors -= it-&gt;GetTxSize();</span>
+<span class="lineNum">     258 </span>                :<span class="lineCov">       4124 :                 modEntry.nModFeesWithAncestors -= it-&gt;GetModifiedFee();</span>
+<span class="lineNum">     259 </span>                :<span class="lineCov">       4124 :                 modEntry.nSigOpCostWithAncestors -= it-&gt;GetSigOpCost();</span>
+<span class="lineNum">     260 </span>        [<span class="branchCov" title="Branch 1 was taken 2062 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2062 :                 mapModifiedTx.insert(modEntry);</span>
+<span class="lineNum">     261 </span>                :            :             } else {
+<span class="lineNum">     262 </span>                :<span class="lineCov">     780257 :                 mapModifiedTx.modify(mit, update_for_parent_inclusion(it));</span>
+<span class="lineNum">     263 </span>                :            :             }
+<span class="lineNum">     264 </span>                :            :         }
+<span class="lineNum">     265 </span>                :            :     }
+<span class="lineNum">     266 </span>                :<span class="lineCov">       1309 :     return nDescendantsUpdated;</span>
+<span class="lineNum">     267 </span>                :            : }
+<span class="lineNum">     268 </span>                :            : 
+<span class="lineNum">     269 </span>                :            : // Skip entries in mapTx that are already in a block or are present
+<span class="lineNum">     270 </span>                :            : // in mapModifiedTx (which implies that the mapTx ancestor state is
+<span class="lineNum">     271 </span>                :            : // stale due to ancestor inclusion in the block)
+<span class="lineNum">     272 </span>                :            : // Also skip transactions that we've already failed to add. This can happen if
+<span class="lineNum">     273 </span>                :            : // we consider a transaction in mapModifiedTx and it fails: we can then
+<span class="lineNum">     274 </span>                :            : // potentially consider it again while walking mapTx.  It's currently
+<span class="lineNum">     275 </span>                :            : // guaranteed to fail again, but as a belt-and-suspenders check we put it in
+<a name="276"><span class="lineNum">     276 </span>                :            : // failedTx and avoid re-evaluation, since the re-evaluation would be using</a>
+<span class="lineNum">     277 </span>                :            : // cached size/sigops/fee values that are not actually correct.
+<span class="lineNum">     278 </span>                :<span class="lineCov">       2176 : bool BlockAssembler::SkipMapTxEntry(CTxMemPool::txiter it, indexed_modified_transaction_set &amp;mapModifiedTx, CTxMemPool::setEntries &amp;failedTx)</span>
+<span class="lineNum">     279 </span>                :            : {
+<span class="lineNum">     280 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2176 times"> + </span>]:<span class="lineCov">       2176 :     assert (it != mempool.mapTx.end());</span>
+<span class="lineNum">     281 </span>        [<span class="branchCov" title="Branch 0 was taken 121 times"> + </span><span class="branchCov" title="Branch 1 was taken 2055 times"> + </span>]:<span class="lineCov">       2297 :     return mapModifiedTx.count(it) || inBlock.count(it) || failedTx.count(it);</span>
+<a name="282"><span class="lineNum">     282 </span>                :            : }</a>
+<span class="lineNum">     283 </span>                :            : 
+<span class="lineNum">     284 </span>                :<span class="lineCov">         49 : void BlockAssembler::SortForBlock(const CTxMemPool::setEntries&amp; package, std::vector&lt;CTxMemPool::txiter&gt;&amp; sortedEntries)</span>
+<span class="lineNum">     285 </span>                :            : {
+<span class="lineNum">     286 </span>                :            :     // Sort package by ancestor count
+<span class="lineNum">     287 </span>                :            :     // If a transaction A depends on transaction B, then A's ancestor count
+<span class="lineNum">     288 </span>                :            :     // must be greater than B's.  So this is sufficient to validly order the
+<span class="lineNum">     289 </span>                :            :     // transactions for block inclusion.
+<span class="lineNum">     290 </span>                :<span class="lineCov">         49 :     sortedEntries.clear();</span>
+<span class="lineNum">     291 </span>                :<span class="lineCov">         49 :     sortedEntries.insert(sortedEntries.begin(), package.begin(), package.end());</span>
+<span class="lineNum">     292 </span>                :<span class="lineCov">         98 :     std::sort(sortedEntries.begin(), sortedEntries.end(), CompareTxIterByAncestorCount());</span>
+<span class="lineNum">     293 </span>                :<span class="lineCov">         49 : }</span>
+<span class="lineNum">     294 </span>                :            : 
+<span class="lineNum">     295 </span>                :            : // This transaction selection algorithm orders the mempool based
+<span class="lineNum">     296 </span>                :            : // on feerate of a transaction including all unconfirmed ancestors.
+<span class="lineNum">     297 </span>                :            : // Since we don't remove transactions from the mempool as we select them
+<span class="lineNum">     298 </span>                :            : // for block inclusion, we need an alternate method of updating the feerate
+<span class="lineNum">     299 </span>                :            : // of a transaction with its not-yet-selected ancestors as we go.
+<span class="lineNum">     300 </span>                :            : // This is accomplished by walking the in-mempool descendants of selected
+<span class="lineNum">     301 </span>                :            : // transactions and storing a temporary modified state in mapModifiedTxs.
+<span class="lineNum">     302 </span>                :            : // Each time through the loop, we compare the best transaction in
+<a name="303"><span class="lineNum">     303 </span>                :            : // mapModifiedTxs with the next transaction in the mempool to decide what</a>
+<span class="lineNum">     304 </span>                :            : // transaction package to work on next.
+<span class="lineNum">     305 </span>                :<span class="lineCov">       1260 : void BlockAssembler::addPackageTxs(int &amp;nPackagesSelected, int &amp;nDescendantsUpdated)</span>
+<span class="lineNum">     306 </span>                :            : {
+<span class="lineNum">     307 </span>                :            :     // mapModifiedTx will store sorted packages after they are modified
+<span class="lineNum">     308 </span>                :            :     // because some of their txs are already in the block
+<span class="lineNum">     309 </span>                :<span class="lineCov">       1260 :     indexed_modified_transaction_set mapModifiedTx;</span>
+<span class="lineNum">     310 </span>                :            :     // Keep track of entries that failed inclusion, to avoid duplicate work
+<span class="lineNum">     311 </span>                :<span class="lineNoCov">          0 :     CTxMemPool::setEntries failedTx;</span>
+<span class="lineNum">     312 </span>                :            : 
+<span class="lineNum">     313 </span>                :            :     // Start by adding all descendants of previously added txs to mapModifiedTx
+<span class="lineNum">     314 </span>                :            :     // and modifying them for their already included ancestors
+<span class="lineNum">     315 </span>        [<span class="branchCov" title="Branch 1 was taken 1260 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1260 :     UpdatePackagesForAdded(inBlock, mapModifiedTx);</span>
+<span class="lineNum">     316 </span>                :            : 
+<span class="lineNum">     317 </span>                :<span class="lineCov">       2520 :     CTxMemPool::indexed_transaction_set::index&lt;ancestor_score&gt;::type::iterator mi = mempool.mapTx.get&lt;ancestor_score&gt;().begin();</span>
+<span class="lineNum">     318 </span>                :<span class="lineCov">       1260 :     CTxMemPool::txiter iter;</span>
+<span class="lineNum">     319 </span>                :            : 
+<span class="lineNum">     320 </span>                :            :     // Limit the number of attempts to add transactions to the block when it is
+<span class="lineNum">     321 </span>                :            :     // close to full; this is just a simple heuristic to finish quickly if the
+<span class="lineNum">     322 </span>                :            :     // mempool has a lot of entries.
+<span class="lineNum">     323 </span>                :<span class="lineCov">       1260 :     const int64_t MAX_CONSECUTIVE_FAILURES = 1000;</span>
+<span class="lineNum">     324 </span>                :<span class="lineCov">       3490 :     int64_t nConsecutiveFailed = 0;</span>
+<span class="lineNum">     325 </span>                :            : 
+<span class="lineNum">     326 </span>[<span class="branchCov" title="Branch 0 was taken 1314 times"> + </span><span class="branchCov" title="Branch 1 was taken 2176 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 56 times"> + </span><span class="branchCov" title="Branch 3 was taken 1258 times"> + </span>]:<span class="lineCov">       3490 :     while (mi != mempool.mapTx.get&lt;ancestor_score&gt;().end() || !mapModifiedTx.empty())</span>
+<span class="lineNum">     327 </span>                :            :     {
+<span class="lineNum">     328 </span>                :            :         // First try to find a new transaction in mapTx to evaluate.
+<span class="lineNum">     329 </span>  [<span class="branchCov" title="Branch 0 was taken 2176 times"> + </span><span class="branchCov" title="Branch 1 was taken 56 times"> + </span><span class="branchCov" title="Branch 2 was taken 33 times"> + </span><span class="branchCov" title="Branch 3 was taken 2143 times"> + </span>]:<span class="lineCov">       4408 :         if (mi != mempool.mapTx.get&lt;ancestor_score&gt;().end() &amp;&amp;</span>
+<span class="lineNum">     330 </span>                :<span class="lineCov">       2176 :                 SkipMapTxEntry(mempool.mapTx.project&lt;0&gt;(mi), mapModifiedTx, failedTx)) {</span>
+<span class="lineNum">     331 </span>                :<span class="lineCov">       2143 :             ++mi;</span>
+<span class="lineNum">     332 </span>                :<span class="lineCov">       2181 :             continue;</span>
+<span class="lineNum">     333 </span>                :            :         }
+<span class="lineNum">     334 </span>                :            : 
+<span class="lineNum">     335 </span>                :            :         // Now that mi is not stale, determine which transaction to evaluate:
+<span class="lineNum">     336 </span>                :            :         // the next entry from mapTx, or the best from mapModifiedTx?
+<span class="lineNum">     337 </span>                :<span class="lineCov">         89 :         bool fUsingModified = false;</span>
+<span class="lineNum">     338 </span>                :            : 
+<span class="lineNum">     339 </span>                :<span class="lineCov">        178 :         modtxscoreiter modit = mapModifiedTx.get&lt;ancestor_score&gt;().begin();</span>
+<span class="lineNum">     340 </span>        [<span class="branchCov" title="Branch 0 was taken 56 times"> + </span><span class="branchCov" title="Branch 1 was taken 33 times"> + </span>]:<span class="lineCov">         89 :         if (mi == mempool.mapTx.get&lt;ancestor_score&gt;().end()) {</span>
+<span class="lineNum">     341 </span>                :            :             // We're out of entries in mapTx; use the entry from mapModifiedTx
+<span class="lineNum">     342 </span>                :<span class="lineCov">         56 :             iter = modit-&gt;iter;</span>
+<span class="lineNum">     343 </span>                :<span class="lineCov">         56 :             fUsingModified = true;</span>
+<span class="lineNum">     344 </span>                :            :         } else {
+<span class="lineNum">     345 </span>                :            :             // Try to compare the mapTx entry to the mapModifiedTx entry
+<span class="lineNum">     346 </span>                :<span class="lineCov">         33 :             iter = mempool.mapTx.project&lt;0&gt;(mi);</span>
+<span class="lineNum">     347 </span>[<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 27 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 5 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">         39 :             if (modit != mapModifiedTx.get&lt;ancestor_score&gt;().end() &amp;&amp;</span>
+<span class="lineNum">     348 </span>        [<span class="branchCov" title="Branch 1 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          6 :                     CompareTxMemPoolEntryByAncestorFee()(*modit, CTxMemPoolModifiedEntry(iter))) {</span>
+<span class="lineNum">     349 </span>                :            :                 // The best entry in mapModifiedTx has higher score
+<span class="lineNum">     350 </span>                :            :                 // than the one from mapTx.
+<span class="lineNum">     351 </span>                :            :                 // Switch which transaction (package) to consider
+<span class="lineNum">     352 </span>                :<span class="lineCov">          1 :                 iter = modit-&gt;iter;</span>
+<span class="lineNum">     353 </span>                :<span class="lineCov">          1 :                 fUsingModified = true;</span>
+<span class="lineNum">     354 </span>                :            :             } else {
+<span class="lineNum">     355 </span>                :            :                 // Either no entry in mapModifiedTx, or it's worse than mapTx.
+<span class="lineNum">     356 </span>                :            :                 // Increment mi for the next loop iteration.
+<span class="lineNum">     357 </span>                :            :                 ++mi;
+<span class="lineNum">     358 </span>                :            :             }
+<span class="lineNum">     359 </span>                :            :         }
+<span class="lineNum">     360 </span>                :            : 
+<span class="lineNum">     361 </span>                :            :         // We skip mapTx entries that are inBlock, and mapModifiedTx shouldn't
+<span class="lineNum">     362 </span>                :            :         // contain anything that is inBlock.
+<span class="lineNum">     363 </span>                :<span class="lineNoCov">          0 :         assert(!inBlock.count(iter));</span>
+<span class="lineNum">     364 </span>                :            : 
+<span class="lineNum">     365 </span>                :<span class="lineCov">        178 :         uint64_t packageSize = iter-&gt;GetSizeWithAncestors();</span>
+<span class="lineNum">     366 </span>                :<span class="lineCov">        178 :         CAmount packageFees = iter-&gt;GetModFeesWithAncestors();</span>
+<span class="lineNum">     367 </span>                :<span class="lineCov">        178 :         int64_t packageSigOpsCost = iter-&gt;GetSigOpCostWithAncestors();</span>
+<span class="lineNum">     368 </span>        [<span class="branchCov" title="Branch 0 was taken 57 times"> + </span><span class="branchCov" title="Branch 1 was taken 32 times"> + </span>]:<span class="lineCov">         89 :         if (fUsingModified) {</span>
+<span class="lineNum">     369 </span>                :<span class="lineCov">         57 :             packageSize = modit-&gt;nSizeWithAncestors;</span>
+<span class="lineNum">     370 </span>                :<span class="lineCov">         57 :             packageFees = modit-&gt;nModFeesWithAncestors;</span>
+<span class="lineNum">     371 </span>                :<span class="lineCov">         57 :             packageSigOpsCost = modit-&gt;nSigOpCostWithAncestors;</span>
+<span class="lineNum">     372 </span>                :            :         }
+<span class="lineNum">     373 </span>                :            : 
+<span class="lineNum">     374 </span>[<span class="branchCov" title="Branch 1 was taken 89 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 87 times"> + </span><span class="branchCov" title="Branch 4 was taken 2 times"> + </span>]:<span class="lineCov">         89 :         if (packageFees &lt; blockMinFeeRate.GetFee(packageSize)) {</span>
+<span class="lineNum">     375 </span>                :            :             // Everything else we might consider has a lower fee rate
+<span class="lineNum">     376 </span>                :<span class="lineCov">          2 :             return;</span>
+<span class="lineNum">     377 </span>                :            :         }
+<span class="lineNum">     378 </span>                :            : 
+<span class="lineNum">     379 </span>        [<span class="branchCov" title="Branch 0 was taken 36 times"> + </span><span class="branchCov" title="Branch 1 was taken 51 times"> + </span>]:<span class="lineCov">         87 :         if (!TestPackage(packageSize, packageSigOpsCost)) {</span>
+<span class="lineNum">     380 </span>        [<span class="branchCov" title="Branch 0 was taken 36 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         36 :             if (fUsingModified) {</span>
+<span class="lineNum">     381 </span>                :            :                 // Since we always look at the best entry in mapModifiedTx,
+<span class="lineNum">     382 </span>                :            :                 // we must erase failed entries so that we can consider the
+<span class="lineNum">     383 </span>                :            :                 // next best entry on the next loop iteration
+<span class="lineNum">     384 </span>                :<span class="lineCov">         36 :                 mapModifiedTx.get&lt;ancestor_score&gt;().erase(modit);</span>
+<span class="lineNum">     385 </span>                :            :                 failedTx.insert(iter);
+<span class="lineNum">     386 </span>                :            :             }
+<span class="lineNum">     387 </span>                :            : 
+<span class="lineNum">     388 </span>                :<span class="lineCov">         36 :             ++nConsecutiveFailed;</span>
+<span class="lineNum">     389 </span>                :            : 
+<span class="lineNum">     390 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 36 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">         36 :             if (nConsecutiveFailed &gt; MAX_CONSECUTIVE_FAILURES &amp;&amp; nBlockWeight &gt;</span>
+<span class="lineNum">     391 </span>                :<span class="lineNoCov">          0 :                     nBlockMaxWeight - 4000) {</span>
+<span class="lineNum">     392 </span>                :            :                 // Give up if we're close to full and haven't succeeded in a while
+<span class="lineNum">     393 </span>                :            :                 break;
+<span class="lineNum">     394 </span>                :            :             }
+<span class="lineNum">     395 </span>                :<span class="lineCov">         36 :             continue;</span>
+<span class="lineNum">     396 </span>                :            :         }
+<span class="lineNum">     397 </span>                :            : 
+<span class="lineNum">     398 </span>                :<span class="lineCov">         49 :         CTxMemPool::setEntries ancestors;</span>
+<span class="lineNum">     399 </span>                :<span class="lineCov">         51 :         uint64_t nNoLimit = std::numeric_limits&lt;uint64_t&gt;::max();</span>
+<span class="lineNum">     400 </span>                :<span class="lineNoCov">          0 :         std::string dummy;</span>
+<span class="lineNum">     401 </span>        [<span class="branchCov" title="Branch 1 was taken 51 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         51 :         mempool.CalculateMemPoolAncestors(*iter, ancestors, nNoLimit, nNoLimit, nNoLimit, nNoLimit, dummy, false);</span>
+<span class="lineNum">     402 </span>                :            : 
+<span class="lineNum">     403 </span>                :<span class="lineCov">         51 :         onlyUnconfirmed(ancestors);</span>
+<span class="lineNum">     404 </span>                :<span class="lineCov">         51 :         ancestors.insert(iter);</span>
+<span class="lineNum">     405 </span>                :            : 
+<span class="lineNum">     406 </span>                :            :         // Test if all tx's are Final
+<span class="lineNum">     407 </span>[<span class="branchCov" title="Branch 1 was taken 51 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 2 times"> + </span><span class="branchCov" title="Branch 4 was taken 49 times"> + </span>]:<span class="lineCov">         51 :         if (!TestPackageTransactions(ancestors)) {</span>
+<span class="lineNum">     408 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :             if (fUsingModified) {</span>
+<span class="lineNum">     409 </span>                :<span class="lineNoCov">          0 :                 mapModifiedTx.get&lt;ancestor_score&gt;().erase(modit);</span>
+<span class="lineNum">     410 </span>                :            :                 failedTx.insert(iter);
+<span class="lineNum">     411 </span>                :            :             }
+<span class="lineNum">     412 </span>                :<span class="lineCov">          2 :             continue;</span>
+<span class="lineNum">     413 </span>                :            :         }
+<span class="lineNum">     414 </span>                :            : 
+<span class="lineNum">     415 </span>                :            :         // This transaction will make it in; reset the failed counter.
+<span class="lineNum">     416 </span>                :<span class="lineCov">         49 :         nConsecutiveFailed = 0;</span>
+<span class="lineNum">     417 </span>                :            : 
+<span class="lineNum">     418 </span>                :            :         // Package can be added. Sort the entries in a valid order.
+<span class="lineNum">     419 </span>                :<span class="lineNoCov">          0 :         std::vector&lt;CTxMemPool::txiter&gt; sortedEntries;</span>
+<span class="lineNum">     420 </span>        [<span class="branchCov" title="Branch 1 was taken 49 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         49 :         SortForBlock(ancestors, sortedEntries);</span>
+<span class="lineNum">     421 </span>                :            : 
+<span class="lineNum">     422 </span>        [<span class="branchCov" title="Branch 0 was taken 2141 times"> + </span><span class="branchCov" title="Branch 1 was taken 49 times"> + </span>]:<span class="lineCov">       2190 :         for (size_t i=0; i&lt;sortedEntries.size(); ++i) {</span>
+<span class="lineNum">     423 </span>        [<span class="branchCov" title="Branch 1 was taken 2141 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2141 :             AddToBlock(sortedEntries[i]);</span>
+<span class="lineNum">     424 </span>                :            :             // Erase from the modified set, if present
+<span class="lineNum">     425 </span>                :<span class="lineCov">       2141 :             mapModifiedTx.erase(sortedEntries[i]);</span>
+<span class="lineNum">     426 </span>                :            :         }
+<span class="lineNum">     427 </span>                :            : 
+<span class="lineNum">     428 </span>                :<span class="lineCov">         49 :         ++nPackagesSelected;</span>
+<span class="lineNum">     429 </span>                :            : 
+<span class="lineNum">     430 </span>                :            :         // Update transactions that depend on each of these
+<span class="lineNum">     431 </span>        [<span class="branchCov" title="Branch 1 was taken 49 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         49 :         nDescendantsUpdated += UpdatePackagesForAdded(ancestors, mapModifiedTx);</span>
+<span class="lineNum">     432 </span>                :            :     }
+<a name="433"><span class="lineNum">     433 </span>                :            : }</a>
+<span class="lineNum">     434 </span>                :            : 
+<span class="lineNum">     435 </span>                :<span class="lineCov">       1122 : void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned int&amp; nExtraNonce)</span>
+<span class="lineNum">     436 </span>                :            : {
+<span class="lineNum">     437 </span>                :            :     // Update nExtraNonce
+<span class="lineNum">     438 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1118 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1122 :     static uint256 hashPrevBlock;</span>
+<span class="lineNum">     439 </span>        [<span class="branchCov" title="Branch 0 was taken 1119 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">       1122 :     if (hashPrevBlock != pblock-&gt;hashPrevBlock)</span>
+<span class="lineNum">     440 </span>                :            :     {
+<span class="lineNum">     441 </span>                :<span class="lineCov">       1119 :         nExtraNonce = 0;</span>
+<span class="lineNum">     442 </span>                :<span class="lineCov">       1119 :         hashPrevBlock = pblock-&gt;hashPrevBlock;</span>
+<span class="lineNum">     443 </span>                :            :     }
+<span class="lineNum">     444 </span>                :<span class="lineCov">       1122 :     ++nExtraNonce;</span>
+<span class="lineNum">     445 </span>                :<span class="lineCov">       1122 :     unsigned int nHeight = pindexPrev-&gt;nHeight+1; // Height first in coinbase required for block.version=2</span>
+<span class="lineNum">     446 </span>                :<span class="lineCov">       1122 :     CMutableTransaction txCoinbase(*pblock-&gt;vtx[0]);</span>
+<span class="lineNum">     447 </span>        [<span class="branchCov" title="Branch 1 was taken 1122 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1122 :     txCoinbase.vin[0].scriptSig = (CScript() &lt;&lt; nHeight &lt;&lt; CScriptNum(nExtraNonce)) + COINBASE_FLAGS;</span>
+<span class="lineNum">     448 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1122 times"> + </span>]:<span class="lineCov">       1122 :     assert(txCoinbase.vin[0].scriptSig.size() &lt;= 100);</span>
+<span class="lineNum">     449 </span>                :            : 
+<a name="450"><span class="lineNum">     450 </span>                :<span class="lineCov">       5610 :     pblock-&gt;vtx[0] = MakeTransactionRef(std::move(txCoinbase));</span></a>
+<span class="lineNum">     451 </span>        [<span class="branchCov" title="Branch 1 was taken 1122 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1122 :     pblock-&gt;hashMerkleRoot = BlockMerkleRoot(*pblock);</span>
+<span class="lineNum">     452 </span>[<span class="branchCov" title="Branch 1 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1410 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,475 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/test/cuckoocache_tests.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/test</a> - cuckoocache_tests.cpp<span style="font-size: 80%;"> (source / <a href="cuckoocache_tests.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">175</td>
+            <td class="headerCovTableEntry">177</td>
+            <td class="headerCovTableEntryHi">98.9 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">19</td>
+            <td class="headerCovTableEntry">19</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">167</td>
+            <td class="headerCovTableEntry">266</td>
+            <td class="headerCovTableEntryLo">62.8 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2012-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : #include &lt;boost/test/unit_test.hpp&gt;
+<span class="lineNum">       5 </span>                :            : #include &lt;cuckoocache.h&gt;
+<span class="lineNum">       6 </span>                :            : #include &lt;script/sigcache.h&gt;
+<span class="lineNum">       7 </span>                :            : #include &lt;test/test_bitcoin.h&gt;
+<span class="lineNum">       8 </span>                :            : #include &lt;random.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;thread&gt;
+<span class="lineNum">      10 </span>                :            : 
+<span class="lineNum">      11 </span>                :            : /** Test Suite for CuckooCache
+<span class="lineNum">      12 </span>                :            :  *
+<span class="lineNum">      13 </span>                :            :  *  1) All tests should have a deterministic result (using insecure rand
+<span class="lineNum">      14 </span>                :            :  *  with deterministic seeds)
+<span class="lineNum">      15 </span>                :            :  *  2) Some test methods are templated to allow for easier testing
+<span class="lineNum">      16 </span>                :            :  *  against new versions / comparing
+<span class="lineNum">      17 </span>                :            :  *  3) Results should be treated as a regression test, i.e., did the behavior
+<span class="lineNum">      18 </span>                :            :  *  change significantly from what was expected. This can be OK, depending on
+<span class="lineNum">      19 </span>                :            :  *  the nature of the change, but requires updating the tests to reflect the new
+<span class="lineNum">      20 </span>                :            :  *  expected behavior. For example improving the hit rate may cause some tests
+<span class="lineNum">      21 </span>                :            :  *  using BOOST_CHECK_CLOSE to fail.
+<span class="lineNum">      22 </span>                :            :  *
+<span class="lineNum">      23 </span>                :            :  */
+<span class="lineNum">      24 </span>                :<span class="lineCov">        144 : BOOST_AUTO_TEST_SUITE(cuckoocache_tests);</span>
+<span class="lineNum">      25 </span>                :            : 
+<span class="lineNum">      26 </span>                :            : /* Test that no values not inserted into the cache are read out of it.
+<span class="lineNum">      27 </span>                :            :  *
+<a name="28"><span class="lineNum">      28 </span>                :            :  * There are no repeats in the first 200000 insecure_GetRandHash calls</a>
+<span class="lineNum">      29 </span>                :            :  */
+<span class="lineNum">      30 </span>[<span class="branchCov" title="Branch 2 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        150 : BOOST_AUTO_TEST_CASE(test_cuckoocache_no_fakes)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>][<span class="branchCov" title="Branch 19 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 23 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 24 was not taken"> - </span>][<span class="branchCov" title="Branch 26 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 27 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 38 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 39 was not taken"> - </span>][<span class="branchCov" title="Branch 41 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 42 was not taken"> - </span>]
+<span class="lineNum">      31 </span>                :            : {
+<span class="lineNum">      32 </span>                :<span class="lineCov">          1 :     SeedInsecureRand(true);</span>
+<span class="lineNum">      33 </span>                :<span class="lineCov">          2 :     CuckooCache::cache&lt;uint256, SignatureCacheHasher&gt; cc{};</span>
+<span class="lineNum">      34 </span>                :<span class="lineCov">          1 :     size_t megabytes = 4;</span>
+<span class="lineNum">      35 </span>                :<span class="lineCov">          1 :     cc.setup_bytes(megabytes &lt;&lt; 20);</span>
+<span class="lineNum">      36 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 100000 times"> + </span>]:<span class="lineCov">     100001 :     for (int x = 0; x &lt; 100000; ++x) {</span>
+<span class="lineNum">      37 </span>                :<span class="lineCov">     100000 :         cc.insert(InsecureRand256());</span>
+<span class="lineNum">      38 </span>                :            :     }
+<span class="lineNum">      39 </span>        [<span class="branchCov" title="Branch 0 was taken 100000 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">     100001 :     for (int x = 0; x &lt; 100000; ++x) {</span>
+<span class="lineNum">      40 </span>[<span class="branchCov" title="Branch 1 was taken 100000 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 6 was taken 100000 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]:<span class="lineCov">     200000 :         BOOST_CHECK(!cc.contains(InsecureRand256(), false));</span>
+<span class="lineNum">      41 </span>                :            :     }
+<span class="lineNum">      42 </span>                :<span class="lineCov">          1 : };</span>
+<span class="lineNum">      43 </span>                :            : 
+<span class="lineNum">      44 </span>                :            : /** This helper returns the hit rate when megabytes*load worth of entries are
+<span class="lineNum">      45 </span>                :            :  * inserted into a megabytes sized cache
+<a name="46"><span class="lineNum">      46 </span>                :            :  */</a>
+<span class="lineNum">      47 </span>                :            : template &lt;typename Cache&gt;
+<span class="lineNum">      48 </span>                :<span class="lineCov">          5 : static double test_cache(size_t megabytes, double load)</span>
+<span class="lineNum">      49 </span>                :            : {
+<span class="lineNum">      50 </span>                :<span class="lineCov">          5 :     SeedInsecureRand(true);</span>
+<span class="lineNum">      51 </span>                :<span class="lineCov">         10 :     std::vector&lt;uint256&gt; hashes;</span>
+<span class="lineNum">      52 </span>        [<span class="branchCov" title="Branch 1 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         10 :     Cache set{};</span>
+<span class="lineNum">      53 </span>                :<span class="lineCov">          5 :     size_t bytes = megabytes * (1 &lt;&lt; 20);</span>
+<span class="lineNum">      54 </span>                :<span class="lineCov">          5 :     set.setup_bytes(bytes);</span>
+<span class="lineNum">      55 </span>                :<span class="lineCov">          5 :     uint32_t n_insert = static_cast&lt;uint32_t&gt;(load * (bytes / sizeof(uint256)));</span>
+<span class="lineNum">      56 </span>        [<span class="branchCov" title="Branch 1 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          5 :     hashes.resize(n_insert);</span>
+<span class="lineNum">      57 </span>        [<span class="branchCov" title="Branch 0 was taken 406321 times"> + </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>]:<span class="lineCov">     406326 :     for (uint32_t i = 0; i &lt; n_insert; ++i) {</span>
+<span class="lineNum">      58 </span>                :<span class="lineCov">    1218963 :         uint32_t* ptr = (uint32_t*)hashes[i].begin();</span>
+<span class="lineNum">      59 </span>        [<span class="branchCov" title="Branch 0 was taken 3250568 times"> + </span><span class="branchCov" title="Branch 1 was taken 406321 times"> + </span>]:<span class="lineCov">    3656889 :         for (uint8_t j = 0; j &lt; 8; ++j)</span>
+<span class="lineNum">      60 </span>                :<span class="lineCov">    6501136 :             *(ptr++) = InsecureRand32();</span>
+<span class="lineNum">      61 </span>                :            :     }
+<span class="lineNum">      62 </span>                :            :     /** We make a copy of the hashes because future optimizations of the
+<span class="lineNum">      63 </span>                :            :      * cuckoocache may overwrite the inserted element, so the test is
+<span class="lineNum">      64 </span>                :            :      * &quot;future proofed&quot;.
+<span class="lineNum">      65 </span>                :            :      */
+<span class="lineNum">      66 </span>        [<span class="branchCov" title="Branch 1 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          5 :     std::vector&lt;uint256&gt; hashes_insert_copy = hashes;</span>
+<span class="lineNum">      67 </span>                :            :     /** Do the insert */
+<span class="lineNum">      68 </span>        [<span class="branchCov" title="Branch 0 was taken 406321 times"> + </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>]:<span class="lineCov">     406326 :     for (const uint256&amp; h : hashes_insert_copy)</span>
+<span class="lineNum">      69 </span>                :<span class="lineCov">     406321 :         set.insert(h);</span>
+<span class="lineNum">      70 </span>                :            :     /** Count the hits */
+<span class="lineNum">      71 </span>                :<span class="lineCov">          5 :     uint32_t count = 0;</span>
+<span class="lineNum">      72 </span>        [<span class="branchCov" title="Branch 0 was taken 406321 times"> + </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>]:<span class="lineCov">     406326 :     for (const uint256&amp; h : hashes)</span>
+<span class="lineNum">      73 </span>                :<span class="lineCov">     406321 :         count += set.contains(h, false);</span>
+<span class="lineNum">      74 </span>                :<span class="lineCov">          5 :     double hit_rate = ((double)count) / ((double)n_insert);</span>
+<span class="lineNum">      75 </span>                :<span class="lineCov">          5 :     return hit_rate;</span>
+<span class="lineNum">      76 </span>                :            : }
+<span class="lineNum">      77 </span>                :            : 
+<span class="lineNum">      78 </span>                :            : /** The normalized hit rate for a given load.
+<span class="lineNum">      79 </span>                :            :  *
+<span class="lineNum">      80 </span>                :            :  * The semantics are a little confusing, so please see the below
+<span class="lineNum">      81 </span>                :            :  * explanation.
+<span class="lineNum">      82 </span>                :            :  *
+<span class="lineNum">      83 </span>                :            :  * Examples:
+<span class="lineNum">      84 </span>                :            :  *
+<span class="lineNum">      85 </span>                :            :  * 1) at load 0.5, we expect a perfect hit rate, so we multiply by
+<span class="lineNum">      86 </span>                :            :  * 1.0
+<span class="lineNum">      87 </span>                :            :  * 2) at load 2.0, we expect to see half the entries, so a perfect hit rate
+<span class="lineNum">      88 </span>                :            :  * would be 0.5. Therefore, if we see a hit rate of 0.4, 0.4*2.0 = 0.8 is the
+<span class="lineNum">      89 </span>                :            :  * normalized hit rate.
+<span class="lineNum">      90 </span>                :            :  *
+<span class="lineNum">      91 </span>                :            :  * This is basically the right semantics, but has a bit of a glitch depending on
+<span class="lineNum">      92 </span>                :            :  * how you measure around load 1.0 as after load 1.0 your normalized hit rate
+<a name="93"><span class="lineNum">      93 </span>                :            :  * becomes effectively perfect, ignoring freshness.</a>
+<span class="lineNum">      94 </span>                :            :  */
+<span class="lineNum">      95 </span>                :<span class="lineCov">          5 : static double normalize_hit_rate(double hits, double load)</span>
+<span class="lineNum">      96 </span>                :            : {
+<span class="lineNum">      97 </span>                :<span class="lineCov">         10 :     return hits * std::max(load, 1.0);</span>
+<span class="lineNum">      98 </span>                :            : }
+<a name="99"><span class="lineNum">      99 </span>                :            : </a>
+<span class="lineNum">     100 </span>                :            : /** Check the hit rate on loads ranging from 0.1 to 1.6 */
+<span class="lineNum">     101 </span>[<span class="branchCov" title="Branch 2 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        150 : BOOST_AUTO_TEST_CASE(cuckoocache_hit_rate_ok)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>][<span class="branchCov" title="Branch 19 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 23 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 24 was not taken"> - </span>][<span class="branchCov" title="Branch 26 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 27 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 38 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 39 was not taken"> - </span>][<span class="branchCov" title="Branch 41 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 42 was not taken"> - </span>]
+<span class="lineNum">     102 </span>                :            : {
+<span class="lineNum">     103 </span>                :            :     /** Arbitrarily selected Hit Rate threshold that happens to work for this test
+<span class="lineNum">     104 </span>                :            :      * as a lower bound on performance.
+<span class="lineNum">     105 </span>                :            :      */
+<span class="lineNum">     106 </span>                :<span class="lineCov">          1 :     double HitRateThresh = 0.98;</span>
+<span class="lineNum">     107 </span>                :<span class="lineCov">          1 :     size_t megabytes = 4;</span>
+<span class="lineNum">     108 </span>        [<span class="branchCov" title="Branch 0 was taken 5 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          6 :     for (double load = 0.1; load &lt; 2; load *= 2) {</span>
+<span class="lineNum">     109 </span>                :<span class="lineCov">          5 :         double hits = test_cache&lt;CuckooCache::cache&lt;uint256, SignatureCacheHasher&gt;&gt;(megabytes, load);</span>
+<span class="lineNum">     110 </span>        [<span class="branchCov" title="Branch 3 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">          5 :         BOOST_CHECK(normalize_hit_rate(hits, load) &gt; HitRateThresh);</span>
+<span class="lineNum">     111 </span>                :            :     }
+<span class="lineNum">     112 </span>                :<span class="lineCov">          1 : }</span>
+<span class="lineNum">     113 </span>                :            : 
+<span class="lineNum">     114 </span>                :            : 
+<span class="lineNum">     115 </span>                :            : /** This helper checks that erased elements are preferentially inserted onto and
+<a name="116"><span class="lineNum">     116 </span>                :            :  * that the hit rate of &quot;fresher&quot; keys is reasonable*/</a>
+<span class="lineNum">     117 </span>                :            : template &lt;typename Cache&gt;
+<span class="lineNum">     118 </span>                :<span class="lineCov">          1 : static void test_cache_erase(size_t megabytes)</span>
+<span class="lineNum">     119 </span>                :            : {
+<span class="lineNum">     120 </span>                :<span class="lineCov">          1 :     double load = 1;</span>
+<span class="lineNum">     121 </span>                :<span class="lineCov">          1 :     SeedInsecureRand(true);</span>
+<span class="lineNum">     122 </span>                :<span class="lineCov">          2 :     std::vector&lt;uint256&gt; hashes;</span>
+<span class="lineNum">     123 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :     Cache set{};</span>
+<span class="lineNum">     124 </span>                :<span class="lineCov">          1 :     size_t bytes = megabytes * (1 &lt;&lt; 20);</span>
+<span class="lineNum">     125 </span>                :<span class="lineCov">          1 :     set.setup_bytes(bytes);</span>
+<span class="lineNum">     126 </span>                :<span class="lineCov">          1 :     uint32_t n_insert = static_cast&lt;uint32_t&gt;(load * (bytes / sizeof(uint256)));</span>
+<span class="lineNum">     127 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     hashes.resize(n_insert);</span>
+<span class="lineNum">     128 </span>        [<span class="branchCov" title="Branch 0 was taken 131072 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">     131073 :     for (uint32_t i = 0; i &lt; n_insert; ++i) {</span>
+<span class="lineNum">     129 </span>                :<span class="lineCov">     393216 :         uint32_t* ptr = (uint32_t*)hashes[i].begin();</span>
+<span class="lineNum">     130 </span>        [<span class="branchCov" title="Branch 0 was taken 1048576 times"> + </span><span class="branchCov" title="Branch 1 was taken 131072 times"> + </span>]:<span class="lineCov">    1179648 :         for (uint8_t j = 0; j &lt; 8; ++j)</span>
+<span class="lineNum">     131 </span>                :<span class="lineCov">    2097152 :             *(ptr++) = InsecureRand32();</span>
+<span class="lineNum">     132 </span>                :            :     }
+<span class="lineNum">     133 </span>                :            :     /** We make a copy of the hashes because future optimizations of the
+<span class="lineNum">     134 </span>                :            :      * cuckoocache may overwrite the inserted element, so the test is
+<span class="lineNum">     135 </span>                :            :      * &quot;future proofed&quot;.
+<span class="lineNum">     136 </span>                :            :      */
+<span class="lineNum">     137 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     std::vector&lt;uint256&gt; hashes_insert_copy = hashes;</span>
+<span class="lineNum">     138 </span>                :            : 
+<span class="lineNum">     139 </span>                :            :     /** Insert the first half */
+<span class="lineNum">     140 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 65536 times"> + </span>]:<span class="lineCov">      65537 :     for (uint32_t i = 0; i &lt; (n_insert / 2); ++i)</span>
+<span class="lineNum">     141 </span>                :<span class="lineCov">      65536 :         set.insert(hashes_insert_copy[i]);</span>
+<span class="lineNum">     142 </span>                :            :     /** Erase the first quarter */
+<span class="lineNum">     143 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 32768 times"> + </span>]:<span class="lineCov">      32769 :     for (uint32_t i = 0; i &lt; (n_insert / 4); ++i)</span>
+<span class="lineNum">     144 </span>[<span class="branchCov" title="Branch 1 was taken 32768 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 6 was taken 32768 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]:<span class="lineCov">      32768 :         BOOST_CHECK(set.contains(hashes[i], true));</span>
+<span class="lineNum">     145 </span>                :            :     /** Insert the second half */
+<span class="lineNum">     146 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 65536 times"> + </span>]:<span class="lineCov">      65537 :     for (uint32_t i = (n_insert / 2); i &lt; n_insert; ++i)</span>
+<span class="lineNum">     147 </span>                :<span class="lineCov">      65536 :         set.insert(hashes_insert_copy[i]);</span>
+<span class="lineNum">     148 </span>                :            : 
+<span class="lineNum">     149 </span>                :            :     /** elements that we marked as erased but are still there */
+<span class="lineNum">     150 </span>                :            :     size_t count_erased_but_contained = 0;
+<span class="lineNum">     151 </span>                :            :     /** elements that we did not erase but are older */
+<span class="lineNum">     152 </span>                :            :     size_t count_stale = 0;
+<span class="lineNum">     153 </span>                :            :     /** elements that were most recently inserted */
+<span class="lineNum">     154 </span>                :            :     size_t count_fresh = 0;
+<span class="lineNum">     155 </span>                :            : 
+<span class="lineNum">     156 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 32768 times"> + </span>]:<span class="lineCov">      32769 :     for (uint32_t i = 0; i &lt; (n_insert / 4); ++i)</span>
+<span class="lineNum">     157 </span>                :<span class="lineCov">      32768 :         count_erased_but_contained += set.contains(hashes[i], false);</span>
+<span class="lineNum">     158 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 32768 times"> + </span>]:<span class="lineCov">      32769 :     for (uint32_t i = (n_insert / 4); i &lt; (n_insert / 2); ++i)</span>
+<span class="lineNum">     159 </span>                :<span class="lineCov">      32768 :         count_stale += set.contains(hashes[i], false);</span>
+<span class="lineNum">     160 </span>        [<span class="branchCov" title="Branch 0 was taken 65536 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">      65537 :     for (uint32_t i = (n_insert / 2); i &lt; n_insert; ++i)</span>
+<span class="lineNum">     161 </span>                :<span class="lineCov">      65536 :         count_fresh += set.contains(hashes[i], false);</span>
+<span class="lineNum">     162 </span>                :            : 
+<span class="lineNum">     163 </span>                :<span class="lineCov">          1 :     double hit_rate_erased_but_contained = double(count_erased_but_contained) / (double(n_insert) / 4.0);</span>
+<span class="lineNum">     164 </span>                :<span class="lineCov">          1 :     double hit_rate_stale = double(count_stale) / (double(n_insert) / 4.0);</span>
+<span class="lineNum">     165 </span>                :<span class="lineCov">          1 :     double hit_rate_fresh = double(count_fresh) / (double(n_insert) / 2.0);</span>
+<span class="lineNum">     166 </span>                :            : 
+<span class="lineNum">     167 </span>                :            :     // Check that our hit_rate_fresh is perfect
+<span class="lineNum">     168 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK_EQUAL(hit_rate_fresh, 1.0);</span>
+<span class="lineNum">     169 </span>                :            :     // Check that we have a more than 2x better hit rate on stale elements than
+<span class="lineNum">     170 </span>                :            :     // erased elements.
+<span class="lineNum">     171 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(hit_rate_stale &gt; 2 * hit_rate_erased_but_contained);</span>
+<a name="172"><span class="lineNum">     172 </span>                :<span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     173 </span>                :            : 
+<span class="lineNum">     174 </span>[<span class="branchCov" title="Branch 2 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        150 : BOOST_AUTO_TEST_CASE(cuckoocache_erase_ok)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>][<span class="branchCov" title="Branch 19 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 23 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 24 was not taken"> - </span>][<span class="branchCov" title="Branch 26 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 27 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 38 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 39 was not taken"> - </span>][<span class="branchCov" title="Branch 41 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 42 was not taken"> - </span>]
+<span class="lineNum">     175 </span>                :            : {
+<span class="lineNum">     176 </span>                :<span class="lineCov">          1 :     size_t megabytes = 4;</span>
+<span class="lineNum">     177 </span>                :<span class="lineCov">          1 :     test_cache_erase&lt;CuckooCache::cache&lt;uint256, SignatureCacheHasher&gt;&gt;(megabytes);</span>
+<span class="lineNum">     178 </span>                :<span class="lineCov">          1 : }</span>
+<a name="179"><span class="lineNum">     179 </span>                :            : </a>
+<span class="lineNum">     180 </span>                :            : template &lt;typename Cache&gt;
+<span class="lineNum">     181 </span>                :<span class="lineCov">          1 : static void test_cache_erase_parallel(size_t megabytes)</span>
+<span class="lineNum">     182 </span>                :            : {
+<span class="lineNum">     183 </span>                :<span class="lineCov">          1 :     double load = 1;</span>
+<span class="lineNum">     184 </span>                :<span class="lineCov">          1 :     SeedInsecureRand(true);</span>
+<span class="lineNum">     185 </span>                :<span class="lineCov">          2 :     std::vector&lt;uint256&gt; hashes;</span>
+<span class="lineNum">     186 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :     Cache set{};</span>
+<span class="lineNum">     187 </span>                :<span class="lineCov">          1 :     size_t bytes = megabytes * (1 &lt;&lt; 20);</span>
+<span class="lineNum">     188 </span>                :<span class="lineCov">          1 :     set.setup_bytes(bytes);</span>
+<span class="lineNum">     189 </span>                :<span class="lineCov">          1 :     uint32_t n_insert = static_cast&lt;uint32_t&gt;(load * (bytes / sizeof(uint256)));</span>
+<span class="lineNum">     190 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     hashes.resize(n_insert);</span>
+<span class="lineNum">     191 </span>        [<span class="branchCov" title="Branch 0 was taken 131072 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">     131073 :     for (uint32_t i = 0; i &lt; n_insert; ++i) {</span>
+<span class="lineNum">     192 </span>                :<span class="lineCov">     393216 :         uint32_t* ptr = (uint32_t*)hashes[i].begin();</span>
+<span class="lineNum">     193 </span>        [<span class="branchCov" title="Branch 0 was taken 1048576 times"> + </span><span class="branchCov" title="Branch 1 was taken 131072 times"> + </span>]:<span class="lineCov">    1179648 :         for (uint8_t j = 0; j &lt; 8; ++j)</span>
+<span class="lineNum">     194 </span>                :<span class="lineCov">    2097152 :             *(ptr++) = InsecureRand32();</span>
+<span class="lineNum">     195 </span>                :            :     }
+<span class="lineNum">     196 </span>                :            :     /** We make a copy of the hashes because future optimizations of the
+<span class="lineNum">     197 </span>                :            :      * cuckoocache may overwrite the inserted element, so the test is
+<span class="lineNum">     198 </span>                :            :      * &quot;future proofed&quot;.
+<span class="lineNum">     199 </span>                :            :      */
+<span class="lineNum">     200 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     std::vector&lt;uint256&gt; hashes_insert_copy = hashes;</span>
+<span class="lineNum">     201 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :     boost::shared_mutex mtx;</span>
+<span class="lineNum">     202 </span>                :            : 
+<span class="lineNum">     203 </span>                :            :     {
+<span class="lineNum">     204 </span>                :            :         /** Grab lock to make sure we release inserts */
+<span class="lineNum">     205 </span>                :<span class="lineCov">          1 :         boost::unique_lock&lt;boost::shared_mutex&gt; l(mtx);</span>
+<span class="lineNum">     206 </span>                :            :         /** Insert the first half */
+<span class="lineNum">     207 </span>        [<span class="branchCov" title="Branch 0 was taken 65536 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">      65537 :         for (uint32_t i = 0; i &lt; (n_insert / 2); ++i)</span>
+<span class="lineNum">     208 </span>                :<span class="lineCov">      65536 :             set.insert(hashes_insert_copy[i]);</span>
+<span class="lineNum">     209 </span>                :            :     }
+<span class="lineNum">     210 </span>                :            : 
+<span class="lineNum">     211 </span>                :            :     /** Spin up 3 threads to run contains with erase.
+<span class="lineNum">     212 </span>                :            :      */
+<span class="lineNum">     213 </span>                :<span class="lineCov">          1 :     std::vector&lt;std::thread&gt; threads;</span>
+<span class="lineNum">     214 </span>                :            :     /** Erase the first quarter */
+<span class="lineNum">     215 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          4 :     for (uint32_t x = 0; x &lt; 3; ++x)</span>
+<a name="216"><span class="lineNum">     216 </span>                :            :         /** Each thread is emplaced with x copy-by-value</a>
+<span class="lineNum">     217 </span>                :            :         */
+<span class="lineNum">     218 </span>        [<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          6 :         threads.emplace_back([&amp;, x] {</span>
+<span class="lineNum">     219 </span>                :<span class="lineCov">          9 :             boost::shared_lock&lt;boost::shared_mutex&gt; l(mtx);</span>
+<span class="lineNum">     220 </span>                :<span class="lineCov">          3 :             size_t ntodo = (n_insert/4)/3;</span>
+<span class="lineNum">     221 </span>                :<span class="lineCov">          3 :             size_t start = ntodo*x;</span>
+<span class="lineNum">     222 </span>                :<span class="lineCov">          3 :             size_t end = ntodo*(x+1);</span>
+<span class="lineNum">     223 </span>        [<span class="branchCov" title="Branch 0 was taken 32766 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">      32769 :             for (uint32_t i = start; i &lt; end; ++i) {</span>
+<span class="lineNum">     224 </span>                :<span class="lineCov">      32766 :                 bool contains = set.contains(hashes[i], true);</span>
+<span class="lineNum">     225 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 32766 times"> + </span>]:<span class="lineCov">      32766 :                 assert(contains);</span>
+<span class="lineNum">     226 </span>                :            :             }
+<span class="lineNum">     227 </span>                :<span class="lineCov">          3 :         });</span>
+<span class="lineNum">     228 </span>                :            : 
+<span class="lineNum">     229 </span>                :            :     /** Wait for all threads to finish
+<span class="lineNum">     230 </span>                :            :      */
+<span class="lineNum">     231 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          4 :     for (std::thread&amp; t : threads)</span>
+<span class="lineNum">     232 </span>        [<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          3 :         t.join();</span>
+<span class="lineNum">     233 </span>                :            :     /** Grab lock to make sure we observe erases */
+<span class="lineNum">     234 </span>                :<span class="lineNoCov">          0 :     boost::unique_lock&lt;boost::shared_mutex&gt; l(mtx);</span>
+<span class="lineNum">     235 </span>                :            :     /** Insert the second half */
+<span class="lineNum">     236 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 65536 times"> + </span>]:<span class="lineCov">      65537 :     for (uint32_t i = (n_insert / 2); i &lt; n_insert; ++i)</span>
+<span class="lineNum">     237 </span>                :<span class="lineCov">      65536 :         set.insert(hashes_insert_copy[i]);</span>
+<span class="lineNum">     238 </span>                :            : 
+<span class="lineNum">     239 </span>                :            :     /** elements that we marked erased but that are still there */
+<span class="lineNum">     240 </span>                :            :     size_t count_erased_but_contained = 0;
+<span class="lineNum">     241 </span>                :            :     /** elements that we did not erase but are older */
+<span class="lineNum">     242 </span>                :            :     size_t count_stale = 0;
+<span class="lineNum">     243 </span>                :            :     /** elements that were most recently inserted */
+<span class="lineNum">     244 </span>                :            :     size_t count_fresh = 0;
+<span class="lineNum">     245 </span>                :            : 
+<span class="lineNum">     246 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 32768 times"> + </span>]:<span class="lineCov">      32769 :     for (uint32_t i = 0; i &lt; (n_insert / 4); ++i)</span>
+<span class="lineNum">     247 </span>                :<span class="lineCov">      32768 :         count_erased_but_contained += set.contains(hashes[i], false);</span>
+<span class="lineNum">     248 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 32768 times"> + </span>]:<span class="lineCov">      32769 :     for (uint32_t i = (n_insert / 4); i &lt; (n_insert / 2); ++i)</span>
+<span class="lineNum">     249 </span>                :<span class="lineCov">      32768 :         count_stale += set.contains(hashes[i], false);</span>
+<span class="lineNum">     250 </span>        [<span class="branchCov" title="Branch 0 was taken 65536 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">      65537 :     for (uint32_t i = (n_insert / 2); i &lt; n_insert; ++i)</span>
+<span class="lineNum">     251 </span>                :<span class="lineCov">      65536 :         count_fresh += set.contains(hashes[i], false);</span>
+<span class="lineNum">     252 </span>                :            : 
+<span class="lineNum">     253 </span>                :<span class="lineCov">          1 :     double hit_rate_erased_but_contained = double(count_erased_but_contained) / (double(n_insert) / 4.0);</span>
+<span class="lineNum">     254 </span>                :<span class="lineCov">          1 :     double hit_rate_stale = double(count_stale) / (double(n_insert) / 4.0);</span>
+<span class="lineNum">     255 </span>                :<span class="lineCov">          1 :     double hit_rate_fresh = double(count_fresh) / (double(n_insert) / 2.0);</span>
+<span class="lineNum">     256 </span>                :            : 
+<span class="lineNum">     257 </span>                :            :     // Check that our hit_rate_fresh is perfect
+<span class="lineNum">     258 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK_EQUAL(hit_rate_fresh, 1.0);</span>
+<span class="lineNum">     259 </span>                :            :     // Check that we have a more than 2x better hit rate on stale elements than
+<span class="lineNum">     260 </span>                :            :     // erased elements.
+<a name="261"><span class="lineNum">     261 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(hit_rate_stale &gt; 2 * hit_rate_erased_but_contained);</span></a>
+<span class="lineNum">     262 </span>                :<span class="lineCov">          1 : }</span>
+<span class="lineNum">     263 </span>[<span class="branchCov" title="Branch 2 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        150 : BOOST_AUTO_TEST_CASE(cuckoocache_erase_parallel_ok)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>][<span class="branchCov" title="Branch 19 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 23 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 24 was not taken"> - </span>][<span class="branchCov" title="Branch 26 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 27 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 38 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 39 was not taken"> - </span>][<span class="branchCov" title="Branch 41 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 42 was not taken"> - </span>]
+<span class="lineNum">     264 </span>                :            : {
+<span class="lineNum">     265 </span>                :<span class="lineCov">          1 :     size_t megabytes = 4;</span>
+<span class="lineNum">     266 </span>                :<span class="lineCov">          1 :     test_cache_erase_parallel&lt;CuckooCache::cache&lt;uint256, SignatureCacheHasher&gt;&gt;(megabytes);</span>
+<span class="lineNum">     267 </span>                :<span class="lineCov">          1 : }</span>
+<span class="lineNum">     268 </span>                :            : 
+<a name="269"><span class="lineNum">     269 </span>                :            : </a>
+<span class="lineNum">     270 </span>                :            : template &lt;typename Cache&gt;
+<span class="lineNum">     271 </span>                :<span class="lineCov">          1 : static void test_cache_generations()</span>
+<span class="lineNum">     272 </span>                :            : {
+<span class="lineNum">     273 </span>                :            :     // This test checks that for a simulation of network activity, the fresh hit
+<span class="lineNum">     274 </span>                :            :     // rate is never below 99%, and the number of times that it is worse than
+<span class="lineNum">     275 </span>                :            :     // 99.9% are less than 1% of the time.
+<span class="lineNum">     276 </span>                :<span class="lineCov">          1 :     double min_hit_rate = 0.99;</span>
+<span class="lineNum">     277 </span>                :<span class="lineCov">          1 :     double tight_hit_rate = 0.999;</span>
+<span class="lineNum">     278 </span>                :<span class="lineCov">          1 :     double max_rate_less_than_tight_hit_rate = 0.01;</span>
+<span class="lineNum">     279 </span>                :            :     // A cache that meets this specification is therefore shown to have a hit
+<span class="lineNum">     280 </span>                :            :     // rate of at least tight_hit_rate * (1 - max_rate_less_than_tight_hit_rate) +
+<span class="lineNum">     281 </span>                :            :     // min_hit_rate*max_rate_less_than_tight_hit_rate = 0.999*99%+0.99*1% == 99.89%
+<span class="lineNum">     282 </span>                :            :     // hit rate with low variance.
+<span class="lineNum">     283 </span>                :            : 
+<span class="lineNum">     284 </span>                :            :     // We use deterministic values, but this test has also passed on many
+<span class="lineNum">     285 </span>                :            :     // iterations with non-deterministic values, so it isn't &quot;overfit&quot; to the
+<span class="lineNum">     286 </span>                :            :     // specific entropy in FastRandomContext(true) and implementation of the
+<span class="lineNum">     287 </span>                :            :     // cache.
+<span class="lineNum">     288 </span>                :<span class="lineCov">          1 :     SeedInsecureRand(true);</span>
+<span class="lineNum">     289 </span>                :            : 
+<span class="lineNum">     290 </span>                :            :     // block_activity models a chunk of network activity. n_insert elements are
+<span class="lineNum">     291 </span>                :            :     // added to the cache. The first and last n/4 are stored for removal later
+<span class="lineNum">     292 </span>                :            :     // and the middle n/2 are not stored. This models a network which uses half
+<span class="lineNum">     293 </span>                :            :     // the signatures of recently (since the last block) added transactions
+<span class="lineNum">     294 </span>                :            :     // immediately and never uses the other half.
+<a name="295"><span class="lineNum">     295 </span>                :<span class="lineCov">       2620 :     struct block_activity {</span></a>
+<span class="lineNum">     296 </span>                :            :         std::vector&lt;uint256&gt; reads;
+<span class="lineNum">     297 </span>                :<span class="lineCov">       1310 :         block_activity(uint32_t n_insert, Cache&amp; c) : reads()</span>
+<span class="lineNum">     298 </span>                :            :         {
+<span class="lineNum">     299 </span>                :<span class="lineNoCov">          0 :             std::vector&lt;uint256&gt; inserts;</span>
+<span class="lineNum">     300 </span>        [<span class="branchCov" title="Branch 1 was taken 1310 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1310 :             inserts.resize(n_insert);</span>
+<span class="lineNum">     301 </span>        [<span class="branchCov" title="Branch 1 was taken 1310 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1310 :             reads.reserve(n_insert / 2);</span>
+<span class="lineNum">     302 </span>        [<span class="branchCov" title="Branch 0 was taken 1310 times"> + </span><span class="branchCov" title="Branch 1 was taken 1310000 times"> + </span>]:<span class="lineCov">    1311310 :             for (uint32_t i = 0; i &lt; n_insert; ++i) {</span>
+<span class="lineNum">     303 </span>                :<span class="lineCov">    3930000 :                 uint32_t* ptr = (uint32_t*)inserts[i].begin();</span>
+<span class="lineNum">     304 </span>        [<span class="branchCov" title="Branch 0 was taken 10480000 times"> + </span><span class="branchCov" title="Branch 1 was taken 1310000 times"> + </span>]:<span class="lineCov">   11790000 :                 for (uint8_t j = 0; j &lt; 8; ++j)</span>
+<span class="lineNum">     305 </span>                :<span class="lineCov">   20960000 :                     *(ptr++) = InsecureRand32();</span>
+<span class="lineNum">     306 </span>                :            :             }
+<span class="lineNum">     307 </span>        [<span class="branchCov" title="Branch 0 was taken 327500 times"> + </span><span class="branchCov" title="Branch 1 was taken 1310 times"> + </span>]:<span class="lineCov">     328810 :             for (uint32_t i = 0; i &lt; n_insert / 4; ++i)</span>
+<span class="lineNum">     308 </span>        [<span class="branchCov" title="Branch 1 was taken 327500 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     327500 :                 reads.push_back(inserts[i]);</span>
+<span class="lineNum">     309 </span>        [<span class="branchCov" title="Branch 0 was taken 327500 times"> + </span><span class="branchCov" title="Branch 1 was taken 1310 times"> + </span>]:<span class="lineCov">     328810 :             for (uint32_t i = n_insert - (n_insert / 4); i &lt; n_insert; ++i)</span>
+<span class="lineNum">     310 </span>        [<span class="branchCov" title="Branch 1 was taken 327500 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     327500 :                 reads.push_back(inserts[i]);</span>
+<span class="lineNum">     311 </span>        [<span class="branchCov" title="Branch 0 was taken 1310000 times"> + </span><span class="branchCov" title="Branch 1 was taken 1310 times"> + </span>]:<span class="lineCov">    1311310 :             for (const auto&amp; h : inserts)</span>
+<span class="lineNum">     312 </span>                :<span class="lineCov">    1310000 :                 c.insert(h);</span>
+<span class="lineNum">     313 </span>                :<span class="lineCov">       1310 :         }</span>
+<span class="lineNum">     314 </span>                :            :     };
+<span class="lineNum">     315 </span>                :            : 
+<span class="lineNum">     316 </span>                :<span class="lineCov">          1 :     const uint32_t BLOCK_SIZE = 1000;</span>
+<span class="lineNum">     317 </span>                :            :     // We expect window size 60 to perform reasonably given that each epoch
+<span class="lineNum">     318 </span>                :            :     // stores 45% of the cache size (~472k).
+<span class="lineNum">     319 </span>                :<span class="lineCov">          1 :     const uint32_t WINDOW_SIZE = 60;</span>
+<span class="lineNum">     320 </span>                :<span class="lineCov">          1 :     const uint32_t POP_AMOUNT = (BLOCK_SIZE / WINDOW_SIZE) / 2;</span>
+<span class="lineNum">     321 </span>                :<span class="lineCov">          1 :     const double load = 10;</span>
+<span class="lineNum">     322 </span>                :<span class="lineCov">          1 :     const size_t megabytes = 4;</span>
+<span class="lineNum">     323 </span>                :<span class="lineCov">          1 :     const size_t bytes = megabytes * (1 &lt;&lt; 20);</span>
+<span class="lineNum">     324 </span>                :<span class="lineCov">          1 :     const uint32_t n_insert = static_cast&lt;uint32_t&gt;(load * (bytes / sizeof(uint256)));</span>
+<span class="lineNum">     325 </span>                :            : 
+<span class="lineNum">     326 </span>                :<span class="lineCov">          1 :     std::vector&lt;block_activity&gt; hashes;</span>
+<span class="lineNum">     327 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :     Cache set{};</span>
+<span class="lineNum">     328 </span>                :<span class="lineCov">          1 :     set.setup_bytes(bytes);</span>
+<span class="lineNum">     329 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     hashes.reserve(n_insert / BLOCK_SIZE);</span>
+<span class="lineNum">     330 </span>                :<span class="lineCov">          1 :     std::deque&lt;block_activity&gt; last_few;</span>
+<span class="lineNum">     331 </span>                :            :     uint32_t out_of_tight_tolerance = 0;
+<span class="lineNum">     332 </span>                :            :     uint32_t total = n_insert / BLOCK_SIZE;
+<span class="lineNum">     333 </span>                :            :     // we use the deque last_few to model a sliding window of blocks. at each
+<span class="lineNum">     334 </span>                :            :     // step, each of the last WINDOW_SIZE block_activities checks the cache for
+<span class="lineNum">     335 </span>                :            :     // POP_AMOUNT of the hashes that they inserted, and marks these erased.
+<span class="lineNum">     336 </span>        [<span class="branchCov" title="Branch 0 was taken 1310 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">       1311 :     for (uint32_t i = 0; i &lt; total; ++i) {</span>
+<span class="lineNum">     337 </span>        [<span class="branchCov" title="Branch 0 was taken 1250 times"> + </span><span class="branchCov" title="Branch 1 was taken 60 times"> + </span>]:<span class="lineCov">       1310 :         if (last_few.size() == WINDOW_SIZE)</span>
+<span class="lineNum">     338 </span>                :<span class="lineCov">       1250 :             last_few.pop_front();</span>
+<span class="lineNum">     339 </span>        [<span class="branchCov" title="Branch 1 was taken 1310 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1310 :         last_few.emplace_back(BLOCK_SIZE, set);</span>
+<span class="lineNum">     340 </span>                :<span class="lineCov">       1310 :         uint32_t count = 0;</span>
+<span class="lineNum">     341 </span>        [<span class="branchCov" title="Branch 0 was taken 76830 times"> + </span><span class="branchCov" title="Branch 1 was taken 1310 times"> + </span>]:<span class="lineCov">      78140 :         for (auto&amp; act : last_few)</span>
+<span class="lineNum">     342 </span>        [<span class="branchCov" title="Branch 0 was taken 614640 times"> + </span><span class="branchCov" title="Branch 1 was taken 76830 times"> + </span>]:<span class="lineCov">     691470 :             for (uint32_t k = 0; k &lt; POP_AMOUNT; ++k) {</span>
+<span class="lineNum">     343 </span>                :<span class="lineCov">     614640 :                 count += set.contains(act.reads.back(), true);</span>
+<span class="lineNum">     344 </span>                :<span class="lineCov">    1229280 :                 act.reads.pop_back();</span>
+<span class="lineNum">     345 </span>                :            :             }
+<span class="lineNum">     346 </span>                :            :         // We use last_few.size() rather than WINDOW_SIZE for the correct
+<span class="lineNum">     347 </span>                :            :         // behavior on the first WINDOW_SIZE iterations where the deque is not
+<span class="lineNum">     348 </span>                :            :         // full yet.
+<span class="lineNum">     349 </span>                :<span class="lineCov">       2620 :         double hit = (double(count)) / (last_few.size() * POP_AMOUNT);</span>
+<span class="lineNum">     350 </span>                :            :         // Loose Check that hit rate is above min_hit_rate
+<span class="lineNum">     351 </span>[<span class="branchCov" title="Branch 1 was taken 1310 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1310 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">       1310 :         BOOST_CHECK(hit &gt; min_hit_rate);</span>
+<span class="lineNum">     352 </span>                :            :         // Tighter check, count number of times we are less than tight_hit_rate
+<span class="lineNum">     353 </span>                :            :         // (and implicitly, greater than min_hit_rate)
+<span class="lineNum">     354 </span>                :<span class="lineCov">       1310 :         out_of_tight_tolerance += hit &lt; tight_hit_rate;</span>
+<span class="lineNum">     355 </span>                :            :     }
+<span class="lineNum">     356 </span>                :            :     // Check that being out of tolerance happens less than
+<span class="lineNum">     357 </span>                :            :     // max_rate_less_than_tight_hit_rate of the time
+<a name="358"><span class="lineNum">     358 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(double(out_of_tight_tolerance) / double(total) &lt; max_rate_less_than_tight_hit_rate);</span></a>
+<span class="lineNum">     359 </span>                :<span class="lineCov">          1 : }</span>
+<span class="lineNum">     360 </span>[<span class="branchCov" title="Branch 2 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        150 : BOOST_AUTO_TEST_CASE(cuckoocache_generations)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 15 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 16 was not taken"> - </span>][<span class="branchCov" title="Branch 18 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 22 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>][<span class="branchCov" title="Branch 25 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 30 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 31 was not taken"> - </span>][<span class="branchCov" title="Branch 33 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 34 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchCov" title="Branch 40 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>]
+<span class="lineNum">     361 </span>                :            : {
+<span class="lineNum">     362 </span>                :<span class="lineCov">          1 :     test_cache_generations&lt;CuckooCache::cache&lt;uint256, SignatureCacheHasher&gt;&gt;();</span>
+<a name="363"><span class="lineNum">     363 </span>                :<span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     364 </span>                :            : 
+<span class="lineNum">     365 </span>[<span class="branchCov" title="Branch 1 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        288 : BOOST_AUTO_TEST_SUITE_END();</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,1096 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/streams.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - streams.h<span style="font-size: 80%;"> (source / <a href="streams.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">168</td>
+            <td class="headerCovTableEntry">251</td>
+            <td class="headerCovTableEntryLo">66.9 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">45</td>
+            <td class="headerCovTableEntry">92</td>
+            <td class="headerCovTableEntryLo">48.9 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">189</td>
+            <td class="headerCovTableEntry">788</td>
+            <td class="headerCovTableEntryLo">24.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #ifndef BITCOIN_STREAMS_H
+<span class="lineNum">       7 </span>                :            : #define BITCOIN_STREAMS_H
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : #include &lt;support/allocators/zeroafterfree.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;serialize.h&gt;
+<span class="lineNum">      11 </span>                :            : 
+<span class="lineNum">      12 </span>                :            : #include &lt;algorithm&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;assert.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;ios&gt;
+<span class="lineNum">      15 </span>                :            : #include &lt;limits&gt;
+<span class="lineNum">      16 </span>                :            : #include &lt;map&gt;
+<span class="lineNum">      17 </span>                :            : #include &lt;set&gt;
+<span class="lineNum">      18 </span>                :            : #include &lt;stdint.h&gt;
+<span class="lineNum">      19 </span>                :            : #include &lt;stdio.h&gt;
+<span class="lineNum">      20 </span>                :            : #include &lt;string&gt;
+<span class="lineNum">      21 </span>                :            : #include &lt;string.h&gt;
+<span class="lineNum">      22 </span>                :            : #include &lt;utility&gt;
+<span class="lineNum">      23 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">      24 </span>                :            : 
+<span class="lineNum">      25 </span>                :            : template&lt;typename Stream&gt;
+<span class="lineNum">      26 </span>                :            : class OverrideStream
+<span class="lineNum">      27 </span>                :            : {
+<span class="lineNum">      28 </span>                :            :     Stream* stream;
+<span class="lineNum">      29 </span>                :            : 
+<span class="lineNum">      30 </span>                :            :     const int nType;
+<span class="lineNum">      31 </span>                :            :     const int nVersion;
+<span class="lineNum">      32 </span>                :            : 
+<span class="lineNum">      33 </span>                :            : public:
+<span class="lineNum">      34 </span>                :<span class="lineCov">          3 :     OverrideStream(Stream* stream_, int nType_, int nVersion_) : stream(stream_), nType(nType_), nVersion(nVersion_) {}</span>
+<span class="lineNum">      35 </span>                :            : 
+<span class="lineNum">      36 </span>                :            :     template&lt;typename T&gt;
+<span class="lineNum">      37 </span>                :            :     OverrideStream&lt;Stream&gt;&amp; operator&lt;&lt;(const T&amp; obj)
+<span class="lineNum">      38 </span>                :            :     {
+<span class="lineNum">      39 </span>                :            :         // Serialize to this stream
+<span class="lineNum">      40 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>]:<span class="lineCov">          2 :         ::Serialize(*this, obj);</span>
+<span class="lineNum">      41 </span>                :            :         return (*this);
+<span class="lineNum">      42 </span>                :            :     }
+<span class="lineNum">      43 </span>                :            : 
+<span class="lineNum">      44 </span>                :            :     template&lt;typename T&gt;
+<span class="lineNum">      45 </span>                :            :     OverrideStream&lt;Stream&gt;&amp; operator&gt;&gt;(T&amp;&amp; obj)
+<span class="lineNum">      46 </span>                :            :     {
+<span class="lineNum">      47 </span>                :            :         // Unserialize from this stream
+<span class="lineNum">      48 </span>                :<span class="lineCov">          2 :         ::Unserialize(*this, obj);</span>
+<span class="lineNum">      49 </span>                :            :         return (*this);
+<span class="lineNum">      50 </span>                :            :     }
+<span class="lineNum">      51 </span>                :            : 
+<span class="lineNum">      52 </span>                :            :     void write(const char* pch, size_t nSize)
+<span class="lineNum">      53 </span>                :            :     {
+<span class="lineNum">      54 </span>                :<span class="lineCov">          5 :         stream-&gt;write(pch, nSize);</span>
+<span class="lineNum">      55 </span>                :            :     }
+<span class="lineNum">      56 </span>                :            : 
+<span class="lineNum">      57 </span>                :            :     void read(char* pch, size_t nSize)
+<span class="lineNum">      58 </span>                :            :     {
+<span class="lineNum">      59 </span>                :<span class="lineCov">         15 :         stream-&gt;read(pch, nSize);</span>
+<span class="lineNum">      60 </span>                :            :     }
+<span class="lineNum">      61 </span>                :            : 
+<span class="lineNum">      62 </span>                :<span class="lineCov">          5 :     int GetVersion() const { return nVersion; }</span>
+<span class="lineNum">      63 </span>                :            :     int GetType() const { return nType; }
+<span class="lineNum">      64 </span>                :<span class="lineCov">          4 :     size_t size() const { return stream-&gt;size(); }</span>
+<span class="lineNum">      65 </span>                :            : };
+<span class="lineNum">      66 </span>                :            : 
+<span class="lineNum">      67 </span>                :            : /* Minimal stream for overwriting and/or appending to an existing byte vector
+<span class="lineNum">      68 </span>                :            :  *
+<span class="lineNum">      69 </span>                :            :  * The referenced vector will grow as necessary
+<span class="lineNum">      70 </span>                :            :  */
+<span class="lineNum">      71 </span>                :            : class CVectorWriter
+<span class="lineNum">      72 </span>                :            : {
+<span class="lineNum">      73 </span>                :            :  public:
+<span class="lineNum">      74 </span>                :            : 
+<span class="lineNum">      75 </span>                :            : /*
+<span class="lineNum">      76 </span>                :            :  * @param[in]  nTypeIn Serialization Type
+<span class="lineNum">      77 </span>                :            :  * @param[in]  nVersionIn Serialization Version (including any flags)
+<span class="lineNum">      78 </span>                :            :  * @param[in]  vchDataIn  Referenced byte vector to overwrite/append
+<span class="lineNum">      79 </span>                :            :  * @param[in]  nPosIn Starting position. Vector index where writes should start. The vector will initially
+<span class="lineNum">      80 </span>                :            :  *                    grow as necessary to max(nPosIn, vec.size()). So to append, use vec.size().
+<span class="lineNum">      81 </span>                :            : */
+<span class="lineNum">      82 </span>                :<span class="lineCov">         57 :     CVectorWriter(int nTypeIn, int nVersionIn, std::vector&lt;unsigned char&gt;&amp; vchDataIn, size_t nPosIn) : nType(nTypeIn), nVersion(nVersionIn), vchData(vchDataIn), nPos(nPosIn)</span>
+<span class="lineNum">      83 </span>                :            :     {
+<span class="lineNum">      84 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 21 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">         57 :         if(nPos &gt; vchData.size())</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchCov" title="Branch 5 was taken 9 times"> + </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>][<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>][<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>][<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 24 was not taken"> - </span><span class="branchCov" title="Branch 25 was taken 4 times"> + </span>][<span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span>][<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>][<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 36 was not taken"> - </span><span class="branchCov" title="Branch 37 was taken 10 times"> + </span>][<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>][<span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span>][<span class="branchNoExec" title="Branch 46 was not executed"> # </span><span class="branchNoExec" title="Branch 47 was not executed"> # </span>]
+<span class="lineNum">      85 </span>                :<span class="lineCov">          1 :             vchData.resize(nPos);</span>
+<span class="lineNum">      86 </span>                :            :     }
+<span class="lineNum">      87 </span>                :            : /*
+<span class="lineNum">      88 </span>                :            :  * (other params same as above)
+<span class="lineNum">      89 </span>                :            :  * @param[in]  args  A list of items to serialize starting at nPosIn.
+<a name="90"><span class="lineNum">      90 </span>                :            : */</a>
+<span class="lineNum">      91 </span>                :            :     template &lt;typename... Args&gt;
+<span class="lineNum">      92 </span>                :<span class="lineCov">         47 :     CVectorWriter(int nTypeIn, int nVersionIn, std::vector&lt;unsigned char&gt;&amp; vchDataIn, size_t nPosIn, Args&amp;&amp;... args) : CVectorWriter(nTypeIn, nVersionIn, vchDataIn, nPosIn)</span>
+<span class="lineNum">      93 </span>                :            :     {
+<a name="94"><span class="lineNum">      94 </span>                :<span class="lineCov">         47 :         ::SerializeMany(*this, std::forward&lt;Args&gt;(args)...);</span></a>
+<span class="lineNum">      95 </span>                :<span class="lineCov">         47 :     }</span>
+<span class="lineNum">      96 </span>                :<span class="lineCov">        523 :     void write(const char* pch, size_t nSize)</span>
+<span class="lineNum">      97 </span>                :            :     {
+<span class="lineNum">      98 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 523 times"> + </span>]:<span class="lineCov">        523 :         assert(nPos &lt;= vchData.size());</span>
+<span class="lineNum">      99 </span>                :<span class="lineCov">       1046 :         size_t nOverwrite = std::min(nSize, vchData.size() - nPos);</span>
+<span class="lineNum">     100 </span>        [<span class="branchCov" title="Branch 0 was taken 19 times"> + </span><span class="branchCov" title="Branch 1 was taken 504 times"> + </span>]:<span class="lineCov">        523 :         if (nOverwrite) {</span>
+<span class="lineNum">     101 </span>                :<span class="lineCov">         38 :             memcpy(vchData.data() + nPos, reinterpret_cast&lt;const unsigned char*&gt;(pch), nOverwrite);</span>
+<span class="lineNum">     102 </span>                :            :         }
+<span class="lineNum">     103 </span>        [<span class="branchCov" title="Branch 0 was taken 505 times"> + </span><span class="branchCov" title="Branch 1 was taken 18 times"> + </span>]:<span class="lineCov">        523 :         if (nOverwrite &lt; nSize) {</span>
+<span class="lineNum">     104 </span>                :<span class="lineCov">        505 :             vchData.insert(vchData.end(), reinterpret_cast&lt;const unsigned char*&gt;(pch) + nOverwrite, reinterpret_cast&lt;const unsigned char*&gt;(pch) + nSize);</span>
+<span class="lineNum">     105 </span>                :            :         }
+<span class="lineNum">     106 </span>                :<span class="lineCov">        523 :         nPos += nSize;</span>
+<span class="lineNum">     107 </span>                :<span class="lineCov">        523 :     }</span>
+<span class="lineNum">     108 </span>                :            :     template&lt;typename T&gt;
+<span class="lineNum">     109 </span>                :            :     CVectorWriter&amp; operator&lt;&lt;(const T&amp; obj)
+<span class="lineNum">     110 </span>                :            :     {
+<span class="lineNum">     111 </span>                :            :         // Serialize to this stream
+<span class="lineNum">     112 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">        526 :         ::Serialize(*this, obj);</span>
+<span class="lineNum">     113 </span>                :            :         return (*this);
+<span class="lineNum">     114 </span>                :            :     }
+<span class="lineNum">     115 </span>                :            :     int GetVersion() const
+<span class="lineNum">     116 </span>                :            :     {
+<span class="lineNum">     117 </span>                :<span class="lineCov">         24 :         return nVersion;</span>
+<span class="lineNum">     118 </span>                :            :     }
+<span class="lineNum">     119 </span>                :            :     int GetType() const
+<span class="lineNum">     120 </span>                :            :     {
+<span class="lineNum">     121 </span>                :<span class="lineCov">         44 :         return nType;</span>
+<span class="lineNum">     122 </span>                :            :     }
+<span class="lineNum">     123 </span>                :            : private:
+<span class="lineNum">     124 </span>                :            :     const int nType;
+<span class="lineNum">     125 </span>                :            :     const int nVersion;
+<span class="lineNum">     126 </span>                :            :     std::vector&lt;unsigned char&gt;&amp; vchData;
+<span class="lineNum">     127 </span>                :            :     size_t nPos;
+<span class="lineNum">     128 </span>                :            : };
+<span class="lineNum">     129 </span>                :            : 
+<span class="lineNum">     130 </span>                :            : /** Minimal stream for reading from an existing vector by reference
+<span class="lineNum">     131 </span>                :            :  */
+<span class="lineNum">     132 </span>                :            : class VectorReader
+<span class="lineNum">     133 </span>                :            : {
+<span class="lineNum">     134 </span>                :            : private:
+<span class="lineNum">     135 </span>                :            :     const int m_type;
+<span class="lineNum">     136 </span>                :            :     const int m_version;
+<span class="lineNum">     137 </span>                :            :     const std::vector&lt;unsigned char&gt;&amp; m_data;
+<span class="lineNum">     138 </span>                :            :     size_t m_pos = 0;
+<span class="lineNum">     139 </span>                :            : 
+<span class="lineNum">     140 </span>                :            : public:
+<span class="lineNum">     141 </span>                :            : 
+<span class="lineNum">     142 </span>                :            :     /*
+<span class="lineNum">     143 </span>                :            :      * @param[in]  type Serialization Type
+<span class="lineNum">     144 </span>                :            :      * @param[in]  version Serialization Version (including any flags)
+<span class="lineNum">     145 </span>                :            :      * @param[in]  data Referenced byte vector to overwrite/append
+<a name="146"><span class="lineNum">     146 </span>                :            :      * @param[in]  pos Starting position. Vector index where reads should start.</a>
+<span class="lineNum">     147 </span>                :            :      */
+<span class="lineNum">     148 </span>                :<span class="lineCov">        211 :     VectorReader(int type, int version, const std::vector&lt;unsigned char&gt;&amp; data, size_t pos)</span>
+<span class="lineNum">     149 </span>                :<span class="lineCov">        211 :         : m_type(type), m_version(version), m_data(data), m_pos(pos)</span>
+<span class="lineNum">     150 </span>                :            :     {
+<span class="lineNum">     151 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 211 times"> + </span>]:<span class="lineCov">        211 :         if (m_pos &gt; m_data.size()) {</span>
+<span class="lineNum">     152 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;VectorReader(...): end of data (m_pos &gt; m_data.size())&quot;);</span>
+<span class="lineNum">     153 </span>                :            :         }
+<span class="lineNum">     154 </span>                :<span class="lineCov">        211 :     }</span>
+<span class="lineNum">     155 </span>                :            : 
+<span class="lineNum">     156 </span>                :            :     /*
+<span class="lineNum">     157 </span>                :            :      * (other params same as above)
+<span class="lineNum">     158 </span>                :            :      * @param[in]  args  A list of items to deserialize starting at pos.
+<span class="lineNum">     159 </span>                :            :      */
+<span class="lineNum">     160 </span>                :            :     template &lt;typename... Args&gt;
+<span class="lineNum">     161 </span>                :            :     VectorReader(int type, int version, const std::vector&lt;unsigned char&gt;&amp; data, size_t pos,
+<span class="lineNum">     162 </span>                :            :                   Args&amp;&amp;... args)
+<span class="lineNum">     163 </span>                :            :         : VectorReader(type, version, data, pos)
+<span class="lineNum">     164 </span>                :            :     {
+<span class="lineNum">     165 </span>                :            :         ::UnserializeMany(*this, std::forward&lt;Args&gt;(args)...);
+<span class="lineNum">     166 </span>                :            :     }
+<span class="lineNum">     167 </span>                :            : 
+<span class="lineNum">     168 </span>                :            :     template&lt;typename T&gt;
+<span class="lineNum">     169 </span>                :            :     VectorReader&amp; operator&gt;&gt;(T&amp; obj)
+<span class="lineNum">     170 </span>                :            :     {
+<span class="lineNum">     171 </span>                :            :         // Unserialize from this stream
+<span class="lineNum">     172 </span>                :<span class="lineCov">      13621 :         ::Unserialize(*this, obj);</span>
+<span class="lineNum">     173 </span>                :            :         return (*this);
+<span class="lineNum">     174 </span>                :            :     }
+<span class="lineNum">     175 </span>                :            : 
+<span class="lineNum">     176 </span>                :            :     int GetVersion() const { return m_version; }
+<span class="lineNum">     177 </span>                :            :     int GetType() const { return m_type; }
+<span class="lineNum">     178 </span>                :            : 
+<span class="lineNum">     179 </span>                :<span class="lineCov">         10 :     size_t size() const { return m_data.size() - m_pos; }</span>
+<a name="180"><span class="lineNum">     180 </span>                :<span class="lineCov">         12 :     bool empty() const { return m_data.size() == m_pos; }</span></a>
+<span class="lineNum">     181 </span>                :            : 
+<span class="lineNum">     182 </span>                :<span class="lineCov">      13832 :     void read(char* dst, size_t n)</span>
+<span class="lineNum">     183 </span>                :            :     {
+<span class="lineNum">     184 </span>        [<span class="branchCov" title="Branch 0 was taken 13832 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      13832 :         if (n == 0) {</span>
+<span class="lineNum">     185 </span>                :            :             return;
+<span class="lineNum">     186 </span>                :            :         }
+<span class="lineNum">     187 </span>                :            : 
+<span class="lineNum">     188 </span>                :            :         // Read from the beginning of the buffer
+<span class="lineNum">     189 </span>                :<span class="lineCov">      13832 :         size_t pos_next = m_pos + n;</span>
+<span class="lineNum">     190 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 13830 times"> + </span>]:<span class="lineCov">      13832 :         if (pos_next &gt; m_data.size()) {</span>
+<span class="lineNum">     191 </span>        [<span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          4 :             throw std::ios_base::failure(&quot;VectorReader::read(): end of data&quot;);</span>
+<span class="lineNum">     192 </span>                :            :         }
+<span class="lineNum">     193 </span>                :<span class="lineCov">      41490 :         memcpy(dst, m_data.data() + m_pos, n);</span>
+<span class="lineNum">     194 </span>                :<span class="lineCov">      13830 :         m_pos = pos_next;</span>
+<span class="lineNum">     195 </span>                :            :     }
+<span class="lineNum">     196 </span>                :            : };
+<span class="lineNum">     197 </span>                :            : 
+<span class="lineNum">     198 </span>                :            : /** Double ended buffer combining vector and stream-like interfaces.
+<span class="lineNum">     199 </span>                :            :  *
+<span class="lineNum">     200 </span>                :            :  * &gt;&gt; and &lt;&lt; read and write unformatted data using the above serialization templates.
+<span class="lineNum">     201 </span>                :            :  * Fills with data in linear time; some stringstream implementations take N^2 time.
+<span class="lineNum">     202 </span>                :            :  */
+<span class="lineNum">     203 </span>[<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]:<span class="lineCov">    1266529 : class CDataStream</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]
+<span class="lineNum">     204 </span>                :            : {
+<span class="lineNum">     205 </span>                :            : protected:
+<span class="lineNum">     206 </span>                :            :     typedef CSerializeData vector_type;
+<span class="lineNum">     207 </span>                :            :     vector_type vch;
+<span class="lineNum">     208 </span>                :            :     unsigned int nReadPos;
+<span class="lineNum">     209 </span>                :            : 
+<span class="lineNum">     210 </span>                :            :     int nType;
+<span class="lineNum">     211 </span>                :            :     int nVersion;
+<span class="lineNum">     212 </span>                :            : public:
+<span class="lineNum">     213 </span>                :            : 
+<span class="lineNum">     214 </span>                :            :     typedef vector_type::allocator_type   allocator_type;
+<span class="lineNum">     215 </span>                :            :     typedef vector_type::size_type        size_type;
+<span class="lineNum">     216 </span>                :            :     typedef vector_type::difference_type  difference_type;
+<span class="lineNum">     217 </span>                :            :     typedef vector_type::reference        reference;
+<span class="lineNum">     218 </span>                :            :     typedef vector_type::const_reference  const_reference;
+<span class="lineNum">     219 </span>                :            :     typedef vector_type::value_type       value_type;
+<span class="lineNum">     220 </span>                :            :     typedef vector_type::iterator         iterator;
+<span class="lineNum">     221 </span>                :            :     typedef vector_type::const_iterator   const_iterator;
+<span class="lineNum">     222 </span>                :            :     typedef vector_type::reverse_iterator reverse_iterator;
+<span class="lineNum">     223 </span>                :            : 
+<span class="lineNum">     224 </span>                :            :     explicit CDataStream(int nTypeIn, int nVersionIn)
+<span class="lineNum">     225 </span>                :<span class="lineCov">    1064766 :     {</span>
+<span class="lineNum">     226 </span>                :<span class="lineCov">     532383 :         Init(nTypeIn, nVersionIn);</span>
+<span class="lineNum">     227 </span>                :            :     }
+<span class="lineNum">     228 </span>                :            : 
+<span class="lineNum">     229 </span>                :            :     CDataStream(const_iterator pbegin, const_iterator pend, int nTypeIn, int nVersionIn) : vch(pbegin, pend)
+<span class="lineNum">     230 </span>                :            :     {
+<span class="lineNum">     231 </span>                :            :         Init(nTypeIn, nVersionIn);
+<span class="lineNum">     232 </span>                :            :     }
+<span class="lineNum">     233 </span>                :            : 
+<span class="lineNum">     234 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineCov">       1004 :     CDataStream(const char* pbegin, const char* pend, int nTypeIn, int nVersionIn) : vch(pbegin, pend)</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>][<span class="branchCov" title="Branch 1 was taken 150 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span> 
+<span class="lineNum">         </span><span class="branchCov" title="Branch 4 was taken 342 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 382 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span><span class="branchCov" title="Branch 10 was taken 4 times"> + </span> 
+<span class="lineNum">         </span> <span class="branchNoCov" title="Branch 11 was not taken"> - </span><span class="branchCov" title="Branch 13 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchCov" title="Branch 16 was taken 11 times"> + </span> 
+<span class="lineNum">         </span>   <span class="branchNoCov" title="Branch 17 was not taken"> - </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span> 
+<span class="lineNum">         </span>    <span class="branchNoExec" title="Branch 20 was not executed"> # </span>][<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 25 was not executed"> # </span><span class="branchNoExec" title="Branch 26 was not executed"> # </span>][<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 31 was not executed"> # </span><span class="branchNoExec" title="Branch 32 was not executed"> # </span>][<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>][<span class="branchCov" title="Branch 10 was taken 110 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">     235 </span>                :            :     {
+<span class="lineNum">     236 </span>                :<span class="lineCov">       1004 :         Init(nTypeIn, nVersionIn);</span>
+<span class="lineNum">     237 </span>                :            :     }
+<span class="lineNum">     238 </span>                :            : 
+<span class="lineNum">     239 </span>                :            :     CDataStream(const vector_type&amp; vchIn, int nTypeIn, int nVersionIn) : vch(vchIn.begin(), vchIn.end())
+<span class="lineNum">     240 </span>                :            :     {
+<span class="lineNum">     241 </span>                :            :         Init(nTypeIn, nVersionIn);
+<a name="242"><span class="lineNum">     242 </span>                :            :     }</a>
+<span class="lineNum">     243 </span>                :            : 
+<span class="lineNum">     244 </span>                :<span class="lineCov">          2 :     CDataStream(const std::vector&lt;char&gt;&amp; vchIn, int nTypeIn, int nVersionIn) : vch(vchIn.begin(), vchIn.end())</span>
+<span class="lineNum">     245 </span>                :            :     {
+<span class="lineNum">     246 </span>                :<span class="lineCov">          1 :         Init(nTypeIn, nVersionIn);</span>
+<a name="247"><span class="lineNum">     247 </span>                :<span class="lineCov">          1 :     }</span></a>
+<span class="lineNum">     248 </span>                :            : 
+<span class="lineNum">     249 </span>                :<span class="lineCov">       1540 :     CDataStream(const std::vector&lt;unsigned char&gt;&amp; vchIn, int nTypeIn, int nVersionIn) : vch(vchIn.begin(), vchIn.end())</span>
+<span class="lineNum">     250 </span>                :            :     {
+<span class="lineNum">     251 </span>                :<span class="lineCov">        770 :         Init(nTypeIn, nVersionIn);</span>
+<span class="lineNum">     252 </span>                :<span class="lineCov">        770 :     }</span>
+<a name="253"><span class="lineNum">     253 </span>                :            : </a>
+<span class="lineNum">     254 </span>                :            :     template &lt;typename... Args&gt;
+<span class="lineNum">     255 </span>                :<span class="lineCov">          1 :     CDataStream(int nTypeIn, int nVersionIn, Args&amp;&amp;... args)</span>
+<span class="lineNum">     256 </span>                :<span class="lineCov">          2 :     {</span>
+<span class="lineNum">     257 </span>                :<span class="lineCov">          1 :         Init(nTypeIn, nVersionIn);</span>
+<span class="lineNum">     258 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :         ::SerializeMany(*this, std::forward&lt;Args&gt;(args)...);</span>
+<span class="lineNum">     259 </span>                :<span class="lineCov">          1 :     }</span>
+<span class="lineNum">     260 </span>                :            : 
+<span class="lineNum">     261 </span>                :            :     void Init(int nTypeIn, int nVersionIn)
+<span class="lineNum">     262 </span>                :            :     {
+<span class="lineNum">     263 </span>                :<span class="lineCov">     534159 :         nReadPos = 0;</span>
+<span class="lineNum">     264 </span>                :<span class="lineCov">     534159 :         nType = nTypeIn;</span>
+<span class="lineNum">     265 </span>                :<span class="lineCov">     534159 :         nVersion = nVersionIn;</span>
+<span class="lineNum">     266 </span>                :            :     }
+<span class="lineNum">     267 </span>                :            : 
+<span class="lineNum">     268 </span>                :            :     CDataStream&amp; operator+=(const CDataStream&amp; b)
+<span class="lineNum">     269 </span>                :            :     {
+<span class="lineNum">     270 </span>                :            :         vch.insert(vch.end(), b.begin(), b.end());
+<span class="lineNum">     271 </span>                :            :         return *this;
+<span class="lineNum">     272 </span>                :            :     }
+<span class="lineNum">     273 </span>                :            : 
+<span class="lineNum">     274 </span>                :            :     friend CDataStream operator+(const CDataStream&amp; a, const CDataStream&amp; b)
+<span class="lineNum">     275 </span>                :            :     {
+<span class="lineNum">     276 </span>                :            :         CDataStream ret = a;
+<span class="lineNum">     277 </span>                :            :         ret += b;
+<span class="lineNum">     278 </span>                :            :         return (ret);
+<a name="279"><span class="lineNum">     279 </span>                :            :     }</a>
+<span class="lineNum">     280 </span>                :            : 
+<span class="lineNum">     281 </span>                :<span class="lineCov">         10 :     std::string str() const</span>
+<span class="lineNum">     282 </span>                :            :     {
+<span class="lineNum">     283 </span>                :<span class="lineCov">         10 :         return (std::string(begin(), end()));</span>
+<span class="lineNum">     284 </span>                :            :     }
+<span class="lineNum">     285 </span>                :            : 
+<span class="lineNum">     286 </span>                :            : 
+<span class="lineNum">     287 </span>                :            :     //
+<span class="lineNum">     288 </span>                :            :     // Vector subset
+<span class="lineNum">     289 </span>                :            :     //
+<span class="lineNum">     290 </span>                :<span class="lineCov">         78 :     const_iterator begin() const                     { return vch.begin() + nReadPos; }</span>
+<span class="lineNum">     291 </span>                :<span class="lineCov">        582 :     iterator begin()                                 { return vch.begin() + nReadPos; }</span>
+<span class="lineNum">     292 </span>                :<span class="lineCov">         52 :     const_iterator end() const                       { return vch.end(); }</span>
+<span class="lineNum">     293 </span>                :<span class="lineCov">        354 :     iterator end()                                   { return vch.end(); }</span>
+<span class="lineNum">     294 </span>                :<span class="lineCov">    6924120 :     size_type size() const                           { return vch.size() - nReadPos; }</span>
+<span class="lineNum">     295 </span>                :<span class="lineCov">         24 :     bool empty() const                               { return vch.size() == nReadPos; }</span>
+<span class="lineNum">     296 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     void resize(size_type n, value_type c=0)         { vch.resize(n + nReadPos, c); }</span>
+<span class="lineNum">     297 </span>[<span class="branchCov" title="Branch 3 was taken 147 times"> + </span><span class="branchCov" title="Branch 4 was taken 9 times"> + </span>][<span class="branchCov" title="Branch 1 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      22138 :     void reserve(size_type n)                        { vch.reserve(n + nReadPos); }</span>
+<span class="lineNum">         </span>   [<span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchCov" title="Branch 7 was taken 1010 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 10 was taken 1001 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>][<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>][<span class="branchCov" title="Branch 19 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 22 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>][<span class="branchCov" title="Branch 25 was taken 2000 times"> + </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 28 was taken 2000 times"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>][<span class="branchCov" title="Branch 31 was taken 107 times"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 34 was taken 107 times"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>][<span class="branchNoExec" title="Branch 37 was not executed"> # </span><span class="branchNoExec" title="Branch 38 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>][<span class="branchNoExec" title="Branch 43 was not executed"> # </span><span class="branchNoExec" title="Branch 44 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 46 was not executed"> # </span><span class="branchNoExec" title="Branch 47 was not executed"> # </span>][<span class="branchNoExec" title="Branch 49 was not executed"> # </span><span class="branchNoExec" title="Branch 50 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 52 was not executed"> # </span><span class="branchNoExec" title="Branch 53 was not executed"> # </span>][<span class="branchNoExec" title="Branch 55 was not executed"> # </span><span class="branchNoExec" title="Branch 56 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 58 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 59 was not taken"> - </span>][<span class="branchCov" title="Branch 61 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 62 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 64 was not executed"> # </span><span class="branchNoExec" title="Branch 65 was not executed"> # </span>][<span class="branchNoExec" title="Branch 67 was not executed"> # </span><span class="branchNoExec" title="Branch 68 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 70 was not executed"> # </span><span class="branchNoExec" title="Branch 71 was not executed"> # </span>][<span class="branchNoExec" title="Branch 73 was not executed"> # </span><span class="branchNoExec" title="Branch 74 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 76 was not executed"> # </span><span class="branchNoExec" title="Branch 77 was not executed"> # </span>][<span class="branchCov" title="Branch 79 was taken 2002 times"> + </span><span class="branchNoCov" title="Branch 80 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 82 was taken 2002 times"> + </span><span class="branchNoCov" title="Branch 83 was not taken"> - </span>][<span class="branchCov" title="Branch 85 was taken 2002 times"> + </span><span class="branchNoCov" title="Branch 86 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 88 was taken 2002 times"> + </span><span class="branchNoCov" title="Branch 89 was not taken"> - </span>][<span class="branchNoExec" title="Branch 91 was not executed"> # </span><span class="branchNoExec" title="Branch 92 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 94 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 95 was not taken"> - </span>][<span class="branchCov" title="Branch 97 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 98 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 100 was not executed"> # </span><span class="branchNoExec" title="Branch 101 was not executed"> # </span>][<span class="branchNoExec" title="Branch 103 was not executed"> # </span><span class="branchNoExec" title="Branch 104 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 106 was not executed"> # </span><span class="branchNoExec" title="Branch 107 was not executed"> # </span>][<span class="branchCov" title="Branch 109 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 110 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 112 was not executed"> # </span><span class="branchNoExec" title="Branch 113 was not executed"> # </span>][<span class="branchNoExec" title="Branch 115 was not executed"> # </span><span class="branchNoExec" title="Branch 116 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 118 was not executed"> # </span><span class="branchNoExec" title="Branch 119 was not executed"> # </span>][<span class="branchCov" title="Branch 121 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 122 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 5 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>][<span class="branchCov" title="Branch 8 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 11 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>][<span class="branchCov" title="Branch 17 was taken 80 times"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>][<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>][<span class="branchCov" title="Branch 15 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 16 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span>][<span class="branchNoExec" title="Branch 27 was not executed"> # </span><span class="branchNoExec" title="Branch 28 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>][<span class="branchNoExec" title="Branch 33 was not executed"> # </span><span class="branchNoExec" title="Branch 34 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>][<span class="branchNoExec" title="Branch 39 was not executed"> # </span><span class="branchNoExec" title="Branch 40 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>][<span class="branchNoExec" title="Branch 53 was not executed"> # </span><span class="branchNoExec" title="Branch 54 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 56 was not executed"> # </span><span class="branchNoExec" title="Branch 57 was not executed"> # </span>][<span class="branchCov" title="Branch 59 was taken 6094 times"> + </span><span class="branchNoCov" title="Branch 60 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>][<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 21 was taken 210 times"> + </span><span class="branchNoCov" title="Branch 22 was not taken"> - </span>]
+<span class="lineNum">     298 </span>                :            :     const_reference operator[](size_type pos) const  { return vch[pos + nReadPos]; }
+<span class="lineNum">     299 </span>                :<span class="lineCov">   21572554 :     reference operator[](size_type pos)              { return vch[pos + nReadPos]; }</span>
+<span class="lineNum">     300 </span>                :<span class="lineCov">       2306 :     void clear()                                     { vch.clear(); nReadPos = 0; }</span>
+<span class="lineNum">     301 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          3 :     iterator insert(iterator it, const char x=char()) { return vch.insert(it, x); }</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     302 </span>                :            :     void insert(iterator it, size_type n, const char x) { vch.insert(it, n, x); }
+<span class="lineNum">     303 </span>                :<span class="lineCov">      44276 :     value_type* data()                               { return vch.data() + nReadPos; }</span>
+<a name="304"><span class="lineNum">     304 </span>                :            :     const value_type* data() const                   { return vch.data() + nReadPos; }</a>
+<span class="lineNum">     305 </span>                :            : 
+<span class="lineNum">     306 </span>                :<span class="lineCov">          2 :     void insert(iterator it, std::vector&lt;char&gt;::const_iterator first, std::vector&lt;char&gt;::const_iterator last)</span>
+<span class="lineNum">     307 </span>                :            :     {
+<span class="lineNum">     308 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :         if (last == first) return;</span>
+<span class="lineNum">     309 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :         assert(last - first &gt; 0);</span>
+<span class="lineNum">     310 </span>[<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          2 :         if (it == vch.begin() + nReadPos &amp;&amp; (unsigned int)(last - first) &lt;= nReadPos)</span>
+<span class="lineNum">     311 </span>                :            :         {
+<span class="lineNum">     312 </span>                :            :             // special case for inserting at the front when there's room
+<span class="lineNum">     313 </span>                :<span class="lineNoCov">          0 :             nReadPos -= (last - first);</span>
+<span class="lineNum">     314 </span>                :<span class="lineNoCov">          0 :             memcpy(&amp;vch[nReadPos], &amp;first[0], last - first);</span>
+<span class="lineNum">     315 </span>                :            :         }
+<span class="lineNum">     316 </span>                :            :         else
+<span class="lineNum">     317 </span>                :<span class="lineCov">          2 :             vch.insert(it, first, last);</span>
+<span class="lineNum">     318 </span>                :            :     }
+<span class="lineNum">     319 </span>                :            : 
+<span class="lineNum">     320 </span>                :            :     void insert(iterator it, const char* first, const char* last)
+<span class="lineNum">     321 </span>                :            :     {
+<span class="lineNum">     322 </span>                :            :         if (last == first) return;
+<span class="lineNum">     323 </span>                :            :         assert(last - first &gt; 0);
+<span class="lineNum">     324 </span>                :            :         if (it == vch.begin() + nReadPos &amp;&amp; (unsigned int)(last - first) &lt;= nReadPos)
+<span class="lineNum">     325 </span>                :            :         {
+<span class="lineNum">     326 </span>                :            :             // special case for inserting at the front when there's room
+<span class="lineNum">     327 </span>                :            :             nReadPos -= (last - first);
+<span class="lineNum">     328 </span>                :            :             memcpy(&amp;vch[nReadPos], &amp;first[0], last - first);
+<span class="lineNum">     329 </span>                :            :         }
+<span class="lineNum">     330 </span>                :            :         else
+<span class="lineNum">     331 </span>                :            :             vch.insert(it, first, last);
+<a name="332"><span class="lineNum">     332 </span>                :            :     }</a>
+<span class="lineNum">     333 </span>                :            : 
+<span class="lineNum">     334 </span>                :<span class="lineCov">          3 :     iterator erase(iterator it)</span>
+<span class="lineNum">     335 </span>                :            :     {
+<span class="lineNum">     336 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          3 :         if (it == vch.begin() + nReadPos)</span>
+<span class="lineNum">     337 </span>                :            :         {
+<span class="lineNum">     338 </span>                :            :             // special case for erasing from the front
+<span class="lineNum">     339 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :             if (++nReadPos &gt;= vch.size())</span>
+<span class="lineNum">     340 </span>                :            :             {
+<span class="lineNum">     341 </span>                :            :                 // whenever we reach the end, we take the opportunity to clear the buffer
+<span class="lineNum">     342 </span>                :<span class="lineNoCov">          0 :                 nReadPos = 0;</span>
+<span class="lineNum">     343 </span>                :<span class="lineNoCov">          0 :                 return vch.erase(vch.begin(), vch.end());</span>
+<span class="lineNum">     344 </span>                :            :             }
+<span class="lineNum">     345 </span>                :<span class="lineCov">          1 :             return vch.begin() + nReadPos;</span>
+<span class="lineNum">     346 </span>                :            :         }
+<span class="lineNum">     347 </span>                :            :         else
+<span class="lineNum">     348 </span>                :<span class="lineCov">          2 :             return vch.erase(it);</span>
+<span class="lineNum">     349 </span>                :            :     }
+<span class="lineNum">     350 </span>                :            : 
+<span class="lineNum">     351 </span>                :            :     iterator erase(iterator first, iterator last)
+<span class="lineNum">     352 </span>                :            :     {
+<span class="lineNum">     353 </span>                :            :         if (first == vch.begin() + nReadPos)
+<span class="lineNum">     354 </span>                :            :         {
+<span class="lineNum">     355 </span>                :            :             // special case for erasing from the front
+<span class="lineNum">     356 </span>                :            :             if (last == vch.end())
+<span class="lineNum">     357 </span>                :            :             {
+<span class="lineNum">     358 </span>                :            :                 nReadPos = 0;
+<span class="lineNum">     359 </span>                :            :                 return vch.erase(vch.begin(), vch.end());
+<span class="lineNum">     360 </span>                :            :             }
+<span class="lineNum">     361 </span>                :            :             else
+<span class="lineNum">     362 </span>                :            :             {
+<span class="lineNum">     363 </span>                :            :                 nReadPos = (last - vch.begin());
+<span class="lineNum">     364 </span>                :            :                 return last;
+<span class="lineNum">     365 </span>                :            :             }
+<span class="lineNum">     366 </span>                :            :         }
+<span class="lineNum">     367 </span>                :            :         else
+<span class="lineNum">     368 </span>                :            :             return vch.erase(first, last);
+<span class="lineNum">     369 </span>                :            :     }
+<span class="lineNum">     370 </span>                :            : 
+<span class="lineNum">     371 </span>                :            :     inline void Compact()
+<span class="lineNum">     372 </span>                :            :     {
+<span class="lineNum">     373 </span>                :            :         vch.erase(vch.begin(), vch.begin() + nReadPos);
+<span class="lineNum">     374 </span>                :            :         nReadPos = 0;
+<span class="lineNum">     375 </span>                :            :     }
+<span class="lineNum">     376 </span>                :            : 
+<span class="lineNum">     377 </span>                :            :     bool Rewind(size_type n)
+<span class="lineNum">     378 </span>                :            :     {
+<span class="lineNum">     379 </span>                :            :         // Rewind by n characters if the buffer hasn't been compacted yet
+<span class="lineNum">     380 </span>                :            :         if (n &gt; nReadPos)
+<span class="lineNum">     381 </span>                :            :             return false;
+<span class="lineNum">     382 </span>                :            :         nReadPos -= n;
+<span class="lineNum">     383 </span>                :            :         return true;
+<span class="lineNum">     384 </span>                :            :     }
+<span class="lineNum">     385 </span>                :            : 
+<span class="lineNum">     386 </span>                :            : 
+<span class="lineNum">     387 </span>                :            :     //
+<span class="lineNum">     388 </span>                :            :     // Stream subset
+<span class="lineNum">     389 </span>                :            :     //
+<span class="lineNum">     390 </span>                :<span class="lineCov">         20 :     bool eof() const             { return size() == 0; }</span>
+<span class="lineNum">     391 </span>                :            :     CDataStream* rdbuf()         { return this; }
+<span class="lineNum">     392 </span>                :<span class="lineNoCov">          0 :     int in_avail() const         { return size(); }</span>
+<span class="lineNum">     393 </span>                :            : 
+<span class="lineNum">     394 </span>                :<span class="lineCov">         18 :     void SetType(int n)          { nType = n; }</span>
+<span class="lineNum">     395 </span>                :<span class="lineCov">       2033 :     int GetType() const          { return nType; }</span>
+<span class="lineNum">     396 </span>                :<span class="lineNoCov">          0 :     void SetVersion(int n)       { nVersion = n; }</span>
+<a name="397"><span class="lineNum">     397 </span>                :<span class="lineCov">       4482 :     int GetVersion() const       { return nVersion; }</span></a>
+<span class="lineNum">     398 </span>                :            : 
+<span class="lineNum">     399 </span>                :<span class="lineCov">     416895 :     void read(char* pch, size_t nSize)</span>
+<span class="lineNum">     400 </span>                :            :     {
+<span class="lineNum">     401 </span>        [<span class="branchCov" title="Branch 0 was taken 416894 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">     416895 :         if (nSize == 0) return;</span>
+<span class="lineNum">     402 </span>                :            : 
+<span class="lineNum">     403 </span>                :            :         // Read from the beginning of the buffer
+<span class="lineNum">     404 </span>                :<span class="lineCov">     416894 :         unsigned int nReadPosNext = nReadPos + nSize;</span>
+<span class="lineNum">     405 </span>        [<span class="branchCov" title="Branch 0 was taken 157 times"> + </span><span class="branchCov" title="Branch 1 was taken 416737 times"> + </span>]:<span class="lineCov">     416894 :         if (nReadPosNext &gt; vch.size()) {</span>
+<span class="lineNum">     406 </span>        [<span class="branchCov" title="Branch 2 was taken 157 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        314 :             throw std::ios_base::failure(&quot;CDataStream::read(): end of data&quot;);</span>
+<span class="lineNum">     407 </span>                :            :         }
+<span class="lineNum">     408 </span>                :<span class="lineCov">    1250211 :         memcpy(pch, &amp;vch[nReadPos], nSize);</span>
+<span class="lineNum">     409 </span>        [<span class="branchCov" title="Branch 0 was taken 2072 times"> + </span><span class="branchCov" title="Branch 1 was taken 414665 times"> + </span>]:<span class="lineCov">     416737 :         if (nReadPosNext == vch.size())</span>
+<span class="lineNum">     410 </span>                :            :         {
+<span class="lineNum">     411 </span>                :<span class="lineCov">       2072 :             nReadPos = 0;</span>
+<span class="lineNum">     412 </span>                :<span class="lineCov">       2072 :             vch.clear();</span>
+<span class="lineNum">     413 </span>                :            :             return;
+<span class="lineNum">     414 </span>                :            :         }
+<span class="lineNum">     415 </span>                :<span class="lineCov">     416738 :         nReadPos = nReadPosNext;</span>
+<a name="416"><span class="lineNum">     416 </span>                :            :     }</a>
+<span class="lineNum">     417 </span>                :            : 
+<span class="lineNum">     418 </span>                :<span class="lineCov">          1 :     void ignore(int nSize)</span>
+<span class="lineNum">     419 </span>                :            :     {
+<span class="lineNum">     420 </span>                :            :         // Ignore from the beginning of the buffer
+<span class="lineNum">     421 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          1 :         if (nSize &lt; 0) {</span>
+<span class="lineNum">     422 </span>        [<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          2 :             throw std::ios_base::failure(&quot;CDataStream::ignore(): nSize negative&quot;);</span>
+<span class="lineNum">     423 </span>                :            :         }
+<span class="lineNum">     424 </span>                :<span class="lineNoCov">          0 :         unsigned int nReadPosNext = nReadPos + nSize;</span>
+<span class="lineNum">     425 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (nReadPosNext &gt;= vch.size())</span>
+<span class="lineNum">     426 </span>                :            :         {
+<span class="lineNum">     427 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (nReadPosNext &gt; vch.size())</span>
+<span class="lineNum">     428 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 throw std::ios_base::failure(&quot;CDataStream::ignore(): end of data&quot;);</span>
+<span class="lineNum">     429 </span>                :<span class="lineNoCov">          0 :             nReadPos = 0;</span>
+<span class="lineNum">     430 </span>                :<span class="lineNoCov">          0 :             vch.clear();</span>
+<span class="lineNum">     431 </span>                :            :             return;
+<span class="lineNum">     432 </span>                :            :         }
+<span class="lineNum">     433 </span>                :<span class="lineNoCov">          0 :         nReadPos = nReadPosNext;</span>
+<span class="lineNum">     434 </span>                :            :     }
+<span class="lineNum">     435 </span>                :            : 
+<span class="lineNum">     436 </span>                :            :     void write(const char* pch, size_t nSize)
+<span class="lineNum">     437 </span>                :            :     {
+<span class="lineNum">     438 </span>                :            :         // Write to the end of the buffer
+<span class="lineNum">     439 </span>[<span class="branchCov" title="Branch 4 was taken 11 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchCov" title="Branch 14 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>]:<span class="lineCov">    3560106 :         vch.insert(vch.end(), pch, pch + nSize);</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchCov" title="Branch 17 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 20 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>][<span class="branchCov" title="Branch 23 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 24 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 26 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 27 was not taken"> - </span>][<span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 45 was taken 107 times"> + </span><span class="branchNoCov" title="Branch 46 was not taken"> - </span>][<span class="branchNoExec" title="Branch 48 was not executed"> # </span><span class="branchNoExec" title="Branch 49 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 51 was not executed"> # </span><span class="branchNoExec" title="Branch 52 was not executed"> # </span>][<span class="branchCov" title="Branch 54 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 55 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 57 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 58 was not taken"> - </span>][<span class="branchNoExec" title="Branch 9 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 17 was not executed"> # </span><span class="branchNoExec" title="Branch 18 was not executed"> # </span>][<span class="branchCov" title="Branch 21 was taken 6 times"> + </span><span class="branchCov" title="Branch 22 was taken 1 time"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 18 times"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 9 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 12 was not taken"> - </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>][<span class="branchNoExec" title="Branch 15 was not executed"> # </span><span class="branchNoExec" title="Branch 16 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>][<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchCov" title="Branch 5 was taken 2 times"> + </span>][<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchCov" title="Branch 8 was taken 2 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 10 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>][<span class="branchCov" title="Branch 13 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 16 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 10 was taken 2 times"> + </span><span class="branchCov" title="Branch 11 was taken 2 times"> + </span>][<span class="branchCov" title="Branch 13 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>][<span class="branchCov" title="Branch 19 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 22 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>][<span class="branchCov" title="Branch 25 was taken 2048 times"> + </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 28 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>][<span class="branchCov" title="Branch 31 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>]
+<span class="lineNum">         </span>   [<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>][<span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>][<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 42 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 43 was not taken"> - </span>][<span class="branchCov" title="Branch 45 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 46 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 48 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 49 was not taken"> - </span>][<span class="branchCov" title="Branch 51 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 52 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 54 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 55 was not taken"> - </span>][<span class="branchCov" title="Branch 57 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 58 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 60 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 61 was not taken"> - </span>][<span class="branchCov" title="Branch 63 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 64 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 66 was taken 1000 times"> + </span><span class="branchNoCov" title="Branch 67 was not taken"> - </span>][<span class="branchCov" title="Branch 69 was taken 1000 times"> + </span><span class="branchNoCov" title="Branch 70 was not taken"> - </span>]
+<span class="lineNum">         </span>      [<span class="branchNoCov" title="Branch 6 was not taken"> - </span>][<span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 14 was taken 80 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>][<span class="branchCov" title="Branch 19 was taken 154 times"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>]
+<span class="lineNum">         </span>   [<span class="branchCov" title="Branch 23 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 24 was not taken"> - </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>][<span class="branchNoExec" title="Branch 39 was not executed"> # </span><span class="branchNoExec" title="Branch 40 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>][<span class="branchNoExec" title="Branch 45 was not executed"> # </span><span class="branchNoExec" title="Branch 46 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 48 was not executed"> # </span><span class="branchNoExec" title="Branch 49 was not executed"> # </span>][<span class="branchNoExec" title="Branch 55 was not executed"> # </span><span class="branchNoExec" title="Branch 56 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 58 was not executed"> # </span><span class="branchNoExec" title="Branch 59 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>][<span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 27 was not executed"> # </span><span class="branchNoExec" title="Branch 28 was not executed"> # </span>][<span class="branchNoExec" title="Branch 49 was not executed"> # </span><span class="branchNoExec" title="Branch 50 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>]
+<span class="lineNum">     440 </span>                :            :     }
+<span class="lineNum">     441 </span>                :            : 
+<span class="lineNum">     442 </span>                :            :     template&lt;typename Stream&gt;
+<span class="lineNum">     443 </span>                :            :     void Serialize(Stream&amp; s) const
+<span class="lineNum">     444 </span>                :            :     {
+<span class="lineNum">     445 </span>                :            :         // Special case: stream &lt;&lt; stream concatenates like stream += stream
+<span class="lineNum">     446 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!vch.empty())</span>
+<span class="lineNum">     447 </span>                :<span class="lineNoCov">          0 :             s.write((char*)vch.data(), vch.size() * sizeof(value_type));</span>
+<span class="lineNum">     448 </span>                :            :     }
+<span class="lineNum">     449 </span>                :            : 
+<span class="lineNum">     450 </span>                :            :     template&lt;typename T&gt;
+<span class="lineNum">     451 </span>                :            :     CDataStream&amp; operator&lt;&lt;(const T&amp; obj)
+<span class="lineNum">     452 </span>                :            :     {
+<span class="lineNum">     453 </span>                :            :         // Serialize to this stream
+<span class="lineNum">     454 </span>     [<span class="branchCov" title="Branch 2 was taken 145 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 18 times"> + </span>]:<span class="lineCov">     530813 :         ::Serialize(*this, obj);</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 262 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 13 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 19 was taken 1001 times"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>][<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 25 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span>][<span class="branchCov" title="Branch 28 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 2000 times"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 107 times"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 43 was not executed"> # </span><span class="branchNoExec" title="Branch 44 was not executed"> # </span>][<span class="branchNoExec" title="Branch 46 was not executed"> # </span><span class="branchNoExec" title="Branch 47 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 49 was not executed"> # </span><span class="branchNoExec" title="Branch 50 was not executed"> # </span>][<span class="branchCov" title="Branch 52 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 53 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 55 was not executed"> # </span><span class="branchNoExec" title="Branch 56 was not executed"> # </span>][<span class="branchNoExec" title="Branch 58 was not executed"> # </span><span class="branchNoExec" title="Branch 59 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 61 was not executed"> # </span><span class="branchNoExec" title="Branch 62 was not executed"> # </span>][<span class="branchCov" title="Branch 64 was taken 2002 times"> + </span><span class="branchNoCov" title="Branch 65 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 67 was taken 2002 times"> + </span><span class="branchNoCov" title="Branch 68 was not taken"> - </span>][<span class="branchCov" title="Branch 70 was taken 2002 times"> + </span><span class="branchNoCov" title="Branch 71 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 73 was not executed"> # </span><span class="branchNoExec" title="Branch 74 was not executed"> # </span>][<span class="branchCov" title="Branch 76 was taken 108 times"> + </span><span class="branchNoCov" title="Branch 77 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 79 was not executed"> # </span><span class="branchNoExec" title="Branch 80 was not executed"> # </span>][<span class="branchNoExec" title="Branch 82 was not executed"> # </span><span class="branchNoExec" title="Branch 83 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 85 was not executed"> # </span><span class="branchNoExec" title="Branch 86 was not executed"> # </span>][<span class="branchCov" title="Branch 88 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 89 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 91 was not executed"> # </span><span class="branchNoExec" title="Branch 92 was not executed"> # </span>][<span class="branchNoExec" title="Branch 94 was not executed"> # </span><span class="branchNoExec" title="Branch 95 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 97 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 98 was not taken"> - </span>]
+<span class="lineNum">         </span>     [<span class="branchCov" title="Branch 4 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 9 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchCov" title="Branch 13 was taken 210 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 17 was not executed"> # </span><span class="branchNoExec" title="Branch 18 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>][<span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>           [<span class="branchNoCov" title="Branch 14 was not taken"> - </span>]
+<span class="lineNum">     455 </span>                :            :         return (*this);
+<span class="lineNum">     456 </span>                :            :     }
+<span class="lineNum">     457 </span>                :            : 
+<span class="lineNum">     458 </span>                :            :     template&lt;typename T&gt;
+<span class="lineNum">     459 </span>                :            :     CDataStream&amp; operator&gt;&gt;(T&amp;&amp; obj)
+<span class="lineNum">     460 </span>                :            :     {
+<span class="lineNum">     461 </span>                :            :         // Unserialize from this stream
+<span class="lineNum">     462 </span>[<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>][<span class="branchNoExec" title="Branch 9 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span>]:<span class="lineCov">       9057 :         ::Unserialize(*this, obj);</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>][<span class="branchNoExec" title="Branch 15 was not executed"> # </span><span class="branchNoExec" title="Branch 16 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 18 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span>][<span class="branchNoExec" title="Branch 21 was not executed"> # </span><span class="branchNoExec" title="Branch 22 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span>][<span class="branchNoExec" title="Branch 27 was not executed"> # </span><span class="branchNoExec" title="Branch 28 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>][<span class="branchNoExec" title="Branch 33 was not executed"> # </span><span class="branchNoExec" title="Branch 34 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>][<span class="branchNoExec" title="Branch 39 was not executed"> # </span><span class="branchNoExec" title="Branch 40 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>][<span class="branchCov" title="Branch 6 was taken 525 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>]
+<span class="lineNum">     463 </span>                :            :         return (*this);
+<a name="464"><span class="lineNum">     464 </span>                :            :     }</a>
+<span class="lineNum">     465 </span>                :            : 
+<span class="lineNum">     466 </span>                :<span class="lineCov">          1 :     void GetAndClear(CSerializeData &amp;d) {</span>
+<span class="lineNum">     467 </span>                :<span class="lineCov">          1 :         d.insert(d.end(), begin(), end());</span>
+<span class="lineNum">     468 </span>                :<span class="lineCov">          1 :         clear();</span>
+<span class="lineNum">     469 </span>                :<span class="lineCov">          1 :     }</span>
+<span class="lineNum">     470 </span>                :            : 
+<span class="lineNum">     471 </span>                :            :     /**
+<span class="lineNum">     472 </span>                :            :      * XOR the contents of this stream with a certain key.
+<span class="lineNum">     473 </span>                :            :      *
+<a name="474"><span class="lineNum">     474 </span>                :            :      * @param[in] key    The key used to XOR the data in this stream.</a>
+<span class="lineNum">     475 </span>                :            :      */
+<span class="lineNum">     476 </span>                :<span class="lineCov">       1024 :     void Xor(const std::vector&lt;unsigned char&gt;&amp; key)</span>
+<span class="lineNum">     477 </span>                :            :     {
+<span class="lineNum">     478 </span>        [<span class="branchCov" title="Branch 0 was taken 1024 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       1024 :         if (key.size() == 0) {</span>
+<span class="lineNum">     479 </span>                :            :             return;
+<span class="lineNum">     480 </span>                :            :         }
+<span class="lineNum">     481 </span>                :            : 
+<span class="lineNum">     482 </span>        [<span class="branchCov" title="Branch 0 was taken 6028 times"> + </span><span class="branchCov" title="Branch 1 was taken 1024 times"> + </span>]:<span class="lineCov">       7052 :         for (size_type i = 0, j = 0; i != size(); i++) {</span>
+<span class="lineNum">     483 </span>                :<span class="lineCov">      18084 :             vch[i] ^= key[j++];</span>
+<span class="lineNum">     484 </span>                :            : 
+<span class="lineNum">     485 </span>                :            :             // This potentially acts on very many bytes of data, so it's
+<span class="lineNum">     486 </span>                :            :             // important that we calculate `j`, i.e. the `key` index in this
+<span class="lineNum">     487 </span>                :            :             // way instead of doing a %, which would effectively be a division
+<span class="lineNum">     488 </span>                :            :             // for each byte Xor'd -- much slower than need be.
+<span class="lineNum">     489 </span>        [<span class="branchCov" title="Branch 0 was taken 277 times"> + </span><span class="branchCov" title="Branch 1 was taken 5751 times"> + </span>]:<span class="lineCov">       6028 :             if (j == key.size())</span>
+<span class="lineNum">     490 </span>                :<span class="lineCov">        277 :                 j = 0;</span>
+<span class="lineNum">     491 </span>                :            :         }
+<span class="lineNum">     492 </span>                :            :     }
+<span class="lineNum">     493 </span>                :            : };
+<span class="lineNum">     494 </span>                :            : 
+<span class="lineNum">     495 </span>                :            : template &lt;typename IStream&gt;
+<span class="lineNum">     496 </span>                :            : class BitStreamReader
+<span class="lineNum">     497 </span>                :            : {
+<span class="lineNum">     498 </span>                :            : private:
+<span class="lineNum">     499 </span>                :            :     IStream&amp; m_istream;
+<span class="lineNum">     500 </span>                :            : 
+<span class="lineNum">     501 </span>                :            :     /// Buffered byte read in from the input stream. A new byte is read into the
+<span class="lineNum">     502 </span>                :            :     /// buffer when m_offset reaches 8.
+<span class="lineNum">     503 </span>                :            :     uint8_t m_buffer{0};
+<span class="lineNum">     504 </span>                :            : 
+<span class="lineNum">     505 </span>                :            :     /// Number of high order bits in m_buffer already returned by previous
+<span class="lineNum">     506 </span>                :            :     /// Read() calls. The next bit to be returned is at this offset from the
+<span class="lineNum">     507 </span>                :            :     /// most significant bit position.
+<span class="lineNum">     508 </span>                :            :     int m_offset{8};
+<span class="lineNum">     509 </span>                :            : 
+<span class="lineNum">     510 </span>                :            : public:
+<span class="lineNum">     511 </span>                :<span class="lineCov">        210 :     explicit BitStreamReader(IStream&amp; istream) : m_istream(istream) {}</span>
+<span class="lineNum">     512 </span>                :            : 
+<span class="lineNum">     513 </span>                :            :     /** Read the specified number of bits from the stream. The data is returned
+<a name="514"><span class="lineNum">     514 </span>                :            :      * in the nbits least significant bits of a 64-bit uint.</a>
+<span class="lineNum">     515 </span>                :            :      */
+<span class="lineNum">     516 </span>                :<span class="lineCov">      23467 :     uint64_t Read(int nbits) {</span>
+<span class="lineNum">     517 </span>        [<span class="branchCov" title="Branch 0 was taken 23467 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      23467 :         if (nbits &lt; 0 || nbits &gt; 64) {</span>
+<span class="lineNum">     518 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::out_of_range(&quot;nbits must be between 0 and 64&quot;);</span>
+<span class="lineNum">     519 </span>                :            :         }
+<span class="lineNum">     520 </span>                :            : 
+<span class="lineNum">     521 </span>                :            :         uint64_t data = 0;
+<span class="lineNum">     522 </span>        [<span class="branchCov" title="Branch 0 was taken 34463 times"> + </span><span class="branchCov" title="Branch 1 was taken 23466 times"> + </span>]:<span class="lineCov">      57929 :         while (nbits &gt; 0) {</span>
+<span class="lineNum">     523 </span>        [<span class="branchCov" title="Branch 0 was taken 13624 times"> + </span><span class="branchCov" title="Branch 1 was taken 20839 times"> + </span>]:<span class="lineCov">      34463 :             if (m_offset == 8) {</span>
+<span class="lineNum">     524 </span>                :<span class="lineCov">      27247 :                 m_istream &gt;&gt; m_buffer;</span>
+<span class="lineNum">     525 </span>                :<span class="lineCov">      13623 :                 m_offset = 0;</span>
+<span class="lineNum">     526 </span>                :            :             }
+<span class="lineNum">     527 </span>                :            : 
+<span class="lineNum">     528 </span>                :<span class="lineCov">      68924 :             int bits = std::min(8 - m_offset, nbits);</span>
+<span class="lineNum">     529 </span>                :<span class="lineCov">      34462 :             data &lt;&lt;= bits;</span>
+<span class="lineNum">     530 </span>                :<span class="lineCov">      34462 :             data |= static_cast&lt;uint8_t&gt;(m_buffer &lt;&lt; m_offset) &gt;&gt; (8 - bits);</span>
+<span class="lineNum">     531 </span>                :<span class="lineCov">      34462 :             m_offset += bits;</span>
+<span class="lineNum">     532 </span>                :<span class="lineCov">      34462 :             nbits -= bits;</span>
+<span class="lineNum">     533 </span>                :            :         }
+<span class="lineNum">     534 </span>                :<span class="lineCov">      23466 :         return data;</span>
+<span class="lineNum">     535 </span>                :            :     }
+<span class="lineNum">     536 </span>                :            : };
+<span class="lineNum">     537 </span>                :            : 
+<span class="lineNum">     538 </span>                :            : template &lt;typename OStream&gt;
+<span class="lineNum">     539 </span>                :            : class BitStreamWriter
+<span class="lineNum">     540 </span>                :            : {
+<span class="lineNum">     541 </span>                :            : private:
+<span class="lineNum">     542 </span>                :            :     OStream&amp; m_ostream;
+<span class="lineNum">     543 </span>                :            : 
+<span class="lineNum">     544 </span>                :            :     /// Buffered byte waiting to be written to the output stream. The byte is
+<span class="lineNum">     545 </span>                :            :     /// written buffer when m_offset reaches 8 or Flush() is called.
+<span class="lineNum">     546 </span>                :            :     uint8_t m_buffer{0};
+<span class="lineNum">     547 </span>                :            : 
+<span class="lineNum">     548 </span>                :            :     /// Number of high order bits in m_buffer already written by previous
+<span class="lineNum">     549 </span>                :            :     /// Write() calls and not yet flushed to the stream. The next bit to be
+<span class="lineNum">     550 </span>                :            :     /// written to is at this offset from the most significant bit position.
+<span class="lineNum">     551 </span>                :            :     int m_offset{0};
+<span class="lineNum">     552 </span>                :            : 
+<span class="lineNum">     553 </span>                :            : public:
+<span class="lineNum">     554 </span>                :<span class="lineCov">         11 :     explicit BitStreamWriter(OStream&amp; ostream) : m_ostream(ostream) {}</span>
+<span class="lineNum">     555 </span>                :            : 
+<span class="lineNum">     556 </span>                :            :     ~BitStreamWriter()
+<span class="lineNum">     557 </span>                :            :     {
+<span class="lineNum">     558 </span>                :<span class="lineCov">         11 :         Flush();</span>
+<span class="lineNum">     559 </span>                :<span class="lineCov">          1 :     }</span>
+<span class="lineNum">     560 </span>                :            : 
+<span class="lineNum">     561 </span>                :            :     /** Write the nbits least significant bits of a 64-bit int to the output
+<a name="562"><span class="lineNum">     562 </span>                :            :      * stream. Data is buffered until it completes an octet.</a>
+<span class="lineNum">     563 </span>                :            :      */
+<span class="lineNum">     564 </span>                :<span class="lineCov">        352 :     void Write(uint64_t data, int nbits) {</span>
+<span class="lineNum">     565 </span>        [<span class="branchCov" title="Branch 0 was taken 352 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        352 :         if (nbits &lt; 0 || nbits &gt; 64) {</span>
+<span class="lineNum">     566 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">        611 :             throw std::out_of_range(&quot;nbits must be between 0 and 64&quot;);</span>
+<span class="lineNum">     567 </span>                :            :         }
+<span class="lineNum">     568 </span>                :            : 
+<span class="lineNum">     569 </span>        [<span class="branchCov" title="Branch 0 was taken 573 times"> + </span><span class="branchCov" title="Branch 1 was taken 352 times"> + </span>]:<span class="lineCov">        925 :         while (nbits &gt; 0) {</span>
+<span class="lineNum">     570 </span>                :<span class="lineCov">       1146 :             int bits = std::min(8 - m_offset, nbits);</span>
+<span class="lineNum">     571 </span>                :<span class="lineCov">        573 :             m_buffer |= (data &lt;&lt; (64 - nbits)) &gt;&gt; (64 - 8 + m_offset);</span>
+<span class="lineNum">     572 </span>                :<span class="lineCov">        573 :             m_offset += bits;</span>
+<span class="lineNum">     573 </span>                :<span class="lineCov">        573 :             nbits -= bits;</span>
+<span class="lineNum">     574 </span>                :            : 
+<span class="lineNum">     575 </span>        [<span class="branchCov" title="Branch 0 was taken 314 times"> + </span><span class="branchCov" title="Branch 1 was taken 259 times"> + </span>]:<span class="lineCov">        573 :             if (m_offset == 8) {</span>
+<span class="lineNum">     576 </span>                :<span class="lineCov">        259 :                 Flush();</span>
+<span class="lineNum">     577 </span>                :            :             }
+<span class="lineNum">     578 </span>                :            :         }
+<span class="lineNum">     579 </span>                :<span class="lineCov">        352 :     }</span>
+<span class="lineNum">     580 </span>                :            : 
+<span class="lineNum">     581 </span>                :            :     /** Flush any unwritten bits to the output stream, padding with 0's to the
+<a name="582"><span class="lineNum">     582 </span>                :            :      * next byte boundary.</a>
+<span class="lineNum">     583 </span>                :            :      */
+<span class="lineNum">     584 </span>                :<span class="lineCov">        281 :     void Flush() {</span>
+<span class="lineNum">     585 </span>        [<span class="branchCov" title="Branch 0 was taken 269 times"> + </span><span class="branchCov" title="Branch 1 was taken 12 times"> + </span>]:<span class="lineCov">        281 :         if (m_offset == 0) {</span>
+<span class="lineNum">     586 </span>                :            :             return;
+<span class="lineNum">     587 </span>                :            :         }
+<span class="lineNum">     588 </span>                :            : 
+<span class="lineNum">     589 </span>                :<span class="lineCov">        538 :         m_ostream &lt;&lt; m_buffer;</span>
+<span class="lineNum">     590 </span>                :<span class="lineCov">        269 :         m_buffer = 0;</span>
+<span class="lineNum">     591 </span>                :<span class="lineCov">        269 :         m_offset = 0;</span>
+<span class="lineNum">     592 </span>                :            :     }
+<span class="lineNum">     593 </span>                :            : };
+<span class="lineNum">     594 </span>                :            : 
+<span class="lineNum">     595 </span>                :            : 
+<span class="lineNum">     596 </span>                :            : 
+<span class="lineNum">     597 </span>                :            : /** Non-refcounted RAII wrapper for FILE*
+<span class="lineNum">     598 </span>                :            :  *
+<span class="lineNum">     599 </span>                :            :  * Will automatically close the file when it goes out of scope if not null.
+<span class="lineNum">     600 </span>                :            :  * If you're returning the file pointer, return file.release().
+<span class="lineNum">     601 </span>                :            :  * If you need to close the file early, use file.fclose() instead of fclose(file).
+<span class="lineNum">     602 </span>                :            :  */
+<span class="lineNum">     603 </span>                :            : class CAutoFile
+<span class="lineNum">     604 </span>                :            : {
+<span class="lineNum">     605 </span>                :            : private:
+<span class="lineNum">     606 </span>                :            :     const int nType;
+<span class="lineNum">     607 </span>                :            :     const int nVersion;
+<span class="lineNum">     608 </span>                :            : 
+<span class="lineNum">     609 </span>                :            :     FILE* file;
+<span class="lineNum">     610 </span>                :            : 
+<span class="lineNum">     611 </span>                :            : public:
+<span class="lineNum">     612 </span>                :<span class="lineCov">       3300 :     CAutoFile(FILE* filenew, int nTypeIn, int nVersionIn) : nType(nTypeIn), nVersion(nVersionIn)</span>
+<span class="lineNum">     613 </span>                :            :     {
+<span class="lineNum">     614 </span>                :<span class="lineCov">       3300 :         file = filenew;</span>
+<span class="lineNum">     615 </span>                :            :     }
+<span class="lineNum">     616 </span>                :            : 
+<span class="lineNum">     617 </span>                :            :     ~CAutoFile()
+<span class="lineNum">     618 </span>                :<span class="lineCov">         17 :     {</span>
+<span class="lineNum">     619 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineCov">        236 :         fclose();</span>
+<span class="lineNum">     620 </span>                :            :     }
+<span class="lineNum">     621 </span>                :            : 
+<span class="lineNum">     622 </span>                :            :     // Disallow copies
+<span class="lineNum">     623 </span>                :            :     CAutoFile(const CAutoFile&amp;) = delete;
+<span class="lineNum">     624 </span>                :            :     CAutoFile&amp; operator=(const CAutoFile&amp;) = delete;
+<span class="lineNum">     625 </span>                :            : 
+<span class="lineNum">     626 </span>                :            :     void fclose()
+<span class="lineNum">     627 </span>                :            :     {
+<span class="lineNum">     628 </span>        [<span class="branchCov" title="Branch 0 was taken 110 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       3317 :         if (file) {</span>
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 12 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 16 was taken 1296 times"> + </span><span class="branchCov" title="Branch 17 was taken 17 times"> + </span><span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span><span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 24 was taken 353 times"> + </span><span class="branchCov" title="Branch 25 was taken 104 times"> + </span><span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 28 was taken 1411 times"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span><span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>][<span class="branchCov" title="Branch 14 was taken 17 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>]
+<span class="lineNum">     629 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineCov">       3196 :             ::fclose(file);</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 10 was taken 17 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">     630 </span>                :<span class="lineCov">         17 :             file = nullptr;</span>
+<span class="lineNum">     631 </span>                :            :         }
+<span class="lineNum">     632 </span>                :            :     }
+<span class="lineNum">     633 </span>                :            : 
+<span class="lineNum">     634 </span>                :            :     /** Get wrapped FILE* with transfer of ownership.
+<span class="lineNum">     635 </span>                :            :      * @note This will invalidate the CAutoFile object, and makes it the responsibility of the caller
+<span class="lineNum">     636 </span>                :            :      * of this function to clean up the returned FILE*.
+<span class="lineNum">     637 </span>                :            :      */
+<span class="lineNum">     638 </span>                :            :     FILE* release()             { FILE* ret = file; file = nullptr; return ret; }
+<span class="lineNum">     639 </span>                :            : 
+<span class="lineNum">     640 </span>                :            :     /** Get wrapped FILE* without transfer of ownership.
+<span class="lineNum">     641 </span>                :            :      * @note Ownership of the FILE* will remain with this class. Use this only if the scope of the
+<span class="lineNum">     642 </span>                :            :      * CAutoFile outlives use of the passed pointer.
+<span class="lineNum">     643 </span>                :            :      */
+<span class="lineNum">     644 </span>                :<span class="lineCov">       2834 :     FILE* Get() const           { return file; }</span>
+<span class="lineNum">     645 </span>                :            : 
+<span class="lineNum">     646 </span>                :            :     /** Return true if the wrapped FILE* is nullptr, false otherwise.
+<span class="lineNum">     647 </span>                :            :      */
+<span class="lineNum">     648 </span>                :            :     bool IsNull() const         { return (file == nullptr); }
+<span class="lineNum">     649 </span>                :            : 
+<span class="lineNum">     650 </span>                :            :     //
+<span class="lineNum">     651 </span>                :            :     // Stream subset
+<span class="lineNum">     652 </span>                :            :     //
+<span class="lineNum">     653 </span>                :<span class="lineNoCov">          0 :     int GetType() const          { return nType; }</span>
+<a name="654"><span class="lineNum">     654 </span>                :<span class="lineCov">       1894 :     int GetVersion() const       { return nVersion; }</span></a>
+<span class="lineNum">     655 </span>                :            : 
+<span class="lineNum">     656 </span>                :<span class="lineCov">       9681 :     void read(char* pch, size_t nSize)</span>
+<span class="lineNum">     657 </span>                :            :     {
+<span class="lineNum">     658 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 9681 times"> + </span>]:<span class="lineCov">       9681 :         if (!file)</span>
+<span class="lineNum">     659 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;CAutoFile::read: file handle is nullptr&quot;);</span>
+<span class="lineNum">     660 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 9681 times"> + </span>]:<span class="lineCov">       9681 :         if (fread(pch, 1, nSize, file) != nSize)</span>
+<span class="lineNum">     661 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(feof(file) ? &quot;CAutoFile::read: end of file&quot; : &quot;CAutoFile::read: fread failed&quot;);</span>
+<span class="lineNum">     662 </span>                :<span class="lineCov">       9681 :     }</span>
+<span class="lineNum">     663 </span>                :            : 
+<span class="lineNum">     664 </span>                :            :     void ignore(size_t nSize)
+<span class="lineNum">     665 </span>                :            :     {
+<span class="lineNum">     666 </span>                :            :         if (!file)
+<span class="lineNum">     667 </span>                :            :             throw std::ios_base::failure(&quot;CAutoFile::ignore: file handle is nullptr&quot;);
+<span class="lineNum">     668 </span>                :            :         unsigned char data[4096];
+<span class="lineNum">     669 </span>                :            :         while (nSize &gt; 0) {
+<span class="lineNum">     670 </span>                :            :             size_t nNow = std::min&lt;size_t&gt;(nSize, sizeof(data));
+<span class="lineNum">     671 </span>                :            :             if (fread(data, 1, nNow, file) != nNow)
+<span class="lineNum">     672 </span>                :            :                 throw std::ios_base::failure(feof(file) ? &quot;CAutoFile::ignore: end of file&quot; : &quot;CAutoFile::read: fread failed&quot;);
+<span class="lineNum">     673 </span>                :            :             nSize -= nNow;
+<span class="lineNum">     674 </span>                :            :         }
+<a name="675"><span class="lineNum">     675 </span>                :            :     }</a>
+<span class="lineNum">     676 </span>                :            : 
+<span class="lineNum">     677 </span>                :<span class="lineCov">      38400 :     void write(const char* pch, size_t nSize)</span>
+<span class="lineNum">     678 </span>                :            :     {
+<span class="lineNum">     679 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 38400 times"> + </span>]:<span class="lineCov">      38400 :         if (!file)</span>
+<span class="lineNum">     680 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;CAutoFile::write: file handle is nullptr&quot;);</span>
+<span class="lineNum">     681 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 38400 times"> + </span>]:<span class="lineCov">      38400 :         if (fwrite(pch, 1, nSize, file) != nSize)</span>
+<span class="lineNum">     682 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;CAutoFile::write: write failed&quot;);</span>
+<span class="lineNum">     683 </span>                :<span class="lineCov">      38400 :     }</span>
+<a name="684"><span class="lineNum">     684 </span>                :            : </a>
+<span class="lineNum">     685 </span>                :            :     template&lt;typename T&gt;
+<span class="lineNum">     686 </span>                :<span class="lineCov">      15187 :     CAutoFile&amp; operator&lt;&lt;(const T&amp; obj)</span>
+<span class="lineNum">     687 </span>                :            :     {
+<span class="lineNum">     688 </span>                :            :         // Serialize to this stream
+<span class="lineNum">     689 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">      15187 :         if (!file)</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchNoCov" title="Branch 6 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 5565 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 8 was not taken"> - </span><span class="branchCov" title="Branch 9 was taken 17 times"> + </span>][<span class="branchNoCov" title="Branch 10 was not taken"> - </span><span class="branchCov" title="Branch 11 was taken 1446 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 12 was not taken"> - </span><span class="branchCov" title="Branch 13 was taken 1446 times"> + </span>][<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>][<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>][<span class="branchNoCov" title="Branch 22 was not taken"> - </span><span class="branchCov" title="Branch 23 was taken 1296 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 24 was not taken"> - </span><span class="branchCov" title="Branch 25 was taken 1296 times"> + </span>][<span class="branchNoCov" title="Branch 26 was not taken"> - </span><span class="branchCov" title="Branch 27 was taken 1411 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span>][<span class="branchNoCov" title="Branch 30 was not taken"> - </span><span class="branchCov" title="Branch 31 was taken 2707 times"> + </span>]
+<span class="lineNum">     690 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;CAutoFile::operator&lt;&lt;: file handle is nullptr&quot;);</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>][<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span>][<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>][<span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>][<span class="branchNoExec" title="Branch 56 was not executed"> # </span><span class="branchNoExec" title="Branch 57 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 62 was not executed"> # </span><span class="branchNoExec" title="Branch 63 was not executed"> # </span>][<span class="branchNoExec" title="Branch 68 was not executed"> # </span><span class="branchNoExec" title="Branch 69 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 74 was not executed"> # </span><span class="branchNoExec" title="Branch 75 was not executed"> # </span>][<span class="branchNoExec" title="Branch 80 was not executed"> # </span><span class="branchNoExec" title="Branch 81 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 86 was not executed"> # </span><span class="branchNoExec" title="Branch 87 was not executed"> # </span>][<span class="branchNoExec" title="Branch 92 was not executed"> # </span><span class="branchNoExec" title="Branch 93 was not executed"> # </span>]
+<span class="lineNum">     691 </span>                :<span class="lineCov">       2875 :         ::Serialize(*this, obj);</span>
+<span class="lineNum">     692 </span>                :<span class="lineCov">      15187 :         return (*this);</span>
+<span class="lineNum">     693 </span>                :            :     }
+<a name="694"><span class="lineNum">     694 </span>                :            : </a>
+<span class="lineNum">     695 </span>                :            :     template&lt;typename T&gt;
+<span class="lineNum">     696 </span>                :<span class="lineCov">       2442 :     CAutoFile&amp; operator&gt;&gt;(T&amp;&amp; obj)</span>
+<span class="lineNum">     697 </span>                :            :     {
+<span class="lineNum">     698 </span>                :            :         // Unserialize from this stream
+<span class="lineNum">     699 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 465 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">       2442 :         if (!file)</span>
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 465 times"> + </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 8 was not taken"> - </span><span class="branchCov" title="Branch 9 was taken 465 times"> + </span>][<span class="branchNoCov" title="Branch 10 was not taken"> - </span><span class="branchCov" title="Branch 11 was taken 465 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 12 was not taken"> - </span><span class="branchCov" title="Branch 13 was taken 110 times"> + </span>][<span class="branchNoCov" title="Branch 14 was not taken"> - </span><span class="branchCov" title="Branch 15 was taken 110 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>][<span class="branchNoCov" title="Branch 18 was not taken"> - </span><span class="branchCov" title="Branch 19 was taken 9 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>][<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoCov" title="Branch 24 was not taken"> - </span><span class="branchCov" title="Branch 25 was taken 353 times"> + </span>]
+<span class="lineNum">     700 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;CAutoFile::operator&gt;&gt;: file handle is nullptr&quot;);</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>][<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span>][<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>][<span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>][<span class="branchNoExec" title="Branch 56 was not executed"> # </span><span class="branchNoExec" title="Branch 57 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 62 was not executed"> # </span><span class="branchNoExec" title="Branch 63 was not executed"> # </span>][<span class="branchNoExec" title="Branch 68 was not executed"> # </span><span class="branchNoExec" title="Branch 69 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 74 was not executed"> # </span><span class="branchNoExec" title="Branch 75 was not executed"> # </span>]
+<span class="lineNum">     701 </span>                :<span class="lineCov">       1040 :         ::Unserialize(*this, obj);</span>
+<span class="lineNum">     702 </span>                :<span class="lineCov">       2442 :         return (*this);</span>
+<span class="lineNum">     703 </span>                :            :     }
+<span class="lineNum">     704 </span>                :            : };
+<span class="lineNum">     705 </span>                :            : 
+<span class="lineNum">     706 </span>                :            : /** Non-refcounted RAII wrapper around a FILE* that implements a ring buffer to
+<span class="lineNum">     707 </span>                :            :  *  deserialize from. It guarantees the ability to rewind a given number of bytes.
+<span class="lineNum">     708 </span>                :            :  *
+<span class="lineNum">     709 </span>                :            :  *  Will automatically close the file when it goes out of scope if not null.
+<span class="lineNum">     710 </span>                :            :  *  If you need to close the file early, use file.fclose() instead of fclose(file).
+<span class="lineNum">     711 </span>                :            :  */
+<span class="lineNum">     712 </span>                :            : class CBufferedFile
+<span class="lineNum">     713 </span>                :            : {
+<span class="lineNum">     714 </span>                :            : private:
+<span class="lineNum">     715 </span>                :            :     const int nType;
+<span class="lineNum">     716 </span>                :            :     const int nVersion;
+<span class="lineNum">     717 </span>                :            : 
+<span class="lineNum">     718 </span>                :            :     FILE *src;            // source file
+<span class="lineNum">     719 </span>                :            :     uint64_t nSrcPos;     // how many bytes have been read from source
+<span class="lineNum">     720 </span>                :            :     uint64_t nReadPos;    // how many bytes have been read from this
+<span class="lineNum">     721 </span>                :            :     uint64_t nReadLimit;  // up to which position we're allowed to read
+<span class="lineNum">     722 </span>                :            :     uint64_t nRewind;     // how many bytes we guarantee to rewind
+<span class="lineNum">     723 </span>                :            :     std::vector&lt;char&gt; vchBuf; // the buffer
+<span class="lineNum">     724 </span>                :            : 
+<a name="725"><span class="lineNum">     725 </span>                :            : protected:</a>
+<span class="lineNum">     726 </span>                :            :     // read data from the source to fill the buffer
+<span class="lineNum">     727 </span>                :<span class="lineNoCov">          0 :     bool Fill() {</span>
+<span class="lineNum">     728 </span>                :<span class="lineNoCov">          0 :         unsigned int pos = nSrcPos % vchBuf.size();</span>
+<span class="lineNum">     729 </span>                :<span class="lineNoCov">          0 :         unsigned int readNow = vchBuf.size() - pos;</span>
+<span class="lineNum">     730 </span>                :<span class="lineNoCov">          0 :         unsigned int nAvail = vchBuf.size() - (nSrcPos - nReadPos) - nRewind;</span>
+<span class="lineNum">     731 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (nAvail &lt; readNow)</span>
+<span class="lineNum">     732 </span>                :<span class="lineNoCov">          0 :             readNow = nAvail;</span>
+<span class="lineNum">     733 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (readNow == 0)</span>
+<span class="lineNum">     734 </span>                :            :             return false;
+<span class="lineNum">     735 </span>                :<span class="lineNoCov">          0 :         size_t nBytes = fread((void*)&amp;vchBuf[pos], 1, readNow, src);</span>
+<span class="lineNum">     736 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (nBytes == 0) {</span>
+<span class="lineNum">     737 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(feof(src) ? &quot;CBufferedFile::Fill: end of file&quot; : &quot;CBufferedFile::Fill: fread failed&quot;);</span>
+<span class="lineNum">     738 </span>                :            :         } else {
+<span class="lineNum">     739 </span>                :<span class="lineNoCov">          0 :             nSrcPos += nBytes;</span>
+<span class="lineNum">     740 </span>                :<span class="lineNoCov">          0 :             return true;</span>
+<span class="lineNum">     741 </span>                :            :         }
+<span class="lineNum">     742 </span>                :            :     }
+<span class="lineNum">     743 </span>                :            : 
+<span class="lineNum">     744 </span>                :            : public:
+<span class="lineNum">     745 </span>                :<span class="lineNoCov">          0 :     CBufferedFile(FILE *fileIn, uint64_t nBufSize, uint64_t nRewindIn, int nTypeIn, int nVersionIn) :</span>
+<span class="lineNum">     746 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         nType(nTypeIn), nVersion(nVersionIn), nSrcPos(0), nReadPos(0), nReadLimit(std::numeric_limits&lt;uint64_t&gt;::max()), nRewind(nRewindIn), vchBuf(nBufSize, 0)</span>
+<span class="lineNum">     747 </span>                :            :     {
+<span class="lineNum">     748 </span>                :<span class="lineNoCov">          0 :         src = fileIn;</span>
+<span class="lineNum">     749 </span>                :            :     }
+<span class="lineNum">     750 </span>                :            : 
+<span class="lineNum">     751 </span>                :<span class="lineNoCov">          0 :     ~CBufferedFile()</span>
+<span class="lineNum">     752 </span>                :<span class="lineNoCov">          0 :     {</span>
+<span class="lineNum">     753 </span>                :<span class="lineNoCov">          0 :         fclose();</span>
+<span class="lineNum">     754 </span>                :<span class="lineNoCov">          0 :     }</span>
+<span class="lineNum">     755 </span>                :            : 
+<span class="lineNum">     756 </span>                :            :     // Disallow copies
+<span class="lineNum">     757 </span>                :            :     CBufferedFile(const CBufferedFile&amp;) = delete;
+<span class="lineNum">     758 </span>                :            :     CBufferedFile&amp; operator=(const CBufferedFile&amp;) = delete;
+<span class="lineNum">     759 </span>                :            : 
+<span class="lineNum">     760 </span>                :<span class="lineNoCov">          0 :     int GetVersion() const { return nVersion; }</span>
+<span class="lineNum">     761 </span>                :            :     int GetType() const { return nType; }
+<span class="lineNum">     762 </span>                :            : 
+<span class="lineNum">     763 </span>                :            :     void fclose()
+<span class="lineNum">     764 </span>                :            :     {
+<span class="lineNum">     765 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (src) {</span>
+<span class="lineNum">     766 </span>                :<span class="lineNoCov">          0 :             ::fclose(src);</span>
+<span class="lineNum">     767 </span>                :<span class="lineNoCov">          0 :             src = nullptr;</span>
+<span class="lineNum">     768 </span>                :            :         }
+<span class="lineNum">     769 </span>                :            :     }
+<span class="lineNum">     770 </span>                :            : 
+<span class="lineNum">     771 </span>                :            :     // check whether we're at the end of the source file
+<span class="lineNum">     772 </span>                :            :     bool eof() const {
+<span class="lineNum">     773 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :         return nReadPos == nSrcPos &amp;&amp; feof(src);</span>
+<span class="lineNum">     774 </span>                :            :     }
+<a name="775"><span class="lineNum">     775 </span>                :            : </a>
+<span class="lineNum">     776 </span>                :            :     // read a number of bytes
+<span class="lineNum">     777 </span>                :<span class="lineNoCov">          0 :     void read(char *pch, size_t nSize) {</span>
+<span class="lineNum">     778 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (nSize + nReadPos &gt; nReadLimit)</span>
+<span class="lineNum">     779 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Read attempted past buffer limit&quot;);</span>
+<span class="lineNum">     780 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (nSize + nRewind &gt; vchBuf.size())</span>
+<span class="lineNum">     781 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Read larger than buffer size&quot;);</span>
+<span class="lineNum">     782 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         while (nSize &gt; 0) {</span>
+<span class="lineNum">     783 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (nReadPos == nSrcPos)</span>
+<span class="lineNum">     784 </span>                :<span class="lineNoCov">          0 :                 Fill();</span>
+<span class="lineNum">     785 </span>                :<span class="lineNoCov">          0 :             unsigned int pos = nReadPos % vchBuf.size();</span>
+<span class="lineNum">     786 </span>                :<span class="lineNoCov">          0 :             size_t nNow = nSize;</span>
+<span class="lineNum">     787 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (nNow + pos &gt; vchBuf.size())</span>
+<span class="lineNum">     788 </span>                :<span class="lineNoCov">          0 :                 nNow = vchBuf.size() - pos;</span>
+<span class="lineNum">     789 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (nNow + nReadPos &gt; nSrcPos)</span>
+<span class="lineNum">     790 </span>                :<span class="lineNoCov">          0 :                 nNow = nSrcPos - nReadPos;</span>
+<span class="lineNum">     791 </span>                :<span class="lineNoCov">          0 :             memcpy(pch, &amp;vchBuf[pos], nNow);</span>
+<span class="lineNum">     792 </span>                :<span class="lineNoCov">          0 :             nReadPos += nNow;</span>
+<span class="lineNum">     793 </span>                :<span class="lineNoCov">          0 :             pch += nNow;</span>
+<span class="lineNum">     794 </span>                :<span class="lineNoCov">          0 :             nSize -= nNow;</span>
+<span class="lineNum">     795 </span>                :            :         }
+<span class="lineNum">     796 </span>                :<span class="lineNoCov">          0 :     }</span>
+<span class="lineNum">     797 </span>                :            : 
+<span class="lineNum">     798 </span>                :            :     // return the current reading position
+<span class="lineNum">     799 </span>                :            :     uint64_t GetPos() const {
+<span class="lineNum">     800 </span>                :<span class="lineNoCov">          0 :         return nReadPos;</span>
+<span class="lineNum">     801 </span>                :            :     }
+<span class="lineNum">     802 </span>                :            : 
+<span class="lineNum">     803 </span>                :            :     // rewind to a given reading position
+<span class="lineNum">     804 </span>                :            :     bool SetPos(uint64_t nPos) {
+<span class="lineNum">     805 </span>                :<span class="lineNoCov">          0 :         nReadPos = nPos;</span>
+<span class="lineNum">     806 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (nReadPos + nRewind &lt; nSrcPos) {</span>
+<span class="lineNum">     807 </span>                :<span class="lineNoCov">          0 :             nReadPos = nSrcPos - nRewind;</span>
+<span class="lineNum">     808 </span>                :            :             return false;
+<span class="lineNum">     809 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         } else if (nReadPos &gt; nSrcPos) {</span>
+<span class="lineNum">     810 </span>                :<span class="lineNoCov">          0 :             nReadPos = nSrcPos;</span>
+<span class="lineNum">     811 </span>                :            :             return false;
+<span class="lineNum">     812 </span>                :            :         } else {
+<span class="lineNum">     813 </span>                :            :             return true;
+<span class="lineNum">     814 </span>                :            :         }
+<span class="lineNum">     815 </span>                :            :     }
+<span class="lineNum">     816 </span>                :            : 
+<span class="lineNum">     817 </span>                :            :     bool Seek(uint64_t nPos) {
+<span class="lineNum">     818 </span>                :            :         long nLongPos = nPos;
+<span class="lineNum">     819 </span>                :            :         if (nPos != (uint64_t)nLongPos)
+<span class="lineNum">     820 </span>                :            :             return false;
+<span class="lineNum">     821 </span>                :            :         if (fseek(src, nLongPos, SEEK_SET))
+<span class="lineNum">     822 </span>                :            :             return false;
+<span class="lineNum">     823 </span>                :            :         nLongPos = ftell(src);
+<span class="lineNum">     824 </span>                :            :         nSrcPos = nLongPos;
+<span class="lineNum">     825 </span>                :            :         nReadPos = nLongPos;
+<span class="lineNum">     826 </span>                :            :         return true;
+<span class="lineNum">     827 </span>                :            :     }
+<span class="lineNum">     828 </span>                :            : 
+<span class="lineNum">     829 </span>                :            :     // prevent reading beyond a certain position
+<span class="lineNum">     830 </span>                :            :     // no argument removes the limit
+<span class="lineNum">     831 </span>                :            :     bool SetLimit(uint64_t nPos = std::numeric_limits&lt;uint64_t&gt;::max()) {
+<span class="lineNum">     832 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (nPos &lt; nReadPos)</span>
+<span class="lineNum">     833 </span>                :            :             return false;
+<span class="lineNum">     834 </span>                :<span class="lineNoCov">          0 :         nReadLimit = nPos;</span>
+<span class="lineNum">     835 </span>                :            :         return true;
+<span class="lineNum">     836 </span>                :            :     }
+<span class="lineNum">     837 </span>                :            : 
+<span class="lineNum">     838 </span>                :            :     template&lt;typename T&gt;
+<span class="lineNum">     839 </span>                :            :     CBufferedFile&amp; operator&gt;&gt;(T&amp;&amp; obj) {
+<span class="lineNum">     840 </span>                :            :         // Unserialize from this stream
+<span class="lineNum">     841 </span>                :<span class="lineNoCov">          0 :         ::Unserialize(*this, obj);</span>
+<span class="lineNum">     842 </span>                :            :         return (*this);
+<span class="lineNum">     843 </span>                :            :     }
+<a name="844"><span class="lineNum">     844 </span>                :            : </a>
+<span class="lineNum">     845 </span>                :            :     // search for a given byte in the stream, and remain positioned on it
+<span class="lineNum">     846 </span>                :<span class="lineNoCov">          0 :     void FindByte(char ch) {</span>
+<span class="lineNum">     847 </span>                :            :         while (true) {
+<span class="lineNum">     848 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (nReadPos == nSrcPos)</span>
+<span class="lineNum">     849 </span>                :<span class="lineNoCov">          0 :                 Fill();</span>
+<span class="lineNum">     850 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (vchBuf[nReadPos % vchBuf.size()] == ch)</span>
+<span class="lineNum">     851 </span>                :            :                 break;
+<span class="lineNum">     852 </span>                :<span class="lineNoCov">          0 :             nReadPos++;</span>
+<span class="lineNum">     853 </span>                :            :         }
+<span class="lineNum">     854 </span>                :<span class="lineNoCov">          0 :     }</span>
+<span class="lineNum">     855 </span>                :            : };
+<span class="lineNum">     856 </span>                :            : 
+<span class="lineNum">     857 </span>                :            : #endif // BITCOIN_STREAMS_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
