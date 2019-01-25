@@ -87,75 +87,75 @@
 <span class="lineNum">      16 </span>                :            : 
 <a name="17"><span class="lineNum">      17 </span>                :            : #include &lt;unordered_map&gt;</a>
 <span class="lineNum">      18 </span>                :            : 
-<span class="lineNum">      19 </span>                :<span class="lineCov">      25423 : CBlockHeaderAndShortTxIDs::CBlockHeaderAndShortTxIDs(const CBlock&amp; block, bool fUseWTXID) :</span>
-<span class="lineNum">      20 </span>                :<span class="lineCov">      25423 :         nonce(GetRand(std::numeric_limits&lt;uint64_t&gt;::max())),</span>
-<span class="lineNum">      21 </span>        [<span class="branchCov" title="Branch 2 was taken 25423 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">      25423 :         shorttxids(block.vtx.size() - 1), prefilledtxn(1), header(block) {</span>
-<span class="lineNum">      22 </span>        [<span class="branchCov" title="Branch 1 was taken 25423 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      25423 :     FillShortTxIDSelector();</span>
+<span class="lineNum">      19 </span>                :<span class="lineCov">      24574 : CBlockHeaderAndShortTxIDs::CBlockHeaderAndShortTxIDs(const CBlock&amp; block, bool fUseWTXID) :</span>
+<span class="lineNum">      20 </span>                :<span class="lineCov">      24574 :         nonce(GetRand(std::numeric_limits&lt;uint64_t&gt;::max())),</span>
+<span class="lineNum">      21 </span>        [<span class="branchCov" title="Branch 2 was taken 24574 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">      24574 :         shorttxids(block.vtx.size() - 1), prefilledtxn(1), header(block) {</span>
+<span class="lineNum">      22 </span>        [<span class="branchCov" title="Branch 1 was taken 24574 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      24574 :     FillShortTxIDSelector();</span>
 <span class="lineNum">      23 </span>                :            :     //TODO: Use our mempool prior to block acceptance to predictively fill more than just the coinbase
-<span class="lineNum">      24 </span>                :<span class="lineCov">     152538 :     prefilledtxn[0] = {0, block.vtx[0]};</span>
-<span class="lineNum">      25 </span>        [<span class="branchCov" title="Branch 0 was taken 44294 times"> + </span><span class="branchCov" title="Branch 1 was taken 25423 times"> + </span>]:<span class="lineCov">      69717 :     for (size_t i = 1; i &lt; block.vtx.size(); i++) {</span>
-<span class="lineNum">      26 </span>                :<span class="lineCov">     132882 :         const CTransaction&amp; tx = *block.vtx[i];</span>
-<span class="lineNum">      27 </span>[<span class="branchCov" title="Branch 0 was taken 43478 times"> + </span><span class="branchCov" title="Branch 1 was taken 816 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 44294 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">      44294 :         shorttxids[i - 1] = GetShortID(fUseWTXID ? tx.GetWitnessHash() : tx.GetHash());</span>
+<span class="lineNum">      24 </span>                :<span class="lineCov">     147444 :     prefilledtxn[0] = {0, block.vtx[0]};</span>
+<span class="lineNum">      25 </span>        [<span class="branchCov" title="Branch 0 was taken 44825 times"> + </span><span class="branchCov" title="Branch 1 was taken 24574 times"> + </span>]:<span class="lineCov">      69399 :     for (size_t i = 1; i &lt; block.vtx.size(); i++) {</span>
+<span class="lineNum">      26 </span>                :<span class="lineCov">     134475 :         const CTransaction&amp; tx = *block.vtx[i];</span>
+<span class="lineNum">      27 </span>[<span class="branchCov" title="Branch 0 was taken 44009 times"> + </span><span class="branchCov" title="Branch 1 was taken 816 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 44825 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">      44825 :         shorttxids[i - 1] = GetShortID(fUseWTXID ? tx.GetWitnessHash() : tx.GetHash());</span>
 <span class="lineNum">      28 </span>                :            :     }
-<span class="lineNum">      29 </span>                :<span class="lineCov">      25423 : }</span>
+<span class="lineNum">      29 </span>                :<span class="lineCov">      24574 : }</span>
 <span class="lineNum">      30 </span>                :            : 
-<span class="lineNum">      31 </span>                :<span class="lineCov">      36444 : void CBlockHeaderAndShortTxIDs::FillShortTxIDSelector() const {</span>
-<span class="lineNum">      32 </span>                :<span class="lineCov">      72888 :     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);</span>
-<span class="lineNum">      33 </span>                :<span class="lineCov">     109332 :     stream &lt;&lt; header &lt;&lt; nonce;</span>
-<span class="lineNum">      34 </span>        [<span class="branchCov" title="Branch 1 was taken 36444 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      36444 :     CSHA256 hasher;</span>
-<span class="lineNum">      35 </span>        [<span class="branchCov" title="Branch 1 was taken 36444 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      36444 :     hasher.Write((unsigned char*)&amp;(*stream.begin()), stream.end() - stream.begin());</span>
-<span class="lineNum">      36 </span>                :<span class="lineCov">      36444 :     uint256 shorttxidhash;</span>
-<span class="lineNum">      37 </span>        [<span class="branchCov" title="Branch 1 was taken 36444 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      36444 :     hasher.Finalize(shorttxidhash.begin());</span>
-<span class="lineNum">      38 </span>                :<span class="lineCov">      36444 :     shorttxidk0 = shorttxidhash.GetUint64(0);</span>
-<span class="lineNum">      39 </span>                :<span class="lineCov">      36444 :     shorttxidk1 = shorttxidhash.GetUint64(1);</span>
-<a name="40"><span class="lineNum">      40 </span>                :<span class="lineCov">      36444 : }</span></a>
+<span class="lineNum">      31 </span>                :<span class="lineCov">      33258 : void CBlockHeaderAndShortTxIDs::FillShortTxIDSelector() const {</span>
+<span class="lineNum">      32 </span>                :<span class="lineCov">      66516 :     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);</span>
+<span class="lineNum">      33 </span>                :<span class="lineCov">      99774 :     stream &lt;&lt; header &lt;&lt; nonce;</span>
+<span class="lineNum">      34 </span>        [<span class="branchCov" title="Branch 1 was taken 33258 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      33258 :     CSHA256 hasher;</span>
+<span class="lineNum">      35 </span>        [<span class="branchCov" title="Branch 1 was taken 33258 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      33258 :     hasher.Write((unsigned char*)&amp;(*stream.begin()), stream.end() - stream.begin());</span>
+<span class="lineNum">      36 </span>                :<span class="lineCov">      33258 :     uint256 shorttxidhash;</span>
+<span class="lineNum">      37 </span>        [<span class="branchCov" title="Branch 1 was taken 33258 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      33258 :     hasher.Finalize(shorttxidhash.begin());</span>
+<span class="lineNum">      38 </span>                :<span class="lineCov">      33258 :     shorttxidk0 = shorttxidhash.GetUint64(0);</span>
+<span class="lineNum">      39 </span>                :<span class="lineCov">      33258 :     shorttxidk1 = shorttxidhash.GetUint64(1);</span>
+<a name="40"><span class="lineNum">      40 </span>                :<span class="lineCov">      33258 : }</span></a>
 <span class="lineNum">      41 </span>                :            : 
-<span class="lineNum">      42 </span>                :<span class="lineCov">      96321 : uint64_t CBlockHeaderAndShortTxIDs::GetShortID(const uint256&amp; txhash) const {</span>
+<span class="lineNum">      42 </span>                :<span class="lineCov">      99951 : uint64_t CBlockHeaderAndShortTxIDs::GetShortID(const uint256&amp; txhash) const {</span>
 <span class="lineNum">      43 </span>                :            :     static_assert(SHORTTXIDS_LENGTH == 6, &quot;shorttxids calculation assumes 6-byte shorttxids&quot;);
-<span class="lineNum">      44 </span>                :<span class="lineCov">      96321 :     return SipHashUint256(shorttxidk0, shorttxidk1, txhash) &amp; 0xffffffffffffL;</span>
+<span class="lineNum">      44 </span>                :<span class="lineCov">      99951 :     return SipHashUint256(shorttxidk0, shorttxidk1, txhash) &amp; 0xffffffffffffL;</span>
 <span class="lineNum">      45 </span>                :            : }
 <span class="lineNum">      46 </span>                :            : 
 <a name="47"><span class="lineNum">      47 </span>                :            : </a>
 <span class="lineNum">      48 </span>                :            : 
-<span class="lineNum">      49 </span>                :<span class="lineCov">       7570 : ReadStatus PartiallyDownloadedBlock::InitData(const CBlockHeaderAndShortTxIDs&amp; cmpctblock, const std::vector&lt;std::pair&lt;uint256, CTransactionRef&gt;&gt;&amp; extra_txn) {</span>
-<span class="lineNum">      50 </span>[<span class="branchCov" title="Branch 0 was taken 7570 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 6730 times"> + </span><span class="branchCov" title="Branch 3 was taken 840 times"> + </span>]:<span class="lineCov">       7570 :     if (cmpctblock.header.IsNull() || (cmpctblock.shorttxids.empty() &amp;&amp; cmpctblock.prefilledtxn.empty()))</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 6730 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
+<span class="lineNum">      49 </span>                :<span class="lineCov">       6379 : ReadStatus PartiallyDownloadedBlock::InitData(const CBlockHeaderAndShortTxIDs&amp; cmpctblock, const std::vector&lt;std::pair&lt;uint256, CTransactionRef&gt;&gt;&amp; extra_txn) {</span>
+<span class="lineNum">      50 </span>[<span class="branchCov" title="Branch 0 was taken 6379 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 5606 times"> + </span><span class="branchCov" title="Branch 3 was taken 773 times"> + </span>]:<span class="lineCov">       6379 :     if (cmpctblock.header.IsNull() || (cmpctblock.shorttxids.empty() &amp;&amp; cmpctblock.prefilledtxn.empty()))</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 5606 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
 <span class="lineNum">      51 </span>                :            :         return READ_STATUS_INVALID;
-<span class="lineNum">      52 </span>        [<span class="branchCov" title="Branch 0 was taken 7570 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       7570 :     if (cmpctblock.shorttxids.size() + cmpctblock.prefilledtxn.size() &gt; MAX_BLOCK_WEIGHT / MIN_SERIALIZABLE_TRANSACTION_WEIGHT)</span>
+<span class="lineNum">      52 </span>        [<span class="branchCov" title="Branch 0 was taken 6379 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       6379 :     if (cmpctblock.shorttxids.size() + cmpctblock.prefilledtxn.size() &gt; MAX_BLOCK_WEIGHT / MIN_SERIALIZABLE_TRANSACTION_WEIGHT)</span>
 <span class="lineNum">      53 </span>                :            :         return READ_STATUS_INVALID;
 <span class="lineNum">      54 </span>                :            : 
-<span class="lineNum">      55 </span>[<span class="branchCov" title="Branch 0 was taken 7570 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 7570 times"> + </span>]:<span class="lineCov">       7570 :     assert(header.IsNull() &amp;&amp; txn_available.empty());</span>
-<span class="lineNum">      56 </span>                :<span class="lineCov">       7570 :     header = cmpctblock.header;</span>
-<span class="lineNum">      57 </span>                :<span class="lineCov">       7570 :     txn_available.resize(cmpctblock.BlockTxCount());</span>
+<span class="lineNum">      55 </span>[<span class="branchCov" title="Branch 0 was taken 6379 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 6379 times"> + </span>]:<span class="lineCov">       6379 :     assert(header.IsNull() &amp;&amp; txn_available.empty());</span>
+<span class="lineNum">      56 </span>                :<span class="lineCov">       6379 :     header = cmpctblock.header;</span>
+<span class="lineNum">      57 </span>                :<span class="lineCov">       6379 :     txn_available.resize(cmpctblock.BlockTxCount());</span>
 <span class="lineNum">      58 </span>                :            : 
 <span class="lineNum">      59 </span>                :            :     int32_t lastprefilledindex = -1;
-<span class="lineNum">      60 </span>        [<span class="branchCov" title="Branch 0 was taken 7599 times"> + </span><span class="branchCov" title="Branch 1 was taken 7569 times"> + </span>]:<span class="lineCov">      15168 :     for (size_t i = 0; i &lt; cmpctblock.prefilledtxn.size(); i++) {</span>
-<span class="lineNum">      61 </span>                :<span class="lineCov">      22797 :         if (cmpctblock.prefilledtxn[i].tx-&gt;IsNull())</span>
+<span class="lineNum">      60 </span>        [<span class="branchCov" title="Branch 0 was taken 6408 times"> + </span><span class="branchCov" title="Branch 1 was taken 6378 times"> + </span>]:<span class="lineCov">      12786 :     for (size_t i = 0; i &lt; cmpctblock.prefilledtxn.size(); i++) {</span>
+<span class="lineNum">      61 </span>                :<span class="lineCov">      19224 :         if (cmpctblock.prefilledtxn[i].tx-&gt;IsNull())</span>
 <span class="lineNum">      62 </span>                :            :             return READ_STATUS_INVALID;
 <span class="lineNum">      63 </span>                :            : 
-<span class="lineNum">      64 </span>                :<span class="lineCov">       7599 :         lastprefilledindex += cmpctblock.prefilledtxn[i].index + 1; //index is a uint16_t, so can't overflow here</span>
-<span class="lineNum">      65 </span>        [<span class="branchCov" title="Branch 0 was taken 7599 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       7599 :         if (lastprefilledindex &gt; std::numeric_limits&lt;uint16_t&gt;::max())</span>
+<span class="lineNum">      64 </span>                :<span class="lineCov">       6408 :         lastprefilledindex += cmpctblock.prefilledtxn[i].index + 1; //index is a uint16_t, so can't overflow here</span>
+<span class="lineNum">      65 </span>        [<span class="branchCov" title="Branch 0 was taken 6408 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       6408 :         if (lastprefilledindex &gt; std::numeric_limits&lt;uint16_t&gt;::max())</span>
 <span class="lineNum">      66 </span>                :            :             return READ_STATUS_INVALID;
-<span class="lineNum">      67 </span>        [<span class="branchCov" title="Branch 0 was taken 7598 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">       7599 :         if ((uint32_t)lastprefilledindex &gt; cmpctblock.shorttxids.size() + i) {</span>
+<span class="lineNum">      67 </span>        [<span class="branchCov" title="Branch 0 was taken 6407 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">       6408 :         if ((uint32_t)lastprefilledindex &gt; cmpctblock.shorttxids.size() + i) {</span>
 <span class="lineNum">      68 </span>                :            :             // If we are inserting a tx at an index greater than our full list of shorttxids
 <span class="lineNum">      69 </span>                :            :             // plus the number of prefilled txn we've inserted, then we have txn for which we
 <span class="lineNum">      70 </span>                :            :             // have neither a prefilled txn or a shorttxid!
 <span class="lineNum">      71 </span>                :            :             return READ_STATUS_INVALID;
 <span class="lineNum">      72 </span>                :            :         }
-<span class="lineNum">      73 </span>                :<span class="lineCov">      22794 :         txn_available[lastprefilledindex] = cmpctblock.prefilledtxn[i].tx;</span>
+<span class="lineNum">      73 </span>                :<span class="lineCov">      19221 :         txn_available[lastprefilledindex] = cmpctblock.prefilledtxn[i].tx;</span>
 <span class="lineNum">      74 </span>                :            :     }
-<span class="lineNum">      75 </span>                :<span class="lineCov">       7569 :     prefilled_count = cmpctblock.prefilledtxn.size();</span>
+<span class="lineNum">      75 </span>                :<span class="lineCov">       6378 :     prefilled_count = cmpctblock.prefilledtxn.size();</span>
 <span class="lineNum">      76 </span>                :            : 
 <span class="lineNum">      77 </span>                :            :     // Calculate map of txids -&gt; positions and check mempool to see what we have (or don't)
 <span class="lineNum">      78 </span>                :            :     // Because well-formed cmpctblock messages will have a (relatively) uniform distribution
 <span class="lineNum">      79 </span>                :            :     // of short IDs, any highly-uneven distribution of elements can be safely treated as a
 <span class="lineNum">      80 </span>                :            :     // READ_STATUS_FAILED.
-<span class="lineNum">      81 </span>                :<span class="lineCov">      30276 :     std::unordered_map&lt;uint64_t, uint16_t&gt; shorttxids(cmpctblock.shorttxids.size());</span>
-<span class="lineNum">      82 </span>                :<span class="lineCov">       7569 :     uint16_t index_offset = 0;</span>
-<span class="lineNum">      83 </span>        [<span class="branchCov" title="Branch 0 was taken 11059 times"> + </span><span class="branchCov" title="Branch 1 was taken 7569 times"> + </span>]:<span class="lineCov">      18628 :     for (size_t i = 0; i &lt; cmpctblock.shorttxids.size(); i++) {</span>
-<span class="lineNum">      84 </span>        [<span class="branchCov" title="Branch 0 was taken 848 times"> + </span><span class="branchCov" title="Branch 1 was taken 11059 times"> + </span>]:<span class="lineCov">      11907 :         while (txn_available[i + index_offset])</span>
-<span class="lineNum">      85 </span>                :<span class="lineCov">        848 :             index_offset++;</span>
-<span class="lineNum">      86 </span>                :<span class="lineCov">      33177 :         shorttxids[cmpctblock.shorttxids[i]] = i + index_offset;</span>
+<span class="lineNum">      81 </span>                :<span class="lineCov">      25512 :     std::unordered_map&lt;uint64_t, uint16_t&gt; shorttxids(cmpctblock.shorttxids.size());</span>
+<span class="lineNum">      82 </span>                :<span class="lineCov">       6378 :     uint16_t index_offset = 0;</span>
+<span class="lineNum">      83 </span>        [<span class="branchCov" title="Branch 0 was taken 11177 times"> + </span><span class="branchCov" title="Branch 1 was taken 6378 times"> + </span>]:<span class="lineCov">      17555 :     for (size_t i = 0; i &lt; cmpctblock.shorttxids.size(); i++) {</span>
+<span class="lineNum">      84 </span>        [<span class="branchCov" title="Branch 0 was taken 781 times"> + </span><span class="branchCov" title="Branch 1 was taken 11177 times"> + </span>]:<span class="lineCov">      11958 :         while (txn_available[i + index_offset])</span>
+<span class="lineNum">      85 </span>                :<span class="lineCov">        781 :             index_offset++;</span>
+<span class="lineNum">      86 </span>                :<span class="lineCov">      33531 :         shorttxids[cmpctblock.shorttxids[i]] = i + index_offset;</span>
 <span class="lineNum">      87 </span>                :            :         // To determine the chance that the number of entries in a bucket exceeds N,
 <span class="lineNum">      88 </span>                :            :         // we use the fact that the number of elements in a single bucket is
 <span class="lineNum">      89 </span>                :            :         // binomially distributed (with n = the number of shorttxids S, and p =
@@ -166,26 +166,26 @@
 <span class="lineNum">      94 </span>                :            :         // Thus: P(max_elements_per_bucket &gt; N) &lt;= S * (1 - cdf(binomial(n=S,p=1/S), N)).
 <span class="lineNum">      95 </span>                :            :         // If we assume blocks of up to 16000, allowing 12 elements per bucket should
 <span class="lineNum">      96 </span>                :            :         // only fail once per ~1 million block transfers (per peer and connection).
-<span class="lineNum">      97 </span>        [<span class="branchCov" title="Branch 0 was taken 11059 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      11059 :         if (shorttxids.bucket_size(shorttxids.bucket(cmpctblock.shorttxids[i])) &gt; 12)</span>
+<span class="lineNum">      97 </span>        [<span class="branchCov" title="Branch 0 was taken 11177 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      11177 :         if (shorttxids.bucket_size(shorttxids.bucket(cmpctblock.shorttxids[i])) &gt; 12)</span>
 <span class="lineNum">      98 </span>                :            :             return READ_STATUS_FAILED;
 <span class="lineNum">      99 </span>                :            :     }
 <span class="lineNum">     100 </span>                :            :     // TODO: in the shortid-collision case, we should instead request both transactions
 <span class="lineNum">     101 </span>                :            :     // which collided. Falling back to full-block-request here is overkill.
-<span class="lineNum">     102 </span>        [<span class="branchCov" title="Branch 0 was taken 7569 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       7569 :     if (shorttxids.size() != cmpctblock.shorttxids.size())</span>
+<span class="lineNum">     102 </span>        [<span class="branchCov" title="Branch 0 was taken 6378 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       6378 :     if (shorttxids.size() != cmpctblock.shorttxids.size())</span>
 <span class="lineNum">     103 </span>                :            :         return READ_STATUS_FAILED; // Short ID collision
 <span class="lineNum">     104 </span>                :            : 
 <span class="lineNum">     105 </span>                :<span class="lineNoCov">          0 :     std::vector&lt;bool&gt; have_txn(txn_available.size());</span>
 <span class="lineNum">     106 </span>                :            :     {
-<span class="lineNum">     107 </span>        [<span class="branchCov" title="Branch 1 was taken 7569 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       7569 :     LOCK(pool-&gt;cs);</span>
-<span class="lineNum">     108 </span>                :<span class="lineCov">       7569 :     const std::vector&lt;std::pair&lt;uint256, CTxMemPool::txiter&gt; &gt;&amp; vTxHashes = pool-&gt;vTxHashes;</span>
-<span class="lineNum">     109 </span>        [<span class="branchCov" title="Branch 0 was taken 35334 times"> + </span><span class="branchCov" title="Branch 1 was taken 7305 times"> + </span>]:<span class="lineCov">      42903 :     for (size_t i = 0; i &lt; vTxHashes.size(); i++) {</span>
-<span class="lineNum">     110 </span>        [<span class="branchCov" title="Branch 1 was taken 35334 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      35334 :         uint64_t shortid = cmpctblock.GetShortID(vTxHashes[i].first);</span>
-<span class="lineNum">     111 </span>                :<span class="lineCov">      35334 :         std::unordered_map&lt;uint64_t, uint16_t&gt;::iterator idit = shorttxids.find(shortid);</span>
-<span class="lineNum">     112 </span>        [<span class="branchCov" title="Branch 0 was taken 8060 times"> + </span><span class="branchCov" title="Branch 1 was taken 27274 times"> + </span>]:<span class="lineCov">      35334 :         if (idit != shorttxids.end()) {</span>
-<span class="lineNum">     113 </span>        [<span class="branchCov" title="Branch 0 was taken 8060 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       8060 :             if (!have_txn[idit-&gt;second]) {</span>
-<span class="lineNum">     114 </span>                :<span class="lineCov">      56420 :                 txn_available[idit-&gt;second] = vTxHashes[i].second-&gt;GetSharedTx();</span>
-<span class="lineNum">     115 </span>                :<span class="lineCov">      24180 :                 have_txn[idit-&gt;second]  = true;</span>
-<span class="lineNum">     116 </span>                :<span class="lineCov">       8060 :                 mempool_count++;</span>
+<span class="lineNum">     107 </span>        [<span class="branchCov" title="Branch 1 was taken 6378 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       6378 :     LOCK(pool-&gt;cs);</span>
+<span class="lineNum">     108 </span>                :<span class="lineCov">       6378 :     const std::vector&lt;std::pair&lt;uint256, CTxMemPool::txiter&gt; &gt;&amp; vTxHashes = pool-&gt;vTxHashes;</span>
+<span class="lineNum">     109 </span>        [<span class="branchCov" title="Branch 0 was taken 42909 times"> + </span><span class="branchCov" title="Branch 1 was taken 6115 times"> + </span>]:<span class="lineCov">      49287 :     for (size_t i = 0; i &lt; vTxHashes.size(); i++) {</span>
+<span class="lineNum">     110 </span>        [<span class="branchCov" title="Branch 1 was taken 42909 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      42909 :         uint64_t shortid = cmpctblock.GetShortID(vTxHashes[i].first);</span>
+<span class="lineNum">     111 </span>                :<span class="lineCov">      42909 :         std::unordered_map&lt;uint64_t, uint16_t&gt;::iterator idit = shorttxids.find(shortid);</span>
+<span class="lineNum">     112 </span>        [<span class="branchCov" title="Branch 0 was taken 8440 times"> + </span><span class="branchCov" title="Branch 1 was taken 34469 times"> + </span>]:<span class="lineCov">      42909 :         if (idit != shorttxids.end()) {</span>
+<span class="lineNum">     113 </span>        [<span class="branchCov" title="Branch 0 was taken 8440 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       8440 :             if (!have_txn[idit-&gt;second]) {</span>
+<span class="lineNum">     114 </span>                :<span class="lineCov">      59080 :                 txn_available[idit-&gt;second] = vTxHashes[i].second-&gt;GetSharedTx();</span>
+<span class="lineNum">     115 </span>                :<span class="lineCov">      25320 :                 have_txn[idit-&gt;second]  = true;</span>
+<span class="lineNum">     116 </span>                :<span class="lineCov">       8440 :                 mempool_count++;</span>
 <span class="lineNum">     117 </span>                :            :             } else {
 <span class="lineNum">     118 </span>                :            :                 // If we find two mempool txn that match the short id, just request it.
 <span class="lineNum">     119 </span>                :            :                 // This should be rare enough that the extra bandwidth doesn't matter,
@@ -199,20 +199,20 @@
 <span class="lineNum">     127 </span>                :            :         // Though ideally we'd continue scanning for the two-txn-match-shortid case,
 <span class="lineNum">     128 </span>                :            :         // the performance win of an early exit here is too good to pass up and worth
 <span class="lineNum">     129 </span>                :            :         // the extra risk.
-<span class="lineNum">     130 </span>        [<span class="branchCov" title="Branch 0 was taken 35070 times"> + </span><span class="branchCov" title="Branch 1 was taken 264 times"> + </span>]:<span class="lineCov">      35334 :         if (mempool_count == shorttxids.size())</span>
+<span class="lineNum">     130 </span>        [<span class="branchCov" title="Branch 0 was taken 42646 times"> + </span><span class="branchCov" title="Branch 1 was taken 263 times"> + </span>]:<span class="lineCov">      42909 :         if (mempool_count == shorttxids.size())</span>
 <span class="lineNum">     131 </span>                :            :             break;
 <span class="lineNum">     132 </span>                :            :     }
 <span class="lineNum">     133 </span>                :            :     }
 <span class="lineNum">     134 </span>                :            : 
-<span class="lineNum">     135 </span>        [<span class="branchCov" title="Branch 0 was taken 16690 times"> + </span><span class="branchCov" title="Branch 1 was taken 7421 times"> + </span>]:<span class="lineCov">      24259 :     for (size_t i = 0; i &lt; extra_txn.size(); i++) {</span>
-<span class="lineNum">     136 </span>        [<span class="branchCov" title="Branch 1 was taken 16690 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      16690 :         uint64_t shortid = cmpctblock.GetShortID(extra_txn[i].first);</span>
-<span class="lineNum">     137 </span>                :<span class="lineCov">      16690 :         std::unordered_map&lt;uint64_t, uint16_t&gt;::iterator idit = shorttxids.find(shortid);</span>
-<span class="lineNum">     138 </span>        [<span class="branchCov" title="Branch 0 was taken 361 times"> + </span><span class="branchCov" title="Branch 1 was taken 16329 times"> + </span>]:<span class="lineCov">      16690 :         if (idit != shorttxids.end()) {</span>
-<span class="lineNum">     139 </span>        [<span class="branchCov" title="Branch 0 was taken 314 times"> + </span><span class="branchCov" title="Branch 1 was taken 47 times"> + </span>]:<span class="lineCov">        361 :             if (!have_txn[idit-&gt;second]) {</span>
-<span class="lineNum">     140 </span>                :<span class="lineCov">       1256 :                 txn_available[idit-&gt;second] = extra_txn[i].second;</span>
-<span class="lineNum">     141 </span>                :<span class="lineCov">        942 :                 have_txn[idit-&gt;second]  = true;</span>
-<span class="lineNum">     142 </span>                :<span class="lineCov">        314 :                 mempool_count++;</span>
-<span class="lineNum">     143 </span>                :<span class="lineCov">        314 :                 extra_count++;</span>
+<span class="lineNum">     135 </span>        [<span class="branchCov" title="Branch 0 was taken 12214 times"> + </span><span class="branchCov" title="Branch 1 was taken 6024 times"> + </span>]:<span class="lineCov">      18592 :     for (size_t i = 0; i &lt; extra_txn.size(); i++) {</span>
+<span class="lineNum">     136 </span>        [<span class="branchCov" title="Branch 1 was taken 12214 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      12214 :         uint64_t shortid = cmpctblock.GetShortID(extra_txn[i].first);</span>
+<span class="lineNum">     137 </span>                :<span class="lineCov">      12214 :         std::unordered_map&lt;uint64_t, uint16_t&gt;::iterator idit = shorttxids.find(shortid);</span>
+<span class="lineNum">     138 </span>        [<span class="branchCov" title="Branch 0 was taken 225 times"> + </span><span class="branchCov" title="Branch 1 was taken 11989 times"> + </span>]:<span class="lineCov">      12214 :         if (idit != shorttxids.end()) {</span>
+<span class="lineNum">     139 </span>        [<span class="branchCov" title="Branch 0 was taken 196 times"> + </span><span class="branchCov" title="Branch 1 was taken 29 times"> + </span>]:<span class="lineCov">        225 :             if (!have_txn[idit-&gt;second]) {</span>
+<span class="lineNum">     140 </span>                :<span class="lineCov">        784 :                 txn_available[idit-&gt;second] = extra_txn[i].second;</span>
+<span class="lineNum">     141 </span>                :<span class="lineCov">        588 :                 have_txn[idit-&gt;second]  = true;</span>
+<span class="lineNum">     142 </span>                :<span class="lineCov">        196 :                 mempool_count++;</span>
+<span class="lineNum">     143 </span>                :<span class="lineCov">        196 :                 extra_count++;</span>
 <span class="lineNum">     144 </span>                :            :             } else {
 <span class="lineNum">     145 </span>                :            :                 // If we find two mempool/extra txn that match the short id, just
 <span class="lineNum">     146 </span>                :            :                 // request it.
@@ -220,8 +220,8 @@
 <span class="lineNum">     148 </span>                :            :                 // but eating a round-trip due to FillBlock failure would be annoying
 <span class="lineNum">     149 </span>                :            :                 // Note that we don't want duplication between extra_txn and mempool to
 <span class="lineNum">     150 </span>                :            :                 // trigger this case, so we compare witness hashes first
-<span class="lineNum">     151 </span>[<span class="branchCov" title="Branch 0 was taken 47 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 47 times"> + </span>]:<span class="lineCov">         47 :                 if (txn_available[idit-&gt;second] &amp;&amp;</span>
-<span class="lineNum">     152 </span>                :<span class="lineCov">        329 :                         txn_available[idit-&gt;second]-&gt;GetWitnessHash() != extra_txn[i].second-&gt;GetWitnessHash()) {</span>
+<span class="lineNum">     151 </span>[<span class="branchCov" title="Branch 0 was taken 29 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 29 times"> + </span>]:<span class="lineCov">         29 :                 if (txn_available[idit-&gt;second] &amp;&amp;</span>
+<span class="lineNum">     152 </span>                :<span class="lineCov">        203 :                         txn_available[idit-&gt;second]-&gt;GetWitnessHash() != extra_txn[i].second-&gt;GetWitnessHash()) {</span>
 <span class="lineNum">     153 </span>                :<span class="lineNoCov">          0 :                     txn_available[idit-&gt;second].reset();</span>
 <span class="lineNum">     154 </span>                :<span class="lineNoCov">          0 :                     mempool_count--;</span>
 <span class="lineNum">     155 </span>                :<span class="lineNoCov">          0 :                     extra_count--;</span>
@@ -231,48 +231,48 @@
 <span class="lineNum">     159 </span>                :            :         // Though ideally we'd continue scanning for the two-txn-match-shortid case,
 <span class="lineNum">     160 </span>                :            :         // the performance win of an early exit here is too good to pass up and worth
 <span class="lineNum">     161 </span>                :            :         // the extra risk.
-<span class="lineNum">     162 </span>        [<span class="branchCov" title="Branch 0 was taken 16542 times"> + </span><span class="branchCov" title="Branch 1 was taken 148 times"> + </span>]:<span class="lineCov">      16690 :         if (mempool_count == shorttxids.size())</span>
+<span class="lineNum">     162 </span>        [<span class="branchCov" title="Branch 0 was taken 11860 times"> + </span><span class="branchCov" title="Branch 1 was taken 354 times"> + </span>]:<span class="lineCov">      12214 :         if (mempool_count == shorttxids.size())</span>
 <span class="lineNum">     163 </span>                :            :             break;
 <span class="lineNum">     164 </span>                :            :     }
 <span class="lineNum">     165 </span>                :            : 
-<span class="lineNum">     166 </span>[<span class="branchCov" title="Branch 1 was taken 7569 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 7569 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       7569 :     LogPrint(BCLog::CMPCTBLOCK, &quot;Initialized PartiallyDownloadedBlock for block %s using a cmpctblock of size %lu\n&quot;, cmpctblock.header.GetHash().ToString(), GetSerializeSize(cmpctblock, PROTOCOL_VERSION));</span>
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 7569 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 7569 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">     166 </span>[<span class="branchCov" title="Branch 1 was taken 6378 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 6378 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       6378 :     LogPrint(BCLog::CMPCTBLOCK, &quot;Initialized PartiallyDownloadedBlock for block %s using a cmpctblock of size %lu\n&quot;, cmpctblock.header.GetHash().ToString(), GetSerializeSize(cmpctblock, PROTOCOL_VERSION));</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 6378 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 6378 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
 <span class="lineNum">     167 </span>                :            : 
-<span class="lineNum">     168 </span>                :<span class="lineCov">       7569 :     return READ_STATUS_OK;</span>
+<span class="lineNum">     168 </span>                :<span class="lineCov">       6378 :     return READ_STATUS_OK;</span>
 <a name="169"><span class="lineNum">     169 </span>                :            : }</a>
 <span class="lineNum">     170 </span>                :            : 
-<span class="lineNum">     171 </span>                :<span class="lineCov">      17486 : bool PartiallyDownloadedBlock::IsTxAvailable(size_t index) const {</span>
-<span class="lineNum">     172 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 17486 times"> + </span>]:<span class="lineCov">      17486 :     assert(!header.IsNull());</span>
-<span class="lineNum">     173 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 17486 times"> + </span>]:<span class="lineCov">      17486 :     assert(index &lt; txn_available.size());</span>
-<span class="lineNum">     174 </span>                :<span class="lineCov">      52458 :     return txn_available[index] != nullptr;</span>
+<span class="lineNum">     171 </span>                :<span class="lineCov">      16867 : bool PartiallyDownloadedBlock::IsTxAvailable(size_t index) const {</span>
+<span class="lineNum">     172 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 16867 times"> + </span>]:<span class="lineCov">      16867 :     assert(!header.IsNull());</span>
+<span class="lineNum">     173 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 16867 times"> + </span>]:<span class="lineCov">      16867 :     assert(index &lt; txn_available.size());</span>
+<span class="lineNum">     174 </span>                :<span class="lineCov">      50601 :     return txn_available[index] != nullptr;</span>
 <a name="175"><span class="lineNum">     175 </span>                :            : }</a>
 <span class="lineNum">     176 </span>                :            : 
-<span class="lineNum">     177 </span>                :<span class="lineCov">       7572 : ReadStatus PartiallyDownloadedBlock::FillBlock(CBlock&amp; block, const std::vector&lt;CTransactionRef&gt;&amp; vtx_missing) {</span>
-<span class="lineNum">     178 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 7572 times"> + </span>]:<span class="lineCov">       7572 :     assert(!header.IsNull());</span>
-<span class="lineNum">     179 </span>                :<span class="lineCov">       7572 :     uint256 hash = header.GetHash();</span>
-<span class="lineNum">     180 </span>                :<span class="lineCov">       7572 :     block = header;</span>
-<span class="lineNum">     181 </span>                :<span class="lineCov">       7572 :     block.vtx.resize(txn_available.size());</span>
+<span class="lineNum">     177 </span>                :<span class="lineCov">       6381 : ReadStatus PartiallyDownloadedBlock::FillBlock(CBlock&amp; block, const std::vector&lt;CTransactionRef&gt;&amp; vtx_missing) {</span>
+<span class="lineNum">     178 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 6381 times"> + </span>]:<span class="lineCov">       6381 :     assert(!header.IsNull());</span>
+<span class="lineNum">     179 </span>                :<span class="lineCov">       6381 :     uint256 hash = header.GetHash();</span>
+<span class="lineNum">     180 </span>                :<span class="lineCov">       6381 :     block = header;</span>
+<span class="lineNum">     181 </span>                :<span class="lineCov">       6381 :     block.vtx.resize(txn_available.size());</span>
 <span class="lineNum">     182 </span>                :            : 
 <span class="lineNum">     183 </span>                :            :     size_t tx_missing_offset = 0;
-<span class="lineNum">     184 </span>        [<span class="branchCov" title="Branch 0 was taken 18382 times"> + </span><span class="branchCov" title="Branch 1 was taken 7438 times"> + </span>]:<span class="lineCov">      25820 :     for (size_t i = 0; i &lt; txn_available.size(); i++) {</span>
-<span class="lineNum">     185 </span>        [<span class="branchCov" title="Branch 0 was taken 2481 times"> + </span><span class="branchCov" title="Branch 1 was taken 15901 times"> + </span>]:<span class="lineCov">      18382 :         if (!txn_available[i]) {</span>
-<span class="lineNum">     186 </span>        [<span class="branchCov" title="Branch 0 was taken 2347 times"> + </span><span class="branchCov" title="Branch 1 was taken 134 times"> + </span>]:<span class="lineCov">       2481 :             if (vtx_missing.size() &lt;= tx_missing_offset)</span>
+<span class="lineNum">     184 </span>        [<span class="branchCov" title="Branch 0 was taken 17456 times"> + </span><span class="branchCov" title="Branch 1 was taken 6285 times"> + </span>]:<span class="lineCov">      23741 :     for (size_t i = 0; i &lt; txn_available.size(); i++) {</span>
+<span class="lineNum">     185 </span>        [<span class="branchCov" title="Branch 0 was taken 2461 times"> + </span><span class="branchCov" title="Branch 1 was taken 14995 times"> + </span>]:<span class="lineCov">      17456 :         if (!txn_available[i]) {</span>
+<span class="lineNum">     186 </span>        [<span class="branchCov" title="Branch 0 was taken 2365 times"> + </span><span class="branchCov" title="Branch 1 was taken 96 times"> + </span>]:<span class="lineCov">       2461 :             if (vtx_missing.size() &lt;= tx_missing_offset)</span>
 <span class="lineNum">     187 </span>                :            :                 return READ_STATUS_INVALID;
-<span class="lineNum">     188 </span>                :<span class="lineCov">       7041 :             block.vtx[i] = vtx_missing[tx_missing_offset++];</span>
+<span class="lineNum">     188 </span>                :<span class="lineCov">       7095 :             block.vtx[i] = vtx_missing[tx_missing_offset++];</span>
 <span class="lineNum">     189 </span>                :            :         } else
-<span class="lineNum">     190 </span>                :<span class="lineCov">      31802 :             block.vtx[i] = std::move(txn_available[i]);</span>
+<span class="lineNum">     190 </span>                :<span class="lineCov">      29990 :             block.vtx[i] = std::move(txn_available[i]);</span>
 <span class="lineNum">     191 </span>                :            :     }
 <span class="lineNum">     192 </span>                :            : 
 <span class="lineNum">     193 </span>                :            :     // Make sure we can't call FillBlock again.
-<span class="lineNum">     194 </span>                :<span class="lineCov">       7438 :     header.SetNull();</span>
-<span class="lineNum">     195 </span>                :<span class="lineCov">       7438 :     txn_available.clear();</span>
+<span class="lineNum">     194 </span>                :<span class="lineCov">       6285 :     header.SetNull();</span>
+<span class="lineNum">     195 </span>                :<span class="lineCov">       6285 :     txn_available.clear();</span>
 <span class="lineNum">     196 </span>                :            : 
-<span class="lineNum">     197 </span>        [<span class="branchCov" title="Branch 0 was taken 7438 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       7438 :     if (vtx_missing.size() != tx_missing_offset)</span>
+<span class="lineNum">     197 </span>        [<span class="branchCov" title="Branch 0 was taken 6285 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       6285 :     if (vtx_missing.size() != tx_missing_offset)</span>
 <span class="lineNum">     198 </span>                :            :         return READ_STATUS_INVALID;
 <span class="lineNum">     199 </span>                :            : 
-<span class="lineNum">     200 </span>                :<span class="lineCov">       7572 :     CValidationState state;</span>
-<span class="lineNum">     201 </span>[<span class="branchCov" title="Branch 1 was taken 7438 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 7438 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       7438 :     if (!CheckBlock(block, state, Params().GetConsensus())) {</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 4 times"> + </span><span class="branchCov" title="Branch 7 was taken 7434 times"> + </span>]
+<span class="lineNum">     200 </span>                :<span class="lineCov">       6381 :     CValidationState state;</span>
+<span class="lineNum">     201 </span>[<span class="branchCov" title="Branch 1 was taken 6285 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 6285 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       6285 :     if (!CheckBlock(block, state, Params().GetConsensus())) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 4 times"> + </span><span class="branchCov" title="Branch 7 was taken 6281 times"> + </span>]
 <span class="lineNum">     202 </span>                :            :         // TODO: We really want to just check merkle tree manually here,
 <span class="lineNum">     203 </span>                :            :         // but that is expensive, and CheckBlock caches a block's
 <span class="lineNum">     204 </span>                :            :         // &quot;checked-status&quot; (in the CBlock?). CBlock should be able to
@@ -282,16 +282,16 @@
 <span class="lineNum">     208 </span>                :<span class="lineNoCov">          0 :         return READ_STATUS_CHECKBLOCK_FAILED;</span>
 <span class="lineNum">     209 </span>                :            :     }
 <span class="lineNum">     210 </span>                :            : 
-<span class="lineNum">     211 </span>[<span class="branchCov" title="Branch 1 was taken 7434 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 7434 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       7434 :     LogPrint(BCLog::CMPCTBLOCK, &quot;Successfully reconstructed block %s with %lu txn prefilled, %lu txn from mempool (incl at least %lu from extra pool) and %lu txn requested\n&quot;, hash.ToString(), prefilled_count, mempool_count, extra_count, vtx_missing.size());</span>
-<span class="lineNum">     212 </span>        [<span class="branchCov" title="Branch 0 was taken 7386 times"> + </span><span class="branchCov" title="Branch 1 was taken 48 times"> + </span>]:<span class="lineCov">       7434 :     if (vtx_missing.size() &lt; 5) {</span>
-<span class="lineNum">     213 </span>        [<span class="branchCov" title="Branch 0 was taken 485 times"> + </span><span class="branchCov" title="Branch 1 was taken 7386 times"> + </span>]:<span class="lineCov">       7871 :         for (const auto&amp; tx : vtx_missing) {</span>
-<span class="lineNum">     214 </span>[<span class="branchCov" title="Branch 1 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        485 :             LogPrint(BCLog::CMPCTBLOCK, &quot;Reconstructed block %s required tx %s\n&quot;, hash.ToString(), tx-&gt;GetHash().ToString());</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     211 </span>[<span class="branchCov" title="Branch 1 was taken 6281 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 6281 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       6281 :     LogPrint(BCLog::CMPCTBLOCK, &quot;Successfully reconstructed block %s with %lu txn prefilled, %lu txn from mempool (incl at least %lu from extra pool) and %lu txn requested\n&quot;, hash.ToString(), prefilled_count, mempool_count, extra_count, vtx_missing.size());</span>
+<span class="lineNum">     212 </span>        [<span class="branchCov" title="Branch 0 was taken 6234 times"> + </span><span class="branchCov" title="Branch 1 was taken 47 times"> + </span>]:<span class="lineCov">       6281 :     if (vtx_missing.size() &lt; 5) {</span>
+<span class="lineNum">     213 </span>        [<span class="branchCov" title="Branch 0 was taken 453 times"> + </span><span class="branchCov" title="Branch 1 was taken 6234 times"> + </span>]:<span class="lineCov">       6687 :         for (const auto&amp; tx : vtx_missing) {</span>
+<span class="lineNum">     214 </span>[<span class="branchCov" title="Branch 1 was taken 453 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 453 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        453 :             LogPrint(BCLog::CMPCTBLOCK, &quot;Reconstructed block %s required tx %s\n&quot;, hash.ToString(), tx-&gt;GetHash().ToString());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 453 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
 <span class="lineNum">     215 </span>                :            :         }
 <span class="lineNum">     216 </span>                :            :     }
 <a name="217"><span class="lineNum">     217 </span>                :            : </a>
 <span class="lineNum">     218 </span>                :            :     return READ_STATUS_OK;
-<span class="lineNum">     219 </span>[<span class="branchCov" title="Branch 1 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1888 : }</span>
+<span class="lineNum">     219 </span>[<span class="branchCov" title="Branch 1 was taken 475 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 475 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1900 : }</span>
 </pre>
       </td>
     </tr>

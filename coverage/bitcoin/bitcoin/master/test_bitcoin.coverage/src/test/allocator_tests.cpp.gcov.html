@@ -203,13 +203,13 @@
 <span class="lineNum">     105 </span>                :            :     // Go entirely wild: free and alloc interleaved,
 <span class="lineNum">     106 </span>                :            :     // generate targets and sizes using pseudo-randomness.
 <span class="lineNum">     107 </span>        [<span class="branchCov" title="Branch 0 was taken 2048 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">       2049 :     for (int x=0; x&lt;2048; ++x)</span>
-<span class="lineNum">     108 </span>                :<span class="lineCov">       4096 :         addr.push_back(0);</span>
+<span class="lineNum">     108 </span>                :<span class="lineCov">       4096 :         addr.push_back(nullptr);</span>
 <span class="lineNum">     109 </span>                :            :     uint32_t s = 0x12345678;
 <span class="lineNum">     110 </span>        [<span class="branchCov" title="Branch 0 was taken 5000 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">       5001 :     for (int x=0; x&lt;5000; ++x) {</span>
 <span class="lineNum">     111 </span>                :<span class="lineCov">       5000 :         int idx = s &amp; (addr.size()-1);</span>
 <span class="lineNum">     112 </span>        [<span class="branchCov" title="Branch 0 was taken 2458 times"> + </span><span class="branchCov" title="Branch 1 was taken 2542 times"> + </span>]:<span class="lineCov">       5000 :         if (s &amp; 0x80000000) {</span>
 <span class="lineNum">     113 </span>        [<span class="branchCov" title="Branch 1 was taken 2458 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2458 :             b.free(addr[idx]);</span>
-<span class="lineNum">     114 </span>                :<span class="lineCov">       2458 :             addr[idx] = 0;</span>
+<span class="lineNum">     114 </span>                :<span class="lineCov">       2458 :             addr[idx] = nullptr;</span>
 <span class="lineNum">     115 </span>        [<span class="branchCov" title="Branch 0 was taken 1741 times"> + </span><span class="branchCov" title="Branch 1 was taken 801 times"> + </span>]:<span class="lineCov">       2542 :         } else if(!addr[idx]) {</span>
 <span class="lineNum">     116 </span>        [<span class="branchCov" title="Branch 1 was taken 1741 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1741 :             addr[idx] = b.alloc((s &gt;&gt; 16) &amp; 2047);</span>
 <span class="lineNum">     117 </span>                :            :         }
@@ -244,9 +244,9 @@
 <span class="lineNum">     144 </span>                :<span class="lineCov">          1 :                 *lockingSuccess = true;</span>
 <span class="lineNum">     145 </span>                :            :             }
 <span class="lineNum">     146 </span>                :            : 
-<span class="lineNum">     147 </span>                :<span class="lineCov">          3 :             return reinterpret_cast&lt;void*&gt;(0x08000000 + (count&lt;&lt;24)); // Fake address, do not actually use this memory</span>
+<span class="lineNum">     147 </span>                :<span class="lineCov">          3 :             return reinterpret_cast&lt;void*&gt;(uint64_t{static_cast&lt;uint64_t&gt;(0x08000000) + (count &lt;&lt; 24)}); // Fake address, do not actually use this memory</span>
 <span class="lineNum">     148 </span>                :            :         }
-<a name="149"><span class="lineNum">     149 </span>                :            :         return 0;</a>
+<a name="149"><span class="lineNum">     149 </span>                :            :         return nullptr;</a>
 <span class="lineNum">     150 </span>                :            :     }
 <span class="lineNum">     151 </span>                :<span class="lineCov">          3 :     void FreeLocked(void* addr, size_t len) override</span>
 <a name="152"><span class="lineNum">     152 </span>                :            :     {</a>

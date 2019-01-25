@@ -91,7 +91,7 @@
 <span class="lineNum">      20 </span>                :            : ////////////////////////////////////////////////
 <span class="lineNum">      21 </span>                :            : 
 <span class="lineNum">      22 </span>                :            : /*
-<span class="lineNum">      23 </span>                :            : CCriticalSection mutex;
+<span class="lineNum">      23 </span>                :            : RecursiveMutex mutex;
 <span class="lineNum">      24 </span>                :            :     std::recursive_mutex mutex;
 <span class="lineNum">      25 </span>                :            : 
 <span class="lineNum">      26 </span>                :            : LOCK(mutex);
@@ -146,12 +146,12 @@
 <span class="lineNum">      75 </span>                :            :  * checking to a subset of the mutex API.
 <span class="lineNum">      76 </span>                :            :  */
 <span class="lineNum">      77 </span>                :            : template &lt;typename PARENT&gt;
-<span class="lineNum">      78 </span>                :<span class="lineCov">      35784 : class LOCKABLE AnnotatedMixin : public PARENT</span>
+<span class="lineNum">      78 </span>                :<span class="lineCov">      37374 : class LOCKABLE AnnotatedMixin : public PARENT</span>
 <a name="79"><span class="lineNum">      79 </span>                :            : {</a>
 <span class="lineNum">      80 </span>                :            : public:
-<span class="lineNum">      81 </span>                :<span class="lineCov">       8806 :     ~AnnotatedMixin() {</span>
-<span class="lineNum">      82 </span>                :<span class="lineCov">      26704 :         DeleteLock((void*)this);</span>
-<span class="lineNum">      83 </span>                :<span class="lineCov">      21910 :     }</span>
+<span class="lineNum">      81 </span>                :<span class="lineCov">       8550 :     ~AnnotatedMixin() {</span>
+<span class="lineNum">      82 </span>                :<span class="lineCov">      27243 :         DeleteLock((void*)this);</span>
+<span class="lineNum">      83 </span>                :<span class="lineCov">      21325 :     }</span>
 <span class="lineNum">      84 </span>                :            : 
 <span class="lineNum">      85 </span>                :            :     void lock() EXCLUSIVE_LOCK_FUNCTION()
 <span class="lineNum">      86 </span>                :            :     {
@@ -175,203 +175,204 @@
 <span class="lineNum">     104 </span>                :            :  * Wrapped mutex: supports recursive locking, but no waiting
 <span class="lineNum">     105 </span>                :            :  * TODO: We should move away from using the recursive lock by default.
 <span class="lineNum">     106 </span>                :            :  */
-<span class="lineNum">     107 </span>                :            : typedef AnnotatedMixin&lt;std::recursive_mutex&gt; CCriticalSection;
-<span class="lineNum">     108 </span>                :            : 
-<span class="lineNum">     109 </span>                :            : /** Wrapped mutex: supports waiting but not recursive locking */
-<span class="lineNum">     110 </span>                :            : typedef AnnotatedMixin&lt;std::mutex&gt; Mutex;
-<span class="lineNum">     111 </span>                :            : 
-<span class="lineNum">     112 </span>                :            : #ifdef DEBUG_LOCKCONTENTION
-<span class="lineNum">     113 </span>                :            : void PrintLockContention(const char* pszName, const char* pszFile, int nLine);
-<span class="lineNum">     114 </span>                :            : #endif
-<span class="lineNum">     115 </span>                :            : 
-<span class="lineNum">     116 </span>                :            : /** Wrapper around std::unique_lock style lock for Mutex. */
-<span class="lineNum">     117 </span>                :            : template &lt;typename Mutex, typename Base = typename Mutex::UniqueLock&gt;
-<span class="lineNum">     118 </span>                :            : class SCOPED_LOCKABLE UniqueLock : public Base
-<span class="lineNum">     119 </span>                :            : {
-<span class="lineNum">     120 </span>                :            : private:
-<span class="lineNum">     121 </span>                :            :     void Enter(const char* pszName, const char* pszFile, int nLine)
-<span class="lineNum">     122 </span>                :            :     {
-<span class="lineNum">     123 </span>                :<span class="lineCov">   17739422 :         EnterCritical(pszName, pszFile, nLine, (void*)(Base::mutex()));</span>
-<span class="lineNum">     124 </span>                :            : #ifdef DEBUG_LOCKCONTENTION
-<span class="lineNum">     125 </span>                :            :         if (!Base::try_lock()) {
-<span class="lineNum">     126 </span>                :            :             PrintLockContention(pszName, pszFile, nLine);
-<span class="lineNum">     127 </span>                :            : #endif
-<span class="lineNum">     128 </span>[<span class="branchCov" title="Branch 1 was taken 1931939 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 15807483 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">   17739422 :             Base::lock();</span>
-<span class="lineNum">     129 </span>                :            : #ifdef DEBUG_LOCKCONTENTION
-<span class="lineNum">     130 </span>                :            :         }
-<span class="lineNum">     131 </span>                :            : #endif
-<span class="lineNum">     132 </span>                :            :     }
-<span class="lineNum">     133 </span>                :            : 
-<span class="lineNum">     134 </span>                :            :     bool TryEnter(const char* pszName, const char* pszFile, int nLine)
-<span class="lineNum">     135 </span>                :            :     {
-<span class="lineNum">     136 </span>                :<span class="lineCov">     244548 :         EnterCritical(pszName, pszFile, nLine, (void*)(Base::mutex()), true);</span>
-<span class="lineNum">     137 </span>[<span class="branchCov" title="Branch 1 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 244536 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     244548 :         Base::try_lock();</span>
-<span class="lineNum">     138 </span>                :            :         if (!Base::owns_lock())
-<span class="lineNum">     139 </span>                :            :             LeaveCritical();
-<span class="lineNum">     140 </span>                :            :         return Base::owns_lock();
-<span class="lineNum">     141 </span>                :            :     }
-<a name="142"><span class="lineNum">     142 </span>                :            : </a>
-<span class="lineNum">     143 </span>                :            : public:
-<span class="lineNum">     144 </span>                :<span class="lineCov">   17983970 :     UniqueLock(Mutex&amp; mutexIn, const char* pszName, const char* pszFile, int nLine, bool fTry = false) EXCLUSIVE_LOCK_FUNCTION(mutexIn) : Base(mutexIn, std::defer_lock)</span>
-<span class="lineNum">     145 </span>                :            :     {
-<span class="lineNum">     146 </span>[<span class="branchCov" title="Branch 0 was taken 12 times"> + </span><span class="branchCov" title="Branch 1 was taken 1931939 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 244536 times"> + </span><span class="branchCov" title="Branch 3 was taken 15807483 times"> + </span>]:<span class="lineCov">   17983970 :         if (fTry)</span>
-<span class="lineNum">     147 </span>                :            :             TryEnter(pszName, pszFile, nLine);
-<span class="lineNum">     148 </span>                :            :         else
-<span class="lineNum">     149 </span>                :            :             Enter(pszName, pszFile, nLine);
-<span class="lineNum">     150 </span>                :<span class="lineCov">   17983970 :     }</span>
-<span class="lineNum">     151 </span>                :            : 
-<span class="lineNum">     152 </span>                :            :     UniqueLock(Mutex* pmutexIn, const char* pszName, const char* pszFile, int nLine, bool fTry = false) EXCLUSIVE_LOCK_FUNCTION(pmutexIn)
-<span class="lineNum">     153 </span>                :            :     {
-<span class="lineNum">     154 </span>                :            :         if (!pmutexIn) return;
-<span class="lineNum">     155 </span>                :            : 
-<span class="lineNum">     156 </span>                :            :         *static_cast&lt;Base*&gt;(this) = Base(*pmutexIn, std::defer_lock);
-<span class="lineNum">     157 </span>                :            :         if (fTry)
-<span class="lineNum">     158 </span>                :            :             TryEnter(pszName, pszFile, nLine);
-<span class="lineNum">     159 </span>                :            :         else
-<span class="lineNum">     160 </span>                :            :             Enter(pszName, pszFile, nLine);
-<span class="lineNum">     161 </span>                :            :     }
-<span class="lineNum">     162 </span>                :            : 
-<span class="lineNum">     163 </span>                :            :     ~UniqueLock() UNLOCK_FUNCTION()
-<span class="lineNum">     164 </span>                :            :     {
-<span class="lineNum">     165 </span>                :<span class="lineCov">   35967685 :         if (Base::owns_lock())</span>
-<span class="lineNum">     166 </span>                :            :             LeaveCritical();
-<span class="lineNum">     167 </span>                :<span class="lineCov">    6521616 :     }</span>
-<span class="lineNum">     168 </span>                :            : 
-<span class="lineNum">     169 </span>                :            :     operator bool()
-<span class="lineNum">     170 </span>                :            :     {
-<span class="lineNum">     171 </span>                :<span class="lineCov">     489096 :         return Base::owns_lock();</span>
-<span class="lineNum">     172 </span>                :            :     }
-<span class="lineNum">     173 </span>                :            : };
-<span class="lineNum">     174 </span>                :            : 
-<span class="lineNum">     175 </span>                :            : template&lt;typename MutexArg&gt;
-<span class="lineNum">     176 </span>                :            : using DebugLock = UniqueLock&lt;typename std::remove_reference&lt;typename std::remove_pointer&lt;MutexArg&gt;::type&gt;::type&gt;;
-<span class="lineNum">     177 </span>                :            : 
-<span class="lineNum">     178 </span>                :            : #define PASTE(x, y) x ## y
-<span class="lineNum">     179 </span>                :            : #define PASTE2(x, y) PASTE(x, y)
-<span class="lineNum">     180 </span>                :            : 
-<span class="lineNum">     181 </span>                :            : #define LOCK(cs) DebugLock&lt;decltype(cs)&gt; PASTE2(criticalblock, __COUNTER__)(cs, #cs, __FILE__, __LINE__)
-<span class="lineNum">     182 </span>                :            : #define LOCK2(cs1, cs2)                                               \
-<span class="lineNum">     183 </span>                :            :     DebugLock&lt;decltype(cs1)&gt; criticalblock1(cs1, #cs1, __FILE__, __LINE__); \
-<span class="lineNum">     184 </span>                :            :     DebugLock&lt;decltype(cs2)&gt; criticalblock2(cs2, #cs2, __FILE__, __LINE__);
-<span class="lineNum">     185 </span>                :            : #define TRY_LOCK(cs, name) DebugLock&lt;decltype(cs)&gt; name(cs, #cs, __FILE__, __LINE__, true)
-<span class="lineNum">     186 </span>                :            : #define WAIT_LOCK(cs, name) DebugLock&lt;decltype(cs)&gt; name(cs, #cs, __FILE__, __LINE__)
-<span class="lineNum">     187 </span>                :            : 
-<span class="lineNum">     188 </span>                :            : #define ENTER_CRITICAL_SECTION(cs)                            \
-<span class="lineNum">     189 </span>                :            :     {                                                         \
-<span class="lineNum">     190 </span>                :            :         EnterCritical(#cs, __FILE__, __LINE__, (void*)(&amp;cs)); \
-<span class="lineNum">     191 </span>                :            :         (cs).lock();                                          \
-<span class="lineNum">     192 </span>                :            :     }
-<span class="lineNum">     193 </span>                :            : 
-<span class="lineNum">     194 </span>                :            : #define LEAVE_CRITICAL_SECTION(cs) \
-<span class="lineNum">     195 </span>                :            :     {                              \
-<span class="lineNum">     196 </span>                :            :         (cs).unlock();             \
-<span class="lineNum">     197 </span>                :            :         LeaveCritical();           \
-<span class="lineNum">     198 </span>                :            :     }
-<span class="lineNum">     199 </span>                :            : 
-<span class="lineNum">     200 </span>                :<span class="lineCov">        690 : class CSemaphore</span>
-<span class="lineNum">     201 </span>                :            : {
-<span class="lineNum">     202 </span>                :            : private:
-<span class="lineNum">     203 </span>                :            :     std::condition_variable condition;
-<span class="lineNum">     204 </span>                :            :     std::mutex mutex;
-<span class="lineNum">     205 </span>                :            :     int value;
-<span class="lineNum">     206 </span>                :            : 
-<span class="lineNum">     207 </span>                :            : public:
-<a name="208"><span class="lineNum">     208 </span>                :<span class="lineCov">        690 :     explicit CSemaphore(int init) : value(init) {}</span></a>
-<span class="lineNum">     209 </span>                :            : 
-<span class="lineNum">     210 </span>                :<span class="lineCov">      11128 :     void wait()</span>
-<span class="lineNum">     211 </span>                :            :     {
-<span class="lineNum">     212 </span>                :<span class="lineCov">      33384 :         std::unique_lock&lt;std::mutex&gt; lock(mutex);</span>
-<span class="lineNum">     213 </span>                :<span class="lineCov">      11128 :         condition.wait(lock, [&amp;]() { return value &gt;= 1; });</span>
-<span class="lineNum">     214 </span>                :<span class="lineCov">      11128 :         value--;</span>
-<a name="215"><span class="lineNum">     215 </span>                :<span class="lineCov">      11128 :     }</span></a>
-<span class="lineNum">     216 </span>                :            : 
-<span class="lineNum">     217 </span>                :<span class="lineNoCov">          0 :     bool try_wait()</span>
-<span class="lineNum">     218 </span>                :            :     {
-<span class="lineNum">     219 </span>                :<span class="lineNoCov">          0 :         std::lock_guard&lt;std::mutex&gt; lock(mutex);</span>
-<span class="lineNum">     220 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (value &lt; 1)</span>
-<span class="lineNum">     221 </span>                :            :             return false;
-<span class="lineNum">     222 </span>                :<span class="lineNoCov">          0 :         value--;</span>
-<span class="lineNum">     223 </span>                :<span class="lineNoCov">          0 :         return true;</span>
-<a name="224"><span class="lineNum">     224 </span>                :            :     }</a>
-<span class="lineNum">     225 </span>                :            : 
-<span class="lineNum">     226 </span>                :<span class="lineCov">      16993 :     void post()</span>
-<span class="lineNum">     227 </span>                :            :     {
-<span class="lineNum">     228 </span>                :            :         {
-<span class="lineNum">     229 </span>                :<span class="lineCov">      50979 :             std::lock_guard&lt;std::mutex&gt; lock(mutex);</span>
-<span class="lineNum">     230 </span>                :<span class="lineCov">      16993 :             value++;</span>
-<span class="lineNum">     231 </span>                :            :         }
-<span class="lineNum">     232 </span>                :<span class="lineCov">      16993 :         condition.notify_one();</span>
-<span class="lineNum">     233 </span>                :<span class="lineCov">      16993 :     }</span>
-<span class="lineNum">     234 </span>                :            : };
-<span class="lineNum">     235 </span>                :            : 
-<span class="lineNum">     236 </span>                :            : /** RAII-style semaphore lock */
-<span class="lineNum">     237 </span>                :            : class CSemaphoreGrant
-<span class="lineNum">     238 </span>                :            : {
-<span class="lineNum">     239 </span>                :            : private:
-<span class="lineNum">     240 </span>                :            :     CSemaphore* sem;
-<span class="lineNum">     241 </span>                :            :     bool fHaveGrant;
-<span class="lineNum">     242 </span>                :            : 
-<span class="lineNum">     243 </span>                :            : public:
-<span class="lineNum">     244 </span>                :            :     void Acquire()
-<span class="lineNum">     245 </span>                :            :     {
-<span class="lineNum">     246 </span>                :            :         if (fHaveGrant)
-<span class="lineNum">     247 </span>                :            :             return;
-<span class="lineNum">     248 </span>                :<span class="lineCov">      11128 :         sem-&gt;wait();</span>
-<span class="lineNum">     249 </span>                :<span class="lineCov">      11128 :         fHaveGrant = true;</span>
-<span class="lineNum">     250 </span>                :            :     }
-<span class="lineNum">     251 </span>                :            : 
-<span class="lineNum">     252 </span>                :            :     void Release()
-<span class="lineNum">     253 </span>                :            :     {
-<span class="lineNum">     254 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 740 times"> + </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">      12121 :         if (!fHaveGrant)</span>
-<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchCov" title="Branch 6 was taken 2094 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span> 
-<span class="lineNum">         </span><span class="branchCov" title="Branch 8 was taken 345 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span><span class="branchNoExec" title="Branch 12 was not executed"> # </span> 
-<span class="lineNum">         </span>      <span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchCov" title="Branch 14 was taken 8689 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>]
+<span class="lineNum">     107 </span>                :            : using RecursiveMutex = AnnotatedMixin&lt;std::recursive_mutex&gt;;
+<span class="lineNum">     108 </span>                :            : typedef AnnotatedMixin&lt;std::recursive_mutex&gt; CCriticalSection;
+<span class="lineNum">     109 </span>                :            : 
+<span class="lineNum">     110 </span>                :            : /** Wrapped mutex: supports waiting but not recursive locking */
+<span class="lineNum">     111 </span>                :            : typedef AnnotatedMixin&lt;std::mutex&gt; Mutex;
+<span class="lineNum">     112 </span>                :            : 
+<span class="lineNum">     113 </span>                :            : #ifdef DEBUG_LOCKCONTENTION
+<span class="lineNum">     114 </span>                :            : void PrintLockContention(const char* pszName, const char* pszFile, int nLine);
+<span class="lineNum">     115 </span>                :            : #endif
+<span class="lineNum">     116 </span>                :            : 
+<span class="lineNum">     117 </span>                :            : /** Wrapper around std::unique_lock style lock for Mutex. */
+<span class="lineNum">     118 </span>                :            : template &lt;typename Mutex, typename Base = typename Mutex::UniqueLock&gt;
+<span class="lineNum">     119 </span>                :            : class SCOPED_LOCKABLE UniqueLock : public Base
+<span class="lineNum">     120 </span>                :            : {
+<span class="lineNum">     121 </span>                :            : private:
+<span class="lineNum">     122 </span>                :            :     void Enter(const char* pszName, const char* pszFile, int nLine)
+<span class="lineNum">     123 </span>                :            :     {
+<span class="lineNum">     124 </span>                :<span class="lineCov">   17598136 :         EnterCritical(pszName, pszFile, nLine, (void*)(Base::mutex()));</span>
+<span class="lineNum">     125 </span>                :            : #ifdef DEBUG_LOCKCONTENTION
+<span class="lineNum">     126 </span>                :            :         if (!Base::try_lock()) {
+<span class="lineNum">     127 </span>                :            :             PrintLockContention(pszName, pszFile, nLine);
+<span class="lineNum">     128 </span>                :            : #endif
+<span class="lineNum">     129 </span>[<span class="branchCov" title="Branch 1 was taken 2895177 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 14702959 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">   17598136 :             Base::lock();</span>
+<span class="lineNum">     130 </span>                :            : #ifdef DEBUG_LOCKCONTENTION
+<span class="lineNum">     131 </span>                :            :         }
+<span class="lineNum">     132 </span>                :            : #endif
+<span class="lineNum">     133 </span>                :            :     }
+<span class="lineNum">     134 </span>                :            : 
+<span class="lineNum">     135 </span>                :            :     bool TryEnter(const char* pszName, const char* pszFile, int nLine)
+<span class="lineNum">     136 </span>                :            :     {
+<span class="lineNum">     137 </span>                :<span class="lineCov">     232079 :         EnterCritical(pszName, pszFile, nLine, (void*)(Base::mutex()), true);</span>
+<span class="lineNum">     138 </span>[<span class="branchCov" title="Branch 1 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 232067 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     232079 :         Base::try_lock();</span>
+<span class="lineNum">     139 </span>                :            :         if (!Base::owns_lock())
+<span class="lineNum">     140 </span>                :            :             LeaveCritical();
+<span class="lineNum">     141 </span>                :            :         return Base::owns_lock();
+<span class="lineNum">     142 </span>                :            :     }
+<a name="143"><span class="lineNum">     143 </span>                :            : </a>
+<span class="lineNum">     144 </span>                :            : public:
+<span class="lineNum">     145 </span>                :<span class="lineCov">   17830215 :     UniqueLock(Mutex&amp; mutexIn, const char* pszName, const char* pszFile, int nLine, bool fTry = false) EXCLUSIVE_LOCK_FUNCTION(mutexIn) : Base(mutexIn, std::defer_lock)</span>
+<span class="lineNum">     146 </span>                :            :     {
+<span class="lineNum">     147 </span>[<span class="branchCov" title="Branch 0 was taken 12 times"> + </span><span class="branchCov" title="Branch 1 was taken 2895177 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 232067 times"> + </span><span class="branchCov" title="Branch 3 was taken 14702959 times"> + </span>]:<span class="lineCov">   17830215 :         if (fTry)</span>
+<span class="lineNum">     148 </span>                :            :             TryEnter(pszName, pszFile, nLine);
+<span class="lineNum">     149 </span>                :            :         else
+<span class="lineNum">     150 </span>                :            :             Enter(pszName, pszFile, nLine);
+<span class="lineNum">     151 </span>                :<span class="lineCov">   17830215 :     }</span>
+<span class="lineNum">     152 </span>                :            : 
+<span class="lineNum">     153 </span>                :            :     UniqueLock(Mutex* pmutexIn, const char* pszName, const char* pszFile, int nLine, bool fTry = false) EXCLUSIVE_LOCK_FUNCTION(pmutexIn)
+<span class="lineNum">     154 </span>                :            :     {
+<span class="lineNum">     155 </span>                :            :         if (!pmutexIn) return;
+<span class="lineNum">     156 </span>                :            : 
+<span class="lineNum">     157 </span>                :            :         *static_cast&lt;Base*&gt;(this) = Base(*pmutexIn, std::defer_lock);
+<span class="lineNum">     158 </span>                :            :         if (fTry)
+<span class="lineNum">     159 </span>                :            :             TryEnter(pszName, pszFile, nLine);
+<span class="lineNum">     160 </span>                :            :         else
+<span class="lineNum">     161 </span>                :            :             Enter(pszName, pszFile, nLine);
+<span class="lineNum">     162 </span>                :            :     }
+<span class="lineNum">     163 </span>                :            : 
+<span class="lineNum">     164 </span>                :            :     ~UniqueLock() UNLOCK_FUNCTION()
+<span class="lineNum">     165 </span>                :            :     {
+<span class="lineNum">     166 </span>                :<span class="lineCov">   35660136 :         if (Base::owns_lock())</span>
+<span class="lineNum">     167 </span>                :            :             LeaveCritical();
+<span class="lineNum">     168 </span>                :<span class="lineCov">    8517742 :     }</span>
+<span class="lineNum">     169 </span>                :            : 
+<span class="lineNum">     170 </span>                :            :     operator bool()
+<span class="lineNum">     171 </span>                :            :     {
+<span class="lineNum">     172 </span>                :<span class="lineCov">     464158 :         return Base::owns_lock();</span>
+<span class="lineNum">     173 </span>                :            :     }
+<span class="lineNum">     174 </span>                :            : };
+<span class="lineNum">     175 </span>                :            : 
+<span class="lineNum">     176 </span>                :            : template&lt;typename MutexArg&gt;
+<span class="lineNum">     177 </span>                :            : using DebugLock = UniqueLock&lt;typename std::remove_reference&lt;typename std::remove_pointer&lt;MutexArg&gt;::type&gt;::type&gt;;
+<span class="lineNum">     178 </span>                :            : 
+<span class="lineNum">     179 </span>                :            : #define PASTE(x, y) x ## y
+<span class="lineNum">     180 </span>                :            : #define PASTE2(x, y) PASTE(x, y)
+<span class="lineNum">     181 </span>                :            : 
+<span class="lineNum">     182 </span>                :            : #define LOCK(cs) DebugLock&lt;decltype(cs)&gt; PASTE2(criticalblock, __COUNTER__)(cs, #cs, __FILE__, __LINE__)
+<span class="lineNum">     183 </span>                :            : #define LOCK2(cs1, cs2)                                               \
+<span class="lineNum">     184 </span>                :            :     DebugLock&lt;decltype(cs1)&gt; criticalblock1(cs1, #cs1, __FILE__, __LINE__); \
+<span class="lineNum">     185 </span>                :            :     DebugLock&lt;decltype(cs2)&gt; criticalblock2(cs2, #cs2, __FILE__, __LINE__);
+<span class="lineNum">     186 </span>                :            : #define TRY_LOCK(cs, name) DebugLock&lt;decltype(cs)&gt; name(cs, #cs, __FILE__, __LINE__, true)
+<span class="lineNum">     187 </span>                :            : #define WAIT_LOCK(cs, name) DebugLock&lt;decltype(cs)&gt; name(cs, #cs, __FILE__, __LINE__)
+<span class="lineNum">     188 </span>                :            : 
+<span class="lineNum">     189 </span>                :            : #define ENTER_CRITICAL_SECTION(cs)                            \
+<span class="lineNum">     190 </span>                :            :     {                                                         \
+<span class="lineNum">     191 </span>                :            :         EnterCritical(#cs, __FILE__, __LINE__, (void*)(&amp;cs)); \
+<span class="lineNum">     192 </span>                :            :         (cs).lock();                                          \
+<span class="lineNum">     193 </span>                :            :     }
+<span class="lineNum">     194 </span>                :            : 
+<span class="lineNum">     195 </span>                :            : #define LEAVE_CRITICAL_SECTION(cs) \
+<span class="lineNum">     196 </span>                :            :     {                              \
+<span class="lineNum">     197 </span>                :            :         (cs).unlock();             \
+<span class="lineNum">     198 </span>                :            :         LeaveCritical();           \
+<span class="lineNum">     199 </span>                :            :     }
+<span class="lineNum">     200 </span>                :            : 
+<span class="lineNum">     201 </span>                :<span class="lineCov">        692 : class CSemaphore</span>
+<span class="lineNum">     202 </span>                :            : {
+<span class="lineNum">     203 </span>                :            : private:
+<span class="lineNum">     204 </span>                :            :     std::condition_variable condition;
+<span class="lineNum">     205 </span>                :            :     std::mutex mutex;
+<span class="lineNum">     206 </span>                :            :     int value;
+<span class="lineNum">     207 </span>                :            : 
+<span class="lineNum">     208 </span>                :            : public:
+<a name="209"><span class="lineNum">     209 </span>                :<span class="lineCov">        692 :     explicit CSemaphore(int init) : value(init) {}</span></a>
+<span class="lineNum">     210 </span>                :            : 
+<span class="lineNum">     211 </span>                :<span class="lineCov">       9361 :     void wait()</span>
+<span class="lineNum">     212 </span>                :            :     {
+<span class="lineNum">     213 </span>                :<span class="lineCov">      28083 :         std::unique_lock&lt;std::mutex&gt; lock(mutex);</span>
+<span class="lineNum">     214 </span>                :<span class="lineCov">       9361 :         condition.wait(lock, [&amp;]() { return value &gt;= 1; });</span>
+<span class="lineNum">     215 </span>                :<span class="lineCov">       9361 :         value--;</span>
+<a name="216"><span class="lineNum">     216 </span>                :<span class="lineCov">       9361 :     }</span></a>
+<span class="lineNum">     217 </span>                :            : 
+<span class="lineNum">     218 </span>                :<span class="lineNoCov">          0 :     bool try_wait()</span>
+<span class="lineNum">     219 </span>                :            :     {
+<span class="lineNum">     220 </span>                :<span class="lineNoCov">          0 :         std::lock_guard&lt;std::mutex&gt; lock(mutex);</span>
+<span class="lineNum">     221 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (value &lt; 1)</span>
+<span class="lineNum">     222 </span>                :            :             return false;
+<span class="lineNum">     223 </span>                :<span class="lineNoCov">          0 :         value--;</span>
+<span class="lineNum">     224 </span>                :<span class="lineNoCov">          0 :         return true;</span>
+<a name="225"><span class="lineNum">     225 </span>                :            :     }</a>
+<span class="lineNum">     226 </span>                :            : 
+<span class="lineNum">     227 </span>                :<span class="lineCov">      15243 :     void post()</span>
+<span class="lineNum">     228 </span>                :            :     {
+<span class="lineNum">     229 </span>                :            :         {
+<span class="lineNum">     230 </span>                :<span class="lineCov">      45729 :             std::lock_guard&lt;std::mutex&gt; lock(mutex);</span>
+<span class="lineNum">     231 </span>                :<span class="lineCov">      15243 :             value++;</span>
+<span class="lineNum">     232 </span>                :            :         }
+<span class="lineNum">     233 </span>                :<span class="lineCov">      15243 :         condition.notify_one();</span>
+<span class="lineNum">     234 </span>                :<span class="lineCov">      15243 :     }</span>
+<span class="lineNum">     235 </span>                :            : };
+<span class="lineNum">     236 </span>                :            : 
+<span class="lineNum">     237 </span>                :            : /** RAII-style semaphore lock */
+<span class="lineNum">     238 </span>                :            : class CSemaphoreGrant
+<span class="lineNum">     239 </span>                :            : {
+<span class="lineNum">     240 </span>                :            : private:
+<span class="lineNum">     241 </span>                :            :     CSemaphore* sem;
+<span class="lineNum">     242 </span>                :            :     bool fHaveGrant;
+<span class="lineNum">     243 </span>                :            : 
+<span class="lineNum">     244 </span>                :            : public:
+<span class="lineNum">     245 </span>                :            :     void Acquire()
+<span class="lineNum">     246 </span>                :            :     {
+<span class="lineNum">     247 </span>                :            :         if (fHaveGrant)
+<span class="lineNum">     248 </span>                :            :             return;
+<span class="lineNum">     249 </span>                :<span class="lineCov">       9361 :         sem-&gt;wait();</span>
+<span class="lineNum">     250 </span>                :<span class="lineCov">       9361 :         fHaveGrant = true;</span>
+<span class="lineNum">     251 </span>                :            :     }
+<span class="lineNum">     252 </span>                :            : 
+<span class="lineNum">     253 </span>                :            :     void Release()
+<span class="lineNum">     254 </span>                :            :     {
+<span class="lineNum">     255 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 742 times"> + </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">      10397 :         if (!fHaveGrant)</span>
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchCov" title="Branch 6 was taken 1734 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span> 
+<span class="lineNum">         </span><span class="branchCov" title="Branch 8 was taken 346 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span><span class="branchNoExec" title="Branch 12 was not executed"> # </span> 
+<span class="lineNum">         </span>      <span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchCov" title="Branch 14 was taken 7281 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>]
 <span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span><span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>]
 <span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span><span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span> 
-<span class="lineNum">         </span>         <span class="branchNoCov" title="Branch 24 was not taken"> - </span><span class="branchCov" title="Branch 25 was taken 253 times"> + </span>]
-<span class="lineNum">     255 </span>                :            :             return;
-<span class="lineNum">     256 </span>        [<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>]:<span class="lineCov">      11128 :         sem-&gt;post();</span>
-<span class="lineNum">     257 </span>                :<span class="lineNoCov">          0 :         fHaveGrant = false;</span>
-<span class="lineNum">     258 </span>                :            :     }
-<span class="lineNum">     259 </span>                :            : 
-<span class="lineNum">     260 </span>                :            :     bool TryAcquire()
-<span class="lineNum">     261 </span>                :            :     {
-<span class="lineNum">     262 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!fHaveGrant &amp;&amp; sem-&gt;try_wait())</span>
+<span class="lineNum">         </span>         <span class="branchNoCov" title="Branch 24 was not taken"> - </span><span class="branchCov" title="Branch 25 was taken 294 times"> + </span>]
+<span class="lineNum">     256 </span>                :            :             return;
+<span class="lineNum">     257 </span>        [<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>]:<span class="lineCov">       9361 :         sem-&gt;post();</span>
+<span class="lineNum">     258 </span>                :<span class="lineNoCov">          0 :         fHaveGrant = false;</span>
+<span class="lineNum">     259 </span>                :            :     }
+<span class="lineNum">     260 </span>                :            : 
+<span class="lineNum">     261 </span>                :            :     bool TryAcquire()
+<span class="lineNum">     262 </span>                :            :     {
+<span class="lineNum">     263 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!fHaveGrant &amp;&amp; sem-&gt;try_wait())</span>
 <span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>][<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]
-<span class="lineNum">     263 </span>                :<span class="lineNoCov">          0 :             fHaveGrant = true;</span>
-<span class="lineNum">     264 </span>                :<span class="lineNoCov">          0 :         return fHaveGrant;</span>
-<span class="lineNum">     265 </span>                :            :     }
-<span class="lineNum">     266 </span>                :            : 
-<span class="lineNum">     267 </span>                :            :     void MoveTo(CSemaphoreGrant&amp; grant)
-<span class="lineNum">     268 </span>                :            :     {
-<span class="lineNum">     269 </span>                :<span class="lineNoCov">          0 :         grant.Release();</span>
-<span class="lineNum">     270 </span>                :<span class="lineNoCov">          0 :         grant.sem = sem;</span>
-<span class="lineNum">     271 </span>                :<span class="lineNoCov">          0 :         grant.fHaveGrant = fHaveGrant;</span>
-<span class="lineNum">     272 </span>                :<span class="lineNoCov">          0 :         fHaveGrant = false;</span>
-<span class="lineNum">     273 </span>                :            :     }
-<span class="lineNum">     274 </span>                :            : 
-<a name="275"><span class="lineNum">     275 </span>                :<span class="lineCov">        740 :     CSemaphoreGrant() : sem(nullptr), fHaveGrant(false) {}</span></a>
-<span class="lineNum">     276 </span>                :            : 
-<span class="lineNum">     277 </span>                :<span class="lineCov">      11128 :     explicit CSemaphoreGrant(CSemaphore&amp; sema, bool fTry = false) : sem(&amp;sema), fHaveGrant(false)</span>
-<span class="lineNum">     278 </span>                :            :     {
-<span class="lineNum">     279 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 11128 times"> + </span>]:<span class="lineCov">      11128 :         if (fTry)</span>
-<span class="lineNum">     280 </span>                :            :             TryAcquire();
-<span class="lineNum">     281 </span>                :            :         else
-<span class="lineNum">     282 </span>                :            :             Acquire();
-<span class="lineNum">     283 </span>                :<span class="lineCov">      11128 :     }</span>
-<span class="lineNum">     284 </span>                :            : 
-<span class="lineNum">     285 </span>                :            :     ~CSemaphoreGrant()
-<span class="lineNum">     286 </span>                :<span class="lineCov">        740 :     {</span>
-<span class="lineNum">     287 </span>                :<span class="lineCov">        345 :         Release();</span>
-<span class="lineNum">     288 </span>                :            :     }
-<span class="lineNum">     289 </span>                :            : 
-<span class="lineNum">     290 </span>                :            :     operator bool() const
-<span class="lineNum">     291 </span>                :            :     {
-<span class="lineNum">     292 </span>                :<span class="lineNoCov">          0 :         return fHaveGrant;</span>
-<span class="lineNum">     293 </span>                :            :     }
-<span class="lineNum">     294 </span>                :            : };
-<span class="lineNum">     295 </span>                :            : 
-<span class="lineNum">     296 </span>                :            : #endif // BITCOIN_SYNC_H
+<span class="lineNum">     264 </span>                :<span class="lineNoCov">          0 :             fHaveGrant = true;</span>
+<span class="lineNum">     265 </span>                :<span class="lineNoCov">          0 :         return fHaveGrant;</span>
+<span class="lineNum">     266 </span>                :            :     }
+<span class="lineNum">     267 </span>                :            : 
+<span class="lineNum">     268 </span>                :            :     void MoveTo(CSemaphoreGrant&amp; grant)
+<span class="lineNum">     269 </span>                :            :     {
+<span class="lineNum">     270 </span>                :<span class="lineNoCov">          0 :         grant.Release();</span>
+<span class="lineNum">     271 </span>                :<span class="lineNoCov">          0 :         grant.sem = sem;</span>
+<span class="lineNum">     272 </span>                :<span class="lineNoCov">          0 :         grant.fHaveGrant = fHaveGrant;</span>
+<span class="lineNum">     273 </span>                :<span class="lineNoCov">          0 :         fHaveGrant = false;</span>
+<span class="lineNum">     274 </span>                :            :     }
+<span class="lineNum">     275 </span>                :            : 
+<a name="276"><span class="lineNum">     276 </span>                :<span class="lineCov">        742 :     CSemaphoreGrant() : sem(nullptr), fHaveGrant(false) {}</span></a>
+<span class="lineNum">     277 </span>                :            : 
+<span class="lineNum">     278 </span>                :<span class="lineCov">       9361 :     explicit CSemaphoreGrant(CSemaphore&amp; sema, bool fTry = false) : sem(&amp;sema), fHaveGrant(false)</span>
+<span class="lineNum">     279 </span>                :            :     {
+<span class="lineNum">     280 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 9361 times"> + </span>]:<span class="lineCov">       9361 :         if (fTry)</span>
+<span class="lineNum">     281 </span>                :            :             TryAcquire();
+<span class="lineNum">     282 </span>                :            :         else
+<span class="lineNum">     283 </span>                :            :             Acquire();
+<span class="lineNum">     284 </span>                :<span class="lineCov">       9361 :     }</span>
+<span class="lineNum">     285 </span>                :            : 
+<span class="lineNum">     286 </span>                :            :     ~CSemaphoreGrant()
+<span class="lineNum">     287 </span>                :<span class="lineCov">        742 :     {</span>
+<span class="lineNum">     288 </span>                :<span class="lineCov">        346 :         Release();</span>
+<span class="lineNum">     289 </span>                :            :     }
+<span class="lineNum">     290 </span>                :            : 
+<span class="lineNum">     291 </span>                :            :     operator bool() const
+<span class="lineNum">     292 </span>                :            :     {
+<span class="lineNum">     293 </span>                :<span class="lineNoCov">          0 :         return fHaveGrant;</span>
+<span class="lineNum">     294 </span>                :            :     }
+<span class="lineNum">     295 </span>                :            : };
+<span class="lineNum">     296 </span>                :            : 
+<span class="lineNum">     297 </span>                :            : #endif // BITCOIN_SYNC_H
 </pre>
       </td>
     </tr>

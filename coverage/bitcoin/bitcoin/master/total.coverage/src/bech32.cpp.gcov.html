@@ -96,16 +96,16 @@
 <span class="lineNum">      25 </span>                :            : };
 <span class="lineNum">      26 </span>                :            : 
 <span class="lineNum">      27 </span>                :            : /** Concatenate two byte arrays. */
-<span class="lineNum">      28 </span>                :<span class="lineCov">       5969 : data Cat(data x, const data&amp; y)</span>
+<span class="lineNum">      28 </span>                :<span class="lineCov">       5977 : data Cat(data x, const data&amp; y)</span>
 <span class="lineNum">      29 </span>                :            : {
-<span class="lineNum">      30 </span>                :<span class="lineCov">       5969 :     x.insert(x.end(), y.begin(), y.end());</span>
-<span class="lineNum">      31 </span>                :<span class="lineCov">       5969 :     return x;</span>
+<span class="lineNum">      30 </span>                :<span class="lineCov">       5977 :     x.insert(x.end(), y.begin(), y.end());</span>
+<span class="lineNum">      31 </span>                :<span class="lineCov">       5977 :     return x;</span>
 <span class="lineNum">      32 </span>                :            : }
 <span class="lineNum">      33 </span>                :            : 
 <span class="lineNum">      34 </span>                :            : /** This function will compute what 6 5-bit values to XOR into the last 6 input values, in order to
 <span class="lineNum">      35 </span>                :            :  *  make the checksum 0. These 6 values are packed together in a single 30-bit integer. The higher
 <span class="lineNum">      36 </span>                :            :  *  bits correspond to earlier values. */
-<span class="lineNum">      37 </span>                :<span class="lineCov">       3401 : uint32_t PolyMod(const data&amp; v)</span>
+<span class="lineNum">      37 </span>                :<span class="lineCov">       3406 : uint32_t PolyMod(const data&amp; v)</span>
 <span class="lineNum">      38 </span>                :            : {
 <span class="lineNum">      39 </span>                :            :     // The input is interpreted as a list of coefficients of a polynomial over F = GF(32), with an
 <span class="lineNum">      40 </span>                :            :     // implicit 1 in front. If the input is [v0,v1,v2,v3,v4], that polynomial is v(x) =
@@ -132,8 +132,8 @@
 <span class="lineNum">      61 </span>                :            :     // the above example, `c` initially corresponds to 1 mod (x), and after processing 2 inputs of
 <span class="lineNum">      62 </span>                :            :     // v, it corresponds to x^2 + v0*x + v1 mod g(x). As 1 mod g(x) = 1, that is the starting value
 <span class="lineNum">      63 </span>                :            :     // for `c`.
-<span class="lineNum">      64 </span>                :<span class="lineCov">       3401 :     uint32_t c = 1;</span>
-<span class="lineNum">      65 </span>        [<span class="branchCov" title="Branch 0 was taken 180964 times"> + </span><span class="branchCov" title="Branch 1 was taken 3401 times"> + </span>]:<span class="lineCov">     184365 :     for (const auto v_i : v) {</span>
+<span class="lineNum">      64 </span>                :<span class="lineCov">       3406 :     uint32_t c = 1;</span>
+<span class="lineNum">      65 </span>        [<span class="branchCov" title="Branch 0 was taken 181244 times"> + </span><span class="branchCov" title="Branch 1 was taken 3406 times"> + </span>]:<span class="lineCov">     184650 :     for (const auto v_i : v) {</span>
 <span class="lineNum">      66 </span>                :            :         // We want to update `c` to correspond to a polynomial with one extra term. If the initial
 <span class="lineNum">      67 </span>                :            :         // value of `c` consists of the coefficients of c(x) = f(x) mod g(x), we modify it to
 <span class="lineNum">      68 </span>                :            :         // correspond to c'(x) = (f(x) * x + v_i) mod g(x), where v_i is the next input to
@@ -149,64 +149,64 @@
 <span class="lineNum">      78 </span>                :            :         // c'(x) = (c1*x^5 + c2*x^4 + c3*x^3 + c4*x^2 + c5*x + v_i) + c0*k(x)
 <span class="lineNum">      79 </span>                :            : 
 <span class="lineNum">      80 </span>                :            :         // First, determine the value of c0:
-<span class="lineNum">      81 </span>                :<span class="lineCov">     180964 :         uint8_t c0 = c &gt;&gt; 25;</span>
+<span class="lineNum">      81 </span>                :<span class="lineCov">     181244 :         uint8_t c0 = c &gt;&gt; 25;</span>
 <span class="lineNum">      82 </span>                :            : 
 <span class="lineNum">      83 </span>                :            :         // Then compute c1*x^5 + c2*x^4 + c3*x^3 + c4*x^2 + c5*x + v_i:
-<span class="lineNum">      84 </span>                :<span class="lineCov">     180964 :         c = ((c &amp; 0x1ffffff) &lt;&lt; 5) ^ v_i;</span>
+<span class="lineNum">      84 </span>                :<span class="lineCov">     181244 :         c = ((c &amp; 0x1ffffff) &lt;&lt; 5) ^ v_i;</span>
 <span class="lineNum">      85 </span>                :            : 
 <span class="lineNum">      86 </span>                :            :         // Finally, for each set bit n in c0, conditionally add {2^n}k(x):
-<span class="lineNum">      87 </span>        [<span class="branchCov" title="Branch 0 was taken 85964 times"> + </span><span class="branchCov" title="Branch 1 was taken 95000 times"> + </span>]:<span class="lineCov">     180964 :         if (c0 &amp; 1)  c ^= 0x3b6a57b2; //     k(x) = {29}x^5 + {22}x^4 + {20}x^3 + {21}x^2 + {29}x + {18}</span>
-<span class="lineNum">      88 </span>        [<span class="branchCov" title="Branch 0 was taken 86830 times"> + </span><span class="branchCov" title="Branch 1 was taken 94134 times"> + </span>]:<span class="lineCov">     180964 :         if (c0 &amp; 2)  c ^= 0x26508e6d; //  {2}k(x) = {19}x^5 +  {5}x^4 +     x^3 +  {3}x^2 + {19}x + {13}</span>
-<span class="lineNum">      89 </span>        [<span class="branchCov" title="Branch 0 was taken 85237 times"> + </span><span class="branchCov" title="Branch 1 was taken 95727 times"> + </span>]:<span class="lineCov">     180964 :         if (c0 &amp; 4)  c ^= 0x1ea119fa; //  {4}k(x) = {15}x^5 + {10}x^4 +  {2}x^3 +  {6}x^2 + {15}x + {26}</span>
-<span class="lineNum">      90 </span>        [<span class="branchCov" title="Branch 0 was taken 88664 times"> + </span><span class="branchCov" title="Branch 1 was taken 92300 times"> + </span>]:<span class="lineCov">     180964 :         if (c0 &amp; 8)  c ^= 0x3d4233dd; //  {8}k(x) = {30}x^5 + {20}x^4 +  {4}x^3 + {12}x^2 + {30}x + {29}</span>
-<span class="lineNum">      91 </span>        [<span class="branchCov" title="Branch 0 was taken 76720 times"> + </span><span class="branchCov" title="Branch 1 was taken 104244 times"> + </span>]:<span class="lineCov">     180964 :         if (c0 &amp; 16) c ^= 0x2a1462b3; // {16}k(x) = {21}x^5 +     x^4 +  {8}x^3 + {24}x^2 + {21}x + {19}</span>
+<span class="lineNum">      87 </span>        [<span class="branchCov" title="Branch 0 was taken 83562 times"> + </span><span class="branchCov" title="Branch 1 was taken 97682 times"> + </span>]:<span class="lineCov">     181244 :         if (c0 &amp; 1)  c ^= 0x3b6a57b2; //     k(x) = {29}x^5 + {22}x^4 + {20}x^3 + {21}x^2 + {29}x + {18}</span>
+<span class="lineNum">      88 </span>        [<span class="branchCov" title="Branch 0 was taken 87955 times"> + </span><span class="branchCov" title="Branch 1 was taken 93289 times"> + </span>]:<span class="lineCov">     181244 :         if (c0 &amp; 2)  c ^= 0x26508e6d; //  {2}k(x) = {19}x^5 +  {5}x^4 +     x^3 +  {3}x^2 + {19}x + {13}</span>
+<span class="lineNum">      89 </span>        [<span class="branchCov" title="Branch 0 was taken 82150 times"> + </span><span class="branchCov" title="Branch 1 was taken 99094 times"> + </span>]:<span class="lineCov">     181244 :         if (c0 &amp; 4)  c ^= 0x1ea119fa; //  {4}k(x) = {15}x^5 + {10}x^4 +  {2}x^3 +  {6}x^2 + {15}x + {26}</span>
+<span class="lineNum">      90 </span>        [<span class="branchCov" title="Branch 0 was taken 87363 times"> + </span><span class="branchCov" title="Branch 1 was taken 93881 times"> + </span>]:<span class="lineCov">     181244 :         if (c0 &amp; 8)  c ^= 0x3d4233dd; //  {8}k(x) = {30}x^5 + {20}x^4 +  {4}x^3 + {12}x^2 + {30}x + {29}</span>
+<span class="lineNum">      91 </span>        [<span class="branchCov" title="Branch 0 was taken 77210 times"> + </span><span class="branchCov" title="Branch 1 was taken 104034 times"> + </span>]:<span class="lineCov">     181244 :         if (c0 &amp; 16) c ^= 0x2a1462b3; // {16}k(x) = {21}x^5 +     x^4 +  {8}x^3 + {24}x^2 + {21}x + {19}</span>
 <span class="lineNum">      92 </span>                :            :     }
-<span class="lineNum">      93 </span>                :<span class="lineCov">       3401 :     return c;</span>
+<span class="lineNum">      93 </span>                :<span class="lineCov">       3406 :     return c;</span>
 <span class="lineNum">      94 </span>                :            : }
 <span class="lineNum">      95 </span>                :            : 
 <span class="lineNum">      96 </span>                :            : /** Convert to lower case. */
 <span class="lineNum">      97 </span>                :            : inline unsigned char LowerCase(unsigned char c)
 <span class="lineNum">      98 </span>                :            : {
-<span class="lineNum">      99 </span>        [<span class="branchCov" title="Branch 0 was taken 34 times"> + </span><span class="branchCov" title="Branch 1 was taken 3618 times"> + </span>]:<span class="lineCov">       3652 :     return (c &gt;= 'A' &amp;&amp; c &lt;= 'Z') ? (c - 'A') + 'a' : c;</span>
+<span class="lineNum">      99 </span>        [<span class="branchCov" title="Branch 0 was taken 34 times"> + </span><span class="branchCov" title="Branch 1 was taken 3626 times"> + </span>]:<span class="lineCov">       3660 :     return (c &gt;= 'A' &amp;&amp; c &lt;= 'Z') ? (c - 'A') + 'a' : c;</span>
 <span class="lineNum">     100 </span>                :            : }
 <span class="lineNum">     101 </span>                :            : 
 <span class="lineNum">     102 </span>                :            : /** Expand a HRP for use in checksum computation. */
-<span class="lineNum">     103 </span>                :<span class="lineCov">       3401 : data ExpandHRP(const std::string&amp; hrp)</span>
+<span class="lineNum">     103 </span>                :<span class="lineCov">       3406 : data ExpandHRP(const std::string&amp; hrp)</span>
 <span class="lineNum">     104 </span>                :            : {
-<span class="lineNum">     105 </span>                :<span class="lineCov">       3401 :     data ret;</span>
-<span class="lineNum">     106 </span>        [<span class="branchCov" title="Branch 1 was taken 3401 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3401 :     ret.reserve(hrp.size() + 90);</span>
-<span class="lineNum">     107 </span>        [<span class="branchCov" title="Branch 1 was taken 3401 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3401 :     ret.resize(hrp.size() * 2 + 1);</span>
-<span class="lineNum">     108 </span>        [<span class="branchCov" title="Branch 0 was taken 13976 times"> + </span><span class="branchCov" title="Branch 1 was taken 3401 times"> + </span>]:<span class="lineCov">      17377 :     for (size_t i = 0; i &lt; hrp.size(); ++i) {</span>
-<span class="lineNum">     109 </span>                :<span class="lineCov">      13976 :         unsigned char c = hrp[i];</span>
-<span class="lineNum">     110 </span>                :<span class="lineCov">      27952 :         ret[i] = c &gt;&gt; 5;</span>
-<span class="lineNum">     111 </span>                :<span class="lineCov">      27952 :         ret[i + hrp.size() + 1] = c &amp; 0x1f;</span>
+<span class="lineNum">     105 </span>                :<span class="lineCov">       3406 :     data ret;</span>
+<span class="lineNum">     106 </span>        [<span class="branchCov" title="Branch 1 was taken 3406 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3406 :     ret.reserve(hrp.size() + 90);</span>
+<span class="lineNum">     107 </span>        [<span class="branchCov" title="Branch 1 was taken 3406 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3406 :     ret.resize(hrp.size() * 2 + 1);</span>
+<span class="lineNum">     108 </span>        [<span class="branchCov" title="Branch 0 was taken 13996 times"> + </span><span class="branchCov" title="Branch 1 was taken 3406 times"> + </span>]:<span class="lineCov">      17402 :     for (size_t i = 0; i &lt; hrp.size(); ++i) {</span>
+<span class="lineNum">     109 </span>                :<span class="lineCov">      13996 :         unsigned char c = hrp[i];</span>
+<span class="lineNum">     110 </span>                :<span class="lineCov">      27992 :         ret[i] = c &gt;&gt; 5;</span>
+<span class="lineNum">     111 </span>                :<span class="lineCov">      27992 :         ret[i + hrp.size() + 1] = c &amp; 0x1f;</span>
 <span class="lineNum">     112 </span>                :            :     }
-<span class="lineNum">     113 </span>                :<span class="lineCov">       6802 :     ret[hrp.size()] = 0;</span>
-<span class="lineNum">     114 </span>                :<span class="lineCov">       3401 :     return ret;</span>
+<span class="lineNum">     113 </span>                :<span class="lineCov">       6812 :     ret[hrp.size()] = 0;</span>
+<span class="lineNum">     114 </span>                :<span class="lineCov">       3406 :     return ret;</span>
 <span class="lineNum">     115 </span>                :            : }
 <span class="lineNum">     116 </span>                :            : 
 <span class="lineNum">     117 </span>                :            : /** Verify a checksum. */
-<span class="lineNum">     118 </span>                :<span class="lineCov">        833 : bool VerifyChecksum(const std::string&amp; hrp, const data&amp; values)</span>
+<span class="lineNum">     118 </span>                :<span class="lineCov">        835 : bool VerifyChecksum(const std::string&amp; hrp, const data&amp; values)</span>
 <span class="lineNum">     119 </span>                :            : {
 <span class="lineNum">     120 </span>                :            :     // PolyMod computes what value to xor into the final values to make the checksum 0. However,
 <span class="lineNum">     121 </span>                :            :     // if we required that the checksum was 0, it would be the case that appending a 0 to a valid
 <span class="lineNum">     122 </span>                :            :     // list of values would result in a new valid list. For that reason, Bech32 requires the
 <span class="lineNum">     123 </span>                :            :     // resulting checksum to be 1 instead.
-<span class="lineNum">     124 </span>        [<span class="branchCov" title="Branch 2 was taken 833 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       1666 :     return PolyMod(Cat(ExpandHRP(hrp), values)) == 1;</span>
+<span class="lineNum">     124 </span>        [<span class="branchCov" title="Branch 2 was taken 835 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       1670 :     return PolyMod(Cat(ExpandHRP(hrp), values)) == 1;</span>
 <span class="lineNum">     125 </span>                :            : }
 <span class="lineNum">     126 </span>                :            : 
 <span class="lineNum">     127 </span>                :            : /** Create a checksum. */
-<span class="lineNum">     128 </span>                :<span class="lineCov">       2568 : data CreateChecksum(const std::string&amp; hrp, const data&amp; values)</span>
+<span class="lineNum">     128 </span>                :<span class="lineCov">       2571 : data CreateChecksum(const std::string&amp; hrp, const data&amp; values)</span>
 <span class="lineNum">     129 </span>                :            : {
-<span class="lineNum">     130 </span>        [<span class="branchCov" title="Branch 2 was taken 2568 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2568 :     data enc = Cat(ExpandHRP(hrp), values);</span>
-<span class="lineNum">     131 </span>        [<span class="branchCov" title="Branch 1 was taken 2568 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2568 :     enc.resize(enc.size() + 6); // Append 6 zeroes</span>
-<span class="lineNum">     132 </span>                :<span class="lineCov">       2568 :     uint32_t mod = PolyMod(enc) ^ 1; // Determine what to XOR into those 6 zeroes.</span>
-<span class="lineNum">     133 </span>        [<span class="branchCov" title="Branch 1 was taken 2568 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2568 :     data ret(6);</span>
-<span class="lineNum">     134 </span>        [<span class="branchCov" title="Branch 0 was taken 15408 times"> + </span><span class="branchCov" title="Branch 1 was taken 2568 times"> + </span>]:<span class="lineCov">      17976 :     for (size_t i = 0; i &lt; 6; ++i) {</span>
+<span class="lineNum">     130 </span>        [<span class="branchCov" title="Branch 2 was taken 2571 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2571 :     data enc = Cat(ExpandHRP(hrp), values);</span>
+<span class="lineNum">     131 </span>        [<span class="branchCov" title="Branch 1 was taken 2571 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2571 :     enc.resize(enc.size() + 6); // Append 6 zeroes</span>
+<span class="lineNum">     132 </span>                :<span class="lineCov">       2571 :     uint32_t mod = PolyMod(enc) ^ 1; // Determine what to XOR into those 6 zeroes.</span>
+<span class="lineNum">     133 </span>        [<span class="branchCov" title="Branch 1 was taken 2571 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2571 :     data ret(6);</span>
+<span class="lineNum">     134 </span>        [<span class="branchCov" title="Branch 0 was taken 15426 times"> + </span><span class="branchCov" title="Branch 1 was taken 2571 times"> + </span>]:<span class="lineCov">      17997 :     for (size_t i = 0; i &lt; 6; ++i) {</span>
 <span class="lineNum">     135 </span>                :            :         // Convert the 5-bit groups in mod to checksum values.
-<span class="lineNum">     136 </span>                :<span class="lineCov">      30816 :         ret[i] = (mod &gt;&gt; (5 * (5 - i))) &amp; 31;</span>
+<span class="lineNum">     136 </span>                :<span class="lineCov">      30852 :         ret[i] = (mod &gt;&gt; (5 * (5 - i))) &amp; 31;</span>
 <span class="lineNum">     137 </span>                :            :     }
-<span class="lineNum">     138 </span>                :<span class="lineCov">       2568 :     return ret;</span>
+<span class="lineNum">     138 </span>                :<span class="lineCov">       2571 :     return ret;</span>
 <span class="lineNum">     139 </span>                :            : }
 <span class="lineNum">     140 </span>                :            : 
 <span class="lineNum">     141 </span>                :            : } // namespace
@@ -215,50 +215,50 @@
 <span class="lineNum">     144 </span>                :            : {
 <span class="lineNum">     145 </span>                :            : 
 <span class="lineNum">     146 </span>                :            : /** Encode a Bech32 string. */
-<span class="lineNum">     147 </span>                :<span class="lineCov">       2568 : std::string Encode(const std::string&amp; hrp, const data&amp; values) {</span>
-<span class="lineNum">     148 </span>                :<span class="lineCov">       2568 :     data checksum = CreateChecksum(hrp, values);</span>
-<span class="lineNum">     149 </span>[<span class="branchCov" title="Branch 1 was taken 2568 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2568 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       2568 :     data combined = Cat(values, checksum);</span>
-<span class="lineNum">     150 </span>        [<span class="branchCov" title="Branch 1 was taken 2568 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2568 :     std::string ret = hrp + '1';</span>
-<span class="lineNum">     151 </span>        [<span class="branchCov" title="Branch 1 was taken 2568 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2568 :     ret.reserve(ret.size() + combined.size());</span>
-<span class="lineNum">     152 </span>        [<span class="branchCov" title="Branch 0 was taken 114633 times"> + </span><span class="branchCov" title="Branch 1 was taken 2568 times"> + </span>]:<span class="lineCov">     117201 :     for (const auto c : combined) {</span>
-<span class="lineNum">     153 </span>                :<span class="lineCov">     229266 :         ret += CHARSET[c];</span>
+<span class="lineNum">     147 </span>                :<span class="lineCov">       2571 : std::string Encode(const std::string&amp; hrp, const data&amp; values) {</span>
+<span class="lineNum">     148 </span>                :<span class="lineCov">       2571 :     data checksum = CreateChecksum(hrp, values);</span>
+<span class="lineNum">     149 </span>[<span class="branchCov" title="Branch 1 was taken 2571 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2571 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       2571 :     data combined = Cat(values, checksum);</span>
+<span class="lineNum">     150 </span>        [<span class="branchCov" title="Branch 1 was taken 2571 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2571 :     std::string ret = hrp + '1';</span>
+<span class="lineNum">     151 </span>        [<span class="branchCov" title="Branch 1 was taken 2571 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2571 :     ret.reserve(ret.size() + combined.size());</span>
+<span class="lineNum">     152 </span>        [<span class="branchCov" title="Branch 0 was taken 114750 times"> + </span><span class="branchCov" title="Branch 1 was taken 2571 times"> + </span>]:<span class="lineCov">     117321 :     for (const auto c : combined) {</span>
+<span class="lineNum">     153 </span>                :<span class="lineCov">     229500 :         ret += CHARSET[c];</span>
 <span class="lineNum">     154 </span>                :            :     }
-<span class="lineNum">     155 </span>                :<span class="lineCov">       2568 :     return ret;</span>
+<span class="lineNum">     155 </span>                :<span class="lineCov">       2571 :     return ret;</span>
 <span class="lineNum">     156 </span>                :            : }
 <span class="lineNum">     157 </span>                :            : 
 <span class="lineNum">     158 </span>                :            : /** Decode a Bech32 string. */
-<span class="lineNum">     159 </span>                :<span class="lineCov">       1097 : std::pair&lt;std::string, data&gt; Decode(const std::string&amp; str) {</span>
-<span class="lineNum">     160 </span>                :<span class="lineCov">       1097 :     bool lower = false, upper = false;</span>
-<span class="lineNum">     161 </span>        [<span class="branchCov" title="Branch 0 was taken 54134 times"> + </span><span class="branchCov" title="Branch 1 was taken 1092 times"> + </span>]:<span class="lineCov">      55226 :     for (size_t i = 0; i &lt; str.size(); ++i) {</span>
-<span class="lineNum">     162 </span>                :<span class="lineCov">      54134 :         unsigned char c = str[i];</span>
-<span class="lineNum">     163 </span>        [<span class="branchCov" title="Branch 0 was taken 19459 times"> + </span><span class="branchCov" title="Branch 1 was taken 34675 times"> + </span>]:<span class="lineCov">      54134 :         if (c &gt;= 'a' &amp;&amp; c &lt;= 'z') lower = true;</span>
-<span class="lineNum">     164 </span>        [<span class="branchCov" title="Branch 0 was taken 14304 times"> + </span><span class="branchCov" title="Branch 1 was taken 5155 times"> + </span>]:<span class="lineCov">      19459 :         else if (c &gt;= 'A' &amp;&amp; c &lt;= 'Z') upper = true;</span>
-<span class="lineNum">     165 </span>        [<span class="branchCov" title="Branch 0 was taken 5 times"> + </span><span class="branchCov" title="Branch 1 was taken 14299 times"> + </span>]:<span class="lineCov">      14304 :         else if (c &lt; 33 || c &gt; 126) return {};</span>
+<span class="lineNum">     159 </span>                :<span class="lineCov">       1099 : std::pair&lt;std::string, data&gt; Decode(const std::string&amp; str) {</span>
+<span class="lineNum">     160 </span>                :<span class="lineCov">       1099 :     bool lower = false, upper = false;</span>
+<span class="lineNum">     161 </span>        [<span class="branchCov" title="Branch 0 was taken 54262 times"> + </span><span class="branchCov" title="Branch 1 was taken 1094 times"> + </span>]:<span class="lineCov">      55356 :     for (size_t i = 0; i &lt; str.size(); ++i) {</span>
+<span class="lineNum">     162 </span>                :<span class="lineCov">      54262 :         unsigned char c = str[i];</span>
+<span class="lineNum">     163 </span>        [<span class="branchCov" title="Branch 0 was taken 19322 times"> + </span><span class="branchCov" title="Branch 1 was taken 34940 times"> + </span>]:<span class="lineCov">      54262 :         if (c &gt;= 'a' &amp;&amp; c &lt;= 'z') lower = true;</span>
+<span class="lineNum">     164 </span>        [<span class="branchCov" title="Branch 0 was taken 14167 times"> + </span><span class="branchCov" title="Branch 1 was taken 5155 times"> + </span>]:<span class="lineCov">      19322 :         else if (c &gt;= 'A' &amp;&amp; c &lt;= 'Z') upper = true;</span>
+<span class="lineNum">     165 </span>        [<span class="branchCov" title="Branch 0 was taken 5 times"> + </span><span class="branchCov" title="Branch 1 was taken 14162 times"> + </span>]:<span class="lineCov">      14167 :         else if (c &lt; 33 || c &gt; 126) return {};</span>
 <span class="lineNum">     166 </span>                :            :     }
-<span class="lineNum">     167 </span>        [<span class="branchCov" title="Branch 0 was taken 206 times"> + </span><span class="branchCov" title="Branch 1 was taken 886 times"> + </span>]:<span class="lineCov">       1092 :     if (lower &amp;&amp; upper) return {};</span>
-<span class="lineNum">     168 </span>                :<span class="lineCov">        886 :     size_t pos = str.rfind('1');</span>
-<span class="lineNum">     169 </span>[<span class="branchCov" title="Branch 0 was taken 877 times"> + </span><span class="branchCov" title="Branch 1 was taken 9 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 863 times"> + </span><span class="branchCov" title="Branch 3 was taken 14 times"> + </span>]:<span class="lineCov">        886 :     if (str.size() &gt; 90 || pos == str.npos || pos == 0 || pos + 7 &gt; str.size()) {</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 11 times"> + </span><span class="branchCov" title="Branch 5 was taken 852 times"> + </span>]
+<span class="lineNum">     167 </span>        [<span class="branchCov" title="Branch 0 was taken 206 times"> + </span><span class="branchCov" title="Branch 1 was taken 888 times"> + </span>]:<span class="lineCov">       1094 :     if (lower &amp;&amp; upper) return {};</span>
+<span class="lineNum">     168 </span>                :<span class="lineCov">        888 :     size_t pos = str.rfind('1');</span>
+<span class="lineNum">     169 </span>[<span class="branchCov" title="Branch 0 was taken 879 times"> + </span><span class="branchCov" title="Branch 1 was taken 9 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 865 times"> + </span><span class="branchCov" title="Branch 3 was taken 14 times"> + </span>]:<span class="lineCov">        888 :     if (str.size() &gt; 90 || pos == str.npos || pos == 0 || pos + 7 &gt; str.size()) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 11 times"> + </span><span class="branchCov" title="Branch 5 was taken 854 times"> + </span>]
 <span class="lineNum">     170 </span>                :            :         return {};
 <span class="lineNum">     171 </span>                :            :     }
-<span class="lineNum">     172 </span>                :<span class="lineCov">        852 :     data values(str.size() - 1 - pos);</span>
-<span class="lineNum">     173 </span>        [<span class="branchCov" title="Branch 0 was taken 35180 times"> + </span><span class="branchCov" title="Branch 1 was taken 833 times"> + </span>]:<span class="lineCov">      36013 :     for (size_t i = 0; i &lt; str.size() - 1 - pos; ++i) {</span>
-<span class="lineNum">     174 </span>                :<span class="lineCov">      70360 :         unsigned char c = str[i + pos + 1];</span>
-<span class="lineNum">     175 </span>                :<span class="lineCov">      35180 :         int8_t rev = CHARSET_REV[c];</span>
+<span class="lineNum">     172 </span>                :<span class="lineCov">        854 :     data values(str.size() - 1 - pos);</span>
+<span class="lineNum">     173 </span>        [<span class="branchCov" title="Branch 0 was taken 35298 times"> + </span><span class="branchCov" title="Branch 1 was taken 835 times"> + </span>]:<span class="lineCov">      36133 :     for (size_t i = 0; i &lt; str.size() - 1 - pos; ++i) {</span>
+<span class="lineNum">     174 </span>                :<span class="lineCov">      70596 :         unsigned char c = str[i + pos + 1];</span>
+<span class="lineNum">     175 </span>                :<span class="lineCov">      35298 :         int8_t rev = CHARSET_REV[c];</span>
 <span class="lineNum">     176 </span>                :            : 
-<span class="lineNum">     177 </span>        [<span class="branchCov" title="Branch 0 was taken 19 times"> + </span><span class="branchCov" title="Branch 1 was taken 35161 times"> + </span>]:<span class="lineCov">      35180 :         if (rev == -1) {</span>
+<span class="lineNum">     177 </span>        [<span class="branchCov" title="Branch 0 was taken 19 times"> + </span><span class="branchCov" title="Branch 1 was taken 35279 times"> + </span>]:<span class="lineCov">      35298 :         if (rev == -1) {</span>
 <span class="lineNum">     178 </span>                :            :             return {};
 <span class="lineNum">     179 </span>                :            :         }
-<span class="lineNum">     180 </span>                :<span class="lineCov">      35161 :         values[i] = rev;</span>
+<span class="lineNum">     180 </span>                :<span class="lineCov">      35279 :         values[i] = rev;</span>
 <span class="lineNum">     181 </span>                :            :     }
 <span class="lineNum">     182 </span>                :<span class="lineNoCov">          0 :     std::string hrp;</span>
-<span class="lineNum">     183 </span>        [<span class="branchCov" title="Branch 0 was taken 3652 times"> + </span><span class="branchCov" title="Branch 1 was taken 833 times"> + </span>]:<span class="lineCov">       4485 :     for (size_t i = 0; i &lt; pos; ++i) {</span>
-<span class="lineNum">     184 </span>                :<span class="lineCov">      10956 :         hrp += LowerCase(str[i]);</span>
+<span class="lineNum">     183 </span>        [<span class="branchCov" title="Branch 0 was taken 3660 times"> + </span><span class="branchCov" title="Branch 1 was taken 835 times"> + </span>]:<span class="lineCov">       4495 :     for (size_t i = 0; i &lt; pos; ++i) {</span>
+<span class="lineNum">     184 </span>                :<span class="lineCov">      10980 :         hrp += LowerCase(str[i]);</span>
 <span class="lineNum">     185 </span>                :            :     }
-<span class="lineNum">     186 </span>[<span class="branchCov" title="Branch 1 was taken 833 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 12 times"> + </span><span class="branchCov" title="Branch 4 was taken 821 times"> + </span>]:<span class="lineCov">        833 :     if (!VerifyChecksum(hrp, values)) {</span>
+<span class="lineNum">     186 </span>[<span class="branchCov" title="Branch 1 was taken 835 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 12 times"> + </span><span class="branchCov" title="Branch 4 was taken 823 times"> + </span>]:<span class="lineCov">        835 :     if (!VerifyChecksum(hrp, values)) {</span>
 <span class="lineNum">     187 </span>                :            :         return {};
 <span class="lineNum">     188 </span>                :            :     }
-<span class="lineNum">     189 </span>[<span class="branchCov" title="Branch 1 was taken 821 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 821 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1642 :     return {hrp, data(values.begin(), values.end() - 6)};</span>
+<span class="lineNum">     189 </span>[<span class="branchCov" title="Branch 1 was taken 823 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 823 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1646 :     return {hrp, data(values.begin(), values.end() - 6)};</span>
 <span class="lineNum">     190 </span>                :            : }
 <span class="lineNum">     191 </span>                :            : 
 <span class="lineNum">     192 </span>                :            : } // namespace bech32

@@ -101,8 +101,8 @@
 <span class="lineNum">      30 </span>                :            : #endif
 <span class="lineNum">      31 </span>                :            : 
 <span class="lineNum">      32 </span>                :            : // Settings
-<span class="lineNum">      33 </span>                :<span class="lineCov">        472 : static CCriticalSection cs_proxyInfos;</span>
-<span class="lineNum">      34 </span>        [<span class="branchCov" title="Branch 0 was taken 2360 times"> + </span><span class="branchCov" title="Branch 1 was taken 472 times"> + </span>]:<span class="lineCov">       2832 : static proxyType proxyInfo[NET_MAX] GUARDED_BY(cs_proxyInfos);</span>
+<span class="lineNum">      33 </span>                :<span class="lineCov">        475 : static CCriticalSection cs_proxyInfos;</span>
+<span class="lineNum">      34 </span>        [<span class="branchCov" title="Branch 0 was taken 2375 times"> + </span><span class="branchCov" title="Branch 1 was taken 475 times"> + </span>]:<span class="lineCov">       2850 : static proxyType proxyInfo[NET_MAX] GUARDED_BY(cs_proxyInfos);</span>
 <span class="lineNum">      35 </span>                :            : static proxyType nameProxy GUARDED_BY(cs_proxyInfos);
 <span class="lineNum">      36 </span>                :            : int nConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
 <span class="lineNum">      37 </span>                :            : bool fNameLookup = DEFAULT_NAME_LOOKUP;
@@ -133,123 +133,123 @@
 <span class="lineNum">      62 </span>                :            :     }
 <a name="63"><span class="lineNum">      63 </span>                :            : }</a>
 <span class="lineNum">      64 </span>                :            : 
-<span class="lineNum">      65 </span>                :<span class="lineCov">     144799 : bool static LookupIntern(const char *pszName, std::vector&lt;CNetAddr&gt;&amp; vIP, unsigned int nMaxSolutions, bool fAllowLookup)</span>
+<span class="lineNum">      65 </span>                :<span class="lineCov">     152512 : bool static LookupIntern(const char *pszName, std::vector&lt;CNetAddr&gt;&amp; vIP, unsigned int nMaxSolutions, bool fAllowLookup)</span>
 <span class="lineNum">      66 </span>                :            : {
-<span class="lineNum">      67 </span>                :<span class="lineCov">     144799 :     vIP.clear();</span>
+<span class="lineNum">      67 </span>                :<span class="lineCov">     152512 :     vIP.clear();</span>
 <span class="lineNum">      68 </span>                :            : 
 <span class="lineNum">      69 </span>                :            :     {
-<span class="lineNum">      70 </span>                :<span class="lineCov">     144799 :         CNetAddr addr;</span>
-<span class="lineNum">      71 </span>[<span class="branchCov" title="Branch 1 was taken 144799 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 144799 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     289598 :         if (addr.SetSpecial(std::string(pszName))) {</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 4 times"> + </span><span class="branchCov" title="Branch 7 was taken 144795 times"> + </span>]
+<span class="lineNum">      70 </span>                :<span class="lineCov">     152512 :         CNetAddr addr;</span>
+<span class="lineNum">      71 </span>[<span class="branchCov" title="Branch 1 was taken 152512 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 152512 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     305024 :         if (addr.SetSpecial(std::string(pszName))) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 4 times"> + </span><span class="branchCov" title="Branch 7 was taken 152508 times"> + </span>]
 <span class="lineNum">      72 </span>                :<span class="lineCov">          4 :             vIP.push_back(addr);</span>
 <span class="lineNum">      73 </span>                :<span class="lineCov">          4 :             return true;</span>
 <span class="lineNum">      74 </span>                :            :         }
 <span class="lineNum">      75 </span>                :            :     }
 <span class="lineNum">      76 </span>                :            : 
 <span class="lineNum">      77 </span>                :            :     struct addrinfo aiHint;
-<span class="lineNum">      78 </span>                :<span class="lineCov">     144795 :     memset(&amp;aiHint, 0, sizeof(struct addrinfo));</span>
+<span class="lineNum">      78 </span>                :<span class="lineCov">     152508 :     memset(&amp;aiHint, 0, sizeof(struct addrinfo));</span>
 <span class="lineNum">      79 </span>                :            : 
-<span class="lineNum">      80 </span>                :<span class="lineCov">     144795 :     aiHint.ai_socktype = SOCK_STREAM;</span>
-<span class="lineNum">      81 </span>                :<span class="lineCov">     144795 :     aiHint.ai_protocol = IPPROTO_TCP;</span>
+<span class="lineNum">      80 </span>                :<span class="lineCov">     152508 :     aiHint.ai_socktype = SOCK_STREAM;</span>
+<span class="lineNum">      81 </span>                :<span class="lineCov">     152508 :     aiHint.ai_protocol = IPPROTO_TCP;</span>
 <span class="lineNum">      82 </span>                :            :     aiHint.ai_family = AF_UNSPEC;
 <span class="lineNum">      83 </span>                :            : #ifdef WIN32
 <span class="lineNum">      84 </span>                :            :     aiHint.ai_flags = fAllowLookup ? 0 : AI_NUMERICHOST;
 <span class="lineNum">      85 </span>                :            : #else
-<span class="lineNum">      86 </span>        [<span class="branchCov" title="Branch 0 was taken 144494 times"> + </span><span class="branchCov" title="Branch 1 was taken 301 times"> + </span>]:<span class="lineCov">     144795 :     aiHint.ai_flags = fAllowLookup ? AI_ADDRCONFIG : AI_NUMERICHOST;</span>
+<span class="lineNum">      86 </span>        [<span class="branchCov" title="Branch 0 was taken 152207 times"> + </span><span class="branchCov" title="Branch 1 was taken 301 times"> + </span>]:<span class="lineCov">     152508 :     aiHint.ai_flags = fAllowLookup ? AI_ADDRCONFIG : AI_NUMERICHOST;</span>
 <span class="lineNum">      87 </span>                :            : #endif
-<span class="lineNum">      88 </span>                :<span class="lineCov">     144795 :     struct addrinfo *aiRes = nullptr;</span>
-<span class="lineNum">      89 </span>                :<span class="lineCov">     144795 :     int nErr = getaddrinfo(pszName, nullptr, &amp;aiHint, &amp;aiRes);</span>
-<span class="lineNum">      90 </span>        [<span class="branchCov" title="Branch 0 was taken 144784 times"> + </span><span class="branchCov" title="Branch 1 was taken 11 times"> + </span>]:<span class="lineCov">     144795 :     if (nErr)</span>
+<span class="lineNum">      88 </span>                :<span class="lineCov">     152508 :     struct addrinfo *aiRes = nullptr;</span>
+<span class="lineNum">      89 </span>                :<span class="lineCov">     152508 :     int nErr = getaddrinfo(pszName, nullptr, &amp;aiHint, &amp;aiRes);</span>
+<span class="lineNum">      90 </span>        [<span class="branchCov" title="Branch 0 was taken 152497 times"> + </span><span class="branchCov" title="Branch 1 was taken 11 times"> + </span>]:<span class="lineCov">     152508 :     if (nErr)</span>
 <span class="lineNum">      91 </span>                :            :         return false;
 <span class="lineNum">      92 </span>                :            : 
-<span class="lineNum">      93 </span>                :<span class="lineCov">     144784 :     struct addrinfo *aiTrav = aiRes;</span>
-<span class="lineNum">      94 </span>[<span class="branchCov" title="Branch 0 was taken 144784 times"> + </span><span class="branchCov" title="Branch 1 was taken 144784 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 144784 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     434367 :     while (aiTrav != nullptr &amp;&amp; (nMaxSolutions == 0 || vIP.size() &lt; nMaxSolutions))</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 144784 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
+<span class="lineNum">      93 </span>                :<span class="lineCov">     152497 :     struct addrinfo *aiTrav = aiRes;</span>
+<span class="lineNum">      94 </span>[<span class="branchCov" title="Branch 0 was taken 152497 times"> + </span><span class="branchCov" title="Branch 1 was taken 152497 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 152497 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     457506 :     while (aiTrav != nullptr &amp;&amp; (nMaxSolutions == 0 || vIP.size() &lt; nMaxSolutions))</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 152497 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
 <span class="lineNum">      95 </span>                :            :     {
-<span class="lineNum">      96 </span>                :<span class="lineCov">     144784 :         CNetAddr resolved;</span>
-<span class="lineNum">      97 </span>        [<span class="branchCov" title="Branch 0 was taken 143971 times"> + </span><span class="branchCov" title="Branch 1 was taken 813 times"> + </span>]:<span class="lineCov">     144784 :         if (aiTrav-&gt;ai_family == AF_INET)</span>
+<span class="lineNum">      96 </span>                :<span class="lineCov">     152497 :         CNetAddr resolved;</span>
+<span class="lineNum">      97 </span>        [<span class="branchCov" title="Branch 0 was taken 151682 times"> + </span><span class="branchCov" title="Branch 1 was taken 815 times"> + </span>]:<span class="lineCov">     152497 :         if (aiTrav-&gt;ai_family == AF_INET)</span>
 <span class="lineNum">      98 </span>                :            :         {
-<span class="lineNum">      99 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 143971 times"> + </span>]:<span class="lineCov">     143971 :             assert(aiTrav-&gt;ai_addrlen &gt;= sizeof(sockaddr_in));</span>
-<span class="lineNum">     100 </span>                :<span class="lineCov">     143971 :             resolved = CNetAddr(((struct sockaddr_in*)(aiTrav-&gt;ai_addr))-&gt;sin_addr);</span>
+<span class="lineNum">      99 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 151682 times"> + </span>]:<span class="lineCov">     151682 :             assert(aiTrav-&gt;ai_addrlen &gt;= sizeof(sockaddr_in));</span>
+<span class="lineNum">     100 </span>                :<span class="lineCov">     151682 :             resolved = CNetAddr(((struct sockaddr_in*)(aiTrav-&gt;ai_addr))-&gt;sin_addr);</span>
 <span class="lineNum">     101 </span>                :            :         }
 <span class="lineNum">     102 </span>                :            : 
-<span class="lineNum">     103 </span>        [<span class="branchCov" title="Branch 0 was taken 813 times"> + </span><span class="branchCov" title="Branch 1 was taken 143971 times"> + </span>]:<span class="lineCov">     144784 :         if (aiTrav-&gt;ai_family == AF_INET6)</span>
+<span class="lineNum">     103 </span>        [<span class="branchCov" title="Branch 0 was taken 815 times"> + </span><span class="branchCov" title="Branch 1 was taken 151682 times"> + </span>]:<span class="lineCov">     152497 :         if (aiTrav-&gt;ai_family == AF_INET6)</span>
 <span class="lineNum">     104 </span>                :            :         {
-<span class="lineNum">     105 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 813 times"> + </span>]:<span class="lineCov">        813 :             assert(aiTrav-&gt;ai_addrlen &gt;= sizeof(sockaddr_in6));</span>
-<span class="lineNum">     106 </span>                :<span class="lineCov">        813 :             struct sockaddr_in6* s6 = (struct sockaddr_in6*) aiTrav-&gt;ai_addr;</span>
-<span class="lineNum">     107 </span>                :<span class="lineCov">        813 :             resolved = CNetAddr(s6-&gt;sin6_addr, s6-&gt;sin6_scope_id);</span>
+<span class="lineNum">     105 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 815 times"> + </span>]:<span class="lineCov">        815 :             assert(aiTrav-&gt;ai_addrlen &gt;= sizeof(sockaddr_in6));</span>
+<span class="lineNum">     106 </span>                :<span class="lineCov">        815 :             struct sockaddr_in6* s6 = (struct sockaddr_in6*) aiTrav-&gt;ai_addr;</span>
+<span class="lineNum">     107 </span>                :<span class="lineCov">        815 :             resolved = CNetAddr(s6-&gt;sin6_addr, s6-&gt;sin6_scope_id);</span>
 <span class="lineNum">     108 </span>                :            :         }
 <span class="lineNum">     109 </span>                :            :         /* Never allow resolving to an internal address. Consider any such result invalid */
-<span class="lineNum">     110 </span>        [<span class="branchCov" title="Branch 1 was taken 144783 times"> + </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span>]:<span class="lineCov">     144784 :         if (!resolved.IsInternal()) {</span>
-<span class="lineNum">     111 </span>                :<span class="lineCov">     144783 :             vIP.push_back(resolved);</span>
+<span class="lineNum">     110 </span>        [<span class="branchCov" title="Branch 1 was taken 152496 times"> + </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span>]:<span class="lineCov">     152497 :         if (!resolved.IsInternal()) {</span>
+<span class="lineNum">     111 </span>                :<span class="lineCov">     152496 :             vIP.push_back(resolved);</span>
 <span class="lineNum">     112 </span>                :            :         }
 <span class="lineNum">     113 </span>                :            : 
-<span class="lineNum">     114 </span>                :<span class="lineCov">     144784 :         aiTrav = aiTrav-&gt;ai_next;</span>
+<span class="lineNum">     114 </span>                :<span class="lineCov">     152497 :         aiTrav = aiTrav-&gt;ai_next;</span>
 <span class="lineNum">     115 </span>                :            :     }
 <span class="lineNum">     116 </span>                :            : 
-<span class="lineNum">     117 </span>                :<span class="lineCov">     144784 :     freeaddrinfo(aiRes);</span>
+<span class="lineNum">     117 </span>                :<span class="lineCov">     152497 :     freeaddrinfo(aiRes);</span>
 <span class="lineNum">     118 </span>                :            : 
-<span class="lineNum">     119 </span>                :<span class="lineCov">     144784 :     return (vIP.size() &gt; 0);</span>
+<span class="lineNum">     119 </span>                :<span class="lineCov">     152497 :     return (vIP.size() &gt; 0);</span>
 <a name="120"><span class="lineNum">     120 </span>                :            : }</a>
 <span class="lineNum">     121 </span>                :            : 
-<span class="lineNum">     122 </span>                :<span class="lineCov">       5829 : bool LookupHost(const char *pszName, std::vector&lt;CNetAddr&gt;&amp; vIP, unsigned int nMaxSolutions, bool fAllowLookup)</span>
+<span class="lineNum">     122 </span>                :<span class="lineCov">       5833 : bool LookupHost(const char *pszName, std::vector&lt;CNetAddr&gt;&amp; vIP, unsigned int nMaxSolutions, bool fAllowLookup)</span>
 <span class="lineNum">     123 </span>                :            : {
-<span class="lineNum">     124 </span>                :<span class="lineCov">      11658 :     std::string strHost(pszName);</span>
-<span class="lineNum">     125 </span>        [<span class="branchCov" title="Branch 0 was taken 5828 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">       5829 :     if (strHost.empty())</span>
+<span class="lineNum">     124 </span>                :<span class="lineCov">      11666 :     std::string strHost(pszName);</span>
+<span class="lineNum">     125 </span>        [<span class="branchCov" title="Branch 0 was taken 5832 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">       5833 :     if (strHost.empty())</span>
 <span class="lineNum">     126 </span>                :            :         return false;
-<span class="lineNum">     127 </span>[<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 5827 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       5828 :     if (strHost.front() == '[' &amp;&amp; strHost.back() == ']') {</span>
+<span class="lineNum">     127 </span>[<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 5831 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       5832 :     if (strHost.front() == '[' &amp;&amp; strHost.back() == ']') {</span>
 <span class="lineNum">     128 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :         strHost = strHost.substr(1, strHost.size() - 2);</span>
 <span class="lineNum">     129 </span>                :            :     }
 <span class="lineNum">     130 </span>                :            : 
-<span class="lineNum">     131 </span>        [<span class="branchCov" title="Branch 1 was taken 5828 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       5828 :     return LookupIntern(strHost.c_str(), vIP, nMaxSolutions, fAllowLookup);</span>
+<span class="lineNum">     131 </span>        [<span class="branchCov" title="Branch 1 was taken 5832 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       5832 :     return LookupIntern(strHost.c_str(), vIP, nMaxSolutions, fAllowLookup);</span>
 <a name="132"><span class="lineNum">     132 </span>                :            : }</a>
 <span class="lineNum">     133 </span>                :            : 
-<span class="lineNum">     134 </span>                :<span class="lineCov">       5681 : bool LookupHost(const char *pszName, CNetAddr&amp; addr, bool fAllowLookup)</span>
+<span class="lineNum">     134 </span>                :<span class="lineCov">       5685 : bool LookupHost(const char *pszName, CNetAddr&amp; addr, bool fAllowLookup)</span>
 <span class="lineNum">     135 </span>                :            : {
-<span class="lineNum">     136 </span>                :<span class="lineCov">       5681 :     std::vector&lt;CNetAddr&gt; vIP;</span>
-<span class="lineNum">     137 </span>        [<span class="branchCov" title="Branch 1 was taken 5681 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       5681 :     LookupHost(pszName, vIP, 1, fAllowLookup);</span>
-<span class="lineNum">     138 </span>        [<span class="branchCov" title="Branch 0 was taken 5678 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">       5681 :     if(vIP.empty())</span>
+<span class="lineNum">     136 </span>                :<span class="lineCov">       5685 :     std::vector&lt;CNetAddr&gt; vIP;</span>
+<span class="lineNum">     137 </span>        [<span class="branchCov" title="Branch 1 was taken 5685 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       5685 :     LookupHost(pszName, vIP, 1, fAllowLookup);</span>
+<span class="lineNum">     138 </span>        [<span class="branchCov" title="Branch 0 was taken 5682 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">       5685 :     if(vIP.empty())</span>
 <span class="lineNum">     139 </span>                :            :         return false;
-<span class="lineNum">     140 </span>                :<span class="lineCov">       5678 :     addr = vIP.front();</span>
-<span class="lineNum">     141 </span>                :<span class="lineCov">       5678 :     return true;</span>
+<span class="lineNum">     140 </span>                :<span class="lineCov">       5682 :     addr = vIP.front();</span>
+<span class="lineNum">     141 </span>                :<span class="lineCov">       5682 :     return true;</span>
 <a name="142"><span class="lineNum">     142 </span>                :            : }</a>
 <span class="lineNum">     143 </span>                :            : 
-<span class="lineNum">     144 </span>                :<span class="lineCov">     138971 : bool Lookup(const char *pszName, std::vector&lt;CService&gt;&amp; vAddr, int portDefault, bool fAllowLookup, unsigned int nMaxSolutions)</span>
+<span class="lineNum">     144 </span>                :<span class="lineCov">     146680 : bool Lookup(const char *pszName, std::vector&lt;CService&gt;&amp; vAddr, int portDefault, bool fAllowLookup, unsigned int nMaxSolutions)</span>
 <span class="lineNum">     145 </span>                :            : {
-<span class="lineNum">     146 </span>        [<span class="branchCov" title="Branch 0 was taken 138971 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     138971 :     if (pszName[0] == 0)</span>
+<span class="lineNum">     146 </span>        [<span class="branchCov" title="Branch 0 was taken 146680 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     146680 :     if (pszName[0] == 0)</span>
 <span class="lineNum">     147 </span>                :            :         return false;
-<span class="lineNum">     148 </span>                :<span class="lineCov">     138971 :     int port = portDefault;</span>
-<span class="lineNum">     149 </span>                :<span class="lineCov">     138971 :     std::string hostname;</span>
-<span class="lineNum">     150 </span>[<span class="branchCov" title="Branch 1 was taken 138971 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 138971 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     138971 :     SplitHostPort(std::string(pszName), port, hostname);</span>
+<span class="lineNum">     148 </span>                :<span class="lineCov">     146680 :     int port = portDefault;</span>
+<span class="lineNum">     149 </span>                :<span class="lineCov">     146680 :     std::string hostname;</span>
+<span class="lineNum">     150 </span>[<span class="branchCov" title="Branch 1 was taken 146680 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 146680 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     146680 :     SplitHostPort(std::string(pszName), port, hostname);</span>
 <span class="lineNum">     151 </span>                :            : 
 <span class="lineNum">     152 </span>                :<span class="lineNoCov">          0 :     std::vector&lt;CNetAddr&gt; vIP;</span>
-<span class="lineNum">     153 </span>        [<span class="branchCov" title="Branch 1 was taken 138971 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     138971 :     bool fRet = LookupIntern(hostname.c_str(), vIP, nMaxSolutions, fAllowLookup);</span>
-<span class="lineNum">     154 </span>        [<span class="branchCov" title="Branch 0 was taken 138965 times"> + </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>]:<span class="lineCov">     138971 :     if (!fRet)</span>
+<span class="lineNum">     153 </span>        [<span class="branchCov" title="Branch 1 was taken 146680 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     146680 :     bool fRet = LookupIntern(hostname.c_str(), vIP, nMaxSolutions, fAllowLookup);</span>
+<span class="lineNum">     154 </span>        [<span class="branchCov" title="Branch 0 was taken 146674 times"> + </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>]:<span class="lineCov">     146680 :     if (!fRet)</span>
 <span class="lineNum">     155 </span>                :            :         return false;
-<span class="lineNum">     156 </span>        [<span class="branchCov" title="Branch 1 was taken 138965 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     138965 :     vAddr.resize(vIP.size());</span>
-<span class="lineNum">     157 </span>        [<span class="branchCov" title="Branch 0 was taken 138965 times"> + </span><span class="branchCov" title="Branch 1 was taken 138965 times"> + </span>]:<span class="lineCov">     277930 :     for (unsigned int i = 0; i &lt; vIP.size(); i++)</span>
-<span class="lineNum">     158 </span>        [<span class="branchCov" title="Branch 1 was taken 138965 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     138965 :         vAddr[i] = CService(vIP[i], port);</span>
+<span class="lineNum">     156 </span>        [<span class="branchCov" title="Branch 1 was taken 146674 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     146674 :     vAddr.resize(vIP.size());</span>
+<span class="lineNum">     157 </span>        [<span class="branchCov" title="Branch 0 was taken 146674 times"> + </span><span class="branchCov" title="Branch 1 was taken 146674 times"> + </span>]:<span class="lineCov">     293348 :     for (unsigned int i = 0; i &lt; vIP.size(); i++)</span>
+<span class="lineNum">     158 </span>        [<span class="branchCov" title="Branch 1 was taken 146674 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     146674 :         vAddr[i] = CService(vIP[i], port);</span>
 <span class="lineNum">     159 </span>                :            :     return true;
 <a name="160"><span class="lineNum">     160 </span>                :            : }</a>
 <span class="lineNum">     161 </span>                :            : 
-<span class="lineNum">     162 </span>                :<span class="lineCov">     138654 : bool Lookup(const char *pszName, CService&amp; addr, int portDefault, bool fAllowLookup)</span>
+<span class="lineNum">     162 </span>                :<span class="lineCov">     146363 : bool Lookup(const char *pszName, CService&amp; addr, int portDefault, bool fAllowLookup)</span>
 <span class="lineNum">     163 </span>                :            : {
-<span class="lineNum">     164 </span>                :<span class="lineCov">     138654 :     std::vector&lt;CService&gt; vService;</span>
-<span class="lineNum">     165 </span>        [<span class="branchCov" title="Branch 1 was taken 138654 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     138654 :     bool fRet = Lookup(pszName, vService, portDefault, fAllowLookup, 1);</span>
-<span class="lineNum">     166 </span>        [<span class="branchCov" title="Branch 0 was taken 138652 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">     138654 :     if (!fRet)</span>
+<span class="lineNum">     164 </span>                :<span class="lineCov">     146363 :     std::vector&lt;CService&gt; vService;</span>
+<span class="lineNum">     165 </span>        [<span class="branchCov" title="Branch 1 was taken 146363 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     146363 :     bool fRet = Lookup(pszName, vService, portDefault, fAllowLookup, 1);</span>
+<span class="lineNum">     166 </span>        [<span class="branchCov" title="Branch 0 was taken 146361 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">     146363 :     if (!fRet)</span>
 <span class="lineNum">     167 </span>                :            :         return false;
-<span class="lineNum">     168 </span>                :<span class="lineCov">     138652 :     addr = vService[0];</span>
-<span class="lineNum">     169 </span>                :<span class="lineCov">     138652 :     return true;</span>
+<span class="lineNum">     168 </span>                :<span class="lineCov">     146361 :     addr = vService[0];</span>
+<span class="lineNum">     169 </span>                :<span class="lineCov">     146361 :     return true;</span>
 <a name="170"><span class="lineNum">     170 </span>                :            : }</a>
 <span class="lineNum">     171 </span>                :            : 
-<span class="lineNum">     172 </span>                :<span class="lineCov">     133987 : CService LookupNumeric(const char *pszName, int portDefault)</span>
+<span class="lineNum">     172 </span>                :<span class="lineCov">     141695 : CService LookupNumeric(const char *pszName, int portDefault)</span>
 <span class="lineNum">     173 </span>                :            : {
-<span class="lineNum">     174 </span>                :<span class="lineCov">     133987 :     CService addr;</span>
+<span class="lineNum">     174 </span>                :<span class="lineCov">     141695 :     CService addr;</span>
 <span class="lineNum">     175 </span>                :            :     // &quot;1.2:345&quot; will fail to resolve the ip, but will still set the port.
 <span class="lineNum">     176 </span>                :            :     // If the ip fails to resolve, re-init the result.
-<span class="lineNum">     177 </span>        [<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchCov" title="Branch 2 was taken 133985 times"> + </span>]:<span class="lineCov">     133987 :     if(!Lookup(pszName, addr, portDefault, false))</span>
+<span class="lineNum">     177 </span>        [<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchCov" title="Branch 2 was taken 141693 times"> + </span>]:<span class="lineCov">     141695 :     if(!Lookup(pszName, addr, portDefault, false))</span>
 <span class="lineNum">     178 </span>                :<span class="lineCov">          2 :         addr = CService();</span>
-<span class="lineNum">     179 </span>                :<span class="lineCov">     133987 :     return addr;</span>
+<span class="lineNum">     179 </span>                :<span class="lineCov">     141695 :     return addr;</span>
 <a name="180"><span class="lineNum">     180 </span>                :            : }</a>
 <span class="lineNum">     181 </span>                :            : 
 <span class="lineNum">     182 </span>                :<span class="lineNoCov">          0 : struct timeval MillisToTimeval(int64_t nTimeout)</span>
@@ -328,25 +328,25 @@
 <span class="lineNum">     255 </span>                :            :     // Maximum time to wait in one select call. It will take up until this time (in millis)
 <span class="lineNum">     256 </span>                :            :     // to break off in case of an interruption.
 <span class="lineNum">     257 </span>                :<span class="lineCov">         64 :     const int64_t maxWait = 1000;</span>
-<span class="lineNum">     258 </span>        [<span class="branchCov" title="Branch 0 was taken 2281 times"> + </span><span class="branchCov" title="Branch 1 was taken 64 times"> + </span>]:<span class="lineCov">       2345 :     while (len &gt; 0 &amp;&amp; curTime &lt; endTime) {</span>
-<span class="lineNum">     259 </span>                :<span class="lineCov">       4562 :         ssize_t ret = recv(hSocket, (char*)data, len, 0); // Optimistically try the recv first</span>
-<span class="lineNum">     260 </span>        [<span class="branchCov" title="Branch 0 was taken 64 times"> + </span><span class="branchCov" title="Branch 1 was taken 2217 times"> + </span>]:<span class="lineCov">       2281 :         if (ret &gt; 0) {</span>
+<span class="lineNum">     258 </span>        [<span class="branchCov" title="Branch 0 was taken 74930 times"> + </span><span class="branchCov" title="Branch 1 was taken 64 times"> + </span>]:<span class="lineCov">      74994 :     while (len &gt; 0 &amp;&amp; curTime &lt; endTime) {</span>
+<span class="lineNum">     259 </span>                :<span class="lineCov">     149860 :         ssize_t ret = recv(hSocket, (char*)data, len, 0); // Optimistically try the recv first</span>
+<span class="lineNum">     260 </span>        [<span class="branchCov" title="Branch 0 was taken 64 times"> + </span><span class="branchCov" title="Branch 1 was taken 74866 times"> + </span>]:<span class="lineCov">      74930 :         if (ret &gt; 0) {</span>
 <span class="lineNum">     261 </span>                :<span class="lineCov">         64 :             len -= ret;</span>
 <span class="lineNum">     262 </span>                :<span class="lineCov">         64 :             data += ret;</span>
-<span class="lineNum">     263 </span>        [<span class="branchCov" title="Branch 0 was taken 2217 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       2217 :         } else if (ret == 0) { // Unexpected disconnection</span>
+<span class="lineNum">     263 </span>        [<span class="branchCov" title="Branch 0 was taken 74866 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      74866 :         } else if (ret == 0) { // Unexpected disconnection</span>
 <span class="lineNum">     264 </span>                :            :             return IntrRecvError::Disconnected;
 <span class="lineNum">     265 </span>                :            :         } else { // Other error or blocking
-<span class="lineNum">     266 </span>                :<span class="lineCov">       2217 :             int nErr = WSAGetLastError();</span>
-<span class="lineNum">     267 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2217 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">       2217 :             if (nErr == WSAEINPROGRESS || nErr == WSAEWOULDBLOCK || nErr == WSAEINVAL) {</span>
-<span class="lineNum">     268 </span>                :<span class="lineCov">       2217 :                 if (!IsSelectableSocket(hSocket)) {</span>
+<span class="lineNum">     266 </span>                :<span class="lineCov">      74866 :             int nErr = WSAGetLastError();</span>
+<span class="lineNum">     267 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 74866 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">      74866 :             if (nErr == WSAEINPROGRESS || nErr == WSAEWOULDBLOCK || nErr == WSAEINVAL) {</span>
+<span class="lineNum">     268 </span>                :<span class="lineCov">      74866 :                 if (!IsSelectableSocket(hSocket)) {</span>
 <span class="lineNum">     269 </span>                :<span class="lineNoCov">          0 :                     return IntrRecvError::NetworkError;</span>
 <span class="lineNum">     270 </span>                :            :                 }
-<span class="lineNum">     271 </span>                :<span class="lineCov">       4434 :                 int timeout_ms = std::min(endTime - curTime, maxWait);</span>
+<span class="lineNum">     271 </span>                :<span class="lineCov">     149732 :                 int timeout_ms = std::min(endTime - curTime, maxWait);</span>
 <span class="lineNum">     272 </span>                :            : #ifdef USE_POLL
-<span class="lineNum">     273 </span>                :<span class="lineCov">       2217 :                 struct pollfd pollfd = {};</span>
-<span class="lineNum">     274 </span>                :<span class="lineCov">       2217 :                 pollfd.fd = hSocket;</span>
-<span class="lineNum">     275 </span>                :<span class="lineCov">       2217 :                 pollfd.events = POLLIN | POLLOUT;</span>
-<span class="lineNum">     276 </span>                :<span class="lineCov">       2217 :                 int nRet = poll(&amp;pollfd, 1, timeout_ms);</span>
+<span class="lineNum">     273 </span>                :<span class="lineCov">      74866 :                 struct pollfd pollfd = {};</span>
+<span class="lineNum">     274 </span>                :<span class="lineCov">      74866 :                 pollfd.fd = hSocket;</span>
+<span class="lineNum">     275 </span>                :<span class="lineCov">      74866 :                 pollfd.events = POLLIN | POLLOUT;</span>
+<span class="lineNum">     276 </span>                :<span class="lineCov">      74866 :                 int nRet = poll(&amp;pollfd, 1, timeout_ms);</span>
 <span class="lineNum">     277 </span>                :            : #else
 <span class="lineNum">     278 </span>                :            :                 struct timeval tval = MillisToTimeval(timeout_ms);
 <span class="lineNum">     279 </span>                :            :                 fd_set fdset;
@@ -354,16 +354,16 @@
 <span class="lineNum">     281 </span>                :            :                 FD_SET(hSocket, &amp;fdset);
 <span class="lineNum">     282 </span>                :            :                 int nRet = select(hSocket + 1, &amp;fdset, nullptr, nullptr, &amp;tval);
 <span class="lineNum">     283 </span>                :            : #endif
-<span class="lineNum">     284 </span>        [<span class="branchCov" title="Branch 0 was taken 2217 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       2217 :                 if (nRet == SOCKET_ERROR) {</span>
+<span class="lineNum">     284 </span>        [<span class="branchCov" title="Branch 0 was taken 74866 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      74866 :                 if (nRet == SOCKET_ERROR) {</span>
 <span class="lineNum">     285 </span>                :            :                     return IntrRecvError::NetworkError;
-<span class="lineNum">     286 </span>                :<span class="lineCov">       2217 :                 }</span>
+<span class="lineNum">     286 </span>                :<span class="lineCov">      74866 :                 }</span>
 <span class="lineNum">     287 </span>                :            :             } else {
 <span class="lineNum">     288 </span>                :            :                 return IntrRecvError::NetworkError;
 <span class="lineNum">     289 </span>                :            :             }
 <span class="lineNum">     290 </span>                :            :         }
-<span class="lineNum">     291 </span>        [<span class="branchCov" title="Branch 0 was taken 2281 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       2281 :         if (interruptSocks5Recv)</span>
+<span class="lineNum">     291 </span>        [<span class="branchCov" title="Branch 0 was taken 74930 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      74930 :         if (interruptSocks5Recv)</span>
 <span class="lineNum">     292 </span>                :            :             return IntrRecvError::Interrupted;
-<span class="lineNum">     293 </span>                :<span class="lineCov">       2281 :         curTime = GetTimeMillis();</span>
+<span class="lineNum">     293 </span>                :<span class="lineCov">      74930 :         curTime = GetTimeMillis();</span>
 <span class="lineNum">     294 </span>                :            :     }
 <span class="lineNum">     295 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 64 times"> + </span>]:<span class="lineCov">         64 :     return len == 0 ? IntrRecvError::OK : IntrRecvError::Timeout;</span>
 <span class="lineNum">     296 </span>                :            : }
@@ -522,17 +522,17 @@
 <span class="lineNum">     447 </span>                :<span class="lineCov">         15 :     return true;</span>
 <a name="448"><span class="lineNum">     448 </span>                :            : }</a>
 <span class="lineNum">     449 </span>                :            : 
-<span class="lineNum">     450 </span>                :<span class="lineCov">        653 : SOCKET CreateSocket(const CService &amp;addrConnect)</span>
+<span class="lineNum">     450 </span>                :<span class="lineCov">        654 : SOCKET CreateSocket(const CService &amp;addrConnect)</span>
 <span class="lineNum">     451 </span>                :            : {
 <span class="lineNum">     452 </span>                :            :     struct sockaddr_storage sockaddr;
-<span class="lineNum">     453 </span>                :<span class="lineCov">        653 :     socklen_t len = sizeof(sockaddr);</span>
-<span class="lineNum">     454 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 653 times"> + </span>]:<span class="lineCov">        653 :     if (!addrConnect.GetSockAddr((struct sockaddr*)&amp;sockaddr, &amp;len)) {</span>
+<span class="lineNum">     453 </span>                :<span class="lineCov">        654 :     socklen_t len = sizeof(sockaddr);</span>
+<span class="lineNum">     454 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 654 times"> + </span>]:<span class="lineCov">        654 :     if (!addrConnect.GetSockAddr((struct sockaddr*)&amp;sockaddr, &amp;len)) {</span>
 <span class="lineNum">     455 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LogPrintf(&quot;Cannot create socket for %s: unsupported network\n&quot;, addrConnect.ToString());</span>
 <span class="lineNum">     456 </span>                :<span class="lineNoCov">          0 :         return INVALID_SOCKET;</span>
 <span class="lineNum">     457 </span>                :            :     }
 <span class="lineNum">     458 </span>                :            : 
-<span class="lineNum">     459 </span>                :<span class="lineCov">        653 :     SOCKET hSocket = socket(((struct sockaddr*)&amp;sockaddr)-&gt;sa_family, SOCK_STREAM, IPPROTO_TCP);</span>
-<span class="lineNum">     460 </span>        [<span class="branchCov" title="Branch 0 was taken 653 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        653 :     if (hSocket == INVALID_SOCKET)</span>
+<span class="lineNum">     459 </span>                :<span class="lineCov">        654 :     SOCKET hSocket = socket(((struct sockaddr*)&amp;sockaddr)-&gt;sa_family, SOCK_STREAM, IPPROTO_TCP);</span>
+<span class="lineNum">     460 </span>        [<span class="branchCov" title="Branch 0 was taken 654 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        654 :     if (hSocket == INVALID_SOCKET)</span>
 <span class="lineNum">     461 </span>                :            :         return INVALID_SOCKET;
 <span class="lineNum">     462 </span>                :            : 
 <span class="lineNum">     463 </span>                :            :     if (!IsSelectableSocket(hSocket)) {
@@ -548,14 +548,14 @@
 <span class="lineNum">     473 </span>                :            : #endif
 <span class="lineNum">     474 </span>                :            : 
 <span class="lineNum">     475 </span>                :            :     //Disable Nagle's algorithm
-<span class="lineNum">     476 </span>                :<span class="lineCov">        653 :     SetSocketNoDelay(hSocket);</span>
+<span class="lineNum">     476 </span>                :<span class="lineCov">        654 :     SetSocketNoDelay(hSocket);</span>
 <span class="lineNum">     477 </span>                :            : 
 <span class="lineNum">     478 </span>                :            :     // Set to non-blocking
-<span class="lineNum">     479 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 653 times"> + </span>]:<span class="lineCov">        653 :     if (!SetSocketNonBlocking(hSocket, true)) {</span>
+<span class="lineNum">     479 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 654 times"> + </span>]:<span class="lineCov">        654 :     if (!SetSocketNonBlocking(hSocket, true)) {</span>
 <span class="lineNum">     480 </span>                :<span class="lineNoCov">          0 :         CloseSocket(hSocket);</span>
 <span class="lineNum">     481 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LogPrintf(&quot;ConnectSocketDirectly: Setting socket to non-blocking failed, error %s\n&quot;, NetworkErrorString(WSAGetLastError()));</span>
 <span class="lineNum">     482 </span>                :            :     }
-<span class="lineNum">     483 </span>                :<span class="lineCov">        653 :     return hSocket;</span>
+<span class="lineNum">     483 </span>                :<span class="lineCov">        654 :     return hSocket;</span>
 <span class="lineNum">     484 </span>                :            : }
 <a name="485"><span class="lineNum">     485 </span>                :            : </a>
 <span class="lineNum">     486 </span>                :            : template&lt;typename... Args&gt;
@@ -759,49 +759,49 @@
 <span class="lineNum">     684 </span>                :            :     }
 <a name="685"><span class="lineNum">     685 </span>                :            : }</a>
 <span class="lineNum">     686 </span>                :            : #else
-<span class="lineNum">     687 </span>                :<span class="lineCov">         16 : std::string NetworkErrorString(int err)</span>
+<span class="lineNum">     687 </span>                :<span class="lineCov">         17 : std::string NetworkErrorString(int err)</span>
 <span class="lineNum">     688 </span>                :            : {
 <span class="lineNum">     689 </span>                :            :     char buf[256];
-<span class="lineNum">     690 </span>                :<span class="lineCov">         16 :     buf[0] = 0;</span>
+<span class="lineNum">     690 </span>                :<span class="lineCov">         17 :     buf[0] = 0;</span>
 <span class="lineNum">     691 </span>                :            :     /* Too bad there are two incompatible implementations of the
 <span class="lineNum">     692 </span>                :            :      * thread-safe strerror. */
 <span class="lineNum">     693 </span>                :            :     const char *s;
 <span class="lineNum">     694 </span>                :            : #ifdef STRERROR_R_CHAR_P /* GNU variant can return a pointer outside the passed buffer */
-<span class="lineNum">     695 </span>                :<span class="lineCov">         16 :     s = strerror_r(err, buf, sizeof(buf));</span>
+<span class="lineNum">     695 </span>                :<span class="lineCov">         17 :     s = strerror_r(err, buf, sizeof(buf));</span>
 <span class="lineNum">     696 </span>                :            : #else /* POSIX variant always returns message in buffer */
 <span class="lineNum">     697 </span>                :            :     s = buf;
 <span class="lineNum">     698 </span>                :            :     if (strerror_r(err, buf, sizeof(buf)))
 <span class="lineNum">     699 </span>                :            :         buf[0] = 0;
 <span class="lineNum">     700 </span>                :            : #endif
-<span class="lineNum">     701 </span>                :<span class="lineCov">         16 :     return strprintf(&quot;%s (%d)&quot;, s, err);</span>
+<span class="lineNum">     701 </span>                :<span class="lineCov">         17 :     return strprintf(&quot;%s (%d)&quot;, s, err);</span>
 <span class="lineNum">     702 </span>                :            : }
 <a name="703"><span class="lineNum">     703 </span>                :            : #endif</a>
 <span class="lineNum">     704 </span>                :            : 
-<span class="lineNum">     705 </span>                :<span class="lineCov">       1799 : bool CloseSocket(SOCKET&amp; hSocket)</span>
+<span class="lineNum">     705 </span>                :<span class="lineCov">       1804 : bool CloseSocket(SOCKET&amp; hSocket)</span>
 <span class="lineNum">     706 </span>                :            : {
-<span class="lineNum">     707 </span>        [<span class="branchCov" title="Branch 0 was taken 1059 times"> + </span><span class="branchCov" title="Branch 1 was taken 740 times"> + </span>]:<span class="lineCov">       1799 :     if (hSocket == INVALID_SOCKET)</span>
+<span class="lineNum">     707 </span>        [<span class="branchCov" title="Branch 0 was taken 1062 times"> + </span><span class="branchCov" title="Branch 1 was taken 742 times"> + </span>]:<span class="lineCov">       1804 :     if (hSocket == INVALID_SOCKET)</span>
 <span class="lineNum">     708 </span>                :            :         return false;
 <span class="lineNum">     709 </span>                :            : #ifdef WIN32
 <span class="lineNum">     710 </span>                :            :     int ret = closesocket(hSocket);
 <span class="lineNum">     711 </span>                :            : #else
-<span class="lineNum">     712 </span>                :<span class="lineCov">       1059 :     int ret = close(hSocket);</span>
+<span class="lineNum">     712 </span>                :<span class="lineCov">       1062 :     int ret = close(hSocket);</span>
 <span class="lineNum">     713 </span>                :            : #endif
-<span class="lineNum">     714 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1059 times"> + </span>]:<span class="lineCov">       1059 :     if (ret) {</span>
+<span class="lineNum">     714 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1062 times"> + </span>]:<span class="lineCov">       1062 :     if (ret) {</span>
 <span class="lineNum">     715 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LogPrintf(&quot;Socket close failed: %d. Error: %s\n&quot;, hSocket, NetworkErrorString(WSAGetLastError()));</span>
 <span class="lineNum">     716 </span>                :            :     }
-<span class="lineNum">     717 </span>                :<span class="lineCov">       1059 :     hSocket = INVALID_SOCKET;</span>
-<span class="lineNum">     718 </span>                :<span class="lineCov">       1799 :     return ret != SOCKET_ERROR;</span>
+<span class="lineNum">     717 </span>                :<span class="lineCov">       1062 :     hSocket = INVALID_SOCKET;</span>
+<span class="lineNum">     718 </span>                :<span class="lineCov">       1804 :     return ret != SOCKET_ERROR;</span>
 <a name="719"><span class="lineNum">     719 </span>                :            : }</a>
 <span class="lineNum">     720 </span>                :            : 
-<span class="lineNum">     721 </span>                :<span class="lineCov">        653 : bool SetSocketNonBlocking(const SOCKET&amp; hSocket, bool fNonBlocking)</span>
+<span class="lineNum">     721 </span>                :<span class="lineCov">        654 : bool SetSocketNonBlocking(const SOCKET&amp; hSocket, bool fNonBlocking)</span>
 <span class="lineNum">     722 </span>                :            : {
-<span class="lineNum">     723 </span>        [<span class="branchCov" title="Branch 0 was taken 653 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        653 :     if (fNonBlocking) {</span>
+<span class="lineNum">     723 </span>        [<span class="branchCov" title="Branch 0 was taken 654 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        654 :     if (fNonBlocking) {</span>
 <span class="lineNum">     724 </span>                :            : #ifdef WIN32
 <span class="lineNum">     725 </span>                :            :         u_long nOne = 1;
 <span class="lineNum">     726 </span>                :            :         if (ioctlsocket(hSocket, FIONBIO, &amp;nOne) == SOCKET_ERROR) {
 <span class="lineNum">     727 </span>                :            : #else
-<span class="lineNum">     728 </span>                :<span class="lineCov">        653 :         int fFlags = fcntl(hSocket, F_GETFL, 0);</span>
-<span class="lineNum">     729 </span>        [<span class="branchCov" title="Branch 1 was taken 653 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        653 :         if (fcntl(hSocket, F_SETFL, fFlags | O_NONBLOCK) == SOCKET_ERROR) {</span>
+<span class="lineNum">     728 </span>                :<span class="lineCov">        654 :         int fFlags = fcntl(hSocket, F_GETFL, 0);</span>
+<span class="lineNum">     729 </span>        [<span class="branchCov" title="Branch 1 was taken 654 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        654 :         if (fcntl(hSocket, F_SETFL, fFlags | O_NONBLOCK) == SOCKET_ERROR) {</span>
 <span class="lineNum">     730 </span>                :            : #endif
 <span class="lineNum">     731 </span>                :            :             return false;
 <span class="lineNum">     732 </span>                :            :         }
@@ -820,17 +820,17 @@
 <span class="lineNum">     745 </span>                :            :     return true;
 <a name="746"><span class="lineNum">     746 </span>                :            : }</a>
 <span class="lineNum">     747 </span>                :            : 
-<span class="lineNum">     748 </span>                :<span class="lineCov">       1059 : bool SetSocketNoDelay(const SOCKET&amp; hSocket)</span>
+<span class="lineNum">     748 </span>                :<span class="lineCov">       1062 : bool SetSocketNoDelay(const SOCKET&amp; hSocket)</span>
 <span class="lineNum">     749 </span>                :            : {
-<span class="lineNum">     750 </span>                :<span class="lineCov">       1059 :     int set = 1;</span>
-<span class="lineNum">     751 </span>                :<span class="lineCov">       1059 :     int rc = setsockopt(hSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&amp;set, sizeof(int));</span>
-<span class="lineNum">     752 </span>                :<span class="lineCov">       1059 :     return rc == 0;</span>
+<span class="lineNum">     750 </span>                :<span class="lineCov">       1062 :     int set = 1;</span>
+<span class="lineNum">     751 </span>                :<span class="lineCov">       1062 :     int rc = setsockopt(hSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&amp;set, sizeof(int));</span>
+<span class="lineNum">     752 </span>                :<span class="lineCov">       1062 :     return rc == 0;</span>
 <a name="753"><span class="lineNum">     753 </span>                :            : }</a>
 <span class="lineNum">     754 </span>                :            : 
-<span class="lineNum">     755 </span>                :<span class="lineCov">       1119 : void InterruptSocks5(bool interrupt)</span>
+<span class="lineNum">     755 </span>                :<span class="lineCov">       1127 : void InterruptSocks5(bool interrupt)</span>
 <a name="756"><span class="lineNum">     756 </span>                :            : {</a>
-<span class="lineNum">     757 </span>                :<span class="lineCov">       2238 :     interruptSocks5Recv = interrupt;</span>
-<span class="lineNum">     758 </span>[<span class="branchCov" title="Branch 1 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 472 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1888 : }</span>
+<span class="lineNum">     757 </span>                :<span class="lineCov">       2254 :     interruptSocks5Recv = interrupt;</span>
+<span class="lineNum">     758 </span>[<span class="branchCov" title="Branch 1 was taken 475 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 475 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1900 : }</span>
 </pre>
       </td>
     </tr>

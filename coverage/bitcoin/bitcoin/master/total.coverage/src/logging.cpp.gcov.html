@@ -92,80 +92,80 @@
 <span class="lineNum">      21 </span>                :            :  * This method of initialization was originally introduced in
 <span class="lineNum">      22 </span>                :            :  * ee3374234c60aba2cc4c5cd5cac1c0aefc2d817c.
 <span class="lineNum">      23 </span>                :            :  */
-<span class="lineNum">      24 </span>                :<span class="lineCov">        780 : BCLog::Logger* const g_logger = new BCLog::Logger();</span>
+<span class="lineNum">      24 </span>                :<span class="lineCov">        785 : BCLog::Logger* const g_logger = new BCLog::Logger();</span>
 <span class="lineNum">      25 </span>                :            : 
 <span class="lineNum">      26 </span>                :            : bool fLogIPs = DEFAULT_LOGIPS;
 <span class="lineNum">      27 </span>                :            : 
-<span class="lineNum">      28 </span>                :<span class="lineCov">    1043566 : static int FileWriteStr(const std::string &amp;str, FILE *fp)</span>
+<span class="lineNum">      28 </span>                :<span class="lineCov">    1039765 : static int FileWriteStr(const std::string &amp;str, FILE *fp)</span>
 <span class="lineNum">      29 </span>                :            : {
-<span class="lineNum">      30 </span>                :<span class="lineCov">    1043566 :     return fwrite(str.data(), 1, str.size(), fp);</span>
+<span class="lineNum">      30 </span>                :<span class="lineCov">    1039765 :     return fwrite(str.data(), 1, str.size(), fp);</span>
 <span class="lineNum">      31 </span>                :            : }
 <span class="lineNum">      32 </span>                :            : 
-<span class="lineNum">      33 </span>                :<span class="lineCov">        374 : bool BCLog::Logger::OpenDebugLog()</span>
+<span class="lineNum">      33 </span>                :<span class="lineCov">        375 : bool BCLog::Logger::OpenDebugLog()</span>
 <span class="lineNum">      34 </span>                :            : {
-<span class="lineNum">      35 </span>                :<span class="lineCov">        374 :     std::lock_guard&lt;std::mutex&gt; scoped_lock(m_file_mutex);</span>
+<span class="lineNum">      35 </span>                :<span class="lineCov">        375 :     std::lock_guard&lt;std::mutex&gt; scoped_lock(m_file_mutex);</span>
 <span class="lineNum">      36 </span>                :            : 
-<span class="lineNum">      37 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 374 times"> + </span>]:<span class="lineCov">        374 :     assert(m_fileout == nullptr);</span>
-<span class="lineNum">      38 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 374 times"> + </span>]:<span class="lineCov">        374 :     assert(!m_file_path.empty());</span>
+<span class="lineNum">      37 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 375 times"> + </span>]:<span class="lineCov">        375 :     assert(m_fileout == nullptr);</span>
+<span class="lineNum">      38 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 375 times"> + </span>]:<span class="lineCov">        375 :     assert(!m_file_path.empty());</span>
 <span class="lineNum">      39 </span>                :            : 
-<span class="lineNum">      40 </span>        [<span class="branchCov" title="Branch 1 was taken 374 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        374 :     m_fileout = fsbridge::fopen(m_file_path, &quot;a&quot;);</span>
-<span class="lineNum">      41 </span>        [<span class="branchCov" title="Branch 0 was taken 372 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">        374 :     if (!m_fileout) {</span>
+<span class="lineNum">      40 </span>        [<span class="branchCov" title="Branch 1 was taken 375 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        375 :     m_fileout = fsbridge::fopen(m_file_path, &quot;a&quot;);</span>
+<span class="lineNum">      41 </span>        [<span class="branchCov" title="Branch 0 was taken 373 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">        375 :     if (!m_fileout) {</span>
 <span class="lineNum">      42 </span>                :            :         return false;
 <span class="lineNum">      43 </span>                :            :     }
 <span class="lineNum">      44 </span>                :            : 
-<span class="lineNum">      45 </span>                :<span class="lineCov">        372 :     setbuf(m_fileout, nullptr); // unbuffered</span>
+<span class="lineNum">      45 </span>                :<span class="lineCov">        373 :     setbuf(m_fileout, nullptr); // unbuffered</span>
 <span class="lineNum">      46 </span>                :            :     // dump buffered messages from before we opened the log
-<span class="lineNum">      47 </span>        [<span class="branchCov" title="Branch 0 was taken 3004 times"> + </span><span class="branchCov" title="Branch 1 was taken 372 times"> + </span>]:<span class="lineCov">       3376 :     while (!m_msgs_before_open.empty()) {</span>
-<span class="lineNum">      48 </span>        [<span class="branchCov" title="Branch 1 was taken 3004 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3004 :         FileWriteStr(m_msgs_before_open.front(), m_fileout);</span>
-<span class="lineNum">      49 </span>                :<span class="lineCov">       3004 :         m_msgs_before_open.pop_front();</span>
+<span class="lineNum">      47 </span>        [<span class="branchCov" title="Branch 0 was taken 2639 times"> + </span><span class="branchCov" title="Branch 1 was taken 373 times"> + </span>]:<span class="lineCov">       3012 :     while (!m_msgs_before_open.empty()) {</span>
+<span class="lineNum">      48 </span>        [<span class="branchCov" title="Branch 1 was taken 2639 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2639 :         FileWriteStr(m_msgs_before_open.front(), m_fileout);</span>
+<span class="lineNum">      49 </span>                :<span class="lineCov">       2639 :         m_msgs_before_open.pop_front();</span>
 <span class="lineNum">      50 </span>                :            :     }
 <span class="lineNum">      51 </span>                :            : 
 <span class="lineNum">      52 </span>                :            :     return true;
 <a name="53"><span class="lineNum">      53 </span>                :            : }</a>
 <span class="lineNum">      54 </span>                :            : 
-<span class="lineNum">      55 </span>                :<span class="lineCov">        382 : void BCLog::Logger::EnableCategory(BCLog::LogFlags flag)</span>
+<span class="lineNum">      55 </span>                :<span class="lineCov">        383 : void BCLog::Logger::EnableCategory(BCLog::LogFlags flag)</span>
 <span class="lineNum">      56 </span>                :            : {
-<span class="lineNum">      57 </span>                :<span class="lineCov">        764 :     m_categories |= flag;</span>
-<a name="58"><span class="lineNum">      58 </span>                :<span class="lineCov">        382 : }</span></a>
+<span class="lineNum">      57 </span>                :<span class="lineCov">        766 :     m_categories |= flag;</span>
+<a name="58"><span class="lineNum">      58 </span>                :<span class="lineCov">        383 : }</span></a>
 <span class="lineNum">      59 </span>                :            : 
-<span class="lineNum">      60 </span>                :<span class="lineCov">        382 : bool BCLog::Logger::EnableCategory(const std::string&amp; str)</span>
+<span class="lineNum">      60 </span>                :<span class="lineCov">        383 : bool BCLog::Logger::EnableCategory(const std::string&amp; str)</span>
 <span class="lineNum">      61 </span>                :            : {
 <span class="lineNum">      62 </span>                :            :     BCLog::LogFlags flag;
-<span class="lineNum">      63 </span>        [<span class="branchCov" title="Branch 1 was taken 382 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        382 :     if (!GetLogCategory(flag, str)) return false;</span>
-<span class="lineNum">      64 </span>                :<span class="lineCov">        382 :     EnableCategory(flag);</span>
-<span class="lineNum">      65 </span>                :<span class="lineCov">        382 :     return true;</span>
+<span class="lineNum">      63 </span>        [<span class="branchCov" title="Branch 1 was taken 383 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        383 :     if (!GetLogCategory(flag, str)) return false;</span>
+<span class="lineNum">      64 </span>                :<span class="lineCov">        383 :     EnableCategory(flag);</span>
+<span class="lineNum">      65 </span>                :<span class="lineCov">        383 :     return true;</span>
 <a name="66"><span class="lineNum">      66 </span>                :            : }</a>
 <span class="lineNum">      67 </span>                :            : 
-<span class="lineNum">      68 </span>                :<span class="lineCov">        764 : void BCLog::Logger::DisableCategory(BCLog::LogFlags flag)</span>
+<span class="lineNum">      68 </span>                :<span class="lineCov">        766 : void BCLog::Logger::DisableCategory(BCLog::LogFlags flag)</span>
 <span class="lineNum">      69 </span>                :            : {
-<span class="lineNum">      70 </span>                :<span class="lineCov">       1528 :     m_categories &amp;= ~flag;</span>
-<a name="71"><span class="lineNum">      71 </span>                :<span class="lineCov">        764 : }</span></a>
+<span class="lineNum">      70 </span>                :<span class="lineCov">       1532 :     m_categories &amp;= ~flag;</span>
+<a name="71"><span class="lineNum">      71 </span>                :<span class="lineCov">        766 : }</span></a>
 <span class="lineNum">      72 </span>                :            : 
-<span class="lineNum">      73 </span>                :<span class="lineCov">        764 : bool BCLog::Logger::DisableCategory(const std::string&amp; str)</span>
+<span class="lineNum">      73 </span>                :<span class="lineCov">        766 : bool BCLog::Logger::DisableCategory(const std::string&amp; str)</span>
 <span class="lineNum">      74 </span>                :            : {
 <span class="lineNum">      75 </span>                :            :     BCLog::LogFlags flag;
-<span class="lineNum">      76 </span>        [<span class="branchCov" title="Branch 1 was taken 764 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        764 :     if (!GetLogCategory(flag, str)) return false;</span>
-<span class="lineNum">      77 </span>                :<span class="lineCov">        764 :     DisableCategory(flag);</span>
-<span class="lineNum">      78 </span>                :<span class="lineCov">        764 :     return true;</span>
+<span class="lineNum">      76 </span>        [<span class="branchCov" title="Branch 1 was taken 766 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        766 :     if (!GetLogCategory(flag, str)) return false;</span>
+<span class="lineNum">      77 </span>                :<span class="lineCov">        766 :     DisableCategory(flag);</span>
+<span class="lineNum">      78 </span>                :<span class="lineCov">        766 :     return true;</span>
 <a name="79"><span class="lineNum">      79 </span>                :            : }</a>
 <span class="lineNum">      80 </span>                :            : 
-<span class="lineNum">      81 </span>                :<span class="lineCov">     952402 : bool BCLog::Logger::WillLogCategory(BCLog::LogFlags category) const</span>
+<span class="lineNum">      81 </span>                :<span class="lineCov">     947756 : bool BCLog::Logger::WillLogCategory(BCLog::LogFlags category) const</span>
 <span class="lineNum">      82 </span>                :            : {
-<span class="lineNum">      83 </span>                :<span class="lineCov">    1904804 :     return (m_categories.load(std::memory_order_relaxed) &amp; category) != 0;</span>
+<span class="lineNum">      83 </span>                :<span class="lineCov">    1895512 :     return (m_categories.load(std::memory_order_relaxed) &amp; category) != 0;</span>
 <a name="84"><span class="lineNum">      84 </span>                :            : }</a>
 <span class="lineNum">      85 </span>                :            : 
-<span class="lineNum">      86 </span>                :<span class="lineCov">        374 : bool BCLog::Logger::DefaultShrinkDebugFile() const</span>
+<span class="lineNum">      86 </span>                :<span class="lineCov">        375 : bool BCLog::Logger::DefaultShrinkDebugFile() const</span>
 <span class="lineNum">      87 </span>                :            : {
-<span class="lineNum">      88 </span>                :<span class="lineCov">        748 :     return m_categories == BCLog::NONE;</span>
+<span class="lineNum">      88 </span>                :<span class="lineCov">        750 :     return m_categories == BCLog::NONE;</span>
 <span class="lineNum">      89 </span>                :            : }
 <span class="lineNum">      90 </span>                :            : 
-<span class="lineNum">      91 </span>                :<span class="lineCov">      19500 : struct CLogCategoryDesc</span>
+<span class="lineNum">      91 </span>                :<span class="lineCov">      19625 : struct CLogCategoryDesc</span>
 <span class="lineNum">      92 </span>                :            : {
 <span class="lineNum">      93 </span>                :            :     BCLog::LogFlags flag;
 <span class="lineNum">      94 </span>                :            :     std::string category;
 <span class="lineNum">      95 </span>                :            : };
 <span class="lineNum">      96 </span>                :            : 
-<span class="lineNum">      97 </span>        [<span class="branchCov" title="Branch 1 was taken 19500 times"> + </span><span class="branchCov" title="Branch 2 was taken 780 times"> + </span>]:<span class="lineCov">      21840 : const CLogCategoryDesc LogCategories[] =</span>
+<span class="lineNum">      97 </span>        [<span class="branchCov" title="Branch 1 was taken 19625 times"> + </span><span class="branchCov" title="Branch 2 was taken 785 times"> + </span>]:<span class="lineCov">      21980 : const CLogCategoryDesc LogCategories[] =</span>
 <span class="lineNum">      98 </span>                :            : {
 <span class="lineNum">      99 </span>                :            :     {BCLog::NONE, &quot;0&quot;},
 <span class="lineNum">     100 </span>                :            :     {BCLog::NONE, &quot;none&quot;},
@@ -192,48 +192,48 @@
 <span class="lineNum">     121 </span>                :            :     {BCLog::LEVELDB, &quot;leveldb&quot;},
 <span class="lineNum">     122 </span>                :            :     {BCLog::ALL, &quot;1&quot;},
 <span class="lineNum">     123 </span>                :            :     {BCLog::ALL, &quot;all&quot;},
-<span class="lineNum">     124 </span>[<span class="branchCov" title="Branch 1 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        780 : };</span>
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 13 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchCov" title="Branch 16 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 19 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>][<span class="branchCov" title="Branch 22 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 25 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span>][<span class="branchCov" title="Branch 28 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchCov" title="Branch 40 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 43 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 44 was not taken"> - </span>][<span class="branchCov" title="Branch 46 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 47 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 49 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 50 was not taken"> - </span>][<span class="branchCov" title="Branch 52 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 53 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 55 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 56 was not taken"> - </span>][<span class="branchCov" title="Branch 58 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 59 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 61 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 62 was not taken"> - </span>][<span class="branchCov" title="Branch 64 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 65 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 67 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 68 was not taken"> - </span>][<span class="branchCov" title="Branch 70 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 71 was not taken"> - </span>]
-<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 73 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 74 was not taken"> - </span><span class="branchNoExec" title="Branch 75 was not executed"> # </span><span class="branchNoExec" title="Branch 76 was not executed"> # </span>]
+<span class="lineNum">     124 </span>[<span class="branchCov" title="Branch 1 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        785 : };</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 13 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchCov" title="Branch 16 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 19 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>][<span class="branchCov" title="Branch 22 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 25 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span>][<span class="branchCov" title="Branch 28 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchCov" title="Branch 40 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 43 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 44 was not taken"> - </span>][<span class="branchCov" title="Branch 46 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 47 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 49 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 50 was not taken"> - </span>][<span class="branchCov" title="Branch 52 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 53 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 55 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 56 was not taken"> - </span>][<span class="branchCov" title="Branch 58 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 59 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 61 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 62 was not taken"> - </span>][<span class="branchCov" title="Branch 64 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 65 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 67 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 68 was not taken"> - </span>][<span class="branchCov" title="Branch 70 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 71 was not taken"> - </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 73 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 74 was not taken"> - </span><span class="branchNoExec" title="Branch 75 was not executed"> # </span><span class="branchNoExec" title="Branch 76 was not executed"> # </span>]
 <span class="lineNum">     125 </span>                :            : 
-<span class="lineNum">     126 </span>                :<span class="lineCov">       1146 : bool GetLogCategory(BCLog::LogFlags&amp; flag, const std::string&amp; str)</span>
+<span class="lineNum">     126 </span>                :<span class="lineCov">       1149 : bool GetLogCategory(BCLog::LogFlags&amp; flag, const std::string&amp; str)</span>
 <span class="lineNum">     127 </span>                :            : {
-<span class="lineNum">     128 </span>        [<span class="branchCov" title="Branch 0 was taken 382 times"> + </span><span class="branchCov" title="Branch 1 was taken 764 times"> + </span>]:<span class="lineCov">       1146 :     if (str == &quot;&quot;) {</span>
-<span class="lineNum">     129 </span>                :<span class="lineCov">        382 :         flag = BCLog::ALL;</span>
-<span class="lineNum">     130 </span>                :<span class="lineCov">        382 :         return true;</span>
+<span class="lineNum">     128 </span>        [<span class="branchCov" title="Branch 0 was taken 383 times"> + </span><span class="branchCov" title="Branch 1 was taken 766 times"> + </span>]:<span class="lineCov">       1149 :     if (str == &quot;&quot;) {</span>
+<span class="lineNum">     129 </span>                :<span class="lineCov">        383 :         flag = BCLog::ALL;</span>
+<span class="lineNum">     130 </span>                :<span class="lineCov">        383 :         return true;</span>
 <span class="lineNum">     131 </span>                :            :     }
-<span class="lineNum">     132 </span>        [<span class="branchCov" title="Branch 0 was taken 16426 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      16426 :     for (const CLogCategoryDesc&amp; category_desc : LogCategories) {</span>
-<span class="lineNum">     133 </span>        [<span class="branchCov" title="Branch 0 was taken 764 times"> + </span><span class="branchCov" title="Branch 1 was taken 15662 times"> + </span>]:<span class="lineCov">      16426 :         if (category_desc.category == str) {</span>
-<span class="lineNum">     134 </span>                :<span class="lineCov">        764 :             flag = category_desc.flag;</span>
-<span class="lineNum">     135 </span>                :<span class="lineCov">        764 :             return true;</span>
+<span class="lineNum">     132 </span>        [<span class="branchCov" title="Branch 0 was taken 16469 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      16469 :     for (const CLogCategoryDesc&amp; category_desc : LogCategories) {</span>
+<span class="lineNum">     133 </span>        [<span class="branchCov" title="Branch 0 was taken 766 times"> + </span><span class="branchCov" title="Branch 1 was taken 15703 times"> + </span>]:<span class="lineCov">      16469 :         if (category_desc.category == str) {</span>
+<span class="lineNum">     134 </span>                :<span class="lineCov">        766 :             flag = category_desc.flag;</span>
+<span class="lineNum">     135 </span>                :<span class="lineCov">        766 :             return true;</span>
 <span class="lineNum">     136 </span>                :            :         }
 <span class="lineNum">     137 </span>                :            :     }
 <span class="lineNum">     138 </span>                :            :     return false;
 <span class="lineNum">     139 </span>                :            : }
 <span class="lineNum">     140 </span>                :            : 
-<span class="lineNum">     141 </span>                :<span class="lineCov">        403 : std::string ListLogCategories()</span>
+<span class="lineNum">     141 </span>                :<span class="lineCov">        406 : std::string ListLogCategories()</span>
 <span class="lineNum">     142 </span>                :            : {
-<span class="lineNum">     143 </span>                :<span class="lineCov">        403 :     std::string ret;</span>
-<span class="lineNum">     144 </span>                :<span class="lineCov">        403 :     int outcount = 0;</span>
-<span class="lineNum">     145 </span>        [<span class="branchCov" title="Branch 0 was taken 10075 times"> + </span><span class="branchCov" title="Branch 1 was taken 403 times"> + </span>]:<span class="lineCov">      10478 :     for (const CLogCategoryDesc&amp; category_desc : LogCategories) {</span>
+<span class="lineNum">     143 </span>                :<span class="lineCov">        406 :     std::string ret;</span>
+<span class="lineNum">     144 </span>                :<span class="lineCov">        406 :     int outcount = 0;</span>
+<span class="lineNum">     145 </span>        [<span class="branchCov" title="Branch 0 was taken 10150 times"> + </span><span class="branchCov" title="Branch 1 was taken 406 times"> + </span>]:<span class="lineCov">      10556 :     for (const CLogCategoryDesc&amp; category_desc : LogCategories) {</span>
 <span class="lineNum">     146 </span>                :            :         // Omit the special cases.
-<span class="lineNum">     147 </span>        [<span class="branchCov" title="Branch 0 was taken 8463 times"> + </span><span class="branchCov" title="Branch 1 was taken 1612 times"> + </span>]:<span class="lineCov">      10075 :         if (category_desc.flag != BCLog::NONE &amp;&amp; category_desc.flag != BCLog::ALL) {</span>
-<span class="lineNum">     148 </span>        [<span class="branchCov" title="Branch 0 was taken 8060 times"> + </span><span class="branchCov" title="Branch 1 was taken 403 times"> + </span>]:<span class="lineCov">       8463 :             if (outcount != 0) ret += &quot;, &quot;;</span>
-<span class="lineNum">     149 </span>                :<span class="lineCov">      16926 :             ret += category_desc.category;</span>
-<span class="lineNum">     150 </span>                :<span class="lineCov">       8463 :             outcount++;</span>
+<span class="lineNum">     147 </span>        [<span class="branchCov" title="Branch 0 was taken 8526 times"> + </span><span class="branchCov" title="Branch 1 was taken 1624 times"> + </span>]:<span class="lineCov">      10150 :         if (category_desc.flag != BCLog::NONE &amp;&amp; category_desc.flag != BCLog::ALL) {</span>
+<span class="lineNum">     148 </span>        [<span class="branchCov" title="Branch 0 was taken 8120 times"> + </span><span class="branchCov" title="Branch 1 was taken 406 times"> + </span>]:<span class="lineCov">       8526 :             if (outcount != 0) ret += &quot;, &quot;;</span>
+<span class="lineNum">     149 </span>                :<span class="lineCov">      17052 :             ret += category_desc.category;</span>
+<span class="lineNum">     150 </span>                :<span class="lineCov">       8526 :             outcount++;</span>
 <span class="lineNum">     151 </span>                :            :         }
 <span class="lineNum">     152 </span>                :            :     }
-<span class="lineNum">     153 </span>                :<span class="lineCov">        403 :     return ret;</span>
+<span class="lineNum">     153 </span>                :<span class="lineCov">        406 :     return ret;</span>
 <span class="lineNum">     154 </span>                :            : }
 <span class="lineNum">     155 </span>                :            : 
 <span class="lineNum">     156 </span>                :<span class="lineNoCov">          0 : std::vector&lt;CLogCategoryActive&gt; ListActiveLogCategories()</span>
@@ -251,57 +251,57 @@
 <span class="lineNum">     168 </span>                :<span class="lineNoCov">          0 :     return ret;</span>
 <span class="lineNum">     169 </span>                :            : }
 <span class="lineNum">     170 </span>                :            : 
-<span class="lineNum">     171 </span>                :<span class="lineCov">    1043720 : std::string BCLog::Logger::LogTimestampStr(const std::string &amp;str)</span>
+<span class="lineNum">     171 </span>                :<span class="lineCov">    1039901 : std::string BCLog::Logger::LogTimestampStr(const std::string &amp;str)</span>
 <span class="lineNum">     172 </span>                :            : {
-<span class="lineNum">     173 </span>                :<span class="lineCov">    1043720 :     std::string strStamped;</span>
+<span class="lineNum">     173 </span>                :<span class="lineCov">    1039901 :     std::string strStamped;</span>
 <span class="lineNum">     174 </span>                :            : 
-<span class="lineNum">     175 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1043720 times"> + </span>]:<span class="lineCov">    1043720 :     if (!m_log_timestamps)</span>
+<span class="lineNum">     175 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1039901 times"> + </span>]:<span class="lineCov">    1039901 :     if (!m_log_timestamps)</span>
 <span class="lineNum">     176 </span>                :            :         return str;
 <span class="lineNum">     177 </span>                :            : 
-<span class="lineNum">     178 </span>        [<span class="branchCov" title="Branch 0 was taken 1000197 times"> + </span><span class="branchCov" title="Branch 1 was taken 43523 times"> + </span>]:<span class="lineCov">    1043720 :     if (m_started_new_line) {</span>
-<span class="lineNum">     179 </span>        [<span class="branchCov" title="Branch 1 was taken 1000197 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    1000197 :         int64_t nTimeMicros = GetTimeMicros();</span>
-<span class="lineNum">     180 </span>        [<span class="branchCov" title="Branch 1 was taken 1000197 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    1000197 :         strStamped = FormatISO8601DateTime(nTimeMicros/1000000);</span>
-<span class="lineNum">     181 </span>        [<span class="branchCov" title="Branch 0 was taken 997454 times"> + </span><span class="branchCov" title="Branch 1 was taken 2743 times"> + </span>]:<span class="lineCov">    1000197 :         if (m_log_time_micros) {</span>
-<span class="lineNum">     182 </span>                :<span class="lineCov">     997454 :             strStamped.pop_back();</span>
-<span class="lineNum">     183 </span>        [<span class="branchCov" title="Branch 1 was taken 997454 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    1994908 :             strStamped += strprintf(&quot;.%06dZ&quot;, nTimeMicros%1000000);</span>
+<span class="lineNum">     178 </span>        [<span class="branchCov" title="Branch 0 was taken 998187 times"> + </span><span class="branchCov" title="Branch 1 was taken 41714 times"> + </span>]:<span class="lineCov">    1039901 :     if (m_started_new_line) {</span>
+<span class="lineNum">     179 </span>        [<span class="branchCov" title="Branch 1 was taken 998187 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     998187 :         int64_t nTimeMicros = GetTimeMicros();</span>
+<span class="lineNum">     180 </span>        [<span class="branchCov" title="Branch 1 was taken 998187 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     998187 :         strStamped = FormatISO8601DateTime(nTimeMicros/1000000);</span>
+<span class="lineNum">     181 </span>        [<span class="branchCov" title="Branch 0 was taken 995451 times"> + </span><span class="branchCov" title="Branch 1 was taken 2736 times"> + </span>]:<span class="lineCov">     998187 :         if (m_log_time_micros) {</span>
+<span class="lineNum">     182 </span>                :<span class="lineCov">     995451 :             strStamped.pop_back();</span>
+<span class="lineNum">     183 </span>        [<span class="branchCov" title="Branch 1 was taken 995451 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    1990902 :             strStamped += strprintf(&quot;.%06dZ&quot;, nTimeMicros%1000000);</span>
 <span class="lineNum">     184 </span>                :            :         }
-<span class="lineNum">     185 </span>        [<span class="branchCov" title="Branch 1 was taken 1000197 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    1000197 :         int64_t mocktime = GetMockTime();</span>
-<span class="lineNum">     186 </span>        [<span class="branchCov" title="Branch 0 was taken 21731 times"> + </span><span class="branchCov" title="Branch 1 was taken 978466 times"> + </span>]:<span class="lineCov">    1000197 :         if (mocktime) {</span>
-<span class="lineNum">     187 </span>[<span class="branchCov" title="Branch 1 was taken 21731 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 21731 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      43462 :             strStamped += &quot; (mocktime: &quot; + FormatISO8601DateTime(mocktime) + &quot;)&quot;;</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 21731 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     185 </span>        [<span class="branchCov" title="Branch 1 was taken 998187 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     998187 :         int64_t mocktime = GetMockTime();</span>
+<span class="lineNum">     186 </span>        [<span class="branchCov" title="Branch 0 was taken 21599 times"> + </span><span class="branchCov" title="Branch 1 was taken 976588 times"> + </span>]:<span class="lineCov">     998187 :         if (mocktime) {</span>
+<span class="lineNum">     187 </span>[<span class="branchCov" title="Branch 1 was taken 21599 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 21599 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      43198 :             strStamped += &quot; (mocktime: &quot; + FormatISO8601DateTime(mocktime) + &quot;)&quot;;</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 21599 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
 <span class="lineNum">     188 </span>                :            :         }
-<span class="lineNum">     189 </span>        [<span class="branchCov" title="Branch 1 was taken 1000197 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    2000394 :         strStamped += ' ' + str;</span>
+<span class="lineNum">     189 </span>        [<span class="branchCov" title="Branch 1 was taken 998187 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    1996374 :         strStamped += ' ' + str;</span>
 <span class="lineNum">     190 </span>                :            :     } else
 <span class="lineNum">     191 </span>                :            :         strStamped = str;
 <span class="lineNum">     192 </span>                :            : 
-<span class="lineNum">     193 </span>[<span class="branchCov" title="Branch 0 was taken 1043720 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 1000192 times"> + </span><span class="branchCov" title="Branch 3 was taken 43528 times"> + </span>]:<span class="lineCov">    1043720 :     if (!str.empty() &amp;&amp; str[str.size()-1] == '\n')</span>
-<span class="lineNum">     194 </span>                :<span class="lineCov">    1000192 :         m_started_new_line = true;</span>
+<span class="lineNum">     193 </span>[<span class="branchCov" title="Branch 0 was taken 1039901 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 998183 times"> + </span><span class="branchCov" title="Branch 3 was taken 41718 times"> + </span>]:<span class="lineCov">    1039901 :     if (!str.empty() &amp;&amp; str[str.size()-1] == '\n')</span>
+<span class="lineNum">     194 </span>                :<span class="lineCov">     998183 :         m_started_new_line = true;</span>
 <span class="lineNum">     195 </span>                :            :     else
-<span class="lineNum">     196 </span>                :<span class="lineCov">      43528 :         m_started_new_line = false;</span>
+<span class="lineNum">     196 </span>                :<span class="lineCov">      41718 :         m_started_new_line = false;</span>
 <span class="lineNum">     197 </span>                :            : 
 <span class="lineNum">     198 </span>                :            :     return strStamped;
 <span class="lineNum">     199 </span>                :            : }
 <span class="lineNum">     200 </span>                :            : 
-<span class="lineNum">     201 </span>                :<span class="lineCov">    1043720 : void BCLog::Logger::LogPrintStr(const std::string &amp;str)</span>
+<span class="lineNum">     201 </span>                :<span class="lineCov">    1039901 : void BCLog::Logger::LogPrintStr(const std::string &amp;str)</span>
 <span class="lineNum">     202 </span>                :            : {
-<span class="lineNum">     203 </span>                :<span class="lineCov">    1043720 :     std::string strTimestamped = LogTimestampStr(str);</span>
+<span class="lineNum">     203 </span>                :<span class="lineCov">    1039901 :     std::string strTimestamped = LogTimestampStr(str);</span>
 <span class="lineNum">     204 </span>                :            : 
-<span class="lineNum">     205 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1043720 times"> + </span>]:<span class="lineCov">    1043720 :     if (m_print_to_console) {</span>
+<span class="lineNum">     205 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1039901 times"> + </span>]:<span class="lineCov">    1039901 :     if (m_print_to_console) {</span>
 <span class="lineNum">     206 </span>                :            :         // print to console
 <span class="lineNum">     207 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         fwrite(strTimestamped.data(), 1, strTimestamped.size(), stdout);</span>
 <span class="lineNum">     208 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         fflush(stdout);</span>
 <span class="lineNum">     209 </span>                :            :     }
-<span class="lineNum">     210 </span>        [<span class="branchCov" title="Branch 0 was taken 1043720 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">    1043720 :     if (m_print_to_file) {</span>
-<span class="lineNum">     211 </span>                :<span class="lineCov">    1043720 :         std::lock_guard&lt;std::mutex&gt; scoped_lock(m_file_mutex);</span>
+<span class="lineNum">     210 </span>        [<span class="branchCov" title="Branch 0 was taken 1039901 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">    1039901 :     if (m_print_to_file) {</span>
+<span class="lineNum">     211 </span>                :<span class="lineCov">    1039901 :         std::lock_guard&lt;std::mutex&gt; scoped_lock(m_file_mutex);</span>
 <span class="lineNum">     212 </span>                :            : 
 <span class="lineNum">     213 </span>                :            :         // buffer if we haven't opened the log yet
-<span class="lineNum">     214 </span>        [<span class="branchCov" title="Branch 0 was taken 3158 times"> + </span><span class="branchCov" title="Branch 1 was taken 1040562 times"> + </span>]:<span class="lineCov">    1043720 :         if (m_fileout == nullptr) {</span>
-<span class="lineNum">     215 </span>                :<span class="lineCov">       3158 :             m_msgs_before_open.push_back(strTimestamped);</span>
+<span class="lineNum">     214 </span>        [<span class="branchCov" title="Branch 0 was taken 2775 times"> + </span><span class="branchCov" title="Branch 1 was taken 1037126 times"> + </span>]:<span class="lineCov">    1039901 :         if (m_fileout == nullptr) {</span>
+<span class="lineNum">     215 </span>                :<span class="lineCov">       2775 :             m_msgs_before_open.push_back(strTimestamped);</span>
 <span class="lineNum">     216 </span>                :            :         }
 <span class="lineNum">     217 </span>                :            :         else
 <span class="lineNum">     218 </span>                :            :         {
 <span class="lineNum">     219 </span>                :            :             // reopen the log file, if requested
-<span class="lineNum">     220 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1040562 times"> + </span>]:<span class="lineCov">    1040562 :             if (m_reopen_file) {</span>
+<span class="lineNum">     220 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1037126 times"> + </span>]:<span class="lineCov">    1037126 :             if (m_reopen_file) {</span>
 <span class="lineNum">     221 </span>                :<span class="lineNoCov">          0 :                 m_reopen_file = false;</span>
 <span class="lineNum">     222 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 FILE* new_fileout = fsbridge::fopen(m_file_path, &quot;a&quot;);</span>
 <span class="lineNum">     223 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 if (new_fileout) {</span>
@@ -310,10 +310,10 @@
 <span class="lineNum">     226 </span>                :<span class="lineNoCov">          0 :                     m_fileout = new_fileout;</span>
 <span class="lineNum">     227 </span>                :            :                 }
 <span class="lineNum">     228 </span>                :            :             }
-<span class="lineNum">     229 </span>        [<span class="branchCov" title="Branch 1 was taken 1040562 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    1040562 :             FileWriteStr(strTimestamped, m_fileout);</span>
+<span class="lineNum">     229 </span>        [<span class="branchCov" title="Branch 1 was taken 1037126 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    1037126 :             FileWriteStr(strTimestamped, m_fileout);</span>
 <span class="lineNum">     230 </span>                :            :         }
 <span class="lineNum">     231 </span>                :            :     }
-<span class="lineNum">     232 </span>                :<span class="lineCov">    1043720 : }</span>
+<span class="lineNum">     232 </span>                :<span class="lineCov">    1039901 : }</span>
 <span class="lineNum">     233 </span>                :            : 
 <span class="lineNum">     234 </span>                :<span class="lineCov">          8 : void BCLog::Logger::ShrinkDebugFile()</span>
 <span class="lineNum">     235 </span>                :            : {
@@ -354,7 +354,7 @@
 <span class="lineNum">     270 </span>                :            :     }
 <a name="271"><span class="lineNum">     271 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 8 times"> + </span>]:<span class="lineCov">          8 :     else if (file != nullptr)</span></a>
 <span class="lineNum">     272 </span>[<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 8 times"> + </span>][<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">         16 :         fclose(file);</span>
-<span class="lineNum">     273 </span>[<span class="branchCov" title="Branch 1 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 780 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       3120 : }</span>
+<span class="lineNum">     273 </span>[<span class="branchCov" title="Branch 1 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 785 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       3140 : }</span>
 </pre>
       </td>
     </tr>

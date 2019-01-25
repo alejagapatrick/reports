@@ -31,9 +31,9 @@
             <td class="headerValue">total_coverage.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">80</td>
-            <td class="headerCovTableEntry">95</td>
-            <td class="headerCovTableEntryMed">84.2 %</td>
+            <td class="headerCovTableEntry">81</td>
+            <td class="headerCovTableEntry">96</td>
+            <td class="headerCovTableEntryMed">84.4 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
@@ -81,7 +81,7 @@
 <span class="lineNum">      10 </span>                :            : #include &lt;util/system.h&gt;
 <span class="lineNum">      11 </span>                :            : #include &lt;rpc/server.h&gt;
 <span class="lineNum">      12 </span>                :            : 
-<span class="lineNum">      13 </span>                :<span class="lineCov">        400 : static std::multimap&lt;std::string, CZMQAbstractPublishNotifier*&gt; mapPublishNotifiers;</span>
+<span class="lineNum">      13 </span>                :<span class="lineCov">        403 : static std::multimap&lt;std::string, CZMQAbstractPublishNotifier*&gt; mapPublishNotifiers;</span>
 <span class="lineNum">      14 </span>                :            : 
 <span class="lineNum">      15 </span>                :            : static const char *MSG_HASHBLOCK = &quot;hashblock&quot;;
 <span class="lineNum">      16 </span>                :            : static const char *MSG_HASHTX    = &quot;hashtx&quot;;
@@ -172,110 +172,111 @@
 <span class="lineNum">     101 </span>                :            :     else
 <span class="lineNum">     102 </span>                :            :     {
 <span class="lineNum">     103 </span>                :<span class="lineCov">          3 :         LogPrint(BCLog::ZMQ, &quot;zmq: Reusing socket for address %s\n&quot;, address);</span>
-<span class="lineNum">     104 </span>                :            : 
-<span class="lineNum">     105 </span>                :<span class="lineCov">          3 :         psocket = i-&gt;second-&gt;psocket;</span>
-<span class="lineNum">     106 </span>                :<span class="lineCov">         12 :         mapPublishNotifiers.insert(std::make_pair(address, this));</span>
-<span class="lineNum">     107 </span>                :            : 
-<span class="lineNum">     108 </span>                :<span class="lineCov">          4 :         return true;</span>
-<span class="lineNum">     109 </span>                :            :     }
-<a name="110"><span class="lineNum">     110 </span>                :            : }</a>
-<span class="lineNum">     111 </span>                :            : 
-<span class="lineNum">     112 </span>                :<span class="lineCov">          4 : void CZMQAbstractPublishNotifier::Shutdown()</span>
-<span class="lineNum">     113 </span>                :            : {
-<span class="lineNum">     114 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">          4 :     assert(psocket);</span>
-<span class="lineNum">     115 </span>                :            : 
-<span class="lineNum">     116 </span>                :<span class="lineCov">          8 :     int count = mapPublishNotifiers.count(address);</span>
-<span class="lineNum">     117 </span>                :            : 
-<span class="lineNum">     118 </span>                :            :     // remove this notifier from the list of publishers using this address
-<span class="lineNum">     119 </span>                :            :     typedef std::multimap&lt;std::string, CZMQAbstractPublishNotifier*&gt;::iterator iterator;
-<span class="lineNum">     120 </span>                :<span class="lineCov">          8 :     std::pair&lt;iterator, iterator&gt; iterpair = mapPublishNotifiers.equal_range(address);</span>
-<span class="lineNum">     121 </span>                :            : 
-<span class="lineNum">     122 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          4 :     for (iterator it = iterpair.first; it != iterpair.second; ++it)</span>
-<span class="lineNum">     123 </span>                :            :     {
-<span class="lineNum">     124 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          4 :         if (it-&gt;second==this)</span>
-<span class="lineNum">     125 </span>                :            :         {
-<span class="lineNum">     126 </span>                :            :             mapPublishNotifiers.erase(it);
-<span class="lineNum">     127 </span>                :            :             break;
-<span class="lineNum">     128 </span>                :            :         }
-<span class="lineNum">     129 </span>                :            :     }
-<span class="lineNum">     130 </span>                :            : 
-<span class="lineNum">     131 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">          4 :     if (count == 1)</span>
-<span class="lineNum">     132 </span>                :            :     {
-<span class="lineNum">     133 </span>                :<span class="lineCov">          1 :         LogPrint(BCLog::ZMQ, &quot;zmq: Close socket at address %s\n&quot;, address);</span>
-<span class="lineNum">     134 </span>                :<span class="lineCov">          1 :         int linger = 0;</span>
-<span class="lineNum">     135 </span>                :<span class="lineCov">          1 :         zmq_setsockopt(psocket, ZMQ_LINGER, &amp;linger, sizeof(linger));</span>
-<span class="lineNum">     136 </span>                :<span class="lineCov">          1 :         zmq_close(psocket);</span>
-<span class="lineNum">     137 </span>                :            :     }
-<span class="lineNum">     138 </span>                :            : 
-<span class="lineNum">     139 </span>                :<span class="lineCov">          4 :     psocket = nullptr;</span>
-<a name="140"><span class="lineNum">     140 </span>                :<span class="lineCov">          4 : }</span></a>
-<span class="lineNum">     141 </span>                :            : 
-<span class="lineNum">     142 </span>                :<span class="lineCov">         22 : bool CZMQAbstractPublishNotifier::SendMessage(const char *command, const void* data, size_t size)</span>
-<span class="lineNum">     143 </span>                :            : {
-<span class="lineNum">     144 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 22 times"> + </span>]:<span class="lineCov">         22 :     assert(psocket);</span>
-<span class="lineNum">     145 </span>                :            : 
-<span class="lineNum">     146 </span>                :            :     /* send three parts, command &amp; data &amp; a LE 4byte sequence number */
-<span class="lineNum">     147 </span>                :            :     unsigned char msgseq[sizeof(uint32_t)];
-<span class="lineNum">     148 </span>                :<span class="lineCov">         44 :     WriteLE32(&amp;msgseq[0], nSequence);</span>
-<span class="lineNum">     149 </span>                :<span class="lineCov">         22 :     int rc = zmq_send_multipart(psocket, command, strlen(command), data, size, msgseq, (size_t)sizeof(uint32_t), nullptr);</span>
-<span class="lineNum">     150 </span>        [<span class="branchCov" title="Branch 0 was taken 22 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         22 :     if (rc == -1)</span>
-<span class="lineNum">     151 </span>                :            :         return false;
-<span class="lineNum">     152 </span>                :            : 
-<span class="lineNum">     153 </span>                :            :     /* increment memory only sequence number after sending */
-<span class="lineNum">     154 </span>                :<span class="lineCov">         22 :     nSequence++;</span>
-<span class="lineNum">     155 </span>                :            : 
-<span class="lineNum">     156 </span>                :<span class="lineCov">         22 :     return true;</span>
-<span class="lineNum">     157 </span>                :            : }
-<span class="lineNum">     158 </span>                :            : 
-<span class="lineNum">     159 </span>                :<span class="lineCov">          5 : bool CZMQPublishHashBlockNotifier::NotifyBlock(const CBlockIndex *pindex)</span>
-<span class="lineNum">     160 </span>                :            : {
-<span class="lineNum">     161 </span>                :<span class="lineCov">          5 :     uint256 hash = pindex-&gt;GetBlockHash();</span>
-<span class="lineNum">     162 </span>        [<span class="branchCov" title="Branch 2 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          5 :     LogPrint(BCLog::ZMQ, &quot;zmq: Publish hashblock %s\n&quot;, hash.GetHex());</span>
-<span class="lineNum">     163 </span>                :            :     char data[32];
-<span class="lineNum">     164 </span>        [<span class="branchCov" title="Branch 0 was taken 160 times"> + </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>]:<span class="lineCov">        165 :     for (unsigned int i = 0; i &lt; 32; i++)</span>
-<span class="lineNum">     165 </span>                :<span class="lineCov">        160 :         data[31 - i] = hash.begin()[i];</span>
-<span class="lineNum">     166 </span>                :<span class="lineCov">          5 :     return SendMessage(MSG_HASHBLOCK, data, 32);</span>
-<span class="lineNum">     167 </span>                :            : }
-<span class="lineNum">     168 </span>                :            : 
-<span class="lineNum">     169 </span>                :<span class="lineCov">          6 : bool CZMQPublishHashTransactionNotifier::NotifyTransaction(const CTransaction &amp;transaction)</span>
-<span class="lineNum">     170 </span>                :            : {
-<span class="lineNum">     171 </span>                :<span class="lineCov">          6 :     uint256 hash = transaction.GetHash();</span>
-<span class="lineNum">     172 </span>        [<span class="branchCov" title="Branch 2 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          6 :     LogPrint(BCLog::ZMQ, &quot;zmq: Publish hashtx %s\n&quot;, hash.GetHex());</span>
-<span class="lineNum">     173 </span>                :            :     char data[32];
-<span class="lineNum">     174 </span>        [<span class="branchCov" title="Branch 0 was taken 192 times"> + </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>]:<span class="lineCov">        198 :     for (unsigned int i = 0; i &lt; 32; i++)</span>
-<span class="lineNum">     175 </span>                :<span class="lineCov">        192 :         data[31 - i] = hash.begin()[i];</span>
-<span class="lineNum">     176 </span>                :<span class="lineCov">          6 :     return SendMessage(MSG_HASHTX, data, 32);</span>
-<span class="lineNum">     177 </span>                :            : }
-<span class="lineNum">     178 </span>                :            : 
-<span class="lineNum">     179 </span>                :<span class="lineCov">          5 : bool CZMQPublishRawBlockNotifier::NotifyBlock(const CBlockIndex *pindex)</span>
-<span class="lineNum">     180 </span>                :            : {
-<span class="lineNum">     181 </span>        [<span class="branchCov" title="Branch 2 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          5 :     LogPrint(BCLog::ZMQ, &quot;zmq: Publish rawblock %s\n&quot;, pindex-&gt;GetBlockHash().GetHex());</span>
-<span class="lineNum">     182 </span>                :            : 
-<span class="lineNum">     183 </span>                :<span class="lineCov">          5 :     const Consensus::Params&amp; consensusParams = Params().GetConsensus();</span>
-<span class="lineNum">     184 </span>                :<span class="lineCov">         10 :     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());</span>
-<span class="lineNum">     185 </span>                :            :     {
-<span class="lineNum">     186 </span>        [<span class="branchCov" title="Branch 1 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          5 :         LOCK(cs_main);</span>
-<span class="lineNum">     187 </span>                :<span class="lineCov">          5 :         CBlock block;</span>
-<span class="lineNum">     188 </span>[<span class="branchCov" title="Branch 1 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 5 times"> + </span>]:<span class="lineCov">          5 :         if(!ReadBlockFromDisk(block, pindex, consensusParams))</span>
-<span class="lineNum">     189 </span>                :            :         {
-<span class="lineNum">     190 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             zmqError(&quot;Can't read block from disk&quot;);</span>
-<span class="lineNum">     191 </span>                :<span class="lineNoCov">          0 :             return false;</span>
-<span class="lineNum">     192 </span>                :            :         }
-<span class="lineNum">     193 </span>                :            : 
-<span class="lineNum">     194 </span>                :<span class="lineCov">          5 :         ss &lt;&lt; block;</span>
-<span class="lineNum">     195 </span>                :            :     }
-<span class="lineNum">     196 </span>                :            : 
-<span class="lineNum">     197 </span>        [<span class="branchCov" title="Branch 1 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          5 :     return SendMessage(MSG_RAWBLOCK, &amp;(*ss.begin()), ss.size());</span>
-<span class="lineNum">     198 </span>                :            : }
-<span class="lineNum">     199 </span>                :            : 
-<span class="lineNum">     200 </span>                :<span class="lineCov">          6 : bool CZMQPublishRawTransactionNotifier::NotifyTransaction(const CTransaction &amp;transaction)</span>
-<span class="lineNum">     201 </span>                :            : {
-<span class="lineNum">     202 </span>                :<span class="lineCov">          6 :     uint256 hash = transaction.GetHash();</span>
-<span class="lineNum">     203 </span>        [<span class="branchCov" title="Branch 2 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          6 :     LogPrint(BCLog::ZMQ, &quot;zmq: Publish rawtx %s\n&quot;, hash.GetHex());</span>
-<span class="lineNum">     204 </span>                :<span class="lineCov">          6 :     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());</span>
-<a name="205"><span class="lineNum">     205 </span>                :<span class="lineCov">          6 :     ss &lt;&lt; transaction;</span></a>
-<span class="lineNum">     206 </span>        [<span class="branchCov" title="Branch 1 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         12 :     return SendMessage(MSG_RAWTX, &amp;(*ss.begin()), ss.size());</span>
-<span class="lineNum">     207 </span>[<span class="branchCov" title="Branch 1 was taken 400 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 400 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1600 : }</span>
+<span class="lineNum">     104 </span>                :<span class="lineCov">          3 :         LogPrint(BCLog::ZMQ, &quot;zmq: Outbound message high water mark for %s at %s is %d\n&quot;, type, address, outbound_message_high_water_mark);</span>
+<span class="lineNum">     105 </span>                :            : 
+<span class="lineNum">     106 </span>                :<span class="lineCov">          3 :         psocket = i-&gt;second-&gt;psocket;</span>
+<span class="lineNum">     107 </span>                :<span class="lineCov">         12 :         mapPublishNotifiers.insert(std::make_pair(address, this));</span>
+<span class="lineNum">     108 </span>                :            : 
+<span class="lineNum">     109 </span>                :<span class="lineCov">          4 :         return true;</span>
+<span class="lineNum">     110 </span>                :            :     }
+<a name="111"><span class="lineNum">     111 </span>                :            : }</a>
+<span class="lineNum">     112 </span>                :            : 
+<span class="lineNum">     113 </span>                :<span class="lineCov">          4 : void CZMQAbstractPublishNotifier::Shutdown()</span>
+<span class="lineNum">     114 </span>                :            : {
+<span class="lineNum">     115 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">          4 :     assert(psocket);</span>
+<span class="lineNum">     116 </span>                :            : 
+<span class="lineNum">     117 </span>                :<span class="lineCov">          8 :     int count = mapPublishNotifiers.count(address);</span>
+<span class="lineNum">     118 </span>                :            : 
+<span class="lineNum">     119 </span>                :            :     // remove this notifier from the list of publishers using this address
+<span class="lineNum">     120 </span>                :            :     typedef std::multimap&lt;std::string, CZMQAbstractPublishNotifier*&gt;::iterator iterator;
+<span class="lineNum">     121 </span>                :<span class="lineCov">          8 :     std::pair&lt;iterator, iterator&gt; iterpair = mapPublishNotifiers.equal_range(address);</span>
+<span class="lineNum">     122 </span>                :            : 
+<span class="lineNum">     123 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          4 :     for (iterator it = iterpair.first; it != iterpair.second; ++it)</span>
+<span class="lineNum">     124 </span>                :            :     {
+<span class="lineNum">     125 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          4 :         if (it-&gt;second==this)</span>
+<span class="lineNum">     126 </span>                :            :         {
+<span class="lineNum">     127 </span>                :            :             mapPublishNotifiers.erase(it);
+<span class="lineNum">     128 </span>                :            :             break;
+<span class="lineNum">     129 </span>                :            :         }
+<span class="lineNum">     130 </span>                :            :     }
+<span class="lineNum">     131 </span>                :            : 
+<span class="lineNum">     132 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">          4 :     if (count == 1)</span>
+<span class="lineNum">     133 </span>                :            :     {
+<span class="lineNum">     134 </span>                :<span class="lineCov">          1 :         LogPrint(BCLog::ZMQ, &quot;zmq: Close socket at address %s\n&quot;, address);</span>
+<span class="lineNum">     135 </span>                :<span class="lineCov">          1 :         int linger = 0;</span>
+<span class="lineNum">     136 </span>                :<span class="lineCov">          1 :         zmq_setsockopt(psocket, ZMQ_LINGER, &amp;linger, sizeof(linger));</span>
+<span class="lineNum">     137 </span>                :<span class="lineCov">          1 :         zmq_close(psocket);</span>
+<span class="lineNum">     138 </span>                :            :     }
+<span class="lineNum">     139 </span>                :            : 
+<span class="lineNum">     140 </span>                :<span class="lineCov">          4 :     psocket = nullptr;</span>
+<a name="141"><span class="lineNum">     141 </span>                :<span class="lineCov">          4 : }</span></a>
+<span class="lineNum">     142 </span>                :            : 
+<span class="lineNum">     143 </span>                :<span class="lineCov">         22 : bool CZMQAbstractPublishNotifier::SendMessage(const char *command, const void* data, size_t size)</span>
+<span class="lineNum">     144 </span>                :            : {
+<span class="lineNum">     145 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 22 times"> + </span>]:<span class="lineCov">         22 :     assert(psocket);</span>
+<span class="lineNum">     146 </span>                :            : 
+<span class="lineNum">     147 </span>                :            :     /* send three parts, command &amp; data &amp; a LE 4byte sequence number */
+<span class="lineNum">     148 </span>                :            :     unsigned char msgseq[sizeof(uint32_t)];
+<span class="lineNum">     149 </span>                :<span class="lineCov">         44 :     WriteLE32(&amp;msgseq[0], nSequence);</span>
+<span class="lineNum">     150 </span>                :<span class="lineCov">         22 :     int rc = zmq_send_multipart(psocket, command, strlen(command), data, size, msgseq, (size_t)sizeof(uint32_t), nullptr);</span>
+<span class="lineNum">     151 </span>        [<span class="branchCov" title="Branch 0 was taken 22 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         22 :     if (rc == -1)</span>
+<span class="lineNum">     152 </span>                :            :         return false;
+<span class="lineNum">     153 </span>                :            : 
+<span class="lineNum">     154 </span>                :            :     /* increment memory only sequence number after sending */
+<span class="lineNum">     155 </span>                :<span class="lineCov">         22 :     nSequence++;</span>
+<span class="lineNum">     156 </span>                :            : 
+<span class="lineNum">     157 </span>                :<span class="lineCov">         22 :     return true;</span>
+<span class="lineNum">     158 </span>                :            : }
+<span class="lineNum">     159 </span>                :            : 
+<span class="lineNum">     160 </span>                :<span class="lineCov">          5 : bool CZMQPublishHashBlockNotifier::NotifyBlock(const CBlockIndex *pindex)</span>
+<span class="lineNum">     161 </span>                :            : {
+<span class="lineNum">     162 </span>                :<span class="lineCov">          5 :     uint256 hash = pindex-&gt;GetBlockHash();</span>
+<span class="lineNum">     163 </span>        [<span class="branchCov" title="Branch 2 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          5 :     LogPrint(BCLog::ZMQ, &quot;zmq: Publish hashblock %s\n&quot;, hash.GetHex());</span>
+<span class="lineNum">     164 </span>                :            :     char data[32];
+<span class="lineNum">     165 </span>        [<span class="branchCov" title="Branch 0 was taken 160 times"> + </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>]:<span class="lineCov">        165 :     for (unsigned int i = 0; i &lt; 32; i++)</span>
+<span class="lineNum">     166 </span>                :<span class="lineCov">        160 :         data[31 - i] = hash.begin()[i];</span>
+<span class="lineNum">     167 </span>                :<span class="lineCov">          5 :     return SendMessage(MSG_HASHBLOCK, data, 32);</span>
+<span class="lineNum">     168 </span>                :            : }
+<span class="lineNum">     169 </span>                :            : 
+<span class="lineNum">     170 </span>                :<span class="lineCov">          6 : bool CZMQPublishHashTransactionNotifier::NotifyTransaction(const CTransaction &amp;transaction)</span>
+<span class="lineNum">     171 </span>                :            : {
+<span class="lineNum">     172 </span>                :<span class="lineCov">          6 :     uint256 hash = transaction.GetHash();</span>
+<span class="lineNum">     173 </span>        [<span class="branchCov" title="Branch 2 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          6 :     LogPrint(BCLog::ZMQ, &quot;zmq: Publish hashtx %s\n&quot;, hash.GetHex());</span>
+<span class="lineNum">     174 </span>                :            :     char data[32];
+<span class="lineNum">     175 </span>        [<span class="branchCov" title="Branch 0 was taken 192 times"> + </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>]:<span class="lineCov">        198 :     for (unsigned int i = 0; i &lt; 32; i++)</span>
+<span class="lineNum">     176 </span>                :<span class="lineCov">        192 :         data[31 - i] = hash.begin()[i];</span>
+<span class="lineNum">     177 </span>                :<span class="lineCov">          6 :     return SendMessage(MSG_HASHTX, data, 32);</span>
+<span class="lineNum">     178 </span>                :            : }
+<span class="lineNum">     179 </span>                :            : 
+<span class="lineNum">     180 </span>                :<span class="lineCov">          5 : bool CZMQPublishRawBlockNotifier::NotifyBlock(const CBlockIndex *pindex)</span>
+<span class="lineNum">     181 </span>                :            : {
+<span class="lineNum">     182 </span>        [<span class="branchCov" title="Branch 2 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          5 :     LogPrint(BCLog::ZMQ, &quot;zmq: Publish rawblock %s\n&quot;, pindex-&gt;GetBlockHash().GetHex());</span>
+<span class="lineNum">     183 </span>                :            : 
+<span class="lineNum">     184 </span>                :<span class="lineCov">          5 :     const Consensus::Params&amp; consensusParams = Params().GetConsensus();</span>
+<span class="lineNum">     185 </span>                :<span class="lineCov">         10 :     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());</span>
+<span class="lineNum">     186 </span>                :            :     {
+<span class="lineNum">     187 </span>        [<span class="branchCov" title="Branch 1 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          5 :         LOCK(cs_main);</span>
+<span class="lineNum">     188 </span>                :<span class="lineCov">          5 :         CBlock block;</span>
+<span class="lineNum">     189 </span>[<span class="branchCov" title="Branch 1 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 5 times"> + </span>]:<span class="lineCov">          5 :         if(!ReadBlockFromDisk(block, pindex, consensusParams))</span>
+<span class="lineNum">     190 </span>                :            :         {
+<span class="lineNum">     191 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             zmqError(&quot;Can't read block from disk&quot;);</span>
+<span class="lineNum">     192 </span>                :<span class="lineNoCov">          0 :             return false;</span>
+<span class="lineNum">     193 </span>                :            :         }
+<span class="lineNum">     194 </span>                :            : 
+<span class="lineNum">     195 </span>                :<span class="lineCov">          5 :         ss &lt;&lt; block;</span>
+<span class="lineNum">     196 </span>                :            :     }
+<span class="lineNum">     197 </span>                :            : 
+<span class="lineNum">     198 </span>        [<span class="branchCov" title="Branch 1 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          5 :     return SendMessage(MSG_RAWBLOCK, &amp;(*ss.begin()), ss.size());</span>
+<span class="lineNum">     199 </span>                :            : }
+<span class="lineNum">     200 </span>                :            : 
+<span class="lineNum">     201 </span>                :<span class="lineCov">          6 : bool CZMQPublishRawTransactionNotifier::NotifyTransaction(const CTransaction &amp;transaction)</span>
+<span class="lineNum">     202 </span>                :            : {
+<span class="lineNum">     203 </span>                :<span class="lineCov">          6 :     uint256 hash = transaction.GetHash();</span>
+<span class="lineNum">     204 </span>        [<span class="branchCov" title="Branch 2 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          6 :     LogPrint(BCLog::ZMQ, &quot;zmq: Publish rawtx %s\n&quot;, hash.GetHex());</span>
+<span class="lineNum">     205 </span>                :<span class="lineCov">          6 :     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());</span>
+<a name="206"><span class="lineNum">     206 </span>                :<span class="lineCov">          6 :     ss &lt;&lt; transaction;</span></a>
+<span class="lineNum">     207 </span>        [<span class="branchCov" title="Branch 1 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         12 :     return SendMessage(MSG_RAWTX, &amp;(*ss.begin()), ss.size());</span>
+<span class="lineNum">     208 </span>[<span class="branchCov" title="Branch 1 was taken 403 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 403 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1612 : }</span>
 </pre>
       </td>
     </tr>
