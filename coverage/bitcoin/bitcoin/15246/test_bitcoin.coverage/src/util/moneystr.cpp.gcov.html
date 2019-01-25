@@ -1,0 +1,162 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/util/moneystr.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/util</a> - moneystr.cpp<span style="font-size: 80%;"> (source / <a href="moneystr.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">37</td>
+            <td class="headerCovTableEntry">39</td>
+            <td class="headerCovTableEntryHi">94.9 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">26</td>
+            <td class="headerCovTableEntry">34</td>
+            <td class="headerCovTableEntryMed">76.5 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #include &lt;util/moneystr.h&gt;
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;primitives/transaction.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;tinyformat.h&gt;
+<a name="10"><span class="lineNum">      10 </span>                :            : #include &lt;util/strencodings.h&gt;</a>
+<span class="lineNum">      11 </span>                :            : 
+<span class="lineNum">      12 </span>                :<span class="lineCov">         40 : std::string FormatMoney(const CAmount&amp; n)</span>
+<span class="lineNum">      13 </span>                :            : {
+<span class="lineNum">      14 </span>                :            :     // Note: not using straight sprintf here because we do NOT want
+<span class="lineNum">      15 </span>                :            :     // localized number formatting.
+<span class="lineNum">      16 </span>                :<span class="lineCov">         40 :     int64_t n_abs = (n &gt; 0 ? n : -n);</span>
+<span class="lineNum">      17 </span>                :<span class="lineCov">         40 :     int64_t quotient = n_abs/COIN;</span>
+<span class="lineNum">      18 </span>                :<span class="lineCov">         40 :     int64_t remainder = n_abs%COIN;</span>
+<span class="lineNum">      19 </span>                :<span class="lineCov">         40 :     std::string str = strprintf(&quot;%d.%08d&quot;, quotient, remainder);</span>
+<span class="lineNum">      20 </span>                :            : 
+<span class="lineNum">      21 </span>                :            :     // Right-trim excess zeros before the decimal point:
+<span class="lineNum">      22 </span>                :<span class="lineCov">         40 :     int nTrim = 0;</span>
+<span class="lineNum">      23 </span>[<span class="branchCov" title="Branch 0 was taken 218 times"> + </span><span class="branchCov" title="Branch 1 was taken 16 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 194 times"> + </span><span class="branchCov" title="Branch 3 was taken 24 times"> + </span>]:<span class="lineCov">        234 :     for (int i = str.size()-1; (str[i] == '0' &amp;&amp; IsDigit(str[i-2])); --i)</span>
+<span class="lineNum">      24 </span>                :<span class="lineCov">        194 :         ++nTrim;</span>
+<span class="lineNum">      25 </span>        [<span class="branchCov" title="Branch 0 was taken 38 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">         40 :     if (nTrim)</span>
+<span class="lineNum">      26 </span>        [<span class="branchCov" title="Branch 1 was taken 38 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         38 :         str.erase(str.size()-nTrim, nTrim);</span>
+<span class="lineNum">      27 </span>                :            : 
+<span class="lineNum">      28 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 38 times"> + </span>]:<span class="lineCov">         40 :     if (n &lt; 0)</span>
+<span class="lineNum">      29 </span>        [<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :         str.insert((unsigned int)0, 1, '-');</span>
+<span class="lineNum">      30 </span>                :<span class="lineCov">         40 :     return str;</span>
+<span class="lineNum">      31 </span>                :            : }
+<a name="32"><span class="lineNum">      32 </span>                :            : </a>
+<span class="lineNum">      33 </span>                :            : 
+<span class="lineNum">      34 </span>                :<span class="lineCov">         43 : bool ParseMoney(const std::string&amp; str, CAmount&amp; nRet)</span>
+<span class="lineNum">      35 </span>                :            : {
+<span class="lineNum">      36 </span>                :<span class="lineCov">         43 :     return ParseMoney(str.c_str(), nRet);</span>
+<a name="37"><span class="lineNum">      37 </span>                :            : }</a>
+<span class="lineNum">      38 </span>                :            : 
+<span class="lineNum">      39 </span>                :<span class="lineCov">         87 : bool ParseMoney(const char* pszIn, CAmount&amp; nRet)</span>
+<span class="lineNum">      40 </span>                :            : {
+<span class="lineNum">      41 </span>                :<span class="lineCov">         87 :     std::string strWhole;</span>
+<span class="lineNum">      42 </span>                :<span class="lineCov">         87 :     int64_t nUnits = 0;</span>
+<span class="lineNum">      43 </span>                :<span class="lineCov">         87 :     const char* p = pszIn;</span>
+<span class="lineNum">      44 </span>                :<span class="lineNoCov">          0 :     while (IsSpace(*p))</span>
+<span class="lineNum">      45 </span>                :<span class="lineNoCov">          0 :         p++;</span>
+<span class="lineNum">      46 </span>        [<span class="branchCov" title="Branch 0 was taken 238 times"> + </span><span class="branchCov" title="Branch 1 was taken 34 times"> + </span>]:<span class="lineCov">        323 :     for (; *p; p++)</span>
+<span class="lineNum">      47 </span>                :            :     {
+<span class="lineNum">      48 </span>        [<span class="branchCov" title="Branch 0 was taken 51 times"> + </span><span class="branchCov" title="Branch 1 was taken 187 times"> + </span>]:<span class="lineCov">        238 :         if (*p == '.')</span>
+<span class="lineNum">      49 </span>                :            :         {
+<span class="lineNum">      50 </span>                :<span class="lineCov">         51 :             p++;</span>
+<span class="lineNum">      51 </span>                :<span class="lineCov">         51 :             int64_t nMult = COIN / 10;</span>
+<span class="lineNum">      52 </span>[<span class="branchCov" title="Branch 0 was taken 159 times"> + </span><span class="branchCov" title="Branch 1 was taken 51 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 159 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        210 :             while (IsDigit(*p) &amp;&amp; (nMult &gt; 0))</span>
+<span class="lineNum">      53 </span>                :            :             {
+<span class="lineNum">      54 </span>                :<span class="lineCov">        159 :                 nUnits += nMult * (*p++ - '0');</span>
+<span class="lineNum">      55 </span>                :<span class="lineCov">        159 :                 nMult /= 10;</span>
+<span class="lineNum">      56 </span>                :            :             }
+<span class="lineNum">      57 </span>                :            :             break;
+<span class="lineNum">      58 </span>                :            :         }
+<span class="lineNum">      59 </span>                :<span class="lineCov">        374 :         if (IsSpace(*p))</span>
+<span class="lineNum">      60 </span>                :            :             break;
+<span class="lineNum">      61 </span>        [<span class="branchCov" title="Branch 0 was taken 185 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">        187 :         if (!IsDigit(*p))</span>
+<span class="lineNum">      62 </span>                :            :             return false;
+<span class="lineNum">      63 </span>                :<span class="lineCov">        740 :         strWhole.insert(strWhole.end(), *p);</span>
+<span class="lineNum">      64 </span>                :            :     }
+<span class="lineNum">      65 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 85 times"> + </span>]:<span class="lineCov">         85 :     for (; *p; p++)</span>
+<span class="lineNum">      66 </span>                :            :         if (!IsSpace(*p))
+<span class="lineNum">      67 </span>                :            :             return false;
+<span class="lineNum">      68 </span>        [<span class="branchCov" title="Branch 0 was taken 83 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">         85 :     if (strWhole.size() &gt; 10) // guard against 63 bit overflow</span>
+<span class="lineNum">      69 </span>                :            :         return false;
+<span class="lineNum">      70 </span>        [<span class="branchCov" title="Branch 0 was taken 83 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         83 :     if (nUnits &lt; 0 || nUnits &gt; COIN)</span>
+<span class="lineNum">      71 </span>                :            :         return false;
+<span class="lineNum">      72 </span>        [<span class="branchCov" title="Branch 1 was taken 83 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         83 :     int64_t nWhole = atoi64(strWhole);</span>
+<span class="lineNum">      73 </span>                :<span class="lineCov">         83 :     CAmount nValue = nWhole*COIN + nUnits;</span>
+<span class="lineNum">      74 </span>                :            : 
+<a name="75"><span class="lineNum">      75 </span>                :<span class="lineCov">         83 :     nRet = nValue;</span></a>
+<span class="lineNum">      76 </span>                :<span class="lineCov">         83 :     return true;</span>
+<span class="lineNum">      77 </span>[<span class="branchCov" title="Branch 1 was taken 146 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 146 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        584 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

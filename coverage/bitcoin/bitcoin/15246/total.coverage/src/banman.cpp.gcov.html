@@ -1,0 +1,284 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/banman.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - banman.cpp<span style="font-size: 80%;"> (source / <a href="banman.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">108</td>
+            <td class="headerCovTableEntry">113</td>
+            <td class="headerCovTableEntryHi">95.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">17</td>
+            <td class="headerCovTableEntry">17</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">64</td>
+            <td class="headerCovTableEntry">98</td>
+            <td class="headerCovTableEntryLo">65.3 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2017 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #include &lt;banman.h&gt;
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;netaddress.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;ui_interface.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;util/system.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;util/time.h&gt;
+<a name="12"><span class="lineNum">      12 </span>                :            : </a>
+<span class="lineNum">      13 </span>                :            : 
+<span class="lineNum">      14 </span>                :<span class="lineCov">        424 : BanMan::BanMan(fs::path ban_file, CClientUIInterface* client_interface, int64_t default_ban_time)</span>
+<span class="lineNum">      15 </span>        [<span class="branchCov" title="Branch 1 was taken 424 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        424 :     : m_client_interface(client_interface), m_ban_db(std::move(ban_file)), m_default_ban_time(default_ban_time)</span>
+<span class="lineNum">      16 </span>                :            : {
+<span class="lineNum">      17 </span>[<span class="branchCov" title="Branch 0 was taken 355 times"> + </span><span class="branchCov" title="Branch 1 was taken 69 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 355 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        779 :     if (m_client_interface) m_client_interface-&gt;InitMessage(_(&quot;Loading banlist...&quot;));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 355 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">      18 </span>                :            : 
+<span class="lineNum">      19 </span>        [<span class="branchCov" title="Branch 1 was taken 424 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        424 :     int64_t n_start = GetTimeMillis();</span>
+<span class="lineNum">      20 </span>                :<span class="lineCov">        424 :     m_is_dirty = false;</span>
+<span class="lineNum">      21 </span>                :<span class="lineNoCov">          0 :     banmap_t banmap;</span>
+<span class="lineNum">      22 </span>[<span class="branchCov" title="Branch 1 was taken 424 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 125 times"> + </span><span class="branchCov" title="Branch 4 was taken 299 times"> + </span>]:<span class="lineCov">        424 :     if (m_ban_db.Read(banmap)) {</span>
+<span class="lineNum">      23 </span>        [<span class="branchCov" title="Branch 1 was taken 125 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        125 :         SetBanned(banmap);        // thread save setter</span>
+<span class="lineNum">      24 </span>        [<span class="branchCov" title="Branch 1 was taken 125 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        125 :         SetBannedSetDirty(false); // no need to write down, just read data</span>
+<span class="lineNum">      25 </span>        [<span class="branchCov" title="Branch 1 was taken 125 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        125 :         SweepBanned();            // sweep out unused entries</span>
+<span class="lineNum">      26 </span>                :            : 
+<span class="lineNum">      27 </span>        [<span class="branchCov" title="Branch 1 was taken 125 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        125 :         LogPrint(BCLog::NET, &quot;Loaded %d banned node ips/subnets from banlist.dat  %dms\n&quot;,</span>
+<span class="lineNum">      28 </span>        [<span class="branchCov" title="Branch 1 was taken 125 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        250 :             banmap.size(), GetTimeMillis() - n_start);</span>
+<span class="lineNum">      29 </span>                :            :     } else {
+<span class="lineNum">      30 </span>        [<span class="branchCov" title="Branch 1 was taken 299 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        299 :         LogPrintf(&quot;Invalid or missing banlist.dat; recreating\n&quot;);</span>
+<span class="lineNum">      31 </span>        [<span class="branchCov" title="Branch 1 was taken 299 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        299 :         SetBannedSetDirty(true); // force write</span>
+<span class="lineNum">      32 </span>        [<span class="branchCov" title="Branch 1 was taken 299 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        299 :         DumpBanlist();</span>
+<span class="lineNum">      33 </span>                :            :     }
+<a name="34"><span class="lineNum">      34 </span>                :<span class="lineCov">        424 : }</span></a>
+<span class="lineNum">      35 </span>                :            : 
+<span class="lineNum">      36 </span>                :<span class="lineCov">        424 : BanMan::~BanMan()</span>
+<span class="lineNum">      37 </span>                :            : {
+<span class="lineNum">      38 </span>                :<span class="lineCov">        424 :     DumpBanlist();</span>
+<a name="39"><span class="lineNum">      39 </span>                :<span class="lineCov">        424 : }</span></a>
+<span class="lineNum">      40 </span>                :            : 
+<span class="lineNum">      41 </span>                :<span class="lineCov">        750 : void BanMan::DumpBanlist()</span>
+<span class="lineNum">      42 </span>                :            : {
+<span class="lineNum">      43 </span>                :<span class="lineCov">        750 :     SweepBanned(); // clean unused entries (if bantime has expired)</span>
+<span class="lineNum">      44 </span>                :            : 
+<span class="lineNum">      45 </span>        [<span class="branchCov" title="Branch 1 was taken 330 times"> + </span><span class="branchCov" title="Branch 2 was taken 420 times"> + </span>]:<span class="lineCov">       1080 :     if (!BannedSetIsDirty()) return;</span>
+<span class="lineNum">      46 </span>                :            : 
+<span class="lineNum">      47 </span>                :<span class="lineCov">        330 :     int64_t n_start = GetTimeMillis();</span>
+<span class="lineNum">      48 </span>                :            : 
+<span class="lineNum">      49 </span>                :<span class="lineCov">        330 :     banmap_t banmap;</span>
+<span class="lineNum">      50 </span>        [<span class="branchCov" title="Branch 1 was taken 330 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        330 :     GetBanned(banmap);</span>
+<span class="lineNum">      51 </span>[<span class="branchCov" title="Branch 1 was taken 330 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 330 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        330 :     if (m_ban_db.Write(banmap)) {</span>
+<span class="lineNum">      52 </span>        [<span class="branchCov" title="Branch 1 was taken 330 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        330 :         SetBannedSetDirty(false);</span>
+<span class="lineNum">      53 </span>                :            :     }
+<span class="lineNum">      54 </span>                :            : 
+<span class="lineNum">      55 </span>        [<span class="branchCov" title="Branch 1 was taken 330 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        330 :     LogPrint(BCLog::NET, &quot;Flushed %d banned node ips/subnets to banlist.dat  %dms\n&quot;,</span>
+<span class="lineNum">      56 </span>        [<span class="branchCov" title="Branch 1 was taken 330 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        330 :         banmap.size(), GetTimeMillis() - n_start);</span>
+<a name="57"><span class="lineNum">      57 </span>                :            : }</a>
+<span class="lineNum">      58 </span>                :            : 
+<span class="lineNum">      59 </span>                :<span class="lineCov">         11 : void BanMan::ClearBanned()</span>
+<span class="lineNum">      60 </span>                :            : {
+<span class="lineNum">      61 </span>                :            :     {
+<span class="lineNum">      62 </span>                :<span class="lineCov">         11 :         LOCK(m_cs_banned);</span>
+<span class="lineNum">      63 </span>                :<span class="lineCov">         22 :         m_banned.clear();</span>
+<span class="lineNum">      64 </span>                :<span class="lineCov">         11 :         m_is_dirty = true;</span>
+<span class="lineNum">      65 </span>                :            :     }
+<span class="lineNum">      66 </span>                :<span class="lineCov">         11 :     DumpBanlist(); //store banlist to disk</span>
+<span class="lineNum">      67 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 8 times"> + </span>]:<span class="lineCov">         11 :     if (m_client_interface) m_client_interface-&gt;BannedListChanged();</span>
+<a name="68"><span class="lineNum">      68 </span>                :<span class="lineCov">         11 : }</span></a>
+<span class="lineNum">      69 </span>                :            : 
+<span class="lineNum">      70 </span>                :<span class="lineCov">        430 : bool BanMan::IsBanned(CNetAddr net_addr)</span>
+<span class="lineNum">      71 </span>                :            : {
+<span class="lineNum">      72 </span>                :<span class="lineCov">        860 :     LOCK(m_cs_banned);</span>
+<span class="lineNum">      73 </span>        [<span class="branchCov" title="Branch 0 was taken 15 times"> + </span><span class="branchCov" title="Branch 1 was taken 421 times"> + </span>]:<span class="lineCov">        436 :     for (const auto&amp; it : m_banned) {</span>
+<span class="lineNum">      74 </span>                :<span class="lineCov">         15 :         CSubNet sub_net = it.first;</span>
+<span class="lineNum">      75 </span>                :<span class="lineCov">         15 :         CBanEntry ban_entry = it.second;</span>
+<span class="lineNum">      76 </span>                :            : 
+<span class="lineNum">      77 </span>[<span class="branchCov" title="Branch 1 was taken 15 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 10 times"> + </span><span class="branchCov" title="Branch 4 was taken 5 times"> + </span>]:<span class="lineCov">         15 :         if (sub_net.Match(net_addr) &amp;&amp; GetTime() &lt; ban_entry.nBanUntil) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 6 was taken 10 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>][<span class="branchCov" title="Branch 8 was taken 9 times"> + </span><span class="branchCov" title="Branch 9 was taken 1 time"> + </span>]
+<span class="lineNum">      78 </span>                :<span class="lineCov">          9 :             return true;</span>
+<span class="lineNum">      79 </span>                :            :         }
+<span class="lineNum">      80 </span>                :            :     }
+<span class="lineNum">      81 </span>                :<span class="lineCov">        421 :     return false;</span>
+<a name="82"><span class="lineNum">      82 </span>                :            : }</a>
+<span class="lineNum">      83 </span>                :            : 
+<span class="lineNum">      84 </span>                :<span class="lineCov">          9 : bool BanMan::IsBanned(CSubNet sub_net)</span>
+<span class="lineNum">      85 </span>                :            : {
+<span class="lineNum">      86 </span>                :<span class="lineCov">         18 :     LOCK(m_cs_banned);</span>
+<span class="lineNum">      87 </span>                :<span class="lineCov">         18 :     banmap_t::iterator i = m_banned.find(sub_net);</span>
+<span class="lineNum">      88 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 9 times"> + </span>]:<span class="lineCov">          9 :     if (i != m_banned.end()) {</span>
+<span class="lineNum">      89 </span>                :<span class="lineNoCov">          0 :         CBanEntry ban_entry = (*i).second;</span>
+<span class="lineNum">      90 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (GetTime() &lt; ban_entry.nBanUntil) {</span>
+<span class="lineNum">      91 </span>                :<span class="lineNoCov">          0 :             return true;</span>
+<span class="lineNum">      92 </span>                :            :         }
+<span class="lineNum">      93 </span>                :            :     }
+<span class="lineNum">      94 </span>                :            :     return false;
+<a name="95"><span class="lineNum">      95 </span>                :            : }</a>
+<span class="lineNum">      96 </span>                :            : 
+<span class="lineNum">      97 </span>                :<span class="lineCov">          8 : void BanMan::Ban(const CNetAddr&amp; net_addr, const BanReason&amp; ban_reason, int64_t ban_time_offset, bool since_unix_epoch)</span>
+<span class="lineNum">      98 </span>                :            : {
+<span class="lineNum">      99 </span>                :<span class="lineCov">          8 :     CSubNet sub_net(net_addr);</span>
+<span class="lineNum">     100 </span>                :<span class="lineCov">          8 :     Ban(sub_net, ban_reason, ban_time_offset, since_unix_epoch);</span>
+<a name="101"><span class="lineNum">     101 </span>                :<span class="lineCov">          8 : }</span></a>
+<span class="lineNum">     102 </span>                :            : 
+<span class="lineNum">     103 </span>                :<span class="lineCov">         17 : void BanMan::Ban(const CSubNet&amp; sub_net, const BanReason&amp; ban_reason, int64_t ban_time_offset, bool since_unix_epoch)</span>
+<span class="lineNum">     104 </span>                :            : {
+<span class="lineNum">     105 </span>                :<span class="lineCov">         17 :     CBanEntry ban_entry(GetTime(), ban_reason);</span>
+<span class="lineNum">     106 </span>                :            : 
+<span class="lineNum">     107 </span>                :<span class="lineCov">         17 :     int64_t normalized_ban_time_offset = ban_time_offset;</span>
+<span class="lineNum">     108 </span>                :<span class="lineCov">         17 :     bool normalized_since_unix_epoch = since_unix_epoch;</span>
+<span class="lineNum">     109 </span>        [<span class="branchCov" title="Branch 0 was taken 13 times"> + </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">         17 :     if (ban_time_offset &lt;= 0) {</span>
+<span class="lineNum">     110 </span>                :<span class="lineCov">         13 :         normalized_ban_time_offset = m_default_ban_time;</span>
+<span class="lineNum">     111 </span>                :<span class="lineCov">         13 :         normalized_since_unix_epoch = false;</span>
+<span class="lineNum">     112 </span>                :            :     }
+<span class="lineNum">     113 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">         17 :     ban_entry.nBanUntil = (normalized_since_unix_epoch ? 0 : GetTime()) + normalized_ban_time_offset;</span>
+<span class="lineNum">     114 </span>                :            : 
+<span class="lineNum">     115 </span>                :            :     {
+<span class="lineNum">     116 </span>                :<span class="lineCov">         17 :         LOCK(m_cs_banned);</span>
+<span class="lineNum">     117 </span>[<span class="branchCov" title="Branch 1 was taken 17 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 17 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         17 :         if (m_banned[sub_net].nBanUntil &lt; ban_entry.nBanUntil) {</span>
+<span class="lineNum">     118 </span>        [<span class="branchCov" title="Branch 1 was taken 17 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         17 :             m_banned[sub_net] = ban_entry;</span>
+<span class="lineNum">     119 </span>                :<span class="lineCov">         17 :             m_is_dirty = true;</span>
+<span class="lineNum">     120 </span>                :            :         } else
+<span class="lineNum">     121 </span>                :<span class="lineNoCov">          0 :             return;</span>
+<span class="lineNum">     122 </span>                :            :     }
+<span class="lineNum">     123 </span>        [<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 11 times"> + </span>]:<span class="lineCov">         17 :     if (m_client_interface) m_client_interface-&gt;BannedListChanged();</span>
+<span class="lineNum">     124 </span>                :            : 
+<span class="lineNum">     125 </span>                :            :     //store banlist to disk immediately if user requested ban
+<span class="lineNum">     126 </span>        [<span class="branchCov" title="Branch 0 was taken 13 times"> + </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">         17 :     if (ban_reason == BanReasonManuallyAdded) DumpBanlist();</span>
+<a name="127"><span class="lineNum">     127 </span>                :            : }</a>
+<span class="lineNum">     128 </span>                :            : 
+<span class="lineNum">     129 </span>                :<span class="lineCov">          2 : bool BanMan::Unban(const CNetAddr&amp; net_addr)</span>
+<span class="lineNum">     130 </span>                :            : {
+<span class="lineNum">     131 </span>                :<span class="lineCov">          2 :     CSubNet sub_net(net_addr);</span>
+<span class="lineNum">     132 </span>                :<span class="lineCov">          2 :     return Unban(sub_net);</span>
+<a name="133"><span class="lineNum">     133 </span>                :            : }</a>
+<span class="lineNum">     134 </span>                :            : 
+<span class="lineNum">     135 </span>                :<span class="lineCov">          4 : bool BanMan::Unban(const CSubNet&amp; sub_net)</span>
+<span class="lineNum">     136 </span>                :            : {
+<span class="lineNum">     137 </span>                :            :     {
+<span class="lineNum">     138 </span>                :<span class="lineCov">          4 :         LOCK(m_cs_banned);</span>
+<span class="lineNum">     139 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">          5 :         if (m_banned.erase(sub_net) == 0) return false;</span>
+<span class="lineNum">     140 </span>                :<span class="lineCov">          3 :         m_is_dirty = true;</span>
+<span class="lineNum">     141 </span>                :            :     }
+<span class="lineNum">     142 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          3 :     if (m_client_interface) m_client_interface-&gt;BannedListChanged();</span>
+<span class="lineNum">     143 </span>                :<span class="lineCov">          3 :     DumpBanlist(); //store banlist to disk immediately</span>
+<span class="lineNum">     144 </span>                :<span class="lineCov">          4 :     return true;</span>
+<a name="145"><span class="lineNum">     145 </span>                :            : }</a>
+<span class="lineNum">     146 </span>                :            : 
+<span class="lineNum">     147 </span>                :<span class="lineCov">        349 : void BanMan::GetBanned(banmap_t&amp; banmap)</span>
+<span class="lineNum">     148 </span>                :            : {
+<span class="lineNum">     149 </span>                :<span class="lineCov">        349 :     LOCK(m_cs_banned);</span>
+<span class="lineNum">     150 </span>                :            :     // Sweep the banlist so expired bans are not returned
+<span class="lineNum">     151 </span>        [<span class="branchCov" title="Branch 1 was taken 349 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        349 :     SweepBanned();</span>
+<span class="lineNum">     152 </span>                :<span class="lineCov">        698 :     banmap = m_banned; //create a thread safe copy</span>
+<a name="153"><span class="lineNum">     153 </span>                :<span class="lineCov">        349 : }</span></a>
+<span class="lineNum">     154 </span>                :            : 
+<span class="lineNum">     155 </span>                :<span class="lineCov">        125 : void BanMan::SetBanned(const banmap_t&amp; banmap)</span>
+<span class="lineNum">     156 </span>                :            : {
+<span class="lineNum">     157 </span>                :<span class="lineCov">        125 :     LOCK(m_cs_banned);</span>
+<span class="lineNum">     158 </span>                :<span class="lineCov">        250 :     m_banned = banmap;</span>
+<span class="lineNum">     159 </span>                :<span class="lineCov">        125 :     m_is_dirty = true;</span>
+<a name="160"><span class="lineNum">     160 </span>                :<span class="lineCov">        125 : }</span></a>
+<span class="lineNum">     161 </span>                :            : 
+<span class="lineNum">     162 </span>                :<span class="lineCov">       1224 : void BanMan::SweepBanned()</span>
+<span class="lineNum">     163 </span>                :            : {
+<span class="lineNum">     164 </span>                :<span class="lineCov">       1224 :     int64_t now = GetTime();</span>
+<span class="lineNum">     165 </span>                :<span class="lineCov">       1224 :     bool notify_ui = false;</span>
+<span class="lineNum">     166 </span>                :            :     {
+<span class="lineNum">     167 </span>                :<span class="lineCov">       1224 :         LOCK(m_cs_banned);</span>
+<span class="lineNum">     168 </span>                :<span class="lineCov">       1224 :         banmap_t::iterator it = m_banned.begin();</span>
+<span class="lineNum">     169 </span>        [<span class="branchCov" title="Branch 0 was taken 76 times"> + </span><span class="branchCov" title="Branch 1 was taken 1224 times"> + </span>]:<span class="lineCov">       1300 :         while (it != m_banned.end()) {</span>
+<span class="lineNum">     170 </span>                :<span class="lineCov">         76 :             CSubNet sub_net = (*it).first;</span>
+<span class="lineNum">     171 </span>                :<span class="lineCov">         76 :             CBanEntry ban_entry = (*it).second;</span>
+<span class="lineNum">     172 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 74 times"> + </span>]:<span class="lineCov">         76 :             if (now &gt; ban_entry.nBanUntil) {</span>
+<span class="lineNum">     173 </span>                :<span class="lineCov">          6 :                 m_banned.erase(it++);</span>
+<span class="lineNum">     174 </span>                :<span class="lineCov">          2 :                 m_is_dirty = true;</span>
+<span class="lineNum">     175 </span>                :<span class="lineCov">          2 :                 notify_ui = true;</span>
+<span class="lineNum">     176 </span>[<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          4 :                 LogPrint(BCLog::NET, &quot;%s: Removed banned node ip/subnet from banlist.dat: %s\n&quot;, __func__, sub_net.ToString());</span>
+<span class="lineNum">     177 </span>                :            :             } else
+<span class="lineNum">     178 </span>                :            :                 ++it;
+<span class="lineNum">     179 </span>                :            :         }
+<span class="lineNum">     180 </span>                :            :     }
+<span class="lineNum">     181 </span>                :            :     // update UI
+<span class="lineNum">     182 </span>[<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 1222 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">       1224 :     if (notify_ui &amp;&amp; m_client_interface) {</span>
+<span class="lineNum">     183 </span>                :<span class="lineCov">          1 :         m_client_interface-&gt;BannedListChanged();</span>
+<span class="lineNum">     184 </span>                :            :     }
+<a name="185"><span class="lineNum">     185 </span>                :<span class="lineCov">       1224 : }</span></a>
+<span class="lineNum">     186 </span>                :            : 
+<span class="lineNum">     187 </span>                :<span class="lineCov">        750 : bool BanMan::BannedSetIsDirty()</span>
+<span class="lineNum">     188 </span>                :            : {
+<span class="lineNum">     189 </span>                :<span class="lineCov">        750 :     LOCK(m_cs_banned);</span>
+<span class="lineNum">     190 </span>                :<span class="lineCov">       1500 :     return m_is_dirty;</span>
+<a name="191"><span class="lineNum">     191 </span>                :            : }</a>
+<span class="lineNum">     192 </span>                :            : 
+<span class="lineNum">     193 </span>                :<span class="lineCov">        754 : void BanMan::SetBannedSetDirty(bool dirty)</span>
+<span class="lineNum">     194 </span>                :            : {
+<a name="195"><span class="lineNum">     195 </span>                :<span class="lineCov">        754 :     LOCK(m_cs_banned); //reuse m_banned lock for the m_is_dirty flag</span></a>
+<span class="lineNum">     196 </span>                :<span class="lineCov">        754 :     m_is_dirty = dirty;</span>
+<span class="lineNum">     197 </span>[<span class="branchCov" title="Branch 1 was taken 475 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 475 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1900 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

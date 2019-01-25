@@ -1,0 +1,345 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/dbwrapper.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - dbwrapper.cpp<span style="font-size: 80%;"> (source / <a href="dbwrapper.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">87</td>
+            <td class="headerCovTableEntry">126</td>
+            <td class="headerCovTableEntryLo">69.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">17</td>
+            <td class="headerCovTableEntry">19</td>
+            <td class="headerCovTableEntryMed">89.5 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">50</td>
+            <td class="headerCovTableEntry">130</td>
+            <td class="headerCovTableEntryLo">38.5 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2012-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #include &lt;dbwrapper.h&gt;
+<span class="lineNum">       6 </span>                :            : 
+<span class="lineNum">       7 </span>                :            : #include &lt;memory&gt;
+<span class="lineNum">       8 </span>                :            : #include &lt;random.h&gt;
+<span class="lineNum">       9 </span>                :            : 
+<span class="lineNum">      10 </span>                :            : #include &lt;leveldb/cache.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;leveldb/env.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;leveldb/filter_policy.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;memenv.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;stdint.h&gt;
+<a name="15"><span class="lineNum">      15 </span>                :            : #include &lt;algorithm&gt;</a>
+<span class="lineNum">      16 </span>                :            : 
+<span class="lineNum">      17 </span>                :<span class="lineCov">       1690 : class CBitcoinLevelDBLogger : public leveldb::Logger {</span>
+<span class="lineNum">      18 </span>                :            : public:
+<a name="19"><span class="lineNum">      19 </span>                :            :     // This code is adapted from posix_logger.h, which is why it is using vsprintf.</a>
+<span class="lineNum">      20 </span>                :            :     // Please do not do this in normal code
+<span class="lineNum">      21 </span>                :<span class="lineCov">       2635 :     void Logv(const char * format, va_list ap) override {</span>
+<span class="lineNum">      22 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2635 times"> + </span>]:<span class="lineCov">       2635 :             if (!LogAcceptCategory(BCLog::LEVELDB)) {</span>
+<span class="lineNum">      23 </span>                :<span class="lineCov">       2635 :                 return;</span>
+<span class="lineNum">      24 </span>                :            :             }
+<span class="lineNum">      25 </span>                :            :             char buffer[500];
+<span class="lineNum">      26 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             for (int iter = 0; iter &lt; 2; iter++) {</span>
+<span class="lineNum">      27 </span>                :            :                 char* base;
+<span class="lineNum">      28 </span>                :            :                 int bufsize;
+<span class="lineNum">      29 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 if (iter == 0) {</span>
+<span class="lineNum">      30 </span>                :<span class="lineNoCov">          0 :                     bufsize = sizeof(buffer);</span>
+<span class="lineNum">      31 </span>                :<span class="lineNoCov">          0 :                     base = buffer;</span>
+<span class="lineNum">      32 </span>                :            :                 }
+<span class="lineNum">      33 </span>                :            :                 else {
+<span class="lineNum">      34 </span>                :<span class="lineNoCov">          0 :                     bufsize = 30000;</span>
+<span class="lineNum">      35 </span>                :<span class="lineNoCov">          0 :                     base = new char[bufsize];</span>
+<span class="lineNum">      36 </span>                :            :                 }
+<span class="lineNum">      37 </span>                :<span class="lineNoCov">          0 :                 char* p = base;</span>
+<span class="lineNum">      38 </span>                :<span class="lineNoCov">          0 :                 char* limit = base + bufsize;</span>
+<span class="lineNum">      39 </span>                :            : 
+<span class="lineNum">      40 </span>                :            :                 // Print the message
+<span class="lineNum">      41 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 if (p &lt; limit) {</span>
+<span class="lineNum">      42 </span>                :            :                     va_list backup_ap;
+<span class="lineNum">      43 </span>                :<span class="lineNoCov">          0 :                     va_copy(backup_ap, ap);</span>
+<span class="lineNum">      44 </span>                :            :                     // Do not use vsnprintf elsewhere in bitcoin source code, see above.
+<span class="lineNum">      45 </span>                :<span class="lineNoCov">          0 :                     p += vsnprintf(p, limit - p, format, backup_ap);</span>
+<span class="lineNum">      46 </span>                :<span class="lineNoCov">          0 :                     va_end(backup_ap);</span>
+<span class="lineNum">      47 </span>                :            :                 }
+<span class="lineNum">      48 </span>                :            : 
+<span class="lineNum">      49 </span>                :            :                 // Truncate to available space if necessary
+<span class="lineNum">      50 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 if (p &gt;= limit) {</span>
+<span class="lineNum">      51 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (iter == 0) {</span>
+<span class="lineNum">      52 </span>                :<span class="lineNoCov">          0 :                         continue;       // Try again with larger buffer</span>
+<span class="lineNum">      53 </span>                :            :                     }
+<span class="lineNum">      54 </span>                :            :                     else {
+<span class="lineNum">      55 </span>                :<span class="lineNoCov">          0 :                         p = limit - 1;</span>
+<span class="lineNum">      56 </span>                :            :                     }
+<span class="lineNum">      57 </span>                :            :                 }
+<span class="lineNum">      58 </span>                :            : 
+<span class="lineNum">      59 </span>                :            :                 // Add newline if necessary
+<span class="lineNum">      60 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 if (p == base || p[-1] != '\n') {</span>
+<span class="lineNum">      61 </span>                :<span class="lineNoCov">          0 :                     *p++ = '\n';</span>
+<span class="lineNum">      62 </span>                :            :                 }
+<span class="lineNum">      63 </span>                :            : 
+<span class="lineNum">      64 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 assert(p &lt;= limit);</span>
+<span class="lineNum">      65 </span>                :<span class="lineNoCov">          0 :                 base[std::min(bufsize - 1, (int)(p - base))] = '\0';</span>
+<span class="lineNum">      66 </span>                :<span class="lineNoCov">          0 :                 LogPrintf(&quot;leveldb: %s&quot;, base);  /* Continued */</span>
+<span class="lineNum">      67 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 if (base != buffer) {</span>
+<span class="lineNum">      68 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     delete[] base;</span>
+<span class="lineNum">      69 </span>                :            :                 }
+<span class="lineNum">      70 </span>                :<span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">      71 </span>                :            :             }
+<span class="lineNum">      72 </span>                :            :     }
+<a name="73"><span class="lineNum">      73 </span>                :            : };</a>
+<span class="lineNum">      74 </span>                :            : 
+<span class="lineNum">      75 </span>                :<span class="lineCov">        845 : static void SetMaxOpenFiles(leveldb::Options *options) {</span>
+<span class="lineNum">      76 </span>                :            :     // On most platforms the default setting of max_open_files (which is 1000)
+<span class="lineNum">      77 </span>                :            :     // is optimal. On Windows using a large file count is OK because the handles
+<span class="lineNum">      78 </span>                :            :     // do not interfere with select() loops. On 64-bit Unix hosts this value is
+<span class="lineNum">      79 </span>                :            :     // also OK, because up to that amount LevelDB will use an mmap
+<span class="lineNum">      80 </span>                :            :     // implementation that does not use extra file descriptors (the fds are
+<span class="lineNum">      81 </span>                :            :     // closed after being mmap'ed).
+<span class="lineNum">      82 </span>                :            :     //
+<span class="lineNum">      83 </span>                :            :     // Increasing the value beyond the default is dangerous because LevelDB will
+<span class="lineNum">      84 </span>                :            :     // fall back to a non-mmap implementation when the file count is too large.
+<span class="lineNum">      85 </span>                :            :     // On 32-bit Unix host we should decrease the value because the handles use
+<span class="lineNum">      86 </span>                :            :     // up real fds, and we want to avoid fd exhaustion issues.
+<span class="lineNum">      87 </span>                :            :     //
+<span class="lineNum">      88 </span>                :            :     // See PR #12495 for further discussion.
+<span class="lineNum">      89 </span>                :            : 
+<span class="lineNum">      90 </span>                :<span class="lineCov">        845 :     int default_open_files = options-&gt;max_open_files;</span>
+<span class="lineNum">      91 </span>                :            : #ifndef WIN32
+<span class="lineNum">      92 </span>                :            :     if (sizeof(void*) &lt; 8) {
+<span class="lineNum">      93 </span>                :            :         options-&gt;max_open_files = 64;
+<span class="lineNum">      94 </span>                :            :     }
+<span class="lineNum">      95 </span>                :            : #endif
+<span class="lineNum">      96 </span>                :<span class="lineCov">        845 :     LogPrint(BCLog::LEVELDB, &quot;LevelDB using max_open_files=%d (default=%d)\n&quot;,</span>
+<span class="lineNum">      97 </span>                :            :              options-&gt;max_open_files, default_open_files);
+<a name="98"><span class="lineNum">      98 </span>                :<span class="lineCov">        845 : }</span></a>
+<span class="lineNum">      99 </span>                :            : 
+<span class="lineNum">     100 </span>                :<span class="lineCov">        845 : static leveldb::Options GetOptions(size_t nCacheSize)</span>
+<span class="lineNum">     101 </span>                :            : {
+<span class="lineNum">     102 </span>                :<span class="lineCov">        845 :     leveldb::Options options;</span>
+<span class="lineNum">     103 </span>                :<span class="lineCov">        845 :     options.block_cache = leveldb::NewLRUCache(nCacheSize / 2);</span>
+<span class="lineNum">     104 </span>                :<span class="lineCov">        845 :     options.write_buffer_size = nCacheSize / 4; // up to two write buffers may be held in memory simultaneously</span>
+<span class="lineNum">     105 </span>                :<span class="lineCov">        845 :     options.filter_policy = leveldb::NewBloomFilterPolicy(10);</span>
+<span class="lineNum">     106 </span>                :<span class="lineCov">        845 :     options.compression = leveldb::kNoCompression;</span>
+<span class="lineNum">     107 </span>                :<span class="lineCov">        845 :     options.info_log = new CBitcoinLevelDBLogger();</span>
+<span class="lineNum">     108 </span>                :            :     if (leveldb::kMajorVersion &gt; 1 || (leveldb::kMajorVersion == 1 &amp;&amp; leveldb::kMinorVersion &gt;= 16)) {
+<span class="lineNum">     109 </span>                :            :         // LevelDB versions before 1.16 consider short writes to be corruption. Only trigger error
+<span class="lineNum">     110 </span>                :            :         // on corruption in later versions.
+<span class="lineNum">     111 </span>                :<span class="lineCov">        845 :         options.paranoid_checks = true;</span>
+<span class="lineNum">     112 </span>                :            :     }
+<span class="lineNum">     113 </span>                :<span class="lineCov">        845 :     SetMaxOpenFiles(&amp;options);</span>
+<span class="lineNum">     114 </span>                :<span class="lineCov">        845 :     return options;</span>
+<a name="115"><span class="lineNum">     115 </span>                :            : }</a>
+<span class="lineNum">     116 </span>                :            : 
+<span class="lineNum">     117 </span>                :<span class="lineCov">        845 : CDBWrapper::CDBWrapper(const fs::path&amp; path, size_t nCacheSize, bool fMemory, bool fWipe, bool obfuscate)</span>
+<span class="lineNum">     118 </span>                :<span class="lineCov">        845 :     : m_name(fs::basename(path))</span>
+<span class="lineNum">     119 </span>                :            : {
+<span class="lineNum">     120 </span>                :<span class="lineCov">        845 :     penv = nullptr;</span>
+<span class="lineNum">     121 </span>                :<span class="lineCov">        845 :     readoptions.verify_checksums = true;</span>
+<span class="lineNum">     122 </span>                :<span class="lineCov">        845 :     iteroptions.verify_checksums = true;</span>
+<span class="lineNum">     123 </span>                :<span class="lineCov">        845 :     iteroptions.fill_cache = false;</span>
+<span class="lineNum">     124 </span>                :<span class="lineCov">        845 :     syncoptions.sync = true;</span>
+<span class="lineNum">     125 </span>        [<span class="branchCov" title="Branch 1 was taken 845 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        845 :     options = GetOptions(nCacheSize);</span>
+<span class="lineNum">     126 </span>                :<span class="lineCov">        845 :     options.create_if_missing = true;</span>
+<span class="lineNum">     127 </span>        [<span class="branchCov" title="Branch 0 was taken 141 times"> + </span><span class="branchCov" title="Branch 1 was taken 704 times"> + </span>]:<span class="lineCov">        845 :     if (fMemory) {</span>
+<span class="lineNum">     128 </span>[<span class="branchCov" title="Branch 1 was taken 141 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 141 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        141 :         penv = leveldb::NewMemEnv(leveldb::Env::Default());</span>
+<span class="lineNum">     129 </span>                :<span class="lineCov">        141 :         options.env = penv;</span>
+<span class="lineNum">     130 </span>                :            :     } else {
+<span class="lineNum">     131 </span>        [<span class="branchCov" title="Branch 0 was taken 16 times"> + </span><span class="branchCov" title="Branch 1 was taken 688 times"> + </span>]:<span class="lineCov">        704 :         if (fWipe) {</span>
+<span class="lineNum">     132 </span>        [<span class="branchCov" title="Branch 1 was taken 16 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         16 :             LogPrintf(&quot;Wiping LevelDB in %s\n&quot;, path.string());</span>
+<span class="lineNum">     133 </span>        [<span class="branchCov" title="Branch 1 was taken 16 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         32 :             leveldb::Status result = leveldb::DestroyDB(path.string(), options);</span>
+<span class="lineNum">     134 </span>        [<span class="branchCov" title="Branch 1 was taken 16 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         16 :             dbwrapper_private::HandleError(result);</span>
+<span class="lineNum">     135 </span>                :            :         }
+<span class="lineNum">     136 </span>        [<span class="branchCov" title="Branch 1 was taken 704 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        704 :         TryCreateDirectories(path);</span>
+<span class="lineNum">     137 </span>        [<span class="branchCov" title="Branch 1 was taken 704 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        704 :         LogPrintf(&quot;Opening LevelDB in %s\n&quot;, path.string());</span>
+<span class="lineNum">     138 </span>                :            :     }
+<span class="lineNum">     139 </span>        [<span class="branchCov" title="Branch 1 was taken 845 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        845 :     leveldb::Status status = leveldb::DB::Open(options, path.string(), &amp;pdb);</span>
+<span class="lineNum">     140 </span>        [<span class="branchCov" title="Branch 1 was taken 845 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        845 :     dbwrapper_private::HandleError(status);</span>
+<span class="lineNum">     141 </span>        [<span class="branchCov" title="Branch 1 was taken 845 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        845 :     LogPrintf(&quot;Opened LevelDB successfully\n&quot;);</span>
+<span class="lineNum">     142 </span>                :            : 
+<span class="lineNum">     143 </span>[<span class="branchCov" title="Branch 1 was taken 845 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 845 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1690 :     if (gArgs.GetBoolArg(&quot;-forcecompactdb&quot;, false)) {</span>
+<span class="lineNum">         </span>        [<span class="branchNoCov" title="Branch 6 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 845 times"> + </span>]
+<span class="lineNum">     144 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LogPrintf(&quot;Starting database compaction of %s\n&quot;, path.string());</span>
+<span class="lineNum">     145 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         pdb-&gt;CompactRange(nullptr, nullptr);</span>
+<span class="lineNum">     146 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LogPrintf(&quot;Finished database compaction of %s\n&quot;, path.string());</span>
+<span class="lineNum">     147 </span>                :            :     }
+<span class="lineNum">     148 </span>                :            : 
+<span class="lineNum">     149 </span>                :            :     // The base-case obfuscation key, which is a noop.
+<span class="lineNum">     150 </span>        [<span class="branchCov" title="Branch 1 was taken 845 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        845 :     obfuscate_key = std::vector&lt;unsigned char&gt;(OBFUSCATE_KEY_NUM_BYTES, '\000');</span>
+<span class="lineNum">     151 </span>                :            : 
+<span class="lineNum">     152 </span>        [<span class="branchCov" title="Branch 1 was taken 845 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        845 :     bool key_exists = Read(OBFUSCATE_KEY_KEY, obfuscate_key);</span>
+<span class="lineNum">     153 </span>                :            : 
+<span class="lineNum">     154 </span>[<span class="branchCov" title="Branch 0 was taken 221 times"> + </span><span class="branchCov" title="Branch 1 was taken 624 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 221 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        845 :     if (!key_exists &amp;&amp; obfuscate &amp;&amp; IsEmpty()) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 5 was taken 220 times"> + </span><span class="branchCov" title="Branch 6 was taken 1 time"> + </span>]
+<span class="lineNum">     155 </span>                :            :         // Initialize non-degenerate obfuscation if it won't upset
+<span class="lineNum">     156 </span>                :            :         // existing, non-obfuscated data.
+<span class="lineNum">     157 </span>        [<span class="branchCov" title="Branch 1 was taken 220 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        440 :         std::vector&lt;unsigned char&gt; new_key = CreateObfuscateKey();</span>
+<span class="lineNum">     158 </span>                :            : 
+<span class="lineNum">     159 </span>                :            :         // Write `new_key` so we don't obfuscate the key with itself
+<span class="lineNum">     160 </span>        [<span class="branchCov" title="Branch 1 was taken 220 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        220 :         Write(OBFUSCATE_KEY_KEY, new_key);</span>
+<span class="lineNum">     161 </span>        [<span class="branchCov" title="Branch 1 was taken 220 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        220 :         obfuscate_key = new_key;</span>
+<span class="lineNum">     162 </span>                :            : 
+<span class="lineNum">     163 </span>[<span class="branchCov" title="Branch 1 was taken 220 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 220 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        220 :         LogPrintf(&quot;Wrote new obfuscate key for %s: %s\n&quot;, path.string(), HexStr(obfuscate_key));</span>
+<span class="lineNum">     164 </span>                :            :     }
+<span class="lineNum">     165 </span>                :            : 
+<span class="lineNum">     166 </span>[<span class="branchCov" title="Branch 1 was taken 845 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 845 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        845 :     LogPrintf(&quot;Using obfuscation key for %s: %s\n&quot;, path.string(), HexStr(obfuscate_key));</span>
+<a name="167"><span class="lineNum">     167 </span>                :<span class="lineCov">        845 : }</span></a>
+<span class="lineNum">     168 </span>                :            : 
+<span class="lineNum">     169 </span>                :<span class="lineCov">        845 : CDBWrapper::~CDBWrapper()</span>
+<span class="lineNum">     170 </span>                :            : {
+<span class="lineNum">     171 </span>        [<span class="branchCov" title="Branch 0 was taken 845 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        845 :     delete pdb;</span>
+<span class="lineNum">     172 </span>                :<span class="lineCov">        845 :     pdb = nullptr;</span>
+<span class="lineNum">     173 </span>        [<span class="branchCov" title="Branch 0 was taken 845 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        845 :     delete options.filter_policy;</span>
+<span class="lineNum">     174 </span>                :<span class="lineCov">        845 :     options.filter_policy = nullptr;</span>
+<span class="lineNum">     175 </span>        [<span class="branchCov" title="Branch 0 was taken 845 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        845 :     delete options.info_log;</span>
+<span class="lineNum">     176 </span>                :<span class="lineCov">        845 :     options.info_log = nullptr;</span>
+<span class="lineNum">     177 </span>        [<span class="branchCov" title="Branch 0 was taken 845 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        845 :     delete options.block_cache;</span>
+<span class="lineNum">     178 </span>                :<span class="lineCov">        845 :     options.block_cache = nullptr;</span>
+<span class="lineNum">     179 </span>        [<span class="branchCov" title="Branch 0 was taken 141 times"> + </span><span class="branchCov" title="Branch 1 was taken 704 times"> + </span>]:<span class="lineCov">        845 :     delete penv;</span>
+<span class="lineNum">     180 </span>                :<span class="lineCov">        845 :     options.env = nullptr;</span>
+<a name="181"><span class="lineNum">     181 </span>                :<span class="lineCov">        845 : }</span></a>
+<span class="lineNum">     182 </span>                :            : 
+<span class="lineNum">     183 </span>                :<span class="lineCov">       4001 : bool CDBWrapper::WriteBatch(CDBBatch&amp; batch, bool fSync)</span>
+<span class="lineNum">     184 </span>                :            : {
+<span class="lineNum">     185 </span>                :<span class="lineCov">       4001 :     const bool log_memory = LogAcceptCategory(BCLog::LEVELDB);</span>
+<span class="lineNum">     186 </span>                :<span class="lineCov">       4001 :     double mem_before = 0;</span>
+<span class="lineNum">     187 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 4001 times"> + </span>]:<span class="lineCov">       4001 :     if (log_memory) {</span>
+<span class="lineNum">     188 </span>                :<span class="lineNoCov">          0 :         mem_before = DynamicMemoryUsage() / 1024.0 / 1024;</span>
+<span class="lineNum">     189 </span>                :            :     }
+<span class="lineNum">     190 </span>        [<span class="branchCov" title="Branch 0 was taken 931 times"> + </span><span class="branchCov" title="Branch 1 was taken 3070 times"> + </span>]:<span class="lineCov">       4001 :     leveldb::Status status = pdb-&gt;Write(fSync ? syncoptions : writeoptions, &amp;batch.batch);</span>
+<span class="lineNum">     191 </span>        [<span class="branchCov" title="Branch 1 was taken 4001 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       4001 :     dbwrapper_private::HandleError(status);</span>
+<span class="lineNum">     192 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 4001 times"> + </span>]:<span class="lineCov">       4001 :     if (log_memory) {</span>
+<span class="lineNum">     193 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         double mem_after = DynamicMemoryUsage() / 1024.0 / 1024;</span>
+<span class="lineNum">     194 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LogPrint(BCLog::LEVELDB, &quot;WriteBatch memory usage: db=%s, before=%.1fMiB, after=%.1fMiB\n&quot;,</span>
+<span class="lineNum">     195 </span>                :            :                  m_name, mem_before, mem_after);
+<span class="lineNum">     196 </span>                :            :     }
+<span class="lineNum">     197 </span>                :<span class="lineCov">       4001 :     return true;</span>
+<a name="198"><span class="lineNum">     198 </span>                :            : }</a>
+<span class="lineNum">     199 </span>                :            : 
+<span class="lineNum">     200 </span>                :<span class="lineNoCov">          0 : size_t CDBWrapper::DynamicMemoryUsage() const {</span>
+<span class="lineNum">     201 </span>                :<span class="lineNoCov">          0 :     std::string memory;</span>
+<span class="lineNum">     202 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (!pdb-&gt;GetProperty(&quot;leveldb.approximate-memory-usage&quot;, &amp;memory)) {</span>
+<span class="lineNum">     203 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LogPrint(BCLog::LEVELDB, &quot;Failed to get approximate-memory-usage property\n&quot;);</span>
+<span class="lineNum">     204 </span>                :<span class="lineNoCov">          0 :         return 0;</span>
+<span class="lineNum">     205 </span>                :            :     }
+<span class="lineNum">     206 </span>                :            :     return stoul(memory);
+<span class="lineNum">     207 </span>                :            : }
+<span class="lineNum">     208 </span>                :            : 
+<span class="lineNum">     209 </span>                :            : // Prefixed with null character to avoid collisions with other keys
+<span class="lineNum">     210 </span>                :            : //
+<span class="lineNum">     211 </span>                :            : // We must use a string constructor which specifies length so that we copy
+<span class="lineNum">     212 </span>                :            : // past the null-terminator.
+<span class="lineNum">     213 </span>                :<span class="lineCov">        475 : const std::string CDBWrapper::OBFUSCATE_KEY_KEY(&quot;\000obfuscate_key&quot;, 14);</span>
+<span class="lineNum">     214 </span>                :            : 
+<span class="lineNum">     215 </span>                :            : const unsigned int CDBWrapper::OBFUSCATE_KEY_NUM_BYTES = 8;
+<span class="lineNum">     216 </span>                :            : 
+<span class="lineNum">     217 </span>                :            : /**
+<span class="lineNum">     218 </span>                :            :  * Returns a string (consisting of 8 random bytes) suitable for use as an
+<a name="219"><span class="lineNum">     219 </span>                :            :  * obfuscating XOR key.</a>
+<span class="lineNum">     220 </span>                :            :  */
+<span class="lineNum">     221 </span>                :<span class="lineCov">        220 : std::vector&lt;unsigned char&gt; CDBWrapper::CreateObfuscateKey() const</span>
+<span class="lineNum">     222 </span>                :            : {
+<span class="lineNum">     223 </span>                :            :     unsigned char buff[OBFUSCATE_KEY_NUM_BYTES];
+<span class="lineNum">     224 </span>                :<span class="lineCov">        220 :     GetRandBytes(buff, OBFUSCATE_KEY_NUM_BYTES);</span>
+<span class="lineNum">     225 </span>                :<span class="lineCov">        220 :     return std::vector&lt;unsigned char&gt;(&amp;buff[0], &amp;buff[OBFUSCATE_KEY_NUM_BYTES]);</span>
+<span class="lineNum">     226 </span>                :            : 
+<a name="227"><span class="lineNum">     227 </span>                :            : }</a>
+<span class="lineNum">     228 </span>                :            : 
+<span class="lineNum">     229 </span>                :<span class="lineCov">        222 : bool CDBWrapper::IsEmpty()</span>
+<span class="lineNum">     230 </span>                :            : {
+<span class="lineNum">     231 </span>                :<span class="lineCov">        444 :     std::unique_ptr&lt;CDBIterator&gt; it(NewIterator());</span>
+<span class="lineNum">     232 </span>        [<span class="branchCov" title="Branch 1 was taken 222 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        222 :     it-&gt;SeekToFirst();</span>
+<span class="lineNum">     233 </span>        [<span class="branchCov" title="Branch 1 was taken 222 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        444 :     return !(it-&gt;Valid());</span>
+<a name="234"><span class="lineNum">     234 </span>                :            : }</a>
+<a name="235"><span class="lineNum">     235 </span>                :            : </a>
+<a name="236"><span class="lineNum">     236 </span>        [<span class="branchCov" title="Branch 0 was taken 953 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       1906 : CDBIterator::~CDBIterator() { delete piter; }</span></a>
+<a name="237"><span class="lineNum">     237 </span>                :<span class="lineCov">      88508 : bool CDBIterator::Valid() const { return piter-&gt;Valid(); }</span></a>
+<span class="lineNum">     238 </span>                :<span class="lineCov">        444 : void CDBIterator::SeekToFirst() { piter-&gt;SeekToFirst(); }</span>
+<span class="lineNum">     239 </span>                :<span class="lineCov">      85162 : void CDBIterator::Next() { piter-&gt;Next(); }</span>
+<span class="lineNum">     240 </span>                :            : 
+<a name="241"><span class="lineNum">     241 </span>                :            : namespace dbwrapper_private {</a>
+<span class="lineNum">     242 </span>                :            : 
+<span class="lineNum">     243 </span>                :<span class="lineCov">       4862 : void HandleError(const leveldb::Status&amp; status)</span>
+<span class="lineNum">     244 </span>                :            : {
+<span class="lineNum">     245 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 4862 times"> + </span>]:<span class="lineCov">       4862 :     if (status.ok())</span>
+<span class="lineNum">     246 </span>                :<span class="lineCov">       4862 :         return;</span>
+<span class="lineNum">     247 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     const std::string errmsg = &quot;Fatal LevelDB error: &quot; + status.ToString();</span>
+<span class="lineNum">     248 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     LogPrintf(&quot;%s\n&quot;, errmsg);</span>
+<span class="lineNum">     249 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     LogPrintf(&quot;You can use -debug=leveldb to get more complete diagnostic messages\n&quot;);</span>
+<span class="lineNum">     250 </span>                :<span class="lineNoCov">          0 :     throw dbwrapper_error(errmsg);</span>
+<a name="251"><span class="lineNum">     251 </span>                :            : }</a>
+<span class="lineNum">     252 </span>                :            : 
+<span class="lineNum">     253 </span>                :<span class="lineCov">     169143 : const std::vector&lt;unsigned char&gt;&amp; GetObfuscateKey(const CDBWrapper &amp;w)</span>
+<span class="lineNum">     254 </span>                :            : {
+<span class="lineNum">     255 </span>                :<span class="lineCov">     169143 :     return w.obfuscate_key;</span>
+<a name="256"><span class="lineNum">     256 </span>                :            : }</a>
+<span class="lineNum">     257 </span>                :            : 
+<span class="lineNum">     258 </span>[<span class="branchCov" title="Branch 1 was taken 475 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 475 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1900 : } // namespace dbwrapper_private</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,361 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/util/strencodings.h</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/util</a> - strencodings.h<span style="font-size: 80%;"> (source / <a href="strencodings.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">39</td>
+            <td class="headerCovTableEntry">39</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">28</td>
+            <td class="headerCovTableEntry">28</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">102</td>
+            <td class="headerCovTableEntry">156</td>
+            <td class="headerCovTableEntryLo">65.4 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : /**
+<span class="lineNum">       7 </span>                :            :  * Utilities for converting data from/to strings.
+<span class="lineNum">       8 </span>                :            :  */
+<span class="lineNum">       9 </span>                :            : #ifndef BITCOIN_UTIL_STRENCODINGS_H
+<span class="lineNum">      10 </span>                :            : #define BITCOIN_UTIL_STRENCODINGS_H
+<span class="lineNum">      11 </span>                :            : 
+<span class="lineNum">      12 </span>                :            : #include &lt;attributes.h&gt;
+<span class="lineNum">      13 </span>                :            : 
+<span class="lineNum">      14 </span>                :            : #include &lt;cstdint&gt;
+<span class="lineNum">      15 </span>                :            : #include &lt;string&gt;
+<span class="lineNum">      16 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">      17 </span>                :            : 
+<span class="lineNum">      18 </span>                :            : #define ARRAYLEN(array)     (sizeof(array)/sizeof((array)[0]))
+<span class="lineNum">      19 </span>                :            : 
+<span class="lineNum">      20 </span>                :            : /** Used by SanitizeString() */
+<span class="lineNum">      21 </span>                :            : enum SafeChars
+<span class="lineNum">      22 </span>                :            : {
+<span class="lineNum">      23 </span>                :            :     SAFE_CHARS_DEFAULT, //!&lt; The full set of allowed chars
+<span class="lineNum">      24 </span>                :            :     SAFE_CHARS_UA_COMMENT, //!&lt; BIP-0014 subset
+<span class="lineNum">      25 </span>                :            :     SAFE_CHARS_FILENAME, //!&lt; Chars allowed in filenames
+<span class="lineNum">      26 </span>                :            :     SAFE_CHARS_URI, //!&lt; Chars allowed in URIs (RFC 3986)
+<span class="lineNum">      27 </span>                :            : };
+<span class="lineNum">      28 </span>                :            : 
+<span class="lineNum">      29 </span>                :            : /**
+<span class="lineNum">      30 </span>                :            : * Remove unsafe chars. Safe chars chosen to allow simple messages/URLs/email
+<span class="lineNum">      31 </span>                :            : * addresses, but avoid anything even possibly remotely dangerous like &amp; or &gt;
+<span class="lineNum">      32 </span>                :            : * @param[in] str    The string to sanitize
+<span class="lineNum">      33 </span>                :            : * @param[in] rule   The set of safe chars to choose (default: least restrictive)
+<span class="lineNum">      34 </span>                :            : * @return           A new string without unsafe chars
+<span class="lineNum">      35 </span>                :            : */
+<span class="lineNum">      36 </span>                :            : std::string SanitizeString(const std::string&amp; str, int rule = SAFE_CHARS_DEFAULT);
+<span class="lineNum">      37 </span>                :            : std::vector&lt;unsigned char&gt; ParseHex(const char* psz);
+<span class="lineNum">      38 </span>                :            : std::vector&lt;unsigned char&gt; ParseHex(const std::string&amp; str);
+<span class="lineNum">      39 </span>                :            : signed char HexDigit(char c);
+<span class="lineNum">      40 </span>                :            : /* Returns true if each character in str is a hex character, and has an even
+<span class="lineNum">      41 </span>                :            :  * number of hex digits.*/
+<span class="lineNum">      42 </span>                :            : bool IsHex(const std::string&amp; str);
+<span class="lineNum">      43 </span>                :            : /**
+<span class="lineNum">      44 </span>                :            : * Return true if the string is a hex number, optionally prefixed with &quot;0x&quot;
+<span class="lineNum">      45 </span>                :            : */
+<span class="lineNum">      46 </span>                :            : bool IsHexNumber(const std::string&amp; str);
+<span class="lineNum">      47 </span>                :            : std::vector&lt;unsigned char&gt; DecodeBase64(const char* p, bool* pfInvalid = nullptr);
+<span class="lineNum">      48 </span>                :            : std::string DecodeBase64(const std::string&amp; str);
+<span class="lineNum">      49 </span>                :            : std::string EncodeBase64(const unsigned char* pch, size_t len);
+<span class="lineNum">      50 </span>                :            : std::string EncodeBase64(const std::string&amp; str);
+<span class="lineNum">      51 </span>                :            : std::vector&lt;unsigned char&gt; DecodeBase32(const char* p, bool* pfInvalid = nullptr);
+<span class="lineNum">      52 </span>                :            : std::string DecodeBase32(const std::string&amp; str);
+<span class="lineNum">      53 </span>                :            : std::string EncodeBase32(const unsigned char* pch, size_t len);
+<span class="lineNum">      54 </span>                :            : std::string EncodeBase32(const std::string&amp; str);
+<span class="lineNum">      55 </span>                :            : 
+<span class="lineNum">      56 </span>                :            : void SplitHostPort(std::string in, int &amp;portOut, std::string &amp;hostOut);
+<span class="lineNum">      57 </span>                :            : std::string i64tostr(int64_t n);
+<span class="lineNum">      58 </span>                :            : std::string itostr(int n);
+<span class="lineNum">      59 </span>                :            : int64_t atoi64(const char* psz);
+<span class="lineNum">      60 </span>                :            : int64_t atoi64(const std::string&amp; str);
+<span class="lineNum">      61 </span>                :            : int atoi(const std::string&amp; str);
+<span class="lineNum">      62 </span>                :            : 
+<span class="lineNum">      63 </span>                :            : /**
+<span class="lineNum">      64 </span>                :            :  * Tests if the given character is a decimal digit.
+<span class="lineNum">      65 </span>                :            :  * @param[in] c     character to test
+<a name="66"><span class="lineNum">      66 </span>                :            :  * @return          true if the argument is a decimal digit; otherwise false.</a>
+<span class="lineNum">      67 </span>                :            :  */
+<span class="lineNum">      68 </span>                :<span class="lineCov">      15587 : constexpr bool IsDigit(char c)</span>
+<span class="lineNum">      69 </span>                :            : {
+<span class="lineNum">      70 </span>                :<span class="lineCov">      79019 :     return c &gt;= '0' &amp;&amp; c &lt;= '9';</span>
+<span class="lineNum">      71 </span>                :            : }
+<span class="lineNum">      72 </span>                :            : 
+<span class="lineNum">      73 </span>                :            : /**
+<span class="lineNum">      74 </span>                :            :  * Tests if the given character is a whitespace character. The whitespace characters
+<span class="lineNum">      75 </span>                :            :  * are: space, form-feed ('\f'), newline ('\n'), carriage return ('\r'), horizontal
+<span class="lineNum">      76 </span>                :            :  * tab ('\t'), and vertical tab ('\v').
+<span class="lineNum">      77 </span>                :            :  *
+<span class="lineNum">      78 </span>                :            :  * This function is locale independent. Under the C locale this function gives the
+<span class="lineNum">      79 </span>                :            :  * same result as std::isspace.
+<span class="lineNum">      80 </span>                :            :  *
+<span class="lineNum">      81 </span>                :            :  * @param[in] c     character to test
+<a name="82"><span class="lineNum">      82 </span>                :            :  * @return          true if the argument is a whitespace character; otherwise false</a>
+<span class="lineNum">      83 </span>                :            :  */
+<span class="lineNum">      84 </span>                :<span class="lineCov">        258 : constexpr inline bool IsSpace(char c) noexcept {</span>
+<span class="lineNum">      85 </span>[<span class="branchCov" title="Branch 0 was taken 354699 times"> + </span><span class="branchCov" title="Branch 1 was taken 46 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 354695 times"> + </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">   40506991 :     return c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t' || c == '\v';</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 344334 times"> + </span><span class="branchCov" title="Branch 5 was taken 10361 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 657675 times"> + </span><span class="branchCov" title="Branch 7 was taken 16 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 657675 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 657675 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 12 was taken 39795278 times"> + </span><span class="branchCov" title="Branch 13 was taken 23 times"> + </span>][<span class="branchCov" title="Branch 14 was taken 39795274 times"> + </span><span class="branchCov" title="Branch 15 was taken 4 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 39795270 times"> + </span><span class="branchCov" title="Branch 17 was taken 4 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 197 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 197 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 197 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>][<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
+<span class="lineNum">      86 </span>                :            : }
+<span class="lineNum">      87 </span>                :            : 
+<span class="lineNum">      88 </span>                :            : /**
+<span class="lineNum">      89 </span>                :            :  * Convert string to signed 32-bit integer with strict parse error feedback.
+<span class="lineNum">      90 </span>                :            :  * @returns true if the entire string could be parsed as valid integer,
+<span class="lineNum">      91 </span>                :            :  *   false if not the entire string could be parsed or when overflow or underflow occurred.
+<span class="lineNum">      92 </span>                :            :  */
+<span class="lineNum">      93 </span>                :            : NODISCARD bool ParseInt32(const std::string&amp; str, int32_t *out);
+<span class="lineNum">      94 </span>                :            : 
+<span class="lineNum">      95 </span>                :            : /**
+<span class="lineNum">      96 </span>                :            :  * Convert string to signed 64-bit integer with strict parse error feedback.
+<span class="lineNum">      97 </span>                :            :  * @returns true if the entire string could be parsed as valid integer,
+<span class="lineNum">      98 </span>                :            :  *   false if not the entire string could be parsed or when overflow or underflow occurred.
+<span class="lineNum">      99 </span>                :            :  */
+<span class="lineNum">     100 </span>                :            : NODISCARD bool ParseInt64(const std::string&amp; str, int64_t *out);
+<span class="lineNum">     101 </span>                :            : 
+<span class="lineNum">     102 </span>                :            : /**
+<span class="lineNum">     103 </span>                :            :  * Convert decimal string to unsigned 32-bit integer with strict parse error feedback.
+<span class="lineNum">     104 </span>                :            :  * @returns true if the entire string could be parsed as valid integer,
+<span class="lineNum">     105 </span>                :            :  *   false if not the entire string could be parsed or when overflow or underflow occurred.
+<span class="lineNum">     106 </span>                :            :  */
+<span class="lineNum">     107 </span>                :            : NODISCARD bool ParseUInt32(const std::string&amp; str, uint32_t *out);
+<span class="lineNum">     108 </span>                :            : 
+<span class="lineNum">     109 </span>                :            : /**
+<span class="lineNum">     110 </span>                :            :  * Convert decimal string to unsigned 64-bit integer with strict parse error feedback.
+<span class="lineNum">     111 </span>                :            :  * @returns true if the entire string could be parsed as valid integer,
+<span class="lineNum">     112 </span>                :            :  *   false if not the entire string could be parsed or when overflow or underflow occurred.
+<span class="lineNum">     113 </span>                :            :  */
+<span class="lineNum">     114 </span>                :            : NODISCARD bool ParseUInt64(const std::string&amp; str, uint64_t *out);
+<span class="lineNum">     115 </span>                :            : 
+<span class="lineNum">     116 </span>                :            : /**
+<span class="lineNum">     117 </span>                :            :  * Convert string to double with strict parse error feedback.
+<span class="lineNum">     118 </span>                :            :  * @returns true if the entire string could be parsed as valid double,
+<span class="lineNum">     119 </span>                :            :  *   false if not the entire string could be parsed or when overflow or underflow occurred.
+<span class="lineNum">     120 </span>                :            :  */
+<span class="lineNum">     121 </span>                :            : NODISCARD bool ParseDouble(const std::string&amp; str, double *out);
+<a name="122"><span class="lineNum">     122 </span>                :            : </a>
+<span class="lineNum">     123 </span>                :            : template&lt;typename T&gt;
+<span class="lineNum">     124 </span>                :<span class="lineCov">    3219760 : std::string HexStr(const T itbegin, const T itend, bool fSpaces=false)</span>
+<span class="lineNum">     125 </span>                :            : {
+<span class="lineNum">     126 </span>                :<span class="lineCov">    3219760 :     std::string rv;</span>
+<span class="lineNum">     127 </span>                :            :     static const char hexmap[16] = { '0', '1', '2', '3', '4', '5', '6', '7',
+<span class="lineNum">     128 </span>                :            :                                      '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+<span class="lineNum">     129 </span>[<span class="branchCov" title="Branch 1 was taken 2885252 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 124607 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">    3219760 :     rv.reserve((itend-itbegin)*3);</span>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 7 was taken 103 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 209706 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>][<span class="branchCov" title="Branch 10 was taken 92 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">     130 </span>[<span class="branchCov" title="Branch 0 was taken 19007607 times"> + </span><span class="branchCov" title="Branch 1 was taken 51794 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 7531446 times"> + </span><span class="branchCov" title="Branch 3 was taken 322711 times"> + </span>]:<span class="lineCov">  120732259 :     for(T it = itbegin; it &lt; itend; ++it)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 0 was taken 90652380 times"> + </span><span class="branchCov" title="Branch 1 was taken 2833458 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 310861 times"> + </span><span class="branchCov" title="Branch 3 was taken 11602 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 7613 times"> + </span><span class="branchCov" title="Branch 5 was taken 99 times"> + </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>][<span class="branchCov" title="Branch 4 was taken 20 times"> + </span><span class="branchCov" title="Branch 5 was taken 4 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 2572 times"> + </span><span class="branchCov" title="Branch 7 was taken 92 times"> + </span>]
+<span class="lineNum">     131 </span>                :            :     {
+<span class="lineNum">     132 </span>                :<span class="lineCov">  117512499 :         unsigned char val = (unsigned char)(*it);</span>
+<span class="lineNum">     133 </span>[<span class="branchCov" title="Branch 0 was taken 10 times"> + </span><span class="branchCov" title="Branch 1 was taken 109659977 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 8 times"> + </span><span class="branchCov" title="Branch 3 was taken 3915918 times"> + </span>]:<span class="lineCov">  117512499 :         if(fSpaces &amp;&amp; it != itbegin)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 12 times"> + </span><span class="branchCov" title="Branch 5 was taken 3926379 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 8 times"> + </span><span class="branchCov" title="Branch 7 was taken 4 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 10 times"> + </span><span class="branchCov" title="Branch 9 was taken 7623 times"> + </span>][<span class="branchCov" title="Branch 10 was taken 8 times"> + </span><span class="branchCov" title="Branch 11 was taken 2 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 12 was taken 8 times"> + </span><span class="branchCov" title="Branch 13 was taken 2564 times"> + </span>][<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
+<span class="lineNum">     134 </span>[<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         32 :             rv.push_back(' ');</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>]
+<span class="lineNum">     135 </span>[<span class="branchCov" title="Branch 1 was taken 109659987 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 7842307 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">  117512499 :         rv.push_back(hexmap[val&gt;&gt;4]);</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 7633 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 2572 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>]
+<span class="lineNum">     136 </span>[<span class="branchCov" title="Branch 1 was taken 109659987 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 7842307 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">  117512499 :         rv.push_back(hexmap[val&amp;15]);</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 7633 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 2572 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>]
+<span class="lineNum">     137 </span>                :            :     }
+<span class="lineNum">     138 </span>                :            : 
+<span class="lineNum">     139 </span>                :<span class="lineCov">    3219760 :     return rv;</span>
+<span class="lineNum">     140 </span>                :            : }
+<a name="141"><span class="lineNum">     141 </span>                :            : </a>
+<span class="lineNum">     142 </span>                :            : template&lt;typename T&gt;
+<span class="lineNum">     143 </span>                :<span class="lineCov">      15023 : inline std::string HexStr(const T&amp; vch, bool fSpaces=false)</span>
+<span class="lineNum">     144 </span>                :            : {
+<span class="lineNum">     145 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">      15023 :     return HexStr(vch.begin(), vch.end(), fSpaces);</span>
+<span class="lineNum">     146 </span>                :            : }
+<span class="lineNum">     147 </span>                :            : 
+<span class="lineNum">     148 </span>                :            : /**
+<span class="lineNum">     149 </span>                :            :  * Format a paragraph of text to a fixed width, adding spaces for
+<span class="lineNum">     150 </span>                :            :  * indentation to any added line.
+<span class="lineNum">     151 </span>                :            :  */
+<span class="lineNum">     152 </span>                :            : std::string FormatParagraph(const std::string&amp; in, size_t width = 79, size_t indent = 0);
+<span class="lineNum">     153 </span>                :            : 
+<span class="lineNum">     154 </span>                :            : /**
+<span class="lineNum">     155 </span>                :            :  * Timing-attack-resistant comparison.
+<span class="lineNum">     156 </span>                :            :  * Takes time proportional to length
+<span class="lineNum">     157 </span>                :            :  * of first argument.
+<a name="158"><span class="lineNum">     158 </span>                :            :  */</a>
+<span class="lineNum">     159 </span>                :            : template &lt;typename T&gt;
+<span class="lineNum">     160 </span>                :<span class="lineCov">      46051 : bool TimingResistantEqual(const T&amp; a, const T&amp; b)</span>
+<span class="lineNum">     161 </span>                :            : {
+<span class="lineNum">     162 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 46047 times"> + </span>]:<span class="lineCov">      46051 :     if (b.size() == 0) return a.size() == 0;</span>
+<span class="lineNum">     163 </span>                :<span class="lineCov">      46047 :     size_t accumulator = a.size() ^ b.size();</span>
+<span class="lineNum">     164 </span>        [<span class="branchCov" title="Branch 0 was taken 3450549 times"> + </span><span class="branchCov" title="Branch 1 was taken 46047 times"> + </span>]:<span class="lineCov">    3496596 :     for (size_t i = 0; i &lt; a.size(); i++)</span>
+<span class="lineNum">     165 </span>                :<span class="lineCov">    6901098 :         accumulator |= a[i] ^ b[i%b.size()];</span>
+<span class="lineNum">     166 </span>                :<span class="lineCov">      46047 :     return accumulator == 0;</span>
+<span class="lineNum">     167 </span>                :            : }
+<span class="lineNum">     168 </span>                :            : 
+<span class="lineNum">     169 </span>                :            : /** Parse number as fixed point according to JSON number syntax.
+<span class="lineNum">     170 </span>                :            :  * See http://json.org/number.gif
+<span class="lineNum">     171 </span>                :            :  * @returns true on success, false on error.
+<span class="lineNum">     172 </span>                :            :  * @note The result must be in the range (-10^18,10^18), otherwise an overflow error will trigger.
+<span class="lineNum">     173 </span>                :            :  */
+<span class="lineNum">     174 </span>                :            : NODISCARD bool ParseFixedPoint(const std::string &amp;val, int decimals, int64_t *amount_out);
+<span class="lineNum">     175 </span>                :            : 
+<a name="176"><span class="lineNum">     176 </span>                :            : /** Convert from one power-of-2 number base to another. */</a>
+<span class="lineNum">     177 </span>                :            : template&lt;int frombits, int tobits, bool pad, typename O, typename I&gt;
+<span class="lineNum">     178 </span>                :<span class="lineCov">      50013 : bool ConvertBits(const O&amp; outfn, I it, I end) {</span>
+<span class="lineNum">     179 </span>                :<span class="lineCov">      50013 :     size_t acc = 0;</span>
+<span class="lineNum">     180 </span>                :<span class="lineCov">      50013 :     size_t bits = 0;</span>
+<span class="lineNum">     181 </span>                :<span class="lineCov">      50013 :     constexpr size_t maxv = (1 &lt;&lt; tobits) - 1;</span>
+<span class="lineNum">     182 </span>                :<span class="lineCov">      50013 :     constexpr size_t max_acc = (1 &lt;&lt; (frombits + tobits - 1)) - 1;</span>
+<span class="lineNum">     183 </span>[<span class="branchCov" title="Branch 0 was taken 28537 times"> + </span><span class="branchCov" title="Branch 1 was taken 809 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 121 times"> + </span><span class="branchCov" title="Branch 3 was taken 15 times"> + </span>]:<span class="lineCov">    4984849 :     while (it != end) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 4762856 times"> + </span><span class="branchCov" title="Branch 5 was taken 46949 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 36620 times"> + </span><span class="branchCov" title="Branch 7 was taken 1831 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 106702 times"> + </span><span class="branchCov" title="Branch 7 was taken 409 times"> + </span>]
+<span class="lineNum">     184 </span>                :<span class="lineCov">    4934836 :         acc = ((acc &lt;&lt; frombits) | *it) &amp; max_acc;</span>
+<span class="lineNum">     185 </span>                :<span class="lineCov">    4934836 :         bits += frombits;</span>
+<span class="lineNum">     186 </span>[<span class="branchCov" title="Branch 0 was taken 17757 times"> + </span><span class="branchCov" title="Branch 1 was taken 28537 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 190 times"> + </span><span class="branchCov" title="Branch 3 was taken 121 times"> + </span>]:<span class="lineCov">    8745356 :         while (bits &gt;= tobits) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 3591764 times"> + </span><span class="branchCov" title="Branch 5 was taken 4762856 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 200809 times"> + </span><span class="branchCov" title="Branch 7 was taken 143322 times"> + </span>]
+<span class="lineNum">     187 </span>                :<span class="lineCov">    3810520 :             bits -= tobits;</span>
+<span class="lineNum">     188 </span>                :<span class="lineCov">    3810520 :             outfn((acc &gt;&gt; bits) &amp; maxv);</span>
+<span class="lineNum">     189 </span>                :            :         }
+<span class="lineNum">     190 </span>                :<span class="lineCov">     166771 :         ++it;</span>
+<span class="lineNum">     191 </span>                :            :     }
+<span class="lineNum">     192 </span>                :            :     if (pad) {
+<span class="lineNum">     193 </span>[<span class="branchCov" title="Branch 0 was taken 8 times"> + </span><span class="branchCov" title="Branch 1 was taken 7 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 851 times"> + </span><span class="branchCov" title="Branch 3 was taken 287 times"> + </span>]:<span class="lineCov">       2984 :         if (bits) outfn((acc &lt;&lt; (tobits - bits)) &amp; maxv);</span>
+<span class="lineNum">         </span>        [<span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 1831 times"> + </span>]
+<span class="lineNum">     194 </span>[<span class="branchCov" title="Branch 0 was taken 808 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 807 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">      47029 :     } else if (bits &gt;= frombits || ((acc &lt;&lt; (tobits - bits)) &amp; maxv)) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 46220 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchCov" title="Branch 6 was taken 46219 times"> + </span><span class="branchCov" title="Branch 7 was taken 1 time"> + </span>]
+<span class="lineNum">     195 </span>                :            :         return false;
+<span class="lineNum">     196 </span>                :            :     }
+<span class="lineNum">     197 </span>                :<span class="lineCov">      47026 :     return true;</span>
+<span class="lineNum">     198 </span>                :            : }
+<span class="lineNum">     199 </span>                :            : 
+<span class="lineNum">     200 </span>                :            : /** Parse an HD keypaths like &quot;m/7/0'/2000&quot;. */
+<span class="lineNum">     201 </span>                :            : NODISCARD bool ParseHDKeypath(const std::string&amp; keypath_str, std::vector&lt;uint32_t&gt;&amp; keypath);
+<span class="lineNum">     202 </span>                :            : 
+<span class="lineNum">     203 </span>                :            : /**
+<span class="lineNum">     204 </span>                :            :  * Converts the given character to its lowercase equivalent.
+<span class="lineNum">     205 </span>                :            :  * This function is locale independent. It only converts uppercase
+<span class="lineNum">     206 </span>                :            :  * characters in the standard 7-bit ASCII range.
+<span class="lineNum">     207 </span>                :            :  * @param[in] c     the character to convert to lowercase.
+<span class="lineNum">     208 </span>                :            :  * @return          the lowercase equivalent of c; or the argument
+<span class="lineNum">     209 </span>                :            :  *                  if no conversion is possible.
+<span class="lineNum">     210 </span>                :            :  */
+<span class="lineNum">     211 </span>                :            : constexpr char ToLower(char c)
+<span class="lineNum">     212 </span>                :            : {
+<span class="lineNum">     213 </span>[<span class="branchCov" title="Branch 0 was taken 16 times"> + </span><span class="branchCov" title="Branch 1 was taken 34295 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 7 times"> + </span>]:<span class="lineCov">      34318 :     return (c &gt;= 'A' &amp;&amp; c &lt;= 'Z' ? (c - 'A') + 'a' : c);</span>
+<span class="lineNum">     214 </span>                :            : }
+<span class="lineNum">     215 </span>                :            : 
+<span class="lineNum">     216 </span>                :            : /**
+<span class="lineNum">     217 </span>                :            :  * Converts the given string to its lowercase equivalent.
+<span class="lineNum">     218 </span>                :            :  * This function is locale independent. It only converts uppercase
+<span class="lineNum">     219 </span>                :            :  * characters in the standard 7-bit ASCII range.
+<span class="lineNum">     220 </span>                :            :  * @param[in,out] str   the string to convert to lowercase.
+<span class="lineNum">     221 </span>                :            :  */
+<span class="lineNum">     222 </span>                :            : void Downcase(std::string&amp; str);
+<span class="lineNum">     223 </span>                :            : 
+<span class="lineNum">     224 </span>                :            : /**
+<span class="lineNum">     225 </span>                :            :  * Converts the given character to its uppercase equivalent.
+<span class="lineNum">     226 </span>                :            :  * This function is locale independent. It only converts lowercase
+<span class="lineNum">     227 </span>                :            :  * characters in the standard 7-bit ASCII range.
+<span class="lineNum">     228 </span>                :            :  * @param[in] c     the character to convert to uppercase.
+<span class="lineNum">     229 </span>                :            :  * @return          the uppercase equivalent of c; or the argument
+<span class="lineNum">     230 </span>                :            :  *                  if no conversion is possible.
+<span class="lineNum">     231 </span>                :            :  */
+<span class="lineNum">     232 </span>                :            : constexpr char ToUpper(char c)
+<span class="lineNum">     233 </span>                :            : {
+<span class="lineNum">     234 </span>        [<span class="branchCov" title="Branch 0 was taken 19 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         19 :     return (c &gt;= 'a' &amp;&amp; c &lt;= 'z' ? (c - 'a') + 'A' : c);</span>
+<span class="lineNum">     235 </span>                :            : }
+<span class="lineNum">     236 </span>                :            : 
+<span class="lineNum">     237 </span>                :            : /**
+<span class="lineNum">     238 </span>                :            :  * Capitalizes the first character of the given string.
+<span class="lineNum">     239 </span>                :            :  * This function is locale independent. It only capitalizes the
+<span class="lineNum">     240 </span>                :            :  * first character of the argument if it has an uppercase equivalent
+<span class="lineNum">     241 </span>                :            :  * in the standard 7-bit ASCII range.
+<span class="lineNum">     242 </span>                :            :  * @param[in] str   the string to capitalize.
+<span class="lineNum">     243 </span>                :            :  * @return          string with the first letter capitalized.
+<span class="lineNum">     244 </span>                :            :  */
+<span class="lineNum">     245 </span>                :            : std::string Capitalize(std::string str);
+<span class="lineNum">     246 </span>                :            : 
+<span class="lineNum">     247 </span>                :            : #endif // BITCOIN_UTIL_STRENCODINGS_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

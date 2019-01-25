@@ -1,0 +1,325 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/support/lockedpool.h</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/support</a> - lockedpool.h<span style="font-size: 80%;"> (source / <a href="lockedpool.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntryMed">75.0 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2016-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #ifndef BITCOIN_SUPPORT_LOCKEDPOOL_H
+<span class="lineNum">       6 </span>                :            : #define BITCOIN_SUPPORT_LOCKEDPOOL_H
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;stdint.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;list&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;map&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;mutex&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;memory&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;unordered_map&gt;
+<span class="lineNum">      14 </span>                :            : 
+<span class="lineNum">      15 </span>                :            : /**
+<span class="lineNum">      16 </span>                :            :  * OS-dependent allocation and deallocation of locked/pinned memory pages.
+<span class="lineNum">      17 </span>                :            :  * Abstract base class.
+<span class="lineNum">      18 </span>                :            :  */
+<span class="lineNum">      19 </span>                :            : class LockedPageAllocator
+<span class="lineNum">      20 </span>                :            : {
+<span class="lineNum">      21 </span>                :            : public:
+<span class="lineNum">      22 </span>                :            :     virtual ~LockedPageAllocator() {}
+<span class="lineNum">      23 </span>                :            :     /** Allocate and lock memory pages.
+<span class="lineNum">      24 </span>                :            :      * If len is not a multiple of the system page size, it is rounded up.
+<span class="lineNum">      25 </span>                :            :      * Returns nullptr in case of allocation failure.
+<span class="lineNum">      26 </span>                :            :      *
+<span class="lineNum">      27 </span>                :            :      * If locking the memory pages could not be accomplished it will still
+<span class="lineNum">      28 </span>                :            :      * return the memory, however the lockingSuccess flag will be false.
+<span class="lineNum">      29 </span>                :            :      * lockingSuccess is undefined if the allocation fails.
+<span class="lineNum">      30 </span>                :            :      */
+<span class="lineNum">      31 </span>                :            :     virtual void* AllocateLocked(size_t len, bool *lockingSuccess) = 0;
+<span class="lineNum">      32 </span>                :            : 
+<span class="lineNum">      33 </span>                :            :     /** Unlock and free memory pages.
+<span class="lineNum">      34 </span>                :            :      * Clear the memory before unlocking.
+<span class="lineNum">      35 </span>                :            :      */
+<span class="lineNum">      36 </span>                :            :     virtual void FreeLocked(void* addr, size_t len) = 0;
+<span class="lineNum">      37 </span>                :            : 
+<span class="lineNum">      38 </span>                :            :     /** Get the total limit on the amount of memory that may be locked by this
+<span class="lineNum">      39 </span>                :            :      * process, in bytes. Return size_t max if there is no limit or the limit
+<span class="lineNum">      40 </span>                :            :      * is unknown. Return 0 if no memory can be locked at all.
+<span class="lineNum">      41 </span>                :            :      */
+<span class="lineNum">      42 </span>                :            :     virtual size_t GetLimit() = 0;
+<span class="lineNum">      43 </span>                :            : };
+<span class="lineNum">      44 </span>                :            : 
+<span class="lineNum">      45 </span>                :            : /* An arena manages a contiguous region of memory by dividing it into
+<span class="lineNum">      46 </span>                :            :  * chunks.
+<span class="lineNum">      47 </span>                :            :  */
+<span class="lineNum">      48 </span>                :            : class Arena
+<span class="lineNum">      49 </span>                :            : {
+<span class="lineNum">      50 </span>                :            : public:
+<span class="lineNum">      51 </span>                :            :     Arena(void *base, size_t size, size_t alignment);
+<span class="lineNum">      52 </span>                :            :     virtual ~Arena();
+<span class="lineNum">      53 </span>                :            : 
+<span class="lineNum">      54 </span>                :            :     Arena(const Arena&amp; other) = delete; // non construction-copyable
+<span class="lineNum">      55 </span>                :            :     Arena&amp; operator=(const Arena&amp;) = delete; // non copyable
+<span class="lineNum">      56 </span>                :            : 
+<span class="lineNum">      57 </span>                :            :     /** Memory statistics. */
+<span class="lineNum">      58 </span>                :            :     struct Stats
+<span class="lineNum">      59 </span>                :            :     {
+<span class="lineNum">      60 </span>                :            :         size_t used;
+<span class="lineNum">      61 </span>                :            :         size_t free;
+<span class="lineNum">      62 </span>                :            :         size_t total;
+<span class="lineNum">      63 </span>                :            :         size_t chunks_used;
+<span class="lineNum">      64 </span>                :            :         size_t chunks_free;
+<span class="lineNum">      65 </span>                :            :     };
+<span class="lineNum">      66 </span>                :            : 
+<span class="lineNum">      67 </span>                :            :     /** Allocate size bytes from this arena.
+<span class="lineNum">      68 </span>                :            :      * Returns pointer on success, or 0 if memory is full or
+<span class="lineNum">      69 </span>                :            :      * the application tried to allocate 0 bytes.
+<span class="lineNum">      70 </span>                :            :      */
+<span class="lineNum">      71 </span>                :            :     void* alloc(size_t size);
+<span class="lineNum">      72 </span>                :            : 
+<span class="lineNum">      73 </span>                :            :     /** Free a previously allocated chunk of memory.
+<span class="lineNum">      74 </span>                :            :      * Freeing the zero pointer has no effect.
+<span class="lineNum">      75 </span>                :            :      * Raises std::runtime_error in case of error.
+<span class="lineNum">      76 </span>                :            :      */
+<span class="lineNum">      77 </span>                :            :     void free(void *ptr);
+<span class="lineNum">      78 </span>                :            : 
+<span class="lineNum">      79 </span>                :            :     /** Get arena usage statistics */
+<span class="lineNum">      80 </span>                :            :     Stats stats() const;
+<span class="lineNum">      81 </span>                :            : 
+<span class="lineNum">      82 </span>                :            : #ifdef ARENA_DEBUG
+<span class="lineNum">      83 </span>                :            :     void walk() const;
+<span class="lineNum">      84 </span>                :            : #endif
+<span class="lineNum">      85 </span>                :            : 
+<span class="lineNum">      86 </span>                :            :     /** Return whether a pointer points inside this arena.
+<span class="lineNum">      87 </span>                :            :      * This returns base &lt;= ptr &lt; (base+size) so only use it for (inclusive)
+<span class="lineNum">      88 </span>                :            :      * chunk starting addresses.
+<span class="lineNum">      89 </span>                :            :      */
+<span class="lineNum">      90 </span>[<span class="branchCov" title="Branch 0 was taken 38587 times"> + </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 38587 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">      38593 :     bool addressInArena(void *ptr) const { return ptr &gt;= base &amp;&amp; ptr &lt; end; }</span>
+<span class="lineNum">      91 </span>                :            : private:
+<span class="lineNum">      92 </span>                :            :     typedef std::multimap&lt;size_t, char*&gt; SizeToChunkSortedMap;
+<span class="lineNum">      93 </span>                :            :     /** Map to enable O(log(n)) best-fit allocation, as it's sorted by size */
+<span class="lineNum">      94 </span>                :            :     SizeToChunkSortedMap size_to_free_chunk;
+<span class="lineNum">      95 </span>                :            : 
+<span class="lineNum">      96 </span>                :            :     typedef std::unordered_map&lt;char*, SizeToChunkSortedMap::const_iterator&gt; ChunkToSizeMap;
+<span class="lineNum">      97 </span>                :            :     /** Map from begin of free chunk to its node in size_to_free_chunk */
+<span class="lineNum">      98 </span>                :            :     ChunkToSizeMap chunks_free;
+<span class="lineNum">      99 </span>                :            :     /** Map from end of free chunk to its node in size_to_free_chunk */
+<span class="lineNum">     100 </span>                :            :     ChunkToSizeMap chunks_free_end;
+<span class="lineNum">     101 </span>                :            : 
+<span class="lineNum">     102 </span>                :            :     /** Map from begin of used chunk to its size */
+<span class="lineNum">     103 </span>                :            :     std::unordered_map&lt;char*, size_t&gt; chunks_used;
+<span class="lineNum">     104 </span>                :            : 
+<span class="lineNum">     105 </span>                :            :     /** Base address of arena */
+<span class="lineNum">     106 </span>                :            :     char* base;
+<span class="lineNum">     107 </span>                :            :     /** End address of arena */
+<span class="lineNum">     108 </span>                :            :     char* end;
+<span class="lineNum">     109 </span>                :            :     /** Minimum chunk alignment */
+<span class="lineNum">     110 </span>                :            :     size_t alignment;
+<span class="lineNum">     111 </span>                :            : };
+<span class="lineNum">     112 </span>                :            : 
+<span class="lineNum">     113 </span>                :            : /** Pool for locked memory chunks.
+<span class="lineNum">     114 </span>                :            :  *
+<span class="lineNum">     115 </span>                :            :  * To avoid sensitive key data from being swapped to disk, the memory in this pool
+<span class="lineNum">     116 </span>                :            :  * is locked/pinned.
+<span class="lineNum">     117 </span>                :            :  *
+<span class="lineNum">     118 </span>                :            :  * An arena manages a contiguous region of memory. The pool starts out with one arena
+<span class="lineNum">     119 </span>                :            :  * but can grow to multiple arenas if the need arises.
+<span class="lineNum">     120 </span>                :            :  *
+<span class="lineNum">     121 </span>                :            :  * Unlike a normal C heap, the administrative structures are separate from the managed
+<span class="lineNum">     122 </span>                :            :  * memory. This has been done as the sizes and bases of objects are not in themselves sensitive
+<span class="lineNum">     123 </span>                :            :  * information, as to conserve precious locked memory. In some operating systems
+<span class="lineNum">     124 </span>                :            :  * the amount of memory that can be locked is small.
+<span class="lineNum">     125 </span>                :            :  */
+<span class="lineNum">     126 </span>                :            : class LockedPool
+<span class="lineNum">     127 </span>                :            : {
+<span class="lineNum">     128 </span>                :            : public:
+<span class="lineNum">     129 </span>                :            :     /** Size of one arena of locked memory. This is a compromise.
+<span class="lineNum">     130 </span>                :            :      * Do not set this too low, as managing many arenas will increase
+<span class="lineNum">     131 </span>                :            :      * allocation and deallocation overhead. Setting it too high allocates
+<span class="lineNum">     132 </span>                :            :      * more locked memory from the OS than strictly necessary.
+<span class="lineNum">     133 </span>                :            :      */
+<span class="lineNum">     134 </span>                :            :     static const size_t ARENA_SIZE = 256*1024;
+<span class="lineNum">     135 </span>                :            :     /** Chunk alignment. Another compromise. Setting this too high will waste
+<span class="lineNum">     136 </span>                :            :      * memory, setting it too low will facilitate fragmentation.
+<span class="lineNum">     137 </span>                :            :      */
+<span class="lineNum">     138 </span>                :            :     static const size_t ARENA_ALIGN = 16;
+<span class="lineNum">     139 </span>                :            : 
+<span class="lineNum">     140 </span>                :            :     /** Callback when allocation succeeds but locking fails.
+<span class="lineNum">     141 </span>                :            :      */
+<span class="lineNum">     142 </span>                :            :     typedef bool (*LockingFailed_Callback)();
+<span class="lineNum">     143 </span>                :            : 
+<span class="lineNum">     144 </span>                :            :     /** Memory statistics. */
+<span class="lineNum">     145 </span>                :            :     struct Stats
+<span class="lineNum">     146 </span>                :            :     {
+<span class="lineNum">     147 </span>                :            :         size_t used;
+<span class="lineNum">     148 </span>                :            :         size_t free;
+<span class="lineNum">     149 </span>                :            :         size_t total;
+<span class="lineNum">     150 </span>                :            :         size_t locked;
+<span class="lineNum">     151 </span>                :            :         size_t chunks_used;
+<span class="lineNum">     152 </span>                :            :         size_t chunks_free;
+<span class="lineNum">     153 </span>                :            :     };
+<span class="lineNum">     154 </span>                :            : 
+<span class="lineNum">     155 </span>                :            :     /** Create a new LockedPool. This takes ownership of the MemoryPageLocker,
+<span class="lineNum">     156 </span>                :            :      * you can only instantiate this with LockedPool(std::move(...)).
+<span class="lineNum">     157 </span>                :            :      *
+<span class="lineNum">     158 </span>                :            :      * The second argument is an optional callback when locking a newly allocated arena failed.
+<span class="lineNum">     159 </span>                :            :      * If this callback is provided and returns false, the allocation fails (hard fail), if
+<span class="lineNum">     160 </span>                :            :      * it returns true the allocation proceeds, but it could warn.
+<span class="lineNum">     161 </span>                :            :      */
+<span class="lineNum">     162 </span>                :            :     explicit LockedPool(std::unique_ptr&lt;LockedPageAllocator&gt; allocator, LockingFailed_Callback lf_cb_in = nullptr);
+<span class="lineNum">     163 </span>                :            :     ~LockedPool();
+<span class="lineNum">     164 </span>                :            : 
+<span class="lineNum">     165 </span>                :            :     LockedPool(const LockedPool&amp; other) = delete; // non construction-copyable
+<span class="lineNum">     166 </span>                :            :     LockedPool&amp; operator=(const LockedPool&amp;) = delete; // non copyable
+<span class="lineNum">     167 </span>                :            : 
+<span class="lineNum">     168 </span>                :            :     /** Allocate size bytes from this arena.
+<span class="lineNum">     169 </span>                :            :      * Returns pointer on success, or 0 if memory is full or
+<span class="lineNum">     170 </span>                :            :      * the application tried to allocate 0 bytes.
+<span class="lineNum">     171 </span>                :            :      */
+<span class="lineNum">     172 </span>                :            :     void* alloc(size_t size);
+<span class="lineNum">     173 </span>                :            : 
+<span class="lineNum">     174 </span>                :            :     /** Free a previously allocated chunk of memory.
+<span class="lineNum">     175 </span>                :            :      * Freeing the zero pointer has no effect.
+<span class="lineNum">     176 </span>                :            :      * Raises std::runtime_error in case of error.
+<span class="lineNum">     177 </span>                :            :      */
+<span class="lineNum">     178 </span>                :            :     void free(void *ptr);
+<span class="lineNum">     179 </span>                :            : 
+<span class="lineNum">     180 </span>                :            :     /** Get pool usage statistics */
+<span class="lineNum">     181 </span>                :            :     Stats stats() const;
+<span class="lineNum">     182 </span>                :            : private:
+<span class="lineNum">     183 </span>                :            :     std::unique_ptr&lt;LockedPageAllocator&gt; allocator;
+<span class="lineNum">     184 </span>                :            : 
+<span class="lineNum">     185 </span>                :            :     /** Create an arena from locked pages */
+<span class="lineNum">     186 </span>                :            :     class LockedPageArena: public Arena
+<span class="lineNum">     187 </span>                :            :     {
+<span class="lineNum">     188 </span>                :            :     public:
+<span class="lineNum">     189 </span>                :            :         LockedPageArena(LockedPageAllocator *alloc_in, void *base_in, size_t size, size_t align);
+<span class="lineNum">     190 </span>                :            :         ~LockedPageArena();
+<span class="lineNum">     191 </span>                :            :     private:
+<span class="lineNum">     192 </span>                :            :         void *base;
+<span class="lineNum">     193 </span>                :            :         size_t size;
+<span class="lineNum">     194 </span>                :            :         LockedPageAllocator *allocator;
+<span class="lineNum">     195 </span>                :            :     };
+<span class="lineNum">     196 </span>                :            : 
+<span class="lineNum">     197 </span>                :            :     bool new_arena(size_t size, size_t align);
+<span class="lineNum">     198 </span>                :            : 
+<span class="lineNum">     199 </span>                :            :     std::list&lt;LockedPageArena&gt; arenas;
+<span class="lineNum">     200 </span>                :            :     LockingFailed_Callback lf_cb;
+<span class="lineNum">     201 </span>                :            :     size_t cumulative_bytes_locked;
+<span class="lineNum">     202 </span>                :            :     /** Mutex protects access to this pool's data structures, including arenas.
+<span class="lineNum">     203 </span>                :            :      */
+<span class="lineNum">     204 </span>                :            :     mutable std::mutex mutex;
+<span class="lineNum">     205 </span>                :            : };
+<span class="lineNum">     206 </span>                :            : 
+<span class="lineNum">     207 </span>                :            : /**
+<span class="lineNum">     208 </span>                :            :  * Singleton class to keep track of locked (ie, non-swappable) memory, for use in
+<span class="lineNum">     209 </span>                :            :  * std::allocator templates.
+<span class="lineNum">     210 </span>                :            :  *
+<span class="lineNum">     211 </span>                :            :  * Some implementations of the STL allocate memory in some constructors (i.e., see
+<span class="lineNum">     212 </span>                :            :  * MSVC's vector&lt;T&gt; implementation where it allocates 1 byte of memory in the allocator.)
+<span class="lineNum">     213 </span>                :            :  * Due to the unpredictable order of static initializers, we have to make sure the
+<span class="lineNum">     214 </span>                :            :  * LockedPoolManager instance exists before any other STL-based objects that use
+<span class="lineNum">     215 </span>                :            :  * secure_allocator are created. So instead of having LockedPoolManager also be
+<a name="216"><span class="lineNum">     216 </span>                :            :  * static-initialized, it is created on demand.</a>
+<span class="lineNum">     217 </span>                :            :  */
+<span class="lineNum">     218 </span>                :<span class="lineCov">        196 : class LockedPoolManager : public LockedPool</span>
+<span class="lineNum">     219 </span>                :            : {
+<span class="lineNum">     220 </span>                :            : public:
+<span class="lineNum">     221 </span>                :            :     /** Return the current instance, or create it once */
+<span class="lineNum">     222 </span>                :            :     static LockedPoolManager&amp; Instance()
+<span class="lineNum">     223 </span>                :            :     {
+<span class="lineNum">     224 </span>                :<span class="lineCov">      77159 :         std::call_once(LockedPoolManager::init_flag, LockedPoolManager::CreateInstance);</span>
+<span class="lineNum">     225 </span>                :<span class="lineCov">      77159 :         return *LockedPoolManager::_instance;</span>
+<span class="lineNum">     226 </span>                :            :     }
+<span class="lineNum">     227 </span>                :            : 
+<span class="lineNum">     228 </span>                :            : private:
+<span class="lineNum">     229 </span>                :            :     explicit LockedPoolManager(std::unique_ptr&lt;LockedPageAllocator&gt; allocator);
+<span class="lineNum">     230 </span>                :            : 
+<span class="lineNum">     231 </span>                :            :     /** Create a new LockedPoolManager specialized to the OS */
+<span class="lineNum">     232 </span>                :            :     static void CreateInstance();
+<span class="lineNum">     233 </span>                :            :     /** Called when locking fails, warn the user here */
+<span class="lineNum">     234 </span>                :            :     static bool LockingFailed();
+<span class="lineNum">     235 </span>                :            : 
+<span class="lineNum">     236 </span>                :            :     static LockedPoolManager* _instance;
+<span class="lineNum">     237 </span>                :            :     static std::once_flag init_flag;
+<span class="lineNum">     238 </span>                :            : };
+<span class="lineNum">     239 </span>                :            : 
+<span class="lineNum">     240 </span>                :            : #endif // BITCOIN_SUPPORT_LOCKEDPOOL_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
