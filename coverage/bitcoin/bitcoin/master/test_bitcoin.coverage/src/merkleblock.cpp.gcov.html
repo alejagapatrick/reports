@@ -109,79 +109,79 @@
 <span class="lineNum">      37 </span>        [<span class="branchCov" title="Branch 1 was taken 13 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         13 :     txn = CPartialMerkleTree(vHashes, vMatch);</span>
 <a name="38"><span class="lineNum">      38 </span>                :<span class="lineCov">         13 : }</span></a>
 <span class="lineNum">      39 </span>                :            : 
-<span class="lineNum">      40 </span>                :<span class="lineCov">     143607 : uint256 CPartialMerkleTree::CalcHash(int height, unsigned int pos, const std::vector&lt;uint256&gt; &amp;vTxid) {</span>
+<span class="lineNum">      40 </span>                :<span class="lineCov">     143321 : uint256 CPartialMerkleTree::CalcHash(int height, unsigned int pos, const std::vector&lt;uint256&gt; &amp;vTxid) {</span>
 <span class="lineNum">      41 </span>                :            :     //we can never have zero txs in a merkle block, we always need the coinbase tx
 <span class="lineNum">      42 </span>                :            :     //if we do not have this assert, we can hit a memory access violation when indexing into vTxid
-<span class="lineNum">      43 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 143607 times"> + </span>]:<span class="lineCov">     143607 :     assert(vTxid.size() != 0);</span>
-<span class="lineNum">      44 </span>        [<span class="branchCov" title="Branch 0 was taken 90925 times"> + </span><span class="branchCov" title="Branch 1 was taken 52682 times"> + </span>]:<span class="lineCov">     143607 :     if (height == 0) {</span>
+<span class="lineNum">      43 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 143321 times"> + </span>]:<span class="lineCov">     143321 :     assert(vTxid.size() != 0);</span>
+<span class="lineNum">      44 </span>        [<span class="branchCov" title="Branch 0 was taken 90925 times"> + </span><span class="branchCov" title="Branch 1 was taken 52396 times"> + </span>]:<span class="lineCov">     143321 :     if (height == 0) {</span>
 <span class="lineNum">      45 </span>                :            :         // hash at height 0 is the txids themself
 <span class="lineNum">      46 </span>                :<span class="lineCov">      90925 :         return vTxid[pos];</span>
 <span class="lineNum">      47 </span>                :            :     } else {
 <span class="lineNum">      48 </span>                :            :         // calculate left hash
-<span class="lineNum">      49 </span>                :<span class="lineCov">      52682 :         uint256 left = CalcHash(height-1, pos*2, vTxid), right;</span>
+<span class="lineNum">      49 </span>                :<span class="lineCov">      52396 :         uint256 left = CalcHash(height-1, pos*2, vTxid), right;</span>
 <span class="lineNum">      50 </span>                :            :         // calculate right hash if not beyond the end of the array - copy left hash otherwise
-<span class="lineNum">      51 </span>        [<span class="branchCov" title="Branch 0 was taken 52449 times"> + </span><span class="branchCov" title="Branch 1 was taken 233 times"> + </span>]:<span class="lineCov">      52682 :         if (pos*2+1 &lt; CalcTreeWidth(height-1))</span>
-<span class="lineNum">      52 </span>                :<span class="lineCov">      52449 :             right = CalcHash(height-1, pos*2+1, vTxid);</span>
+<span class="lineNum">      51 </span>        [<span class="branchCov" title="Branch 0 was taken 52172 times"> + </span><span class="branchCov" title="Branch 1 was taken 224 times"> + </span>]:<span class="lineCov">      52396 :         if (pos*2+1 &lt; CalcTreeWidth(height-1))</span>
+<span class="lineNum">      52 </span>                :<span class="lineCov">      52172 :             right = CalcHash(height-1, pos*2+1, vTxid);</span>
 <span class="lineNum">      53 </span>                :            :         else
-<span class="lineNum">      54 </span>                :<span class="lineCov">        233 :             right = left;</span>
+<span class="lineNum">      54 </span>                :<span class="lineCov">        224 :             right = left;</span>
 <span class="lineNum">      55 </span>                :            :         // combine subhashes
-<span class="lineNum">      56 </span>                :<span class="lineCov">      52682 :         return Hash(left.begin(), left.end(), right.begin(), right.end());</span>
+<span class="lineNum">      56 </span>                :<span class="lineCov">      52396 :         return Hash(left.begin(), left.end(), right.begin(), right.end());</span>
 <span class="lineNum">      57 </span>                :            :     }
 <a name="58"><span class="lineNum">      58 </span>                :            : }</a>
 <span class="lineNum">      59 </span>                :            : 
-<span class="lineNum">      60 </span>                :<span class="lineCov">      76904 : void CPartialMerkleTree::TraverseAndBuild(int height, unsigned int pos, const std::vector&lt;uint256&gt; &amp;vTxid, const std::vector&lt;bool&gt; &amp;vMatch) {</span>
+<span class="lineNum">      60 </span>                :<span class="lineCov">      77467 : void CPartialMerkleTree::TraverseAndBuild(int height, unsigned int pos, const std::vector&lt;uint256&gt; &amp;vTxid, const std::vector&lt;bool&gt; &amp;vMatch) {</span>
 <span class="lineNum">      61 </span>                :            :     // determine whether this node is the parent of at least one matched txid
-<span class="lineNum">      62 </span>                :<span class="lineCov">      76904 :     bool fParentOfMatch = false;</span>
-<span class="lineNum">      63 </span>[<span class="branchCov" title="Branch 0 was taken 867194 times"> + </span><span class="branchCov" title="Branch 1 was taken 76298 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 866588 times"> + </span><span class="branchCov" title="Branch 3 was taken 606 times"> + </span>]:<span class="lineCov">     943492 :     for (unsigned int p = pos &lt;&lt; height; p &lt; (pos+1) &lt;&lt; height &amp;&amp; p &lt; nTransactions; p++)</span>
-<span class="lineNum">      64 </span>                :<span class="lineCov">    1733176 :         fParentOfMatch |= vMatch[p];</span>
+<span class="lineNum">      62 </span>                :<span class="lineCov">      77467 :     bool fParentOfMatch = false;</span>
+<span class="lineNum">      63 </span>[<span class="branchCov" title="Branch 0 was taken 869478 times"> + </span><span class="branchCov" title="Branch 1 was taken 76850 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 868861 times"> + </span><span class="branchCov" title="Branch 3 was taken 617 times"> + </span>]:<span class="lineCov">     946328 :     for (unsigned int p = pos &lt;&lt; height; p &lt; (pos+1) &lt;&lt; height &amp;&amp; p &lt; nTransactions; p++)</span>
+<span class="lineNum">      64 </span>                :<span class="lineCov">    1737722 :         fParentOfMatch |= vMatch[p];</span>
 <span class="lineNum">      65 </span>                :            :     // store as flag bit
-<span class="lineNum">      66 </span>                :<span class="lineCov">      76904 :     vBits.push_back(fParentOfMatch);</span>
-<span class="lineNum">      67 </span>        [<span class="branchCov" title="Branch 0 was taken 38476 times"> + </span><span class="branchCov" title="Branch 1 was taken 38428 times"> + </span>]:<span class="lineCov">      76904 :     if (height==0 || !fParentOfMatch) {</span>
+<span class="lineNum">      66 </span>                :<span class="lineCov">      77467 :     vBits.push_back(fParentOfMatch);</span>
+<span class="lineNum">      67 </span>        [<span class="branchCov" title="Branch 0 was taken 38753 times"> + </span><span class="branchCov" title="Branch 1 was taken 38714 times"> + </span>]:<span class="lineCov">      77467 :     if (height==0 || !fParentOfMatch) {</span>
 <span class="lineNum">      68 </span>                :            :         // if at height 0, or nothing interesting below, store hash and stop
-<span class="lineNum">      69 </span>                :<span class="lineCov">      76952 :         vHash.push_back(CalcHash(height, pos, vTxid));</span>
+<span class="lineNum">      69 </span>                :<span class="lineCov">      77506 :         vHash.push_back(CalcHash(height, pos, vTxid));</span>
 <span class="lineNum">      70 </span>                :            :     } else {
 <span class="lineNum">      71 </span>                :            :         // otherwise, don't store any hash, but descend into the subtrees
-<span class="lineNum">      72 </span>                :<span class="lineCov">      38428 :         TraverseAndBuild(height-1, pos*2, vTxid, vMatch);</span>
-<span class="lineNum">      73 </span>        [<span class="branchCov" title="Branch 0 was taken 38294 times"> + </span><span class="branchCov" title="Branch 1 was taken 134 times"> + </span>]:<span class="lineCov">      38428 :         if (pos*2+1 &lt; CalcTreeWidth(height-1))</span>
-<span class="lineNum">      74 </span>                :<span class="lineCov">      38294 :             TraverseAndBuild(height-1, pos*2+1, vTxid, vMatch);</span>
+<span class="lineNum">      72 </span>                :<span class="lineCov">      38714 :         TraverseAndBuild(height-1, pos*2, vTxid, vMatch);</span>
+<span class="lineNum">      73 </span>        [<span class="branchCov" title="Branch 0 was taken 38571 times"> + </span><span class="branchCov" title="Branch 1 was taken 143 times"> + </span>]:<span class="lineCov">      38714 :         if (pos*2+1 &lt; CalcTreeWidth(height-1))</span>
+<span class="lineNum">      74 </span>                :<span class="lineCov">      38571 :             TraverseAndBuild(height-1, pos*2+1, vTxid, vMatch);</span>
 <span class="lineNum">      75 </span>                :            :     }
-<a name="76"><span class="lineNum">      76 </span>                :<span class="lineCov">      76904 : }</span></a>
+<a name="76"><span class="lineNum">      76 </span>                :<span class="lineCov">      77467 : }</span></a>
 <span class="lineNum">      77 </span>                :            : 
-<span class="lineNum">      78 </span>                :<span class="lineCov">     384102 : uint256 CPartialMerkleTree::TraverseAndExtract(int height, unsigned int pos, unsigned int &amp;nBitsUsed, unsigned int &amp;nHashUsed, std::vector&lt;uint256&gt; &amp;vMatch, std::vector&lt;unsigned int&gt; &amp;vnIndex) {</span>
-<span class="lineNum">      79 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 384102 times"> + </span>]:<span class="lineCov">     384102 :     if (nBitsUsed &gt;= vBits.size()) {</span>
+<span class="lineNum">      78 </span>                :<span class="lineCov">     386917 : uint256 CPartialMerkleTree::TraverseAndExtract(int height, unsigned int pos, unsigned int &amp;nBitsUsed, unsigned int &amp;nHashUsed, std::vector&lt;uint256&gt; &amp;vMatch, std::vector&lt;unsigned int&gt; &amp;vnIndex) {</span>
+<span class="lineNum">      79 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 386917 times"> + </span>]:<span class="lineCov">     386917 :     if (nBitsUsed &gt;= vBits.size()) {</span>
 <span class="lineNum">      80 </span>                :            :         // overflowed the bits array - failure
 <span class="lineNum">      81 </span>                :<span class="lineNoCov">          0 :         fBad = true;</span>
 <span class="lineNum">      82 </span>                :            :         return uint256();
 <span class="lineNum">      83 </span>                :            :     }
-<span class="lineNum">      84 </span>                :<span class="lineCov">    1152306 :     bool fParentOfMatch = vBits[nBitsUsed++];</span>
-<span class="lineNum">      85 </span>        [<span class="branchCov" title="Branch 0 was taken 192166 times"> + </span><span class="branchCov" title="Branch 1 was taken 191936 times"> + </span>]:<span class="lineCov">     384102 :     if (height==0 || !fParentOfMatch) {</span>
+<span class="lineNum">      84 </span>                :<span class="lineCov">    1160751 :     bool fParentOfMatch = vBits[nBitsUsed++];</span>
+<span class="lineNum">      85 </span>        [<span class="branchCov" title="Branch 0 was taken 193551 times"> + </span><span class="branchCov" title="Branch 1 was taken 193366 times"> + </span>]:<span class="lineCov">     386917 :     if (height==0 || !fParentOfMatch) {</span>
 <span class="lineNum">      86 </span>                :            :         // if at height 0, or nothing interesting below, use stored hash and do not descend
-<span class="lineNum">      87 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 192166 times"> + </span>]:<span class="lineCov">     192166 :         if (nHashUsed &gt;= vHash.size()) {</span>
+<span class="lineNum">      87 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 193551 times"> + </span>]:<span class="lineCov">     193551 :         if (nHashUsed &gt;= vHash.size()) {</span>
 <span class="lineNum">      88 </span>                :            :             // overflowed the hash array - failure
 <span class="lineNum">      89 </span>                :<span class="lineNoCov">          0 :             fBad = true;</span>
 <span class="lineNum">      90 </span>                :            :             return uint256();
 <span class="lineNum">      91 </span>                :            :         }
-<span class="lineNum">      92 </span>                :<span class="lineCov">     384332 :         const uint256 &amp;hash = vHash[nHashUsed++];</span>
-<span class="lineNum">      93 </span>        [<span class="branchCov" title="Branch 0 was taken 96325 times"> + </span><span class="branchCov" title="Branch 1 was taken 95841 times"> + </span>]:<span class="lineCov">     192166 :         if (height==0 &amp;&amp; fParentOfMatch) { // in case of height 0, we have a matched txid</span>
-<span class="lineNum">      94 </span>                :<span class="lineCov">      96325 :             vMatch.push_back(hash);</span>
-<span class="lineNum">      95 </span>                :<span class="lineCov">      96325 :             vnIndex.push_back(pos);</span>
+<span class="lineNum">      92 </span>                :<span class="lineCov">     387102 :         const uint256 &amp;hash = vHash[nHashUsed++];</span>
+<span class="lineNum">      93 </span>        [<span class="branchCov" title="Branch 0 was taken 96855 times"> + </span><span class="branchCov" title="Branch 1 was taken 96696 times"> + </span>]:<span class="lineCov">     193551 :         if (height==0 &amp;&amp; fParentOfMatch) { // in case of height 0, we have a matched txid</span>
+<span class="lineNum">      94 </span>                :<span class="lineCov">      96855 :             vMatch.push_back(hash);</span>
+<span class="lineNum">      95 </span>                :<span class="lineCov">      96855 :             vnIndex.push_back(pos);</span>
 <span class="lineNum">      96 </span>                :            :         }
-<span class="lineNum">      97 </span>                :<span class="lineCov">     192166 :         return hash;</span>
+<span class="lineNum">      97 </span>                :<span class="lineCov">     193551 :         return hash;</span>
 <span class="lineNum">      98 </span>                :            :     } else {
 <span class="lineNum">      99 </span>                :            :         // otherwise, descend into the subtrees to extract matched txids and hashes
-<span class="lineNum">     100 </span>                :<span class="lineCov">     191936 :         uint256 left = TraverseAndExtract(height-1, pos*2, nBitsUsed, nHashUsed, vMatch, vnIndex), right;</span>
-<span class="lineNum">     101 </span>        [<span class="branchCov" title="Branch 0 was taken 191314 times"> + </span><span class="branchCov" title="Branch 1 was taken 622 times"> + </span>]:<span class="lineCov">     191936 :         if (pos*2+1 &lt; CalcTreeWidth(height-1)) {</span>
-<span class="lineNum">     102 </span>                :<span class="lineCov">     191314 :             right = TraverseAndExtract(height-1, pos*2+1, nBitsUsed, nHashUsed, vMatch, vnIndex);</span>
-<span class="lineNum">     103 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 191313 times"> + </span>]:<span class="lineCov">     191314 :             if (right == left) {</span>
+<span class="lineNum">     100 </span>                :<span class="lineCov">     193366 :         uint256 left = TraverseAndExtract(height-1, pos*2, nBitsUsed, nHashUsed, vMatch, vnIndex), right;</span>
+<span class="lineNum">     101 </span>        [<span class="branchCov" title="Branch 0 was taken 192699 times"> + </span><span class="branchCov" title="Branch 1 was taken 667 times"> + </span>]:<span class="lineCov">     193366 :         if (pos*2+1 &lt; CalcTreeWidth(height-1)) {</span>
+<span class="lineNum">     102 </span>                :<span class="lineCov">     192699 :             right = TraverseAndExtract(height-1, pos*2+1, nBitsUsed, nHashUsed, vMatch, vnIndex);</span>
+<span class="lineNum">     103 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 192698 times"> + </span>]:<span class="lineCov">     192699 :             if (right == left) {</span>
 <span class="lineNum">     104 </span>                :            :                 // The left and right branches should never be identical, as the transaction
 <span class="lineNum">     105 </span>                :            :                 // hashes covered by them must each be unique.
 <span class="lineNum">     106 </span>                :<span class="lineCov">          1 :                 fBad = true;</span>
 <span class="lineNum">     107 </span>                :            :             }
 <span class="lineNum">     108 </span>                :            :         } else {
-<span class="lineNum">     109 </span>                :<span class="lineCov">        622 :             right = left;</span>
+<span class="lineNum">     109 </span>                :<span class="lineCov">        667 :             right = left;</span>
 <span class="lineNum">     110 </span>                :            :         }
 <span class="lineNum">     111 </span>                :            :         // and combine them before returning
-<span class="lineNum">     112 </span>                :<span class="lineCov">     191936 :         return Hash(left.begin(), left.end(), right.begin(), right.end());</span>
+<span class="lineNum">     112 </span>                :<span class="lineCov">     193366 :         return Hash(left.begin(), left.end(), right.begin(), right.end());</span>
 <span class="lineNum">     113 </span>                :            :     }
 <a name="114"><span class="lineNum">     114 </span>                :            : }</a>
 <span class="lineNum">     115 </span>                :            : 
