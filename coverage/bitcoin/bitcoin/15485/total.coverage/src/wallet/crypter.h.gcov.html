@@ -1,0 +1,247 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/wallet/crypter.h</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/wallet</a> - crypter.h<span style="font-size: 80%;"> (source / <a href="crypter.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">33</td>
+            <td class="headerCovTableEntry">34</td>
+            <td class="headerCovTableEntryHi">97.1 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntryHi">90.9 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntryLo">50.0 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #ifndef BITCOIN_WALLET_CRYPTER_H
+<span class="lineNum">       6 </span>                :            : #define BITCOIN_WALLET_CRYPTER_H
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;keystore.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;serialize.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;support/allocators/secure.h&gt;
+<span class="lineNum">      11 </span>                :            : 
+<span class="lineNum">      12 </span>                :            : #include &lt;atomic&gt;
+<span class="lineNum">      13 </span>                :            : 
+<span class="lineNum">      14 </span>                :            : const unsigned int WALLET_CRYPTO_KEY_SIZE = 32;
+<span class="lineNum">      15 </span>                :            : const unsigned int WALLET_CRYPTO_SALT_SIZE = 8;
+<span class="lineNum">      16 </span>                :            : const unsigned int WALLET_CRYPTO_IV_SIZE = 16;
+<span class="lineNum">      17 </span>                :            : 
+<span class="lineNum">      18 </span>                :            : /**
+<span class="lineNum">      19 </span>                :            :  * Private key encryption is done based on a CMasterKey,
+<span class="lineNum">      20 </span>                :            :  * which holds a salt and random encryption key.
+<span class="lineNum">      21 </span>                :            :  *
+<span class="lineNum">      22 </span>                :            :  * CMasterKeys are encrypted using AES-256-CBC using a key
+<span class="lineNum">      23 </span>                :            :  * derived using derivation method nDerivationMethod
+<span class="lineNum">      24 </span>                :            :  * (0 == EVP_sha512()) and derivation iterations nDeriveIterations.
+<span class="lineNum">      25 </span>                :            :  * vchOtherDerivationParameters is provided for alternative algorithms
+<span class="lineNum">      26 </span>                :            :  * which may require more parameters (such as scrypt).
+<span class="lineNum">      27 </span>                :            :  *
+<span class="lineNum">      28 </span>                :            :  * Wallet Private Keys are then encrypted using AES-256-CBC
+<span class="lineNum">      29 </span>                :            :  * with the double-sha256 of the public key as the IV, and the
+<span class="lineNum">      30 </span>                :            :  * master key's key as the encryption key (see keystore.[ch]).
+<span class="lineNum">      31 </span>                :            :  */
+<a name="32"><span class="lineNum">      32 </span>                :            : </a>
+<span class="lineNum">      33 </span>                :            : /** Master key for wallet encryption */
+<span class="lineNum">      34 </span>                :<span class="lineCov">         68 : class CMasterKey</span>
+<span class="lineNum">      35 </span>                :            : {
+<span class="lineNum">      36 </span>                :            : public:
+<span class="lineNum">      37 </span>                :            :     std::vector&lt;unsigned char&gt; vchCryptedKey;
+<span class="lineNum">      38 </span>                :            :     std::vector&lt;unsigned char&gt; vchSalt;
+<span class="lineNum">      39 </span>                :            :     //! 0 = EVP_sha512()
+<span class="lineNum">      40 </span>                :            :     //! 1 = scrypt()
+<span class="lineNum">      41 </span>                :            :     unsigned int nDerivationMethod;
+<span class="lineNum">      42 </span>                :            :     unsigned int nDeriveIterations;
+<span class="lineNum">      43 </span>                :            :     //! Use this for more parameters to key derivation,
+<span class="lineNum">      44 </span>                :            :     //! such as the various parameters to scrypt
+<span class="lineNum">      45 </span>                :            :     std::vector&lt;unsigned char&gt; vchOtherDerivationParameters;
+<span class="lineNum">      46 </span>                :            : 
+<span class="lineNum">      47 </span>  [<span class="branchCov" title="Branch 1 was taken 13 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         18 :     ADD_SERIALIZE_METHODS;</span>
+<a name="48"><span class="lineNum">      48 </span>                :            : </a>
+<span class="lineNum">      49 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
+<span class="lineNum">      50 </span>                :<span class="lineCov">         18 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">      51 </span>                :<span class="lineCov">         36 :         READWRITE(vchCryptedKey);</span>
+<span class="lineNum">      52 </span>                :<span class="lineCov">         36 :         READWRITE(vchSalt);</span>
+<span class="lineNum">      53 </span>                :<span class="lineCov">         36 :         READWRITE(nDerivationMethod);</span>
+<span class="lineNum">      54 </span>                :<span class="lineCov">         36 :         READWRITE(nDeriveIterations);</span>
+<span class="lineNum">      55 </span>                :<span class="lineCov">         36 :         READWRITE(vchOtherDerivationParameters);</span>
+<a name="56"><span class="lineNum">      56 </span>                :<span class="lineCov">         18 :     }</span></a>
+<span class="lineNum">      57 </span>                :            : 
+<span class="lineNum">      58 </span>                :<span class="lineCov">         34 :     CMasterKey()</span>
+<span class="lineNum">      59 </span>                :<span class="lineCov">        136 :     {</span>
+<span class="lineNum">      60 </span>                :            :         // 25000 rounds is just under 0.1 seconds on a 1.86 GHz Pentium M
+<span class="lineNum">      61 </span>                :            :         // ie slightly lower than the lowest hardware we need bother supporting
+<span class="lineNum">      62 </span>                :<span class="lineCov">         34 :         nDeriveIterations = 25000;</span>
+<span class="lineNum">      63 </span>                :<span class="lineCov">         34 :         nDerivationMethod = 0;</span>
+<span class="lineNum">      64 </span>                :<span class="lineCov">        170 :         vchOtherDerivationParameters = std::vector&lt;unsigned char&gt;(0);</span>
+<span class="lineNum">      65 </span>                :<span class="lineCov">         34 :     }</span>
+<span class="lineNum">      66 </span>                :            : };
+<span class="lineNum">      67 </span>                :            : 
+<span class="lineNum">      68 </span>                :            : typedef std::vector&lt;unsigned char, secure_allocator&lt;unsigned char&gt; &gt; CKeyingMaterial;
+<span class="lineNum">      69 </span>                :            : 
+<span class="lineNum">      70 </span>                :            : namespace wallet_crypto_tests
+<span class="lineNum">      71 </span>                :            : {
+<span class="lineNum">      72 </span>                :            :     class TestCrypter;
+<span class="lineNum">      73 </span>                :            : }
+<span class="lineNum">      74 </span>                :            : 
+<span class="lineNum">      75 </span>                :            : /** Encryption/decryption context with key information */
+<span class="lineNum">      76 </span>                :            : class CCrypter
+<span class="lineNum">      77 </span>                :            : {
+<span class="lineNum">      78 </span>                :            : friend class wallet_crypto_tests::TestCrypter; // for test access to chKey/chIV
+<span class="lineNum">      79 </span>                :            : private:
+<span class="lineNum">      80 </span>                :            :     std::vector&lt;unsigned char, secure_allocator&lt;unsigned char&gt;&gt; vchKey;
+<span class="lineNum">      81 </span>                :            :     std::vector&lt;unsigned char, secure_allocator&lt;unsigned char&gt;&gt; vchIV;
+<span class="lineNum">      82 </span>                :            :     bool fKeySet;
+<span class="lineNum">      83 </span>                :            : 
+<span class="lineNum">      84 </span>                :            :     int BytesToKeySHA512AES(const std::vector&lt;unsigned char&gt;&amp; chSalt, const SecureString&amp; strKeyData, int count, unsigned char *key,unsigned char *iv) const;
+<span class="lineNum">      85 </span>                :            : 
+<span class="lineNum">      86 </span>                :            : public:
+<span class="lineNum">      87 </span>                :            :     bool SetKeyFromPassphrase(const SecureString &amp;strKeyData, const std::vector&lt;unsigned char&gt;&amp; chSalt, const unsigned int nRounds, const unsigned int nDerivationMethod);
+<span class="lineNum">      88 </span>                :            :     bool Encrypt(const CKeyingMaterial&amp; vchPlaintext, std::vector&lt;unsigned char&gt; &amp;vchCiphertext) const;
+<span class="lineNum">      89 </span>                :            :     bool Decrypt(const std::vector&lt;unsigned char&gt;&amp; vchCiphertext, CKeyingMaterial&amp; vchPlaintext) const;
+<a name="90"><span class="lineNum">      90 </span>                :            :     bool SetKey(const CKeyingMaterial&amp; chNewKey, const std::vector&lt;unsigned char&gt;&amp; chNewIV);</a>
+<span class="lineNum">      91 </span>                :            : 
+<span class="lineNum">      92 </span>                :<span class="lineCov">       2497 :     void CleanKey()</span>
+<span class="lineNum">      93 </span>                :            :     {
+<span class="lineNum">      94 </span>                :<span class="lineCov">       2497 :         memory_cleanse(vchKey.data(), vchKey.size());</span>
+<span class="lineNum">      95 </span>                :<span class="lineCov">       2497 :         memory_cleanse(vchIV.data(), vchIV.size());</span>
+<span class="lineNum">      96 </span>                :<span class="lineCov">       2497 :         fKeySet = false;</span>
+<a name="97"><span class="lineNum">      97 </span>                :<span class="lineCov">       2497 :     }</span></a>
+<span class="lineNum">      98 </span>                :            : 
+<span class="lineNum">      99 </span>                :<span class="lineCov">       2497 :     CCrypter()</span>
+<span class="lineNum">     100 </span>                :<span class="lineNoCov">          0 :     {</span>
+<span class="lineNum">     101 </span>                :<span class="lineCov">       2497 :         fKeySet = false;</span>
+<span class="lineNum">     102 </span>        [<span class="branchCov" title="Branch 1 was taken 2497 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2497 :         vchKey.resize(WALLET_CRYPTO_KEY_SIZE);</span>
+<span class="lineNum">     103 </span>        [<span class="branchCov" title="Branch 1 was taken 2497 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2497 :         vchIV.resize(WALLET_CRYPTO_IV_SIZE);</span>
+<a name="104"><span class="lineNum">     104 </span>                :<span class="lineCov">       2497 :     }</span></a>
+<span class="lineNum">     105 </span>                :            : 
+<span class="lineNum">     106 </span>                :<span class="lineCov">       2497 :     ~CCrypter()</span>
+<span class="lineNum">     107 </span>                :<span class="lineCov">       7491 :     {</span>
+<span class="lineNum">     108 </span>                :<span class="lineCov">       2497 :         CleanKey();</span>
+<span class="lineNum">     109 </span>                :<span class="lineCov">       2497 :     }</span>
+<span class="lineNum">     110 </span>                :            : };
+<span class="lineNum">     111 </span>                :            : 
+<span class="lineNum">     112 </span>                :            : /** Keystore which keeps the private keys encrypted.
+<a name="113"><span class="lineNum">     113 </span>                :            :  * It derives from the basic key store, which is used if no encryption is active.</a>
+<span class="lineNum">     114 </span>                :            :  */
+<span class="lineNum">     115 </span>                :<span class="lineCov">       1162 : class CCryptoKeyStore : public CBasicKeyStore</span>
+<span class="lineNum">     116 </span>                :            : {
+<span class="lineNum">     117 </span>                :            : private:
+<span class="lineNum">     118 </span>                :            : 
+<span class="lineNum">     119 </span>                :            :     CKeyingMaterial vMasterKey GUARDED_BY(cs_KeyStore);
+<span class="lineNum">     120 </span>                :            : 
+<span class="lineNum">     121 </span>                :            :     //! if fUseCrypto is true, mapKeys must be empty
+<span class="lineNum">     122 </span>                :            :     //! if fUseCrypto is false, vMasterKey must be empty
+<span class="lineNum">     123 </span>                :            :     std::atomic&lt;bool&gt; fUseCrypto;
+<span class="lineNum">     124 </span>                :            : 
+<span class="lineNum">     125 </span>                :            :     //! keeps track of whether Unlock has run a thorough check before
+<span class="lineNum">     126 </span>                :            :     bool fDecryptionThoroughlyChecked;
+<span class="lineNum">     127 </span>                :            : 
+<span class="lineNum">     128 </span>                :            : protected:
+<span class="lineNum">     129 </span>                :            :     using CryptedKeyMap = std::map&lt;CKeyID, std::pair&lt;CPubKey, std::vector&lt;unsigned char&gt;&gt;&gt;;
+<span class="lineNum">     130 </span>                :            : 
+<span class="lineNum">     131 </span>                :            :     bool SetCrypted();
+<span class="lineNum">     132 </span>                :            : 
+<span class="lineNum">     133 </span>                :            :     //! will encrypt previously unencrypted keys
+<span class="lineNum">     134 </span>                :            :     bool EncryptKeys(CKeyingMaterial&amp; vMasterKeyIn);
+<span class="lineNum">     135 </span>                :            : 
+<span class="lineNum">     136 </span>                :            :     bool Unlock(const CKeyingMaterial&amp; vMasterKeyIn, bool accept_no_keys = false);
+<span class="lineNum">     137 </span>                :            :     CryptedKeyMap mapCryptedKeys GUARDED_BY(cs_KeyStore);
+<a name="138"><span class="lineNum">     138 </span>                :            : </a>
+<span class="lineNum">     139 </span>                :            : public:
+<span class="lineNum">     140 </span>        [<span class="branchCov" title="Branch 1 was taken 581 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1162 :     CCryptoKeyStore() : fUseCrypto(false), fDecryptionThoroughlyChecked(false)</span>
+<span class="lineNum">     141 </span>                :            :     {
+<span class="lineNum">     142 </span>                :<span class="lineCov">        581 :     }</span>
+<span class="lineNum">     143 </span>                :            : 
+<span class="lineNum">     144 </span>                :<span class="lineCov">    1435312 :     bool IsCrypted() const { return fUseCrypto; }</span>
+<span class="lineNum">     145 </span>                :            :     bool IsLocked() const;
+<span class="lineNum">     146 </span>                :            :     bool Lock();
+<span class="lineNum">     147 </span>                :            : 
+<span class="lineNum">     148 </span>                :            :     virtual bool AddCryptedKey(const CPubKey &amp;vchPubKey, const std::vector&lt;unsigned char&gt; &amp;vchCryptedSecret);
+<span class="lineNum">     149 </span>                :            :     bool AddKeyPubKey(const CKey&amp; key, const CPubKey &amp;pubkey) override;
+<span class="lineNum">     150 </span>                :            :     bool HaveKey(const CKeyID &amp;address) const override;
+<span class="lineNum">     151 </span>                :            :     bool GetKey(const CKeyID &amp;address, CKey&amp; keyOut) const override;
+<span class="lineNum">     152 </span>                :            :     bool GetPubKey(const CKeyID &amp;address, CPubKey&amp; vchPubKeyOut) const override;
+<span class="lineNum">     153 </span>                :            :     std::set&lt;CKeyID&gt; GetKeys() const override;
+<span class="lineNum">     154 </span>                :            : 
+<span class="lineNum">     155 </span>                :            :     /**
+<span class="lineNum">     156 </span>                :            :      * Wallet status (encrypted, locked) changed.
+<span class="lineNum">     157 </span>                :            :      * Note: Called without locks held.
+<span class="lineNum">     158 </span>                :            :      */
+<span class="lineNum">     159 </span>                :            :     boost::signals2::signal&lt;void (CCryptoKeyStore* wallet)&gt; NotifyStatusChanged;
+<span class="lineNum">     160 </span>                :            : };
+<span class="lineNum">     161 </span>                :            : 
+<span class="lineNum">     162 </span>                :            : #endif // BITCOIN_WALLET_CRYPTER_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

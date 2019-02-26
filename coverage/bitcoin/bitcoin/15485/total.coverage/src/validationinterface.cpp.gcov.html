@@ -1,0 +1,276 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/validationinterface.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - validationinterface.cpp<span style="font-size: 80%;"> (source / <a href="validationinterface.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">93</td>
+            <td class="headerCovTableEntry">93</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">28</td>
+            <td class="headerCovTableEntry">29</td>
+            <td class="headerCovTableEntryHi">96.6 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">45</td>
+            <td class="headerCovTableEntry">84</td>
+            <td class="headerCovTableEntryLo">53.6 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #include &lt;validationinterface.h&gt;
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;primitives/block.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;scheduler.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;txmempool.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;util/system.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;validation.h&gt;
+<span class="lineNum">      13 </span>                :            : 
+<span class="lineNum">      14 </span>                :            : #include &lt;list&gt;
+<span class="lineNum">      15 </span>                :            : #include &lt;atomic&gt;
+<span class="lineNum">      16 </span>                :            : #include &lt;future&gt;
+<span class="lineNum">      17 </span>                :            : #include &lt;utility&gt;
+<span class="lineNum">      18 </span>                :            : 
+<a name="19"><span class="lineNum">      19 </span>                :            : #include &lt;boost/signals2/signal.hpp&gt;</a>
+<span class="lineNum">      20 </span>                :            : 
+<span class="lineNum">      21 </span>                :<span class="lineCov">       2120 : struct ValidationInterfaceConnections {</span>
+<span class="lineNum">      22 </span>                :            :     boost::signals2::scoped_connection UpdatedBlockTip;
+<span class="lineNum">      23 </span>                :            :     boost::signals2::scoped_connection TransactionAddedToMempool;
+<span class="lineNum">      24 </span>                :            :     boost::signals2::scoped_connection BlockConnected;
+<span class="lineNum">      25 </span>                :            :     boost::signals2::scoped_connection BlockDisconnected;
+<span class="lineNum">      26 </span>                :            :     boost::signals2::scoped_connection TransactionRemovedFromMempool;
+<span class="lineNum">      27 </span>                :            :     boost::signals2::scoped_connection ChainStateFlushed;
+<span class="lineNum">      28 </span>                :            :     boost::signals2::scoped_connection Broadcast;
+<span class="lineNum">      29 </span>                :            :     boost::signals2::scoped_connection BlockChecked;
+<span class="lineNum">      30 </span>                :            :     boost::signals2::scoped_connection NewPoWValidBlock;
+<span class="lineNum">      31 </span>                :            : };
+<span class="lineNum">      32 </span>                :            : 
+<span class="lineNum">      33 </span>                :<span class="lineCov">        452 : struct MainSignalsInstance {</span>
+<span class="lineNum">      34 </span>                :            :     boost::signals2::signal&lt;void (const CBlockIndex *, const CBlockIndex *, bool fInitialDownload)&gt; UpdatedBlockTip;
+<span class="lineNum">      35 </span>                :            :     boost::signals2::signal&lt;void (const CTransactionRef &amp;)&gt; TransactionAddedToMempool;
+<span class="lineNum">      36 </span>                :            :     boost::signals2::signal&lt;void (const std::shared_ptr&lt;const CBlock&gt; &amp;, const CBlockIndex *pindex, const std::vector&lt;CTransactionRef&gt;&amp;)&gt; BlockConnected;
+<span class="lineNum">      37 </span>                :            :     boost::signals2::signal&lt;void (const std::shared_ptr&lt;const CBlock&gt; &amp;)&gt; BlockDisconnected;
+<span class="lineNum">      38 </span>                :            :     boost::signals2::signal&lt;void (const CTransactionRef &amp;)&gt; TransactionRemovedFromMempool;
+<span class="lineNum">      39 </span>                :            :     boost::signals2::signal&lt;void (const CBlockLocator &amp;)&gt; ChainStateFlushed;
+<span class="lineNum">      40 </span>                :            :     boost::signals2::signal&lt;void (int64_t nBestBlockTime, CConnman* connman)&gt; Broadcast;
+<span class="lineNum">      41 </span>                :            :     boost::signals2::signal&lt;void (const CBlock&amp;, const CValidationState&amp;)&gt; BlockChecked;
+<span class="lineNum">      42 </span>                :            :     boost::signals2::signal&lt;void (const CBlockIndex *, const std::shared_ptr&lt;const CBlock&gt;&amp;)&gt; NewPoWValidBlock;
+<span class="lineNum">      43 </span>                :            : 
+<span class="lineNum">      44 </span>                :            :     // We are not allowed to assume the scheduler only runs in one thread,
+<span class="lineNum">      45 </span>                :            :     // but must ensure all callbacks happen in-order, so we end up creating
+<span class="lineNum">      46 </span>                :            :     // our own queue here :(
+<span class="lineNum">      47 </span>                :            :     SingleThreadedSchedulerClient m_schedulerClient;
+<span class="lineNum">      48 </span>                :            :     std::unordered_map&lt;CValidationInterface*, ValidationInterfaceConnections&gt; m_connMainSignals;
+<span class="lineNum">      49 </span>                :            : 
+<span class="lineNum">      50 </span>[<span class="branchCov" title="Branch 2 was taken 452 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 452 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        452 :     explicit MainSignalsInstance(CScheduler *pscheduler) : m_schedulerClient(pscheduler) {}</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 452 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 452 times"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 14 was taken 452 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>][<span class="branchCov" title="Branch 17 was taken 452 times"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 20 was taken 452 times"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>][<span class="branchCov" title="Branch 23 was taken 452 times"> + </span><span class="branchNoCov" title="Branch 24 was not taken"> - </span>]
+<span class="lineNum">      51 </span>                :            : };
+<span class="lineNum">      52 </span>                :            : 
+<span class="lineNum">      53 </span>                :<span class="lineCov">        497 : static CMainSignals g_signals;</span>
+<span class="lineNum">      54 </span>                :            : 
+<span class="lineNum">      55 </span>                :            : // This map has to a separate global instead of a member of MainSignalsInstance,
+<span class="lineNum">      56 </span>                :            : // because RegisterWithMempoolSignals is currently called before RegisterBackgroundSignalScheduler,
+<span class="lineNum">      57 </span>                :            : // so MainSignalsInstance hasn't been created yet.
+<a name="58"><span class="lineNum">      58 </span>                :<span class="lineCov">        497 : static std::unordered_map&lt;CTxMemPool*, boost::signals2::scoped_connection&gt; g_connNotifyEntryRemoved;</span></a>
+<span class="lineNum">      59 </span>                :            : 
+<span class="lineNum">      60 </span>                :<span class="lineCov">        452 : void CMainSignals::RegisterBackgroundSignalScheduler(CScheduler&amp; scheduler) {</span>
+<span class="lineNum">      61 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 452 times"> + </span>]:<span class="lineCov">        452 :     assert(!m_internals);</span>
+<span class="lineNum">      62 </span>        [<span class="branchCov" title="Branch 2 was taken 452 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        452 :     m_internals.reset(new MainSignalsInstance(&amp;scheduler));</span>
+<a name="63"><span class="lineNum">      63 </span>                :<span class="lineCov">        452 : }</span></a>
+<span class="lineNum">      64 </span>                :            : 
+<span class="lineNum">      65 </span>                :<span class="lineCov">        454 : void CMainSignals::UnregisterBackgroundSignalScheduler() {</span>
+<span class="lineNum">      66 </span>                :<span class="lineCov">        908 :     m_internals.reset(nullptr);</span>
+<a name="67"><span class="lineNum">      67 </span>                :<span class="lineCov">        454 : }</span></a>
+<span class="lineNum">      68 </span>                :            : 
+<span class="lineNum">      69 </span>                :<span class="lineCov">        454 : void CMainSignals::FlushBackgroundCallbacks() {</span>
+<span class="lineNum">      70 </span>        [<span class="branchCov" title="Branch 0 was taken 452 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">        454 :     if (m_internals) {</span>
+<span class="lineNum">      71 </span>                :<span class="lineCov">        452 :         m_internals-&gt;m_schedulerClient.EmptyQueue();</span>
+<span class="lineNum">      72 </span>                :            :     }
+<a name="73"><span class="lineNum">      73 </span>                :<span class="lineCov">        454 : }</span></a>
+<span class="lineNum">      74 </span>                :            : 
+<span class="lineNum">      75 </span>                :<span class="lineCov">      47816 : size_t CMainSignals::CallbacksPending() {</span>
+<span class="lineNum">      76 </span>        [<span class="branchCov" title="Branch 0 was taken 47816 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      47816 :     if (!m_internals) return 0;</span>
+<span class="lineNum">      77 </span>                :<span class="lineCov">      47816 :     return m_internals-&gt;m_schedulerClient.CallbacksPending();</span>
+<a name="78"><span class="lineNum">      78 </span>                :            : }</a>
+<span class="lineNum">      79 </span>                :            : 
+<span class="lineNum">      80 </span>                :<span class="lineCov">        386 : void CMainSignals::RegisterWithMempoolSignals(CTxMemPool&amp; pool) {</span>
+<span class="lineNum">      81 </span>                :<span class="lineCov">        386 :     g_connNotifyEntryRemoved.emplace(std::piecewise_construct,</span>
+<span class="lineNum">      82 </span>                :<span class="lineCov">        772 :         std::forward_as_tuple(&amp;pool),</span>
+<span class="lineNum">      83 </span>[<span class="branchCov" title="Branch 1 was taken 386 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 386 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        772 :         std::forward_as_tuple(pool.NotifyEntryRemoved.connect(std::bind(&amp;CMainSignals::MempoolEntryRemoved, this, std::placeholders::_1, std::placeholders::_2)))</span>
+<span class="lineNum">      84 </span>                :<span class="lineCov">        386 :     );</span>
+<a name="85"><span class="lineNum">      85 </span>                :<span class="lineCov">        386 : }</span></a>
+<span class="lineNum">      86 </span>                :            : 
+<span class="lineNum">      87 </span>                :<span class="lineCov">        388 : void CMainSignals::UnregisterWithMempoolSignals(CTxMemPool&amp; pool) {</span>
+<span class="lineNum">      88 </span>                :<span class="lineCov">        776 :     g_connNotifyEntryRemoved.erase(&amp;pool);</span>
+<a name="89"><span class="lineNum">      89 </span>                :<span class="lineCov">        388 : }</span></a>
+<span class="lineNum">      90 </span>                :            : 
+<span class="lineNum">      91 </span>                :<span class="lineCov">     422394 : CMainSignals&amp; GetMainSignals()</span>
+<span class="lineNum">      92 </span>                :            : {
+<span class="lineNum">      93 </span>                :<span class="lineCov">     422394 :     return g_signals;</span>
+<a name="94"><span class="lineNum">      94 </span>                :            : }</a>
+<span class="lineNum">      95 </span>                :            : 
+<span class="lineNum">      96 </span>                :<span class="lineCov">       1060 : void RegisterValidationInterface(CValidationInterface* pwalletIn) {</span>
+<span class="lineNum">      97 </span>                :<span class="lineCov">       2120 :     ValidationInterfaceConnections&amp; conns = g_signals.m_internals-&gt;m_connMainSignals[pwalletIn];</span>
+<span class="lineNum">      98 </span>        [<span class="branchCov" title="Branch 2 was taken 1060 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2120 :     conns.UpdatedBlockTip = g_signals.m_internals-&gt;UpdatedBlockTip.connect(std::bind(&amp;CValidationInterface::UpdatedBlockTip, pwalletIn, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));</span>
+<span class="lineNum">      99 </span>        [<span class="branchCov" title="Branch 2 was taken 1060 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2120 :     conns.TransactionAddedToMempool = g_signals.m_internals-&gt;TransactionAddedToMempool.connect(std::bind(&amp;CValidationInterface::TransactionAddedToMempool, pwalletIn, std::placeholders::_1));</span>
+<span class="lineNum">     100 </span>        [<span class="branchCov" title="Branch 2 was taken 1060 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2120 :     conns.BlockConnected = g_signals.m_internals-&gt;BlockConnected.connect(std::bind(&amp;CValidationInterface::BlockConnected, pwalletIn, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));</span>
+<span class="lineNum">     101 </span>        [<span class="branchCov" title="Branch 2 was taken 1060 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2120 :     conns.BlockDisconnected = g_signals.m_internals-&gt;BlockDisconnected.connect(std::bind(&amp;CValidationInterface::BlockDisconnected, pwalletIn, std::placeholders::_1));</span>
+<span class="lineNum">     102 </span>        [<span class="branchCov" title="Branch 2 was taken 1060 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2120 :     conns.TransactionRemovedFromMempool = g_signals.m_internals-&gt;TransactionRemovedFromMempool.connect(std::bind(&amp;CValidationInterface::TransactionRemovedFromMempool, pwalletIn, std::placeholders::_1));</span>
+<span class="lineNum">     103 </span>        [<span class="branchCov" title="Branch 2 was taken 1060 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2120 :     conns.ChainStateFlushed = g_signals.m_internals-&gt;ChainStateFlushed.connect(std::bind(&amp;CValidationInterface::ChainStateFlushed, pwalletIn, std::placeholders::_1));</span>
+<span class="lineNum">     104 </span>        [<span class="branchCov" title="Branch 2 was taken 1060 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2120 :     conns.Broadcast = g_signals.m_internals-&gt;Broadcast.connect(std::bind(&amp;CValidationInterface::ResendWalletTransactions, pwalletIn, std::placeholders::_1, std::placeholders::_2));</span>
+<span class="lineNum">     105 </span>        [<span class="branchCov" title="Branch 2 was taken 1060 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2120 :     conns.BlockChecked = g_signals.m_internals-&gt;BlockChecked.connect(std::bind(&amp;CValidationInterface::BlockChecked, pwalletIn, std::placeholders::_1, std::placeholders::_2));</span>
+<span class="lineNum">     106 </span>        [<span class="branchCov" title="Branch 2 was taken 1060 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       2120 :     conns.NewPoWValidBlock = g_signals.m_internals-&gt;NewPoWValidBlock.connect(std::bind(&amp;CValidationInterface::NewPoWValidBlock, pwalletIn, std::placeholders::_1, std::placeholders::_2));</span>
+<a name="107"><span class="lineNum">     107 </span>                :<span class="lineCov">       1060 : }</span></a>
+<span class="lineNum">     108 </span>                :            : 
+<span class="lineNum">     109 </span>                :<span class="lineCov">       1074 : void UnregisterValidationInterface(CValidationInterface* pwalletIn) {</span>
+<span class="lineNum">     110 </span>        [<span class="branchCov" title="Branch 0 was taken 1074 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       1074 :     if (g_signals.m_internals) {</span>
+<span class="lineNum">     111 </span>                :<span class="lineCov">       1074 :         g_signals.m_internals-&gt;m_connMainSignals.erase(pwalletIn);</span>
+<span class="lineNum">     112 </span>                :            :     }
+<a name="113"><span class="lineNum">     113 </span>                :<span class="lineCov">       1074 : }</span></a>
+<span class="lineNum">     114 </span>                :            : 
+<span class="lineNum">     115 </span>                :<span class="lineCov">        388 : void UnregisterAllValidationInterfaces() {</span>
+<span class="lineNum">     116 </span>        [<span class="branchCov" title="Branch 0 was taken 386 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">        388 :     if (!g_signals.m_internals) {</span>
+<span class="lineNum">     117 </span>                :            :         return;
+<span class="lineNum">     118 </span>                :            :     }
+<span class="lineNum">     119 </span>                :<span class="lineCov">        386 :     g_signals.m_internals-&gt;m_connMainSignals.clear();</span>
+<a name="120"><span class="lineNum">     120 </span>                :            : }</a>
+<span class="lineNum">     121 </span>                :            : 
+<span class="lineNum">     122 </span>                :<span class="lineCov">       9147 : void CallFunctionInValidationInterfaceQueue(std::function&lt;void ()&gt; func) {</span>
+<span class="lineNum">     123 </span>        [<span class="branchCov" title="Branch 1 was taken 9147 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       9147 :     g_signals.m_internals-&gt;m_schedulerClient.AddToProcessQueue(std::move(func));</span>
+<a name="124"><span class="lineNum">     124 </span>                :<span class="lineCov">       9147 : }</span></a>
+<span class="lineNum">     125 </span>                :            : 
+<span class="lineNum">     126 </span>                :<span class="lineCov">       1712 : void SyncWithValidationInterfaceQueue() {</span>
+<span class="lineNum">     127 </span>                :<span class="lineCov">       1712 :     AssertLockNotHeld(cs_main);</span>
+<span class="lineNum">     128 </span>                :            :     // Block until the validation queue drains
+<span class="lineNum">     129 </span>                :<span class="lineCov">       3424 :     std::promise&lt;void&gt; promise;</span>
+<span class="lineNum">     130 </span>        [<span class="branchCov" title="Branch 2 was taken 1712 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       1712 :     CallFunctionInValidationInterfaceQueue([&amp;promise] {</span>
+<span class="lineNum">     131 </span>                :<span class="lineCov">       1712 :         promise.set_value();</span>
+<span class="lineNum">     132 </span>                :            :     });
+<span class="lineNum">     133 </span>        [<span class="branchCov" title="Branch 1 was taken 1712 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1712 :     promise.get_future().wait();</span>
+<a name="134"><span class="lineNum">     134 </span>                :<span class="lineCov">       1712 : }</span></a>
+<span class="lineNum">     135 </span>                :            : 
+<span class="lineNum">     136 </span>                :<span class="lineCov">      17021 : void CMainSignals::MempoolEntryRemoved(CTransactionRef ptx, MemPoolRemovalReason reason) {</span>
+<span class="lineNum">     137 </span>        [<span class="branchCov" title="Branch 0 was taken 301 times"> + </span><span class="branchCov" title="Branch 1 was taken 16720 times"> + </span>]:<span class="lineCov">      17021 :     if (reason != MemPoolRemovalReason::BLOCK &amp;&amp; reason != MemPoolRemovalReason::CONFLICT) {</span>
+<span class="lineNum">     138 </span>[<span class="branchCov" title="Branch 1 was taken 301 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 301 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        602 :         m_internals-&gt;m_schedulerClient.AddToProcessQueue([ptx, this] {</span>
+<span class="lineNum">     139 </span>                :<span class="lineCov">        301 :             m_internals-&gt;TransactionRemovedFromMempool(ptx);</span>
+<span class="lineNum">     140 </span>                :            :         });
+<span class="lineNum">     141 </span>                :            :     }
+<a name="142"><span class="lineNum">     142 </span>                :<span class="lineCov">      17021 : }</span></a>
+<span class="lineNum">     143 </span>                :            : 
+<span class="lineNum">     144 </span>                :<span class="lineCov">      32079 : void CMainSignals::UpdatedBlockTip(const CBlockIndex *pindexNew, const CBlockIndex *pindexFork, bool fInitialDownload) {</span>
+<span class="lineNum">     145 </span>                :            :     // Dependencies exist that require UpdatedBlockTip events to be delivered in the order in which
+<span class="lineNum">     146 </span>                :            :     // the chain actually updates. One way to ensure this is for the caller to invoke this signal
+<span class="lineNum">     147 </span>                :            :     // in the same critical section where the chain is updated
+<span class="lineNum">     148 </span>                :            : 
+<span class="lineNum">     149 </span>        [<span class="branchCov" title="Branch 2 was taken 32079 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">      32079 :     m_internals-&gt;m_schedulerClient.AddToProcessQueue([pindexNew, pindexFork, fInitialDownload, this] {</span>
+<span class="lineNum">     150 </span>                :<span class="lineCov">      32079 :         m_internals-&gt;UpdatedBlockTip(pindexNew, pindexFork, fInitialDownload);</span>
+<span class="lineNum">     151 </span>                :            :     });
+<a name="152"><span class="lineNum">     152 </span>                :<span class="lineCov">      32079 : }</span></a>
+<span class="lineNum">     153 </span>                :            : 
+<span class="lineNum">     154 </span>                :<span class="lineCov">      17375 : void CMainSignals::TransactionAddedToMempool(const CTransactionRef &amp;ptx) {</span>
+<span class="lineNum">     155 </span>[<span class="branchCov" title="Branch 1 was taken 17375 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 17375 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      17375 :     m_internals-&gt;m_schedulerClient.AddToProcessQueue([ptx, this] {</span>
+<span class="lineNum">     156 </span>                :<span class="lineCov">      17375 :         m_internals-&gt;TransactionAddedToMempool(ptx);</span>
+<span class="lineNum">     157 </span>                :            :     });
+<a name="158"><span class="lineNum">     158 </span>                :<span class="lineCov">      17375 : }</span></a>
+<a name="159"><span class="lineNum">     159 </span>                :            : </a>
+<span class="lineNum">     160 </span>                :<span class="lineCov">      34413 : void CMainSignals::BlockConnected(const std::shared_ptr&lt;const CBlock&gt; &amp;pblock, const CBlockIndex *pindex, const std::shared_ptr&lt;const std::vector&lt;CTransactionRef&gt;&gt;&amp; pvtxConflicted) {</span>
+<span class="lineNum">     161 </span>[<span class="branchCov" title="Branch 1 was taken 34413 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 34413 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     172065 :     m_internals-&gt;m_schedulerClient.AddToProcessQueue([pblock, pindex, pvtxConflicted, this] {</span>
+<span class="lineNum">     162 </span>                :<span class="lineCov">      34413 :         m_internals-&gt;BlockConnected(pblock, pindex, *pvtxConflicted);</span>
+<span class="lineNum">     163 </span>                :            :     });
+<a name="164"><span class="lineNum">     164 </span>                :<span class="lineCov">      34413 : }</span></a>
+<span class="lineNum">     165 </span>                :            : 
+<span class="lineNum">     166 </span>                :<span class="lineCov">       2891 : void CMainSignals::BlockDisconnected(const std::shared_ptr&lt;const CBlock&gt; &amp;pblock) {</span>
+<span class="lineNum">     167 </span>[<span class="branchCov" title="Branch 1 was taken 2891 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2891 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       2891 :     m_internals-&gt;m_schedulerClient.AddToProcessQueue([pblock, this] {</span>
+<span class="lineNum">     168 </span>                :<span class="lineCov">       2891 :         m_internals-&gt;BlockDisconnected(pblock);</span>
+<span class="lineNum">     169 </span>                :            :     });
+<a name="170"><span class="lineNum">     170 </span>                :<span class="lineCov">       2891 : }</span></a>
+<span class="lineNum">     171 </span>                :            : 
+<span class="lineNum">     172 </span>                :<span class="lineCov">        958 : void CMainSignals::ChainStateFlushed(const CBlockLocator &amp;locator) {</span>
+<span class="lineNum">     173 </span>[<span class="branchCov" title="Branch 1 was taken 958 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 958 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        958 :     m_internals-&gt;m_schedulerClient.AddToProcessQueue([locator, this] {</span>
+<span class="lineNum">     174 </span>                :<span class="lineCov">        598 :         m_internals-&gt;ChainStateFlushed(locator);</span>
+<span class="lineNum">     175 </span>                :            :     });
+<a name="176"><span class="lineNum">     176 </span>                :<span class="lineCov">        958 : }</span></a>
+<span class="lineNum">     177 </span>                :            : 
+<span class="lineNum">     178 </span>                :<span class="lineCov">     223413 : void CMainSignals::Broadcast(int64_t nBestBlockTime, CConnman* connman) {</span>
+<span class="lineNum">     179 </span>                :<span class="lineCov">     223413 :     m_internals-&gt;Broadcast(nBestBlockTime, connman);</span>
+<a name="180"><span class="lineNum">     180 </span>                :<span class="lineCov">     223413 : }</span></a>
+<span class="lineNum">     181 </span>                :            : 
+<span class="lineNum">     182 </span>                :<span class="lineCov">      35108 : void CMainSignals::BlockChecked(const CBlock&amp; block, const CValidationState&amp; state) {</span>
+<span class="lineNum">     183 </span>                :<span class="lineCov">      35108 :     m_internals-&gt;BlockChecked(block, state);</span>
+<a name="184"><span class="lineNum">     184 </span>                :<span class="lineCov">      35108 : }</span></a>
+<span class="lineNum">     185 </span>                :            : 
+<a name="186"><span class="lineNum">     186 </span>                :<span class="lineCov">      26207 : void CMainSignals::NewPoWValidBlock(const CBlockIndex *pindex, const std::shared_ptr&lt;const CBlock&gt; &amp;block) {</span></a>
+<span class="lineNum">     187 </span>                :<span class="lineCov">      26207 :     m_internals-&gt;NewPoWValidBlock(pindex, block);</span>
+<span class="lineNum">     188 </span>[<span class="branchCov" title="Branch 1 was taken 497 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 497 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1988 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
