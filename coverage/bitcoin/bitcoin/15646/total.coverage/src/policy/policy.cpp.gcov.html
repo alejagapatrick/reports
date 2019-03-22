@@ -1,0 +1,344 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/policy/policy.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/policy</a> - policy.cpp<span style="font-size: 80%;"> (source / <a href="policy.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">79</td>
+            <td class="headerCovTableEntry">83</td>
+            <td class="headerCovTableEntryHi">95.2 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">79</td>
+            <td class="headerCovTableEntry">100</td>
+            <td class="headerCovTableEntryMed">79.0 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : // NOTE: This file is intended to be customised by the end user, and includes only local node policy logic
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;policy/policy.h&gt;
+<span class="lineNum">       9 </span>                :            : 
+<span class="lineNum">      10 </span>                :            : #include &lt;consensus/validation.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;validation.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;coins.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;tinyformat.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;util/system.h&gt;
+<span class="lineNum">      15 </span>                :            : #include &lt;util/strencodings.h&gt;
+<a name="16"><span class="lineNum">      16 </span>                :            : </a>
+<span class="lineNum">      17 </span>                :            : 
+<span class="lineNum">      18 </span>                :<span class="lineCov">      36702 : CAmount GetDustThreshold(const CTxOut&amp; txout, const CFeeRate&amp; dustRelayFeeIn)</span>
+<span class="lineNum">      19 </span>                :            : {
+<span class="lineNum">      20 </span>                :            :     // &quot;Dust&quot; is defined in terms of dustRelayFee,
+<span class="lineNum">      21 </span>                :            :     // which has units satoshis-per-kilobyte.
+<span class="lineNum">      22 </span>                :            :     // If you'd pay more in fees than the value of the output
+<span class="lineNum">      23 </span>                :            :     // to spend something, then we consider it dust.
+<span class="lineNum">      24 </span>                :            :     // A typical spendable non-segwit txout is 34 bytes big, and will
+<span class="lineNum">      25 </span>                :            :     // need a CTxIn of at least 148 bytes to spend:
+<span class="lineNum">      26 </span>                :            :     // so dust is a spendable txout less than
+<span class="lineNum">      27 </span>                :            :     // 182*dustRelayFee/1000 (in satoshis).
+<span class="lineNum">      28 </span>                :            :     // 546 satoshis at the default rate of 3000 sat/kB.
+<span class="lineNum">      29 </span>                :            :     // A typical spendable segwit txout is 31 bytes big, and will
+<span class="lineNum">      30 </span>                :            :     // need a CTxIn of at least 67 bytes to spend:
+<span class="lineNum">      31 </span>                :            :     // so dust is a spendable txout less than
+<span class="lineNum">      32 </span>                :            :     // 98*dustRelayFee/1000 (in satoshis).
+<span class="lineNum">      33 </span>                :            :     // 294 satoshis at the default rate of 3000 sat/kB.
+<span class="lineNum">      34 </span>                :<span class="lineCov">      73402 :     if (txout.scriptPubKey.IsUnspendable())</span>
+<span class="lineNum">      35 </span>                :            :         return 0;
+<span class="lineNum">      36 </span>                :            : 
+<span class="lineNum">      37 </span>                :<span class="lineCov">      36700 :     size_t nSize = GetSerializeSize(txout);</span>
+<span class="lineNum">      38 </span>                :<span class="lineCov">      36700 :     int witnessversion = 0;</span>
+<span class="lineNum">      39 </span>                :<span class="lineCov">      36700 :     std::vector&lt;unsigned char&gt; witnessprogram;</span>
+<span class="lineNum">      40 </span>                :            : 
+<span class="lineNum">      41 </span>[<span class="branchCov" title="Branch 1 was taken 36700 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 319 times"> + </span><span class="branchCov" title="Branch 4 was taken 36381 times"> + </span>]:<span class="lineCov">      36700 :     if (txout.scriptPubKey.IsWitnessProgram(witnessversion, witnessprogram)) {</span>
+<span class="lineNum">      42 </span>                :            :         // sum the sizes of the parts of a transaction input
+<span class="lineNum">      43 </span>                :            :         // with 75% segwit discount applied to the script size.
+<span class="lineNum">      44 </span>                :<span class="lineCov">        319 :         nSize += (32 + 4 + 1 + (107 / WITNESS_SCALE_FACTOR) + 4);</span>
+<span class="lineNum">      45 </span>                :            :     } else {
+<span class="lineNum">      46 </span>                :<span class="lineCov">      36381 :         nSize += (32 + 4 + 1 + 107 + 4); // the 148 mentioned above</span>
+<span class="lineNum">      47 </span>                :            :     }
+<span class="lineNum">      48 </span>                :            : 
+<span class="lineNum">      49 </span>        [<span class="branchCov" title="Branch 1 was taken 36700 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      36700 :     return dustRelayFeeIn.GetFee(nSize);</span>
+<a name="50"><span class="lineNum">      50 </span>                :            : }</a>
+<span class="lineNum">      51 </span>                :            : 
+<span class="lineNum">      52 </span>                :<span class="lineCov">      36688 : bool IsDust(const CTxOut&amp; txout, const CFeeRate&amp; dustRelayFeeIn)</span>
+<span class="lineNum">      53 </span>                :            : {
+<span class="lineNum">      54 </span>                :<span class="lineCov">      36688 :     return (txout.nValue &lt; GetDustThreshold(txout, dustRelayFeeIn));</span>
+<a name="55"><span class="lineNum">      55 </span>                :            : }</a>
+<span class="lineNum">      56 </span>                :            : 
+<span class="lineNum">      57 </span>                :<span class="lineCov">        271 : bool IsStandard(const CScript&amp; scriptPubKey, txnouttype&amp; whichType)</span>
+<span class="lineNum">      58 </span>                :            : {
+<span class="lineNum">      59 </span>                :<span class="lineCov">        271 :     std::vector&lt;std::vector&lt;unsigned char&gt; &gt; vSolutions;</span>
+<span class="lineNum">      60 </span>        [<span class="branchCov" title="Branch 1 was taken 271 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        271 :     whichType = Solver(scriptPubKey, vSolutions);</span>
+<span class="lineNum">      61 </span>                :            : 
+<span class="lineNum">      62 </span>[<span class="branchCov" title="Branch 0 was taken 160 times"> + </span><span class="branchCov" title="Branch 1 was taken 111 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 143 times"> + </span><span class="branchCov" title="Branch 3 was taken 17 times"> + </span>]:<span class="lineCov">        271 :     if (whichType == TX_NONSTANDARD || whichType == TX_WITNESS_UNKNOWN) {</span>
+<span class="lineNum">      63 </span>                :            :         return false;
+<span class="lineNum">      64 </span>        [<span class="branchCov" title="Branch 0 was taken 7 times"> + </span><span class="branchCov" title="Branch 1 was taken 136 times"> + </span>]:<span class="lineCov">        143 :     } else if (whichType == TX_MULTISIG) {</span>
+<span class="lineNum">      65 </span>                :<span class="lineCov">         14 :         unsigned char m = vSolutions.front()[0];</span>
+<span class="lineNum">      66 </span>                :<span class="lineCov">         14 :         unsigned char n = vSolutions.back()[0];</span>
+<span class="lineNum">      67 </span>                :            :         // Support up to x-of-3 multisig txns as standard
+<span class="lineNum">      68 </span>        [<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          7 :         if (n &lt; 1 || n &gt; 3)</span>
+<span class="lineNum">      69 </span>                :            :             return false;
+<span class="lineNum">      70 </span>        [<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          6 :         if (m &lt; 1 || m &gt; n)</span>
+<span class="lineNum">      71 </span>                :            :             return false;
+<span class="lineNum">      72 </span>[<span class="branchCov" title="Branch 0 was taken 15 times"> + </span><span class="branchCov" title="Branch 1 was taken 121 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 15 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        136 :     } else if (whichType == TX_NULL_DATA &amp;&amp;</span>
+<span class="lineNum">      73 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 14 times"> + </span>]:<span class="lineCov">         15 :                (!fAcceptDatacarrier || scriptPubKey.size() &gt; nMaxDatacarrierBytes)) {</span>
+<span class="lineNum">      74 </span>                :            :           return false;
+<span class="lineNum">      75 </span>                :            :     }
+<span class="lineNum">      76 </span>                :            : 
+<span class="lineNum">      77 </span>                :            :     return true;
+<a name="78"><span class="lineNum">      78 </span>                :            : }</a>
+<span class="lineNum">      79 </span>                :            : 
+<span class="lineNum">      80 </span>                :<span class="lineCov">        192 : bool IsStandardTx(const CTransaction&amp; tx, std::string&amp; reason)</span>
+<span class="lineNum">      81 </span>                :            : {
+<span class="lineNum">      82 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 191 times"> + </span>]:<span class="lineCov">        192 :     if (tx.nVersion &gt; CTransaction::MAX_STANDARD_VERSION || tx.nVersion &lt; 1) {</span>
+<span class="lineNum">      83 </span>                :            :         reason = &quot;version&quot;;
+<span class="lineNum">      84 </span>                :            :         return false;
+<span class="lineNum">      85 </span>                :            :     }
+<span class="lineNum">      86 </span>                :            : 
+<span class="lineNum">      87 </span>                :            :     // Extremely large transactions with lots of inputs can cost the network
+<span class="lineNum">      88 </span>                :            :     // almost as much to process as they cost the sender in fees, because
+<span class="lineNum">      89 </span>                :            :     // computing signature hashes is O(ninputs*txsize). Limiting transactions
+<span class="lineNum">      90 </span>                :            :     // to MAX_STANDARD_TX_WEIGHT mitigates CPU exhaustion attacks.
+<span class="lineNum">      91 </span>                :<span class="lineCov">        191 :     unsigned int sz = GetTransactionWeight(tx);</span>
+<span class="lineNum">      92 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 188 times"> + </span>]:<span class="lineCov">        191 :     if (sz &gt; MAX_STANDARD_TX_WEIGHT) {</span>
+<span class="lineNum">      93 </span>                :            :         reason = &quot;tx-size&quot;;
+<span class="lineNum">      94 </span>                :            :         return false;
+<span class="lineNum">      95 </span>                :            :     }
+<span class="lineNum">      96 </span>                :            : 
+<span class="lineNum">      97 </span>        [<span class="branchCov" title="Branch 0 was taken 639 times"> + </span><span class="branchCov" title="Branch 1 was taken 187 times"> + </span>]:<span class="lineCov">        826 :     for (const CTxIn&amp; txin : tx.vin)</span>
+<span class="lineNum">      98 </span>                :            :     {
+<span class="lineNum">      99 </span>                :            :         // Biggest 'standard' txin is a 15-of-15 P2SH multisig with compressed
+<span class="lineNum">     100 </span>                :            :         // keys (remember the 520 byte limit on redeemScript size). That works
+<span class="lineNum">     101 </span>                :            :         // out to a (15*(33+1))+3=513 byte redeemScript, 513+1+15*(73+1)+3=1627
+<span class="lineNum">     102 </span>                :            :         // bytes of scriptSig, which we round off to 1650 bytes for some minor
+<span class="lineNum">     103 </span>                :            :         // future-proofing. That's also enough to spend a 20-of-20
+<span class="lineNum">     104 </span>                :            :         // CHECKMULTISIG scriptPubKey, though such a scriptPubKey is not
+<span class="lineNum">     105 </span>                :            :         // considered standard.
+<span class="lineNum">     106 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 639 times"> + </span>]:<span class="lineCov">        639 :         if (txin.scriptSig.size() &gt; 1650) {</span>
+<span class="lineNum">     107 </span>                :            :             reason = &quot;scriptsig-size&quot;;
+<span class="lineNum">     108 </span>                :<span class="lineCov">          1 :             return false;</span>
+<span class="lineNum">     109 </span>                :            :         }
+<span class="lineNum">     110 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchCov" title="Branch 2 was taken 638 times"> + </span>]:<span class="lineCov">        639 :         if (!txin.scriptSig.IsPushOnly()) {</span>
+<span class="lineNum">     111 </span>                :            :             reason = &quot;scriptsig-not-pushonly&quot;;
+<span class="lineNum">     112 </span>                :            :             return false;
+<span class="lineNum">     113 </span>                :            :         }
+<span class="lineNum">     114 </span>                :            :     }
+<span class="lineNum">     115 </span>                :            : 
+<span class="lineNum">     116 </span>                :<span class="lineCov">        187 :     unsigned int nDataOut = 0;</span>
+<span class="lineNum">     117 </span>                :            :     txnouttype whichType;
+<span class="lineNum">     118 </span>        [<span class="branchCov" title="Branch 0 was taken 261 times"> + </span><span class="branchCov" title="Branch 1 was taken 61 times"> + </span>]:<span class="lineCov">        322 :     for (const CTxOut&amp; txout : tx.vout) {</span>
+<span class="lineNum">     119 </span>        [<span class="branchCov" title="Branch 1 was taken 123 times"> + </span><span class="branchCov" title="Branch 2 was taken 138 times"> + </span>]:<span class="lineCov">        261 :         if (!::IsStandard(txout.scriptPubKey, whichType)) {</span>
+<span class="lineNum">     120 </span>                :            :             reason = &quot;scriptpubkey&quot;;
+<span class="lineNum">     121 </span>                :<span class="lineCov">        126 :             return false;</span>
+<span class="lineNum">     122 </span>                :            :         }
+<span class="lineNum">     123 </span>                :            : 
+<span class="lineNum">     124 </span>        [<span class="branchCov" title="Branch 0 was taken 14 times"> + </span><span class="branchCov" title="Branch 1 was taken 124 times"> + </span>]:<span class="lineCov">        138 :         if (whichType == TX_NULL_DATA)</span>
+<span class="lineNum">     125 </span>                :<span class="lineCov">         14 :             nDataOut++;</span>
+<span class="lineNum">     126 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 121 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">        124 :         else if ((whichType == TX_MULTISIG) &amp;&amp; (!fIsBareMultisigStd)) {</span>
+<span class="lineNum">     127 </span>                :            :             reason = &quot;bare-multisig&quot;;
+<span class="lineNum">     128 </span>                :            :             return false;
+<span class="lineNum">     129 </span>        [<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchCov" title="Branch 2 was taken 121 times"> + </span>]:<span class="lineCov">        124 :         } else if (IsDust(txout, ::dustRelayFee)) {</span>
+<span class="lineNum">     130 </span>                :            :             reason = &quot;dust&quot;;
+<span class="lineNum">     131 </span>                :            :             return false;
+<span class="lineNum">     132 </span>                :            :         }
+<span class="lineNum">     133 </span>                :            :     }
+<span class="lineNum">     134 </span>                :            : 
+<span class="lineNum">     135 </span>                :            :     // only one OP_RETURN txout is permitted
+<span class="lineNum">     136 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 57 times"> + </span>]:<span class="lineCov">         61 :     if (nDataOut &gt; 1) {</span>
+<span class="lineNum">     137 </span>                :            :         reason = &quot;multi-op-return&quot;;
+<span class="lineNum">     138 </span>                :            :         return false;
+<span class="lineNum">     139 </span>                :            :     }
+<span class="lineNum">     140 </span>                :            : 
+<span class="lineNum">     141 </span>                :            :     return true;
+<span class="lineNum">     142 </span>                :            : }
+<span class="lineNum">     143 </span>                :            : 
+<span class="lineNum">     144 </span>                :            : /**
+<span class="lineNum">     145 </span>                :            :  * Check transaction inputs to mitigate two
+<span class="lineNum">     146 </span>                :            :  * potential denial-of-service attacks:
+<span class="lineNum">     147 </span>                :            :  *
+<span class="lineNum">     148 </span>                :            :  * 1. scriptSigs with extra data stuffed into them,
+<span class="lineNum">     149 </span>                :            :  *    not consumed by scriptPubKey (or P2SH script)
+<span class="lineNum">     150 </span>                :            :  * 2. P2SH scripts with a crazy number of expensive
+<span class="lineNum">     151 </span>                :            :  *    CHECKSIG/CHECKMULTISIG operations
+<span class="lineNum">     152 </span>                :            :  *
+<span class="lineNum">     153 </span>                :            :  * Why bother? To avoid denial-of-service attacks; an attacker
+<span class="lineNum">     154 </span>                :            :  * can submit a standard HASH... OP_EQUAL transaction,
+<span class="lineNum">     155 </span>                :            :  * which will get accepted into blocks. The redemption
+<span class="lineNum">     156 </span>                :            :  * script can be anything; an attacker could use a very
+<span class="lineNum">     157 </span>                :            :  * expensive-to-check-upon-redemption script like:
+<a name="158"><span class="lineNum">     158 </span>                :            :  *   DUP CHECKSIG DROP ... repeated 100 times... OP_1</a>
+<span class="lineNum">     159 </span>                :            :  */
+<span class="lineNum">     160 </span>                :<span class="lineCov">         37 : bool AreInputsStandard(const CTransaction&amp; tx, const CCoinsViewCache&amp; mapInputs)</span>
+<span class="lineNum">     161 </span>                :            : {
+<span class="lineNum">     162 </span>                :            :     if (tx.IsCoinBase())
+<span class="lineNum">     163 </span>                :            :         return true; // Coinbases don't use vin normally
+<span class="lineNum">     164 </span>                :            : 
+<span class="lineNum">     165 </span>        [<span class="branchCov" title="Branch 0 was taken 115 times"> + </span><span class="branchCov" title="Branch 1 was taken 34 times"> + </span>]:<span class="lineCov">        149 :     for (unsigned int i = 0; i &lt; tx.vin.size(); i++)</span>
+<span class="lineNum">     166 </span>                :            :     {
+<span class="lineNum">     167 </span>                :<span class="lineCov">        115 :         const CTxOut&amp; prev = mapInputs.AccessCoin(tx.vin[i].prevout).out;</span>
+<span class="lineNum">     168 </span>                :            : 
+<span class="lineNum">     169 </span>                :<span class="lineCov">        112 :         std::vector&lt;std::vector&lt;unsigned char&gt; &gt; vSolutions;</span>
+<span class="lineNum">     170 </span>        [<span class="branchCov" title="Branch 1 was taken 115 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        115 :         txnouttype whichType = Solver(prev.scriptPubKey, vSolutions);</span>
+<span class="lineNum">     171 </span>        [<span class="branchCov" title="Branch 0 was taken 114 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">        115 :         if (whichType == TX_NONSTANDARD) {</span>
+<span class="lineNum">     172 </span>                :<span class="lineCov">         37 :             return false;</span>
+<span class="lineNum">     173 </span>        [<span class="branchCov" title="Branch 0 was taken 95 times"> + </span><span class="branchCov" title="Branch 1 was taken 19 times"> + </span>]:<span class="lineCov">        114 :         } else if (whichType == TX_SCRIPTHASH) {</span>
+<span class="lineNum">     174 </span>                :<span class="lineCov">         93 :             std::vector&lt;std::vector&lt;unsigned char&gt; &gt; stack;</span>
+<span class="lineNum">     175 </span>                :            :             // convert the scriptSig into a stack, so we can inspect the redeemScript
+<span class="lineNum">     176 </span>[<span class="branchCov" title="Branch 1 was taken 95 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 95 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         95 :             if (!EvalScript(stack, tx.vin[i].scriptSig, SCRIPT_VERIFY_NONE, BaseSignatureChecker(), SigVersion::BASE))</span>
+<span class="lineNum">     177 </span>                :<span class="lineCov">          2 :                 return false;</span>
+<span class="lineNum">     178 </span>        [<span class="branchCov" title="Branch 0 was taken 95 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         95 :             if (stack.empty())</span>
+<span class="lineNum">     179 </span>                :            :                 return false;
+<span class="lineNum">     180 </span>                :<span class="lineNoCov">          0 :             CScript subscript(stack.back().begin(), stack.back().end());</span>
+<span class="lineNum">     181 </span>[<span class="branchCov" title="Branch 1 was taken 95 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 2 times"> + </span><span class="branchCov" title="Branch 4 was taken 93 times"> + </span>]:<span class="lineCov">         95 :             if (subscript.GetSigOpCount(true) &gt; MAX_P2SH_SIGOPS) {</span>
+<span class="lineNum">     182 </span>                :<span class="lineCov">          2 :                 return false;</span>
+<span class="lineNum">     183 </span>                :            :             }
+<span class="lineNum">     184 </span>                :            :         }
+<span class="lineNum">     185 </span>                :            :     }
+<span class="lineNum">     186 </span>                :            : 
+<span class="lineNum">     187 </span>                :            :     return true;
+<a name="188"><span class="lineNum">     188 </span>                :            : }</a>
+<span class="lineNum">     189 </span>                :            : 
+<span class="lineNum">     190 </span>                :<span class="lineCov">         22 : bool IsWitnessStandard(const CTransaction&amp; tx, const CCoinsViewCache&amp; mapInputs)</span>
+<span class="lineNum">     191 </span>                :            : {
+<span class="lineNum">     192 </span>                :            :     if (tx.IsCoinBase())
+<span class="lineNum">     193 </span>                :            :         return true; // Coinbases are skipped
+<span class="lineNum">     194 </span>                :            : 
+<span class="lineNum">     195 </span>        [<span class="branchCov" title="Branch 0 was taken 94 times"> + </span><span class="branchCov" title="Branch 1 was taken 15 times"> + </span>]:<span class="lineCov">        116 :     for (unsigned int i = 0; i &lt; tx.vin.size(); i++)</span>
+<span class="lineNum">     196 </span>                :            :     {
+<span class="lineNum">     197 </span>                :            :         // We don't care if witness for this input is empty, since it must not be bloated.
+<span class="lineNum">     198 </span>                :            :         // If the script is invalid without witness, it would be caught sooner or later during validation.
+<span class="lineNum">     199 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 94 times"> + </span>]:<span class="lineCov">         94 :         if (tx.vin[i].scriptWitness.IsNull())</span>
+<span class="lineNum">     200 </span>                :<span class="lineNoCov">          0 :             continue;</span>
+<span class="lineNum">     201 </span>                :            : 
+<span class="lineNum">     202 </span>                :<span class="lineCov">         94 :         const CTxOut &amp;prev = mapInputs.AccessCoin(tx.vin[i].prevout).out;</span>
+<span class="lineNum">     203 </span>                :            : 
+<span class="lineNum">     204 </span>                :            :         // get the scriptPubKey corresponding to this input:
+<span class="lineNum">     205 </span>                :<span class="lineCov">         87 :         CScript prevScript = prev.scriptPubKey;</span>
+<span class="lineNum">     206 </span>                :            : 
+<span class="lineNum">     207 </span>[<span class="branchCov" title="Branch 1 was taken 94 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 87 times"> + </span><span class="branchCov" title="Branch 4 was taken 7 times"> + </span>]:<span class="lineCov">         94 :         if (prevScript.IsPayToScriptHash()) {</span>
+<span class="lineNum">     208 </span>                :<span class="lineCov">         87 :             std::vector &lt;std::vector&lt;unsigned char&gt; &gt; stack;</span>
+<span class="lineNum">     209 </span>                :            :             // If the scriptPubKey is P2SH, we try to extract the redeemScript casually by converting the scriptSig
+<span class="lineNum">     210 </span>                :            :             // into a stack. We do not check IsPushOnly nor compare the hash as these will be done later anyway.
+<span class="lineNum">     211 </span>                :            :             // If the check fails at this stage, we know that this txid must be a bad one.
+<span class="lineNum">     212 </span>[<span class="branchCov" title="Branch 1 was taken 87 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 87 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         87 :             if (!EvalScript(stack, tx.vin[i].scriptSig, SCRIPT_VERIFY_NONE, BaseSignatureChecker(), SigVersion::BASE))</span>
+<span class="lineNum">     213 </span>                :<span class="lineNoCov">          0 :                 return false;</span>
+<span class="lineNum">     214 </span>        [<span class="branchCov" title="Branch 0 was taken 87 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         87 :             if (stack.empty())</span>
+<span class="lineNum">     215 </span>                :            :                 return false;
+<span class="lineNum">     216 </span>                :<span class="lineCov">        783 :             prevScript = CScript(stack.back().begin(), stack.back().end());</span>
+<span class="lineNum">     217 </span>                :            :         }
+<span class="lineNum">     218 </span>                :            : 
+<span class="lineNum">     219 </span>                :<span class="lineCov">         94 :         int witnessversion = 0;</span>
+<span class="lineNum">     220 </span>                :<span class="lineNoCov">          0 :         std::vector&lt;unsigned char&gt; witnessprogram;</span>
+<span class="lineNum">     221 </span>                :            : 
+<span class="lineNum">     222 </span>                :            :         // Non-witness program must not be associated with any witness
+<span class="lineNum">     223 </span>[<span class="branchCov" title="Branch 1 was taken 94 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 93 times"> + </span><span class="branchCov" title="Branch 4 was taken 1 time"> + </span>]:<span class="lineCov">         94 :         if (!prevScript.IsWitnessProgram(witnessversion, witnessprogram))</span>
+<span class="lineNum">     224 </span>                :            :             return false;
+<span class="lineNum">     225 </span>                :            : 
+<span class="lineNum">     226 </span>                :            :         // Check P2WSH standard limits
+<span class="lineNum">     227 </span>[<span class="branchCov" title="Branch 0 was taken 93 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 12 times"> + </span><span class="branchCov" title="Branch 3 was taken 81 times"> + </span>]:<span class="lineCov">         93 :         if (witnessversion == 0 &amp;&amp; witnessprogram.size() == WITNESS_V0_SCRIPTHASH_SIZE) {</span>
+<span class="lineNum">     228 </span>        [<span class="branchCov" title="Branch 0 was taken 10 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">         12 :             if (tx.vin[i].scriptWitness.stack.back().size() &gt; MAX_STANDARD_P2WSH_SCRIPT_SIZE)</span>
+<span class="lineNum">     229 </span>                :            :                 return false;
+<span class="lineNum">     230 </span>                :<span class="lineCov">         20 :             size_t sizeWitnessStack = tx.vin[i].scriptWitness.stack.size() - 1;</span>
+<span class="lineNum">     231 </span>        [<span class="branchCov" title="Branch 0 was taken 8 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">         10 :             if (sizeWitnessStack &gt; MAX_STANDARD_P2WSH_STACK_ITEMS)</span>
+<span class="lineNum">     232 </span>                :            :                 return false;
+<span class="lineNum">     233 </span>        [<span class="branchCov" title="Branch 0 was taken 206 times"> + </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>]:<span class="lineCov">        212 :             for (unsigned int j = 0; j &lt; sizeWitnessStack; j++) {</span>
+<span class="lineNum">     234 </span>        [<span class="branchCov" title="Branch 0 was taken 204 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">        206 :                 if (tx.vin[i].scriptWitness.stack[j].size() &gt; MAX_STANDARD_P2WSH_STACK_ITEM_SIZE)</span>
+<span class="lineNum">     235 </span>                :            :                     return false;
+<span class="lineNum">     236 </span>                :            :             }
+<span class="lineNum">     237 </span>                :            :         }
+<span class="lineNum">     238 </span>                :            :     }
+<span class="lineNum">     239 </span>                :            :     return true;
+<span class="lineNum">     240 </span>                :            : }
+<span class="lineNum">     241 </span>                :            : 
+<span class="lineNum">     242 </span>                :<span class="lineCov">        497 : CFeeRate incrementalRelayFee = CFeeRate(DEFAULT_INCREMENTAL_RELAY_FEE);</span>
+<span class="lineNum">     243 </span>                :            : CFeeRate dustRelayFee = CFeeRate(DUST_RELAY_TX_FEE);
+<a name="244"><span class="lineNum">     244 </span>                :            : unsigned int nBytesPerSigOp = DEFAULT_BYTES_PER_SIGOP;</a>
+<span class="lineNum">     245 </span>                :            : 
+<span class="lineNum">     246 </span>                :<span class="lineCov">  173201242 : int64_t GetVirtualTransactionSize(int64_t nWeight, int64_t nSigOpCost)</span>
+<span class="lineNum">     247 </span>                :            : {
+<span class="lineNum">     248 </span>                :<span class="lineCov">  346402484 :     return (std::max(nWeight, nSigOpCost * nBytesPerSigOp) + WITNESS_SCALE_FACTOR - 1) / WITNESS_SCALE_FACTOR;</span>
+<a name="249"><span class="lineNum">     249 </span>                :            : }</a>
+<span class="lineNum">     250 </span>                :            : 
+<span class="lineNum">     251 </span>                :<span class="lineCov">        885 : int64_t GetVirtualTransactionSize(const CTransaction&amp; tx, int64_t nSigOpCost)</span>
+<span class="lineNum">     252 </span>                :            : {
+<span class="lineNum">     253 </span>                :<span class="lineCov">        885 :     return GetVirtualTransactionSize(GetTransactionWeight(tx), nSigOpCost);</span>
+<a name="254"><span class="lineNum">     254 </span>                :            : }</a>
+<span class="lineNum">     255 </span>                :            : 
+<span class="lineNum">     256 </span>                :<span class="lineCov">      64644 : int64_t GetVirtualTransactionInputSize(const CTxIn&amp; txin, int64_t nSigOpCost)</span>
+<a name="257"><span class="lineNum">     257 </span>                :            : {</a>
+<span class="lineNum">     258 </span>                :<span class="lineCov">      64644 :     return GetVirtualTransactionSize(GetTransactionInputWeight(txin), nSigOpCost);</span>
+<span class="lineNum">     259 </span>[<span class="branchCov" title="Branch 1 was taken 497 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 497 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1988 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

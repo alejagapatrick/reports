@@ -1,0 +1,1415 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/wallet/wallet.h</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/wallet</a> - wallet.h<span style="font-size: 80%;"> (source / <a href="wallet.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">175</td>
+            <td class="headerCovTableEntry">195</td>
+            <td class="headerCovTableEntryMed">89.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">43</td>
+            <td class="headerCovTableEntry">52</td>
+            <td class="headerCovTableEntryMed">82.7 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">96</td>
+            <td class="headerCovTableEntry">208</td>
+            <td class="headerCovTableEntryLo">46.2 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #ifndef BITCOIN_WALLET_WALLET_H
+<span class="lineNum">       7 </span>                :            : #define BITCOIN_WALLET_WALLET_H
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : #include &lt;amount.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;interfaces/chain.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;interfaces/handler.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;outputtype.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;policy/feerate.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;streams.h&gt;
+<span class="lineNum">      15 </span>                :            : #include &lt;tinyformat.h&gt;
+<span class="lineNum">      16 </span>                :            : #include &lt;ui_interface.h&gt;
+<span class="lineNum">      17 </span>                :            : #include &lt;util/strencodings.h&gt;
+<span class="lineNum">      18 </span>                :            : #include &lt;validationinterface.h&gt;
+<span class="lineNum">      19 </span>                :            : #include &lt;script/ismine.h&gt;
+<span class="lineNum">      20 </span>                :            : #include &lt;script/sign.h&gt;
+<span class="lineNum">      21 </span>                :            : #include &lt;util/system.h&gt;
+<span class="lineNum">      22 </span>                :            : #include &lt;wallet/crypter.h&gt;
+<span class="lineNum">      23 </span>                :            : #include &lt;wallet/coinselection.h&gt;
+<span class="lineNum">      24 </span>                :            : #include &lt;wallet/walletdb.h&gt;
+<span class="lineNum">      25 </span>                :            : #include &lt;wallet/walletutil.h&gt;
+<span class="lineNum">      26 </span>                :            : 
+<span class="lineNum">      27 </span>                :            : #include &lt;algorithm&gt;
+<span class="lineNum">      28 </span>                :            : #include &lt;atomic&gt;
+<span class="lineNum">      29 </span>                :            : #include &lt;map&gt;
+<span class="lineNum">      30 </span>                :            : #include &lt;memory&gt;
+<span class="lineNum">      31 </span>                :            : #include &lt;set&gt;
+<span class="lineNum">      32 </span>                :            : #include &lt;stdexcept&gt;
+<span class="lineNum">      33 </span>                :            : #include &lt;stdint.h&gt;
+<span class="lineNum">      34 </span>                :            : #include &lt;string&gt;
+<span class="lineNum">      35 </span>                :            : #include &lt;utility&gt;
+<span class="lineNum">      36 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">      37 </span>                :            : 
+<span class="lineNum">      38 </span>                :            : //! Responsible for reading and validating the -wallet arguments and verifying the wallet database.
+<span class="lineNum">      39 </span>                :            : //! This function will perform salvage on the wallet if requested, as long as only one wallet is
+<span class="lineNum">      40 </span>                :            : //! being loaded (WalletParameterInteraction forbids -salvagewallet, -zapwallettxes or -upgradewallet with multiwallet).
+<span class="lineNum">      41 </span>                :            : bool VerifyWallets(interfaces::Chain&amp; chain, const std::vector&lt;std::string&gt;&amp; wallet_files);
+<span class="lineNum">      42 </span>                :            : 
+<span class="lineNum">      43 </span>                :            : //! Load wallet databases.
+<span class="lineNum">      44 </span>                :            : bool LoadWallets(interfaces::Chain&amp; chain, const std::vector&lt;std::string&gt;&amp; wallet_files);
+<span class="lineNum">      45 </span>                :            : 
+<span class="lineNum">      46 </span>                :            : //! Complete startup of wallets.
+<span class="lineNum">      47 </span>                :            : void StartWallets(CScheduler&amp; scheduler);
+<span class="lineNum">      48 </span>                :            : 
+<span class="lineNum">      49 </span>                :            : //! Flush all wallets in preparation for shutdown.
+<span class="lineNum">      50 </span>                :            : void FlushWallets();
+<span class="lineNum">      51 </span>                :            : 
+<span class="lineNum">      52 </span>                :            : //! Stop all wallets. Wallets will be flushed first.
+<span class="lineNum">      53 </span>                :            : void StopWallets();
+<span class="lineNum">      54 </span>                :            : 
+<span class="lineNum">      55 </span>                :            : //! Close all wallets.
+<span class="lineNum">      56 </span>                :            : void UnloadWallets();
+<span class="lineNum">      57 </span>                :            : 
+<span class="lineNum">      58 </span>                :            : //! Explicitly unload and delete the wallet.
+<span class="lineNum">      59 </span>                :            : //! Blocks the current thread after signaling the unload intent so that all
+<span class="lineNum">      60 </span>                :            : //! wallet clients release the wallet.
+<span class="lineNum">      61 </span>                :            : //! Note that, when blocking is not required, the wallet is implicitly unloaded
+<span class="lineNum">      62 </span>                :            : //! by the shared pointer deleter.
+<span class="lineNum">      63 </span>                :            : void UnloadWallet(std::shared_ptr&lt;CWallet&gt;&amp;&amp; wallet);
+<span class="lineNum">      64 </span>                :            : 
+<span class="lineNum">      65 </span>                :            : bool AddWallet(const std::shared_ptr&lt;CWallet&gt;&amp; wallet);
+<span class="lineNum">      66 </span>                :            : bool RemoveWallet(const std::shared_ptr&lt;CWallet&gt;&amp; wallet);
+<span class="lineNum">      67 </span>                :            : bool HasWallets();
+<span class="lineNum">      68 </span>                :            : std::vector&lt;std::shared_ptr&lt;CWallet&gt;&gt; GetWallets();
+<span class="lineNum">      69 </span>                :            : std::shared_ptr&lt;CWallet&gt; GetWallet(const std::string&amp; name);
+<span class="lineNum">      70 </span>                :            : std::shared_ptr&lt;CWallet&gt; LoadWallet(interfaces::Chain&amp; chain, const WalletLocation&amp; location, std::string&amp; error, std::string&amp; warning);
+<span class="lineNum">      71 </span>                :            : 
+<span class="lineNum">      72 </span>                :            : //! Default for -keypool
+<span class="lineNum">      73 </span>                :            : static const unsigned int DEFAULT_KEYPOOL_SIZE = 1000;
+<span class="lineNum">      74 </span>                :            : //! -paytxfee default
+<span class="lineNum">      75 </span>                :            : constexpr CAmount DEFAULT_PAY_TX_FEE = 0;
+<span class="lineNum">      76 </span>                :            : //! -fallbackfee default
+<span class="lineNum">      77 </span>                :            : static const CAmount DEFAULT_FALLBACK_FEE = 20000;
+<span class="lineNum">      78 </span>                :            : //! -discardfee default
+<span class="lineNum">      79 </span>                :            : static const CAmount DEFAULT_DISCARD_FEE = 10000;
+<span class="lineNum">      80 </span>                :            : //! -mintxfee default
+<span class="lineNum">      81 </span>                :            : static const CAmount DEFAULT_TRANSACTION_MINFEE = 1000;
+<span class="lineNum">      82 </span>                :            : //! minimum recommended increment for BIP 125 replacement txs
+<span class="lineNum">      83 </span>                :            : static const CAmount WALLET_INCREMENTAL_RELAY_FEE = 5000;
+<span class="lineNum">      84 </span>                :            : //! Default for -spendzeroconfchange
+<span class="lineNum">      85 </span>                :            : static const bool DEFAULT_SPEND_ZEROCONF_CHANGE = true;
+<span class="lineNum">      86 </span>                :            : //! Default for -walletrejectlongchains
+<span class="lineNum">      87 </span>                :            : static const bool DEFAULT_WALLET_REJECT_LONG_CHAINS = false;
+<span class="lineNum">      88 </span>                :            : //! Default for -avoidpartialspends
+<span class="lineNum">      89 </span>                :            : static const bool DEFAULT_AVOIDPARTIALSPENDS = false;
+<span class="lineNum">      90 </span>                :            : //! -txconfirmtarget default
+<span class="lineNum">      91 </span>                :            : static const unsigned int DEFAULT_TX_CONFIRM_TARGET = 6;
+<span class="lineNum">      92 </span>                :            : //! -walletrbf default
+<span class="lineNum">      93 </span>                :            : static const bool DEFAULT_WALLET_RBF = false;
+<span class="lineNum">      94 </span>                :            : static const bool DEFAULT_WALLETBROADCAST = true;
+<span class="lineNum">      95 </span>                :            : static const bool DEFAULT_DISABLE_WALLET = false;
+<span class="lineNum">      96 </span>                :            : 
+<span class="lineNum">      97 </span>                :            : //! Pre-calculated constants for input size estimation in *virtual size*
+<span class="lineNum">      98 </span>                :            : static constexpr size_t DUMMY_NESTED_P2WPKH_INPUT_SIZE = 91;
+<span class="lineNum">      99 </span>                :            : 
+<span class="lineNum">     100 </span>                :            : class CCoinControl;
+<span class="lineNum">     101 </span>                :            : class COutput;
+<span class="lineNum">     102 </span>                :            : class CReserveKey;
+<span class="lineNum">     103 </span>                :            : class CScript;
+<span class="lineNum">     104 </span>                :            : class CWalletTx;
+<span class="lineNum">     105 </span>                :            : struct FeeCalculation;
+<span class="lineNum">     106 </span>                :            : enum class FeeEstimateMode;
+<span class="lineNum">     107 </span>                :            : 
+<span class="lineNum">     108 </span>                :            : /** (client) version numbers for particular wallet features */
+<span class="lineNum">     109 </span>                :            : enum WalletFeature
+<span class="lineNum">     110 </span>                :            : {
+<span class="lineNum">     111 </span>                :            :     FEATURE_BASE = 10500, // the earliest version new wallets supports (only useful for getwalletinfo's clientversion output)
+<span class="lineNum">     112 </span>                :            : 
+<span class="lineNum">     113 </span>                :            :     FEATURE_WALLETCRYPT = 40000, // wallet encryption
+<span class="lineNum">     114 </span>                :            :     FEATURE_COMPRPUBKEY = 60000, // compressed public keys
+<span class="lineNum">     115 </span>                :            : 
+<span class="lineNum">     116 </span>                :            :     FEATURE_HD = 130000, // Hierarchical key derivation after BIP32 (HD Wallet)
+<span class="lineNum">     117 </span>                :            : 
+<span class="lineNum">     118 </span>                :            :     FEATURE_HD_SPLIT = 139900, // Wallet with HD chain split (change outputs will use m/0'/1'/k)
+<span class="lineNum">     119 </span>                :            : 
+<span class="lineNum">     120 </span>                :            :     FEATURE_NO_DEFAULT_KEY = 159900, // Wallet without a default key written
+<span class="lineNum">     121 </span>                :            : 
+<span class="lineNum">     122 </span>                :            :     FEATURE_PRE_SPLIT_KEYPOOL = 169900, // Upgraded to HD SPLIT and can have a pre-split keypool
+<span class="lineNum">     123 </span>                :            : 
+<span class="lineNum">     124 </span>                :            :     FEATURE_LATEST = FEATURE_PRE_SPLIT_KEYPOOL
+<span class="lineNum">     125 </span>                :            : };
+<span class="lineNum">     126 </span>                :            : 
+<span class="lineNum">     127 </span>                :            : //! Default for -addresstype
+<span class="lineNum">     128 </span>                :            : constexpr OutputType DEFAULT_ADDRESS_TYPE{OutputType::P2SH_SEGWIT};
+<span class="lineNum">     129 </span>                :            : 
+<span class="lineNum">     130 </span>                :            : //! Default for -changetype
+<span class="lineNum">     131 </span>                :            : constexpr OutputType DEFAULT_CHANGE_TYPE{OutputType::CHANGE_AUTO};
+<span class="lineNum">     132 </span>                :            : 
+<span class="lineNum">     133 </span>                :            : enum WalletFlags : uint64_t {
+<span class="lineNum">     134 </span>                :            :     // wallet flags in the upper section (&gt; 1 &lt;&lt; 31) will lead to not opening the wallet if flag is unknown
+<span class="lineNum">     135 </span>                :            :     // unknown wallet flags in the lower section &lt;= (1 &lt;&lt; 31) will be tolerated
+<span class="lineNum">     136 </span>                :            : 
+<span class="lineNum">     137 </span>                :            :     // Indicates that the metadata has already been upgraded to contain key origins
+<span class="lineNum">     138 </span>                :            :     WALLET_FLAG_KEY_ORIGIN_METADATA = (1ULL &lt;&lt; 1),
+<span class="lineNum">     139 </span>                :            : 
+<span class="lineNum">     140 </span>                :            :     // will enforce the rule that the wallet can't contain any private keys (only watch-only/pubkeys)
+<span class="lineNum">     141 </span>                :            :     WALLET_FLAG_DISABLE_PRIVATE_KEYS = (1ULL &lt;&lt; 32),
+<span class="lineNum">     142 </span>                :            : 
+<span class="lineNum">     143 </span>                :            :     //! Flag set when a wallet contains no HD seed and no private keys, scripts,
+<span class="lineNum">     144 </span>                :            :     //! addresses, and other watch only things, and is therefore &quot;blank.&quot;
+<span class="lineNum">     145 </span>                :            :     //!
+<span class="lineNum">     146 </span>                :            :     //! The only function this flag serves is to distinguish a blank wallet from
+<span class="lineNum">     147 </span>                :            :     //! a newly created wallet when the wallet database is loaded, to avoid
+<span class="lineNum">     148 </span>                :            :     //! initialization that should only happen on first run.
+<span class="lineNum">     149 </span>                :            :     //!
+<span class="lineNum">     150 </span>                :            :     //! This flag is also a mandatory flag to prevent previous versions of
+<span class="lineNum">     151 </span>                :            :     //! bitcoin from opening the wallet, thinking it was newly created, and
+<span class="lineNum">     152 </span>                :            :     //! then improperly reinitializing it.
+<span class="lineNum">     153 </span>                :            :     WALLET_FLAG_BLANK_WALLET = (1ULL &lt;&lt; 33),
+<span class="lineNum">     154 </span>                :            : };
+<span class="lineNum">     155 </span>                :            : 
+<span class="lineNum">     156 </span>                :            : static constexpr uint64_t g_known_wallet_flags = WALLET_FLAG_DISABLE_PRIVATE_KEYS | WALLET_FLAG_BLANK_WALLET | WALLET_FLAG_KEY_ORIGIN_METADATA;
+<span class="lineNum">     157 </span>                :            : 
+<span class="lineNum">     158 </span>                :            : /** A key pool entry */
+<span class="lineNum">     159 </span>                :            : class CKeyPool
+<span class="lineNum">     160 </span>                :            : {
+<span class="lineNum">     161 </span>                :            : public:
+<span class="lineNum">     162 </span>                :            :     int64_t nTime;
+<span class="lineNum">     163 </span>                :            :     CPubKey vchPubKey;
+<span class="lineNum">     164 </span>                :            :     bool fInternal; // for change outputs
+<span class="lineNum">     165 </span>                :            :     bool m_pre_split; // For keys generated before keypool split upgrade
+<span class="lineNum">     166 </span>                :            : 
+<span class="lineNum">     167 </span>                :            :     CKeyPool();
+<span class="lineNum">     168 </span>                :            :     CKeyPool(const CPubKey&amp; vchPubKeyIn, bool internalIn);
+<span class="lineNum">     169 </span>                :            : 
+<span class="lineNum">     170 </span>[<span class="branchCov" title="Branch 1 was taken 9199 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2957 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      15868 :     ADD_SERIALIZE_METHODS;</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 3712 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<a name="171"><span class="lineNum">     171 </span>                :            : </a>
+<span class="lineNum">     172 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
+<span class="lineNum">     173 </span>                :<span class="lineCov">      15868 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">     174 </span>                :<span class="lineCov">      15868 :         int nVersion = s.GetVersion();</span>
+<span class="lineNum">     175 </span>[<span class="branchCov" title="Branch 0 was taken 9199 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 6669 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">      15868 :         if (!(s.GetType() &amp; SER_GETHASH))</span>
+<span class="lineNum">     176 </span>                :            :             READWRITE(nVersion);
+<span class="lineNum">     177 </span>                :<span class="lineCov">      31736 :         READWRITE(nTime);</span>
+<span class="lineNum">     178 </span>                :<span class="lineCov">      31736 :         READWRITE(vchPubKey);</span>
+<span class="lineNum">     179 </span>                :            :         if (ser_action.ForRead()) {
+<span class="lineNum">     180 </span>                :            :             try {
+<span class="lineNum">     181 </span>                :<span class="lineCov">       6669 :                 READWRITE(fInternal);</span>
+<span class="lineNum">     182 </span>                :            :             }
+<span class="lineNum">     183 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             catch (std::ios_base::failure&amp;) {</span>
+<span class="lineNum">     184 </span>                :            :                 /* flag as external address if we can't read the internal boolean
+<span class="lineNum">     185 </span>                :            :                    (this will be the case for any wallet before the HD chain split version) */
+<span class="lineNum">     186 </span>                :<span class="lineNoCov">          0 :                 fInternal = false;</span>
+<span class="lineNum">     187 </span>                :            :             }
+<span class="lineNum">     188 </span>                :            :             try {
+<span class="lineNum">     189 </span>                :<span class="lineCov">       6669 :                 READWRITE(m_pre_split);</span>
+<span class="lineNum">     190 </span>                :            :             }
+<span class="lineNum">     191 </span>                :<span class="lineNoCov">          0 :             catch (std::ios_base::failure&amp;) {</span>
+<span class="lineNum">     192 </span>                :            :                 /* flag as postsplit address if we can't read the m_pre_split boolean
+<span class="lineNum">     193 </span>                :            :                    (this will be the case for any wallet that upgrades to HD chain split)*/
+<span class="lineNum">     194 </span>                :<span class="lineNoCov">          0 :                 m_pre_split = false;</span>
+<span class="lineNum">     195 </span>                :            :             }
+<span class="lineNum">     196 </span>                :            :         }
+<span class="lineNum">     197 </span>                :            :         else {
+<span class="lineNum">     198 </span>                :<span class="lineCov">      18398 :             READWRITE(fInternal);</span>
+<span class="lineNum">     199 </span>                :<span class="lineCov">      18398 :             READWRITE(m_pre_split);</span>
+<span class="lineNum">     200 </span>                :            :         }
+<span class="lineNum">     201 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineCov">       6669 :     }</span>
+<span class="lineNum">     202 </span>                :            : };
+<a name="203"><span class="lineNum">     203 </span>                :            : </a>
+<span class="lineNum">     204 </span>                :            : /** Address book data */
+<span class="lineNum">     205 </span>                :<span class="lineCov">       3534 : class CAddressBookData</span>
+<span class="lineNum">     206 </span>                :            : {
+<span class="lineNum">     207 </span>                :            : public:
+<span class="lineNum">     208 </span>                :            :     std::string name;
+<a name="209"><span class="lineNum">     209 </span>                :            :     std::string purpose;</a>
+<span class="lineNum">     210 </span>                :            : 
+<span class="lineNum">     211 </span>        [<span class="branchCov" title="Branch 1 was taken 3534 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3534 :     CAddressBookData() : purpose(&quot;unknown&quot;) {}</span>
+<span class="lineNum">     212 </span>                :            : 
+<span class="lineNum">     213 </span>                :            :     typedef std::map&lt;std::string, std::string&gt; StringMap;
+<span class="lineNum">     214 </span>                :            :     StringMap destdata;
+<span class="lineNum">     215 </span>                :            : };
+<span class="lineNum">     216 </span>                :            : 
+<span class="lineNum">     217 </span>                :<span class="lineCov">     135015 : struct CRecipient</span>
+<span class="lineNum">     218 </span>                :            : {
+<span class="lineNum">     219 </span>                :            :     CScript scriptPubKey;
+<span class="lineNum">     220 </span>                :            :     CAmount nAmount;
+<span class="lineNum">     221 </span>                :            :     bool fSubtractFeeFromAmount;
+<span class="lineNum">     222 </span>                :            : };
+<span class="lineNum">     223 </span>                :            : 
+<span class="lineNum">     224 </span>                :            : typedef std::map&lt;std::string, std::string&gt; mapValue_t;
+<a name="225"><span class="lineNum">     225 </span>                :            : </a>
+<span class="lineNum">     226 </span>                :            : 
+<span class="lineNum">     227 </span>                :<span class="lineCov">       6114 : static inline void ReadOrderPos(int64_t&amp; nOrderPos, mapValue_t&amp; mapValue)</span>
+<span class="lineNum">     228 </span>                :            : {
+<span class="lineNum">     229 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 6114 times"> + </span>]:<span class="lineCov">      12228 :     if (!mapValue.count(&quot;n&quot;))</span>
+<span class="lineNum">     230 </span>                :            :     {
+<span class="lineNum">     231 </span>                :<span class="lineNoCov">          0 :         nOrderPos = -1; // TODO: calculate elsewhere</span>
+<span class="lineNum">     232 </span>                :<span class="lineNoCov">          0 :         return;</span>
+<span class="lineNum">     233 </span>                :            :     }
+<span class="lineNum">     234 </span>[<span class="branchCov" title="Branch 1 was taken 6114 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 6114 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      12228 :     nOrderPos = atoi64(mapValue[&quot;n&quot;].c_str());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 6114 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     235 </span>                :            : }
+<a name="236"><span class="lineNum">     236 </span>                :            : </a>
+<span class="lineNum">     237 </span>                :            : 
+<span class="lineNum">     238 </span>                :<span class="lineCov">      20086 : static inline void WriteOrderPos(const int64_t&amp; nOrderPos, mapValue_t&amp; mapValue)</span>
+<span class="lineNum">     239 </span>                :            : {
+<span class="lineNum">     240 </span>        [<span class="branchCov" title="Branch 0 was taken 20086 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      20086 :     if (nOrderPos == -1)</span>
+<span class="lineNum">     241 </span>                :            :         return;
+<span class="lineNum">     242 </span>[<span class="branchCov" title="Branch 2 was taken 20086 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 20086 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">      40172 :     mapValue[&quot;n&quot;] = i64tostr(nOrderPos);</span>
+<span class="lineNum">     243 </span>                :            : }
+<span class="lineNum">     244 </span>                :            : 
+<span class="lineNum">     245 </span>                :<span class="lineCov">      32118 : struct COutputEntry</span>
+<span class="lineNum">     246 </span>                :            : {
+<span class="lineNum">     247 </span>                :            :     CTxDestination destination;
+<span class="lineNum">     248 </span>                :            :     CAmount amount;
+<span class="lineNum">     249 </span>                :            :     int vout;
+<span class="lineNum">     250 </span>                :            : };
+<span class="lineNum">     251 </span>                :            : 
+<span class="lineNum">     252 </span>                :            : /** A transaction with a merkle branch linking it to the block chain. */
+<span class="lineNum">     253 </span>                :<span class="lineCov">    1506144 : class CMerkleTx</span>
+<span class="lineNum">     254 </span>                :            : {
+<span class="lineNum">     255 </span>                :            : private:
+<span class="lineNum">     256 </span>                :            :   /** Constant used in hashBlock to indicate tx has been abandoned */
+<span class="lineNum">     257 </span>                :            :     static const uint256 ABANDON_HASH;
+<span class="lineNum">     258 </span>                :            : 
+<span class="lineNum">     259 </span>                :            : public:
+<span class="lineNum">     260 </span>                :            :     CTransactionRef tx;
+<span class="lineNum">     261 </span>                :            :     uint256 hashBlock;
+<span class="lineNum">     262 </span>                :            : 
+<span class="lineNum">     263 </span>                :            :     /* An nIndex == -1 means that hashBlock (in nonzero) refers to the earliest
+<span class="lineNum">     264 </span>                :            :      * block in the chain we know this or any in-wallet dependency conflicts
+<span class="lineNum">     265 </span>                :            :      * with. Older clients interpret nIndex == -1 as unconfirmed for backward
+<span class="lineNum">     266 </span>                :            :      * compatibility.
+<span class="lineNum">     267 </span>                :            :      */
+<a name="268"><span class="lineNum">     268 </span>                :            :     int nIndex;</a>
+<span class="lineNum">     269 </span>                :            : 
+<span class="lineNum">     270 </span>                :<span class="lineCov">      26200 :     CMerkleTx()</span>
+<span class="lineNum">     271 </span>                :<span class="lineCov">      78600 :     {</span>
+<span class="lineNum">     272 </span>                :<span class="lineCov">      52400 :         SetTx(MakeTransactionRef());</span>
+<span class="lineNum">     273 </span>                :<span class="lineCov">      26200 :         Init();</span>
+<a name="274"><span class="lineNum">     274 </span>                :<span class="lineCov">      26200 :     }</span></a>
+<span class="lineNum">     275 </span>                :            : 
+<span class="lineNum">     276 </span>                :<span class="lineCov">     156064 :     explicit CMerkleTx(CTransactionRef arg)</span>
+<span class="lineNum">     277 </span>                :<span class="lineCov">     468192 :     {</span>
+<span class="lineNum">     278 </span>                :<span class="lineCov">     624256 :         SetTx(std::move(arg));</span>
+<span class="lineNum">     279 </span>                :<span class="lineCov">     156064 :         Init();</span>
+<span class="lineNum">     280 </span>                :<span class="lineCov">     156064 :     }</span>
+<span class="lineNum">     281 </span>                :            : 
+<span class="lineNum">     282 </span>                :            :     void Init()
+<span class="lineNum">     283 </span>                :            :     {
+<span class="lineNum">     284 </span>                :<span class="lineCov">     182264 :         hashBlock = uint256();</span>
+<span class="lineNum">     285 </span>                :<span class="lineCov">     182264 :         nIndex = -1;</span>
+<span class="lineNum">     286 </span>                :            :     }
+<span class="lineNum">     287 </span>                :            : 
+<span class="lineNum">     288 </span>                :            :     void SetTx(CTransactionRef arg)
+<span class="lineNum">     289 </span>                :            :     {
+<span class="lineNum">     290 </span>                :<span class="lineCov">     364528 :         tx = std::move(arg);</span>
+<span class="lineNum">     291 </span>                :            :     }
+<span class="lineNum">     292 </span>                :            : 
+<span class="lineNum">     293 </span>        [<span class="branchCov" title="Branch 3 was taken 20086 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">      26200 :     ADD_SERIALIZE_METHODS;</span>
+<span class="lineNum">     294 </span>                :            : 
+<span class="lineNum">     295 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
+<span class="lineNum">     296 </span>                :<span class="lineCov">      26200 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">     297 </span>                :<span class="lineCov">      52400 :         std::vector&lt;uint256&gt; vMerkleBranch; // For compatibility with older versions.</span>
+<span class="lineNum">     298 </span>                :<span class="lineCov">      52400 :         READWRITE(tx);</span>
+<span class="lineNum">     299 </span>                :<span class="lineCov">      52400 :         READWRITE(hashBlock);</span>
+<span class="lineNum">     300 </span>                :<span class="lineCov">      26200 :         READWRITE(vMerkleBranch);</span>
+<span class="lineNum">     301 </span>                :<span class="lineCov">      52400 :         READWRITE(nIndex);</span>
+<span class="lineNum">     302 </span>                :<span class="lineCov">      26200 :     }</span>
+<span class="lineNum">     303 </span>                :            : 
+<span class="lineNum">     304 </span>                :            :     void SetMerkleBranch(const uint256&amp; block_hash, int posInBlock);
+<span class="lineNum">     305 </span>                :            : 
+<span class="lineNum">     306 </span>                :            :     /**
+<span class="lineNum">     307 </span>                :            :      * Return depth of transaction in blockchain:
+<span class="lineNum">     308 </span>                :            :      * &lt;0  : conflicts with a transaction this deep in the blockchain
+<span class="lineNum">     309 </span>                :            :      *  0  : in memory pool, waiting to be included in a block
+<span class="lineNum">     310 </span>                :            :      * &gt;=1 : this many blocks deep in the main chain
+<span class="lineNum">     311 </span>                :            :      */
+<span class="lineNum">     312 </span>                :            :     int GetDepthInMainChain(interfaces::Chain::Lock&amp; locked_chain) const;
+<span class="lineNum">     313 </span>                :<span class="lineCov">       1440 :     bool IsInMainChain(interfaces::Chain::Lock&amp; locked_chain) const { return GetDepthInMainChain(locked_chain) &gt; 0; }</span>
+<span class="lineNum">     314 </span>                :            : 
+<span class="lineNum">     315 </span>                :            :     /**
+<span class="lineNum">     316 </span>                :            :      * @return number of blocks to maturity for this transaction:
+<span class="lineNum">     317 </span>                :            :      *  0 : is not a coinbase transaction, or is a mature coinbase transaction
+<span class="lineNum">     318 </span>                :            :      * &gt;0 : is a coinbase transaction which matures in this many blocks
+<a name="319"><span class="lineNum">     319 </span>                :            :      */</a>
+<span class="lineNum">     320 </span>                :            :     int GetBlocksToMaturity(interfaces::Chain::Lock&amp; locked_chain) const;
+<span class="lineNum">     321 </span>[<span class="branchCov" title="Branch 0 was taken 962141 times"> + </span><span class="branchCov" title="Branch 1 was taken 152545 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 40 times"> + </span><span class="branchCov" title="Branch 3 was taken 962101 times"> + </span>]:<span class="lineCov">    2229372 :     bool hashUnset() const { return (hashBlock.IsNull() || hashBlock == ABANDON_HASH); }</span>
+<span class="lineNum">     322 </span>                :<span class="lineCov">      28618 :     bool isAbandoned() const { return (hashBlock == ABANDON_HASH); }</span>
+<span class="lineNum">     323 </span>                :<span class="lineCov">          5 :     void setAbandoned() { hashBlock = ABANDON_HASH; }</span>
+<span class="lineNum">     324 </span>                :            : 
+<span class="lineNum">     325 </span>                :<span class="lineCov">    1419397 :     const uint256&amp; GetHash() const { return tx-&gt;GetHash(); }</span>
+<span class="lineNum">     326 </span>                :<span class="lineCov">    1224769 :     bool IsCoinBase() const { return tx-&gt;IsCoinBase(); }</span>
+<span class="lineNum">     327 </span>                :            :     bool IsImmatureCoinBase(interfaces::Chain::Lock&amp; locked_chain) const;
+<span class="lineNum">     328 </span>                :            : };
+<span class="lineNum">     329 </span>                :            : 
+<span class="lineNum">     330 </span>                :            : //Get the marginal bytes of spending the specified output
+<span class="lineNum">     331 </span>                :            : int CalculateMaximumSignedInputSize(const CTxOut&amp; txout, const CWallet* pwallet, bool use_max_sig = false);
+<span class="lineNum">     332 </span>                :            : 
+<span class="lineNum">     333 </span>                :            : /**
+<span class="lineNum">     334 </span>                :            :  * A transaction with a bunch of additional info that only the owner cares about.
+<a name="335"><span class="lineNum">     335 </span>                :            :  * It includes any unrecorded transactions needed to link it back to the block chain.</a>
+<span class="lineNum">     336 </span>                :            :  */
+<span class="lineNum">     337 </span>[<span class="branchCov" title="Branch 1 was taken 156060 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">    1168340 : class CWalletTx : public CMerkleTx</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 2 was taken 567 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]
+<span class="lineNum">     338 </span>                :            : {
+<span class="lineNum">     339 </span>                :            : private:
+<span class="lineNum">     340 </span>                :            :     const CWallet* pwallet;
+<span class="lineNum">     341 </span>                :            : 
+<span class="lineNum">     342 </span>                :            : public:
+<span class="lineNum">     343 </span>                :            :     /**
+<span class="lineNum">     344 </span>                :            :      * Key/value map with information about the transaction.
+<span class="lineNum">     345 </span>                :            :      *
+<span class="lineNum">     346 </span>                :            :      * The following keys can be read and written through the map and are
+<span class="lineNum">     347 </span>                :            :      * serialized in the wallet database:
+<span class="lineNum">     348 </span>                :            :      *
+<span class="lineNum">     349 </span>                :            :      *     &quot;comment&quot;, &quot;to&quot;   - comment strings provided to sendtoaddress,
+<span class="lineNum">     350 </span>                :            :      *                         and sendmany wallet RPCs
+<span class="lineNum">     351 </span>                :            :      *     &quot;replaces_txid&quot;   - txid (as HexStr) of transaction replaced by
+<span class="lineNum">     352 </span>                :            :      *                         bumpfee on transaction created by bumpfee
+<span class="lineNum">     353 </span>                :            :      *     &quot;replaced_by_txid&quot; - txid (as HexStr) of transaction created by
+<span class="lineNum">     354 </span>                :            :      *                         bumpfee on transaction replaced by bumpfee
+<span class="lineNum">     355 </span>                :            :      *     &quot;from&quot;, &quot;message&quot; - obsolete fields that could be set in UI prior to
+<span class="lineNum">     356 </span>                :            :      *                         2011 (removed in commit 4d9b223)
+<span class="lineNum">     357 </span>                :            :      *
+<span class="lineNum">     358 </span>                :            :      * The following keys are serialized in the wallet database, but shouldn't
+<span class="lineNum">     359 </span>                :            :      * be read or written through the map (they will be temporarily added and
+<span class="lineNum">     360 </span>                :            :      * removed from the map during serialization):
+<span class="lineNum">     361 </span>                :            :      *
+<span class="lineNum">     362 </span>                :            :      *     &quot;fromaccount&quot;     - serialized strFromAccount value
+<span class="lineNum">     363 </span>                :            :      *     &quot;n&quot;               - serialized nOrderPos value
+<span class="lineNum">     364 </span>                :            :      *     &quot;timesmart&quot;       - serialized nTimeSmart value
+<span class="lineNum">     365 </span>                :            :      *     &quot;spent&quot;           - serialized vfSpent value that existed prior to
+<span class="lineNum">     366 </span>                :            :      *                         2014 (removed in commit 93a18a3)
+<span class="lineNum">     367 </span>                :            :      */
+<span class="lineNum">     368 </span>                :            :     mapValue_t mapValue;
+<span class="lineNum">     369 </span>                :            :     std::vector&lt;std::pair&lt;std::string, std::string&gt; &gt; vOrderForm;
+<span class="lineNum">     370 </span>                :            :     unsigned int fTimeReceivedIsTxTime;
+<span class="lineNum">     371 </span>                :            :     unsigned int nTimeReceived; //!&lt; time received by this node
+<span class="lineNum">     372 </span>                :            :     /**
+<span class="lineNum">     373 </span>                :            :      * Stable timestamp that never changes, and reflects the order a transaction
+<span class="lineNum">     374 </span>                :            :      * was added to the wallet. Timestamp is based on the block time for a
+<span class="lineNum">     375 </span>                :            :      * transaction added as part of a block, or else the time when the
+<span class="lineNum">     376 </span>                :            :      * transaction was received if it wasn't part of a block, with the timestamp
+<span class="lineNum">     377 </span>                :            :      * adjusted in both cases so timestamp order matches the order transactions
+<span class="lineNum">     378 </span>                :            :      * were added to the wallet. More details can be found in
+<span class="lineNum">     379 </span>                :            :      * CWallet::ComputeTimeSmart().
+<span class="lineNum">     380 </span>                :            :      */
+<span class="lineNum">     381 </span>                :            :     unsigned int nTimeSmart;
+<span class="lineNum">     382 </span>                :            :     /**
+<span class="lineNum">     383 </span>                :            :      * From me flag is set to 1 for transactions that were created by the wallet
+<span class="lineNum">     384 </span>                :            :      * on this bitcoin node, and set to 0 for transactions that were created
+<span class="lineNum">     385 </span>                :            :      * externally and came in through the network or sendrawtransaction RPC.
+<span class="lineNum">     386 </span>                :            :      */
+<span class="lineNum">     387 </span>                :            :     char fFromMe;
+<span class="lineNum">     388 </span>                :            :     int64_t nOrderPos; //!&lt; position in ordered transaction list
+<span class="lineNum">     389 </span>                :            :     std::multimap&lt;int64_t, CWalletTx*&gt;::const_iterator m_it_wtxOrdered;
+<span class="lineNum">     390 </span>                :            : 
+<span class="lineNum">     391 </span>                :            :     // memory only
+<span class="lineNum">     392 </span>                :            :     mutable bool fDebitCached;
+<span class="lineNum">     393 </span>                :            :     mutable bool fCreditCached;
+<span class="lineNum">     394 </span>                :            :     mutable bool fImmatureCreditCached;
+<span class="lineNum">     395 </span>                :            :     mutable bool fAvailableCreditCached;
+<span class="lineNum">     396 </span>                :            :     mutable bool fWatchDebitCached;
+<span class="lineNum">     397 </span>                :            :     mutable bool fWatchCreditCached;
+<span class="lineNum">     398 </span>                :            :     mutable bool fImmatureWatchCreditCached;
+<span class="lineNum">     399 </span>                :            :     mutable bool fAvailableWatchCreditCached;
+<span class="lineNum">     400 </span>                :            :     mutable bool fChangeCached;
+<span class="lineNum">     401 </span>                :            :     mutable bool fInMempool;
+<span class="lineNum">     402 </span>                :            :     mutable CAmount nDebitCached;
+<span class="lineNum">     403 </span>                :            :     mutable CAmount nCreditCached;
+<span class="lineNum">     404 </span>                :            :     mutable CAmount nImmatureCreditCached;
+<span class="lineNum">     405 </span>                :            :     mutable CAmount nAvailableCreditCached;
+<span class="lineNum">     406 </span>                :            :     mutable CAmount nWatchDebitCached;
+<span class="lineNum">     407 </span>                :            :     mutable CAmount nWatchCreditCached;
+<span class="lineNum">     408 </span>                :            :     mutable CAmount nImmatureWatchCreditCached;
+<span class="lineNum">     409 </span>                :            :     mutable CAmount nAvailableWatchCreditCached;
+<a name="410"><span class="lineNum">     410 </span>                :            :     mutable CAmount nChangeCached;</a>
+<span class="lineNum">     411 </span>                :            : 
+<span class="lineNum">     412 </span>                :<span class="lineCov">     312128 :     CWalletTx(const CWallet* pwalletIn, CTransactionRef arg) : CMerkleTx(std::move(arg))</span>
+<span class="lineNum">     413 </span>                :            :     {
+<span class="lineNum">     414 </span>                :<span class="lineCov">     156064 :         Init(pwalletIn);</span>
+<a name="415"><span class="lineNum">     415 </span>                :<span class="lineCov">     156064 :     }</span></a>
+<span class="lineNum">     416 </span>                :            : 
+<span class="lineNum">     417 </span>                :<span class="lineCov">     162178 :     void Init(const CWallet* pwalletIn)</span>
+<span class="lineNum">     418 </span>                :            :     {
+<span class="lineNum">     419 </span>                :<span class="lineCov">     162178 :         pwallet = pwalletIn;</span>
+<span class="lineNum">     420 </span>                :<span class="lineCov">     324356 :         mapValue.clear();</span>
+<span class="lineNum">     421 </span>                :<span class="lineCov">     324356 :         vOrderForm.clear();</span>
+<span class="lineNum">     422 </span>                :<span class="lineCov">     162178 :         fTimeReceivedIsTxTime = false;</span>
+<span class="lineNum">     423 </span>                :<span class="lineCov">     162178 :         nTimeReceived = 0;</span>
+<span class="lineNum">     424 </span>                :<span class="lineCov">     162178 :         nTimeSmart = 0;</span>
+<span class="lineNum">     425 </span>                :<span class="lineCov">     162178 :         fFromMe = false;</span>
+<span class="lineNum">     426 </span>                :<span class="lineCov">     162178 :         fDebitCached = false;</span>
+<span class="lineNum">     427 </span>                :<span class="lineCov">     162178 :         fCreditCached = false;</span>
+<span class="lineNum">     428 </span>                :<span class="lineCov">     162178 :         fImmatureCreditCached = false;</span>
+<span class="lineNum">     429 </span>                :<span class="lineCov">     162178 :         fAvailableCreditCached = false;</span>
+<span class="lineNum">     430 </span>                :<span class="lineCov">     162178 :         fWatchDebitCached = false;</span>
+<span class="lineNum">     431 </span>                :<span class="lineCov">     162178 :         fWatchCreditCached = false;</span>
+<span class="lineNum">     432 </span>                :<span class="lineCov">     162178 :         fImmatureWatchCreditCached = false;</span>
+<span class="lineNum">     433 </span>                :<span class="lineCov">     162178 :         fAvailableWatchCreditCached = false;</span>
+<span class="lineNum">     434 </span>                :<span class="lineCov">     162178 :         fChangeCached = false;</span>
+<span class="lineNum">     435 </span>                :<span class="lineCov">     162178 :         fInMempool = false;</span>
+<span class="lineNum">     436 </span>                :<span class="lineCov">     162178 :         nDebitCached = 0;</span>
+<span class="lineNum">     437 </span>                :<span class="lineCov">     162178 :         nCreditCached = 0;</span>
+<span class="lineNum">     438 </span>                :<span class="lineCov">     162178 :         nImmatureCreditCached = 0;</span>
+<span class="lineNum">     439 </span>                :<span class="lineCov">     162178 :         nAvailableCreditCached = 0;</span>
+<span class="lineNum">     440 </span>                :<span class="lineCov">     162178 :         nWatchDebitCached = 0;</span>
+<span class="lineNum">     441 </span>                :<span class="lineCov">     162178 :         nWatchCreditCached = 0;</span>
+<span class="lineNum">     442 </span>                :<span class="lineCov">     162178 :         nAvailableWatchCreditCached = 0;</span>
+<span class="lineNum">     443 </span>                :<span class="lineCov">     162178 :         nImmatureWatchCreditCached = 0;</span>
+<span class="lineNum">     444 </span>                :<span class="lineCov">     162178 :         nChangeCached = 0;</span>
+<span class="lineNum">     445 </span>                :<span class="lineCov">     162178 :         nOrderPos = -1;</span>
+<span class="lineNum">     446 </span>                :<span class="lineCov">     162178 :     }</span>
+<span class="lineNum">     447 </span>                :            : 
+<span class="lineNum">     448 </span>                :            :     template&lt;typename Stream&gt;
+<span class="lineNum">     449 </span>                :<span class="lineCov">      20086 :     void Serialize(Stream&amp; s) const</span>
+<span class="lineNum">     450 </span>                :            :     {
+<span class="lineNum">     451 </span>                :<span class="lineCov">      20086 :         char fSpent = false;</span>
+<span class="lineNum">     452 </span>                :<span class="lineCov">      60258 :         mapValue_t mapValueCopy = mapValue;</span>
+<span class="lineNum">     453 </span>                :            : 
+<span class="lineNum">     454 </span>[<span class="branchCov" title="Branch 1 was taken 20086 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 20086 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      20086 :         mapValueCopy[&quot;fromaccount&quot;] = &quot;&quot;;</span>
+<span class="lineNum">     455 </span>        [<span class="branchCov" title="Branch 1 was taken 20086 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      20086 :         WriteOrderPos(nOrderPos, mapValueCopy);</span>
+<span class="lineNum">     456 </span>        [<span class="branchCov" title="Branch 0 was taken 20086 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      20086 :         if (nTimeSmart) {</span>
+<span class="lineNum">     457 </span>[<span class="branchCov" title="Branch 1 was taken 20086 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 20086 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      40172 :             mapValueCopy[&quot;timesmart&quot;] = strprintf(&quot;%u&quot;, nTimeSmart);</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 20086 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     458 </span>                :            :         }
+<span class="lineNum">     459 </span>                :            : 
+<span class="lineNum">     460 </span>                :<span class="lineCov">      40172 :         s &lt;&lt; static_cast&lt;const CMerkleTx&amp;&gt;(*this);</span>
+<span class="lineNum">     461 </span>                :<span class="lineCov">      20086 :         std::vector&lt;CMerkleTx&gt; vUnused; //!&lt; Used to be vtxPrev</span>
+<span class="lineNum">     462 </span>                :<span class="lineCov">     140602 :         s &lt;&lt; vUnused &lt;&lt; mapValueCopy &lt;&lt; vOrderForm &lt;&lt; fTimeReceivedIsTxTime &lt;&lt; nTimeReceived &lt;&lt; fFromMe &lt;&lt; fSpent;</span>
+<span class="lineNum">     463 </span>                :<span class="lineCov">      20086 :     }</span>
+<span class="lineNum">     464 </span>                :            : 
+<span class="lineNum">     465 </span>                :            :     template&lt;typename Stream&gt;
+<span class="lineNum">     466 </span>                :<span class="lineCov">       6114 :     void Unserialize(Stream&amp; s)</span>
+<span class="lineNum">     467 </span>                :            :     {
+<span class="lineNum">     468 </span>                :<span class="lineCov">       6114 :         Init(nullptr);</span>
+<span class="lineNum">     469 </span>                :            :         char fSpent;
+<span class="lineNum">     470 </span>                :            : 
+<span class="lineNum">     471 </span>                :<span class="lineCov">      12228 :         s &gt;&gt; static_cast&lt;CMerkleTx&amp;&gt;(*this);</span>
+<span class="lineNum">     472 </span>                :<span class="lineCov">       6114 :         std::vector&lt;CMerkleTx&gt; vUnused; //!&lt; Used to be vtxPrev</span>
+<span class="lineNum">     473 </span>                :<span class="lineCov">      42798 :         s &gt;&gt; vUnused &gt;&gt; mapValue &gt;&gt; vOrderForm &gt;&gt; fTimeReceivedIsTxTime &gt;&gt; nTimeReceived &gt;&gt; fFromMe &gt;&gt; fSpent;</span>
+<span class="lineNum">     474 </span>                :            : 
+<span class="lineNum">     475 </span>        [<span class="branchCov" title="Branch 1 was taken 6114 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       6114 :         ReadOrderPos(nOrderPos, mapValue);</span>
+<span class="lineNum">     476 </span>[<span class="branchCov" title="Branch 1 was taken 6114 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 6114 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      12228 :         nTimeSmart = mapValue.count(&quot;timesmart&quot;) ? (unsigned int)atoi64(mapValue[&quot;timesmart&quot;]) : 0;</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 6114 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 6114 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 12 was taken 6114 times"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
+<span class="lineNum">     477 </span>                :            : 
+<span class="lineNum">     478 </span>        [<span class="branchCov" title="Branch 1 was taken 6114 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       6114 :         mapValue.erase(&quot;fromaccount&quot;);</span>
+<span class="lineNum">     479 </span>        [<span class="branchCov" title="Branch 1 was taken 6114 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       6114 :         mapValue.erase(&quot;spent&quot;);</span>
+<span class="lineNum">     480 </span>        [<span class="branchCov" title="Branch 1 was taken 6114 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       6114 :         mapValue.erase(&quot;n&quot;);</span>
+<span class="lineNum">     481 </span>        [<span class="branchCov" title="Branch 1 was taken 6114 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       6114 :         mapValue.erase(&quot;timesmart&quot;);</span>
+<span class="lineNum">     482 </span>                :<span class="lineCov">       6114 :     }</span>
+<span class="lineNum">     483 </span>                :            : 
+<span class="lineNum">     484 </span>                :            :     //! make sure balances are recalculated
+<span class="lineNum">     485 </span>                :            :     void MarkDirty()
+<span class="lineNum">     486 </span>                :            :     {
+<span class="lineNum">     487 </span>                :<span class="lineCov">     382676 :         fCreditCached = false;</span>
+<span class="lineNum">     488 </span>                :<span class="lineCov">     382676 :         fAvailableCreditCached = false;</span>
+<span class="lineNum">     489 </span>                :<span class="lineCov">     382676 :         fImmatureCreditCached = false;</span>
+<span class="lineNum">     490 </span>                :<span class="lineCov">     382676 :         fWatchDebitCached = false;</span>
+<span class="lineNum">     491 </span>                :<span class="lineCov">     382676 :         fWatchCreditCached = false;</span>
+<span class="lineNum">     492 </span>                :<span class="lineCov">     382676 :         fAvailableWatchCreditCached = false;</span>
+<span class="lineNum">     493 </span>                :<span class="lineCov">     382676 :         fImmatureWatchCreditCached = false;</span>
+<span class="lineNum">     494 </span>                :<span class="lineCov">     382676 :         fDebitCached = false;</span>
+<span class="lineNum">     495 </span>                :<span class="lineCov">      12263 :         fChangeCached = false;</span>
+<span class="lineNum">     496 </span>                :            :     }
+<span class="lineNum">     497 </span>                :            : 
+<span class="lineNum">     498 </span>                :            :     void BindWallet(CWallet *pwalletIn)
+<span class="lineNum">     499 </span>                :            :     {
+<span class="lineNum">     500 </span>                :<span class="lineCov">     158906 :         pwallet = pwalletIn;</span>
+<span class="lineNum">     501 </span>                :<span class="lineCov">     158906 :         MarkDirty();</span>
+<span class="lineNum">     502 </span>                :            :     }
+<span class="lineNum">     503 </span>                :            : 
+<span class="lineNum">     504 </span>                :            :     //! filter decides which addresses will count towards the debit
+<span class="lineNum">     505 </span>                :            :     CAmount GetDebit(const isminefilter&amp; filter) const;
+<span class="lineNum">     506 </span>                :            :     CAmount GetCredit(interfaces::Chain::Lock&amp; locked_chain, const isminefilter&amp; filter) const;
+<span class="lineNum">     507 </span>                :            :     CAmount GetImmatureCredit(interfaces::Chain::Lock&amp; locked_chain, bool fUseCache=true) const;
+<span class="lineNum">     508 </span>                :            :     // TODO: Remove &quot;NO_THREAD_SAFETY_ANALYSIS&quot; and replace it with the correct
+<span class="lineNum">     509 </span>                :            :     // annotation &quot;EXCLUSIVE_LOCKS_REQUIRED(pwallet-&gt;cs_wallet)&quot;. The
+<span class="lineNum">     510 </span>                :            :     // annotation &quot;NO_THREAD_SAFETY_ANALYSIS&quot; was temporarily added to avoid
+<span class="lineNum">     511 </span>                :            :     // having to resolve the issue of member access into incomplete type CWallet.
+<span class="lineNum">     512 </span>                :            :     CAmount GetAvailableCredit(interfaces::Chain::Lock&amp; locked_chain, bool fUseCache=true, const isminefilter&amp; filter=ISMINE_SPENDABLE) const NO_THREAD_SAFETY_ANALYSIS;
+<span class="lineNum">     513 </span>                :            :     CAmount GetImmatureWatchOnlyCredit(interfaces::Chain::Lock&amp; locked_chain, const bool fUseCache=true) const;
+<span class="lineNum">     514 </span>                :            :     CAmount GetChange() const;
+<span class="lineNum">     515 </span>                :            : 
+<span class="lineNum">     516 </span>                :            :     // Get the marginal bytes if spending the specified output from this transaction
+<span class="lineNum">     517 </span>                :            :     int GetSpendSize(unsigned int out, bool use_max_sig = false) const
+<span class="lineNum">     518 </span>                :            :     {
+<span class="lineNum">     519 </span>        [<span class="branchCov" title="Branch 1 was taken 109990 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     173131 :         return CalculateMaximumSignedInputSize(tx-&gt;vout[out], pwallet, use_max_sig);</span>
+<span class="lineNum">     520 </span>                :            :     }
+<span class="lineNum">     521 </span>                :            : 
+<span class="lineNum">     522 </span>                :            :     void GetAmounts(std::list&lt;COutputEntry&gt;&amp; listReceived,
+<span class="lineNum">     523 </span>                :            :                     std::list&lt;COutputEntry&gt;&amp; listSent, CAmount&amp; nFee, const isminefilter&amp; filter) const;
+<span class="lineNum">     524 </span>                :            : 
+<span class="lineNum">     525 </span>                :            :     bool IsFromMe(const isminefilter&amp; filter) const
+<span class="lineNum">     526 </span>                :            :     {
+<span class="lineNum">     527 </span>[<span class="branchCov" title="Branch 1 was taken 60787 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 30017 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     110270 :         return (GetDebit(filter) &gt; 0);</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 226 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 5187 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     528 </span>                :            :     }
+<span class="lineNum">     529 </span>                :            : 
+<span class="lineNum">     530 </span>                :            :     // True if only scriptSigs are different
+<span class="lineNum">     531 </span>                :            :     bool IsEquivalentTo(const CWalletTx&amp; tx) const;
+<span class="lineNum">     532 </span>                :            : 
+<span class="lineNum">     533 </span>                :            :     bool InMempool() const;
+<span class="lineNum">     534 </span>                :            :     bool IsTrusted(interfaces::Chain::Lock&amp; locked_chain) const;
+<span class="lineNum">     535 </span>                :            : 
+<span class="lineNum">     536 </span>                :            :     int64_t GetTxTime() const;
+<span class="lineNum">     537 </span>                :            : 
+<span class="lineNum">     538 </span>                :            :     // RelayWalletTransaction may only be called if fBroadcastTransactions!
+<span class="lineNum">     539 </span>                :            :     bool RelayWalletTransaction(interfaces::Chain::Lock&amp; locked_chain);
+<span class="lineNum">     540 </span>                :            : 
+<span class="lineNum">     541 </span>                :            :     /** Pass this transaction to the mempool. Fails if absolute fee exceeds absurd fee. */
+<span class="lineNum">     542 </span>                :            :     bool AcceptToMemoryPool(interfaces::Chain::Lock&amp; locked_chain, CValidationState&amp; state);
+<span class="lineNum">     543 </span>                :            : 
+<span class="lineNum">     544 </span>                :            :     // TODO: Remove &quot;NO_THREAD_SAFETY_ANALYSIS&quot; and replace it with the correct
+<span class="lineNum">     545 </span>                :            :     // annotation &quot;EXCLUSIVE_LOCKS_REQUIRED(pwallet-&gt;cs_wallet)&quot;. The annotation
+<span class="lineNum">     546 </span>                :            :     // &quot;NO_THREAD_SAFETY_ANALYSIS&quot; was temporarily added to avoid having to
+<span class="lineNum">     547 </span>                :            :     // resolve the issue of member access into incomplete type CWallet. Note
+<span class="lineNum">     548 </span>                :            :     // that we still have the runtime check &quot;AssertLockHeld(pwallet-&gt;cs_wallet)&quot;
+<span class="lineNum">     549 </span>                :            :     // in place.
+<span class="lineNum">     550 </span>                :            :     std::set&lt;uint256&gt; GetConflicts() const NO_THREAD_SAFETY_ANALYSIS;
+<span class="lineNum">     551 </span>                :            : };
+<span class="lineNum">     552 </span>                :            : 
+<span class="lineNum">     553 </span>                :            : class COutput
+<span class="lineNum">     554 </span>                :            : {
+<span class="lineNum">     555 </span>                :            : public:
+<span class="lineNum">     556 </span>                :            :     const CWalletTx *tx;
+<span class="lineNum">     557 </span>                :            :     int i;
+<span class="lineNum">     558 </span>                :            :     int nDepth;
+<span class="lineNum">     559 </span>                :            : 
+<span class="lineNum">     560 </span>                :            :     /** Pre-computed estimated size of this output as a fully-signed input in a transaction. Can be -1 if it could not be calculated */
+<span class="lineNum">     561 </span>                :            :     int nInputBytes;
+<span class="lineNum">     562 </span>                :            : 
+<span class="lineNum">     563 </span>                :            :     /** Whether we have the private keys to spend this output */
+<span class="lineNum">     564 </span>                :            :     bool fSpendable;
+<span class="lineNum">     565 </span>                :            : 
+<span class="lineNum">     566 </span>                :            :     /** Whether we know how to spend this output, ignoring the lack of keys */
+<span class="lineNum">     567 </span>                :            :     bool fSolvable;
+<span class="lineNum">     568 </span>                :            : 
+<span class="lineNum">     569 </span>                :            :     /** Whether to use the maximum sized, 72 byte signature when calculating the size of the input spend. This should only be set when watch-only outputs are allowed */
+<span class="lineNum">     570 </span>                :            :     bool use_max_sig;
+<span class="lineNum">     571 </span>                :            : 
+<span class="lineNum">     572 </span>                :            :     /**
+<span class="lineNum">     573 </span>                :            :      * Whether this output is considered safe to spend. Unconfirmed transactions
+<span class="lineNum">     574 </span>                :            :      * from outside keys and unconfirmed replacement transactions are considered
+<span class="lineNum">     575 </span>                :            :      * unsafe and will not be used to fund new spending transactions.
+<span class="lineNum">     576 </span>                :            :      */
+<a name="577"><span class="lineNum">     577 </span>                :            :     bool fSafe;</a>
+<span class="lineNum">     578 </span>                :            : 
+<span class="lineNum">     579 </span>                :<span class="lineCov">      64332 :     COutput(const CWalletTx *txIn, int iIn, int nDepthIn, bool fSpendableIn, bool fSolvableIn, bool fSafeIn, bool use_max_sig_in = false)</span>
+<span class="lineNum">     580 </span>                :<span class="lineCov">     174322 :     {</span>
+<span class="lineNum">     581 </span>                :<span class="lineCov">     174322 :         tx = txIn; i = iIn; nDepth = nDepthIn; fSpendable = fSpendableIn; fSolvable = fSolvableIn; fSafe = fSafeIn; nInputBytes = -1; use_max_sig = use_max_sig_in;</span>
+<span class="lineNum">     582 </span>                :            :         // If known and signable by the given wallet, compute nInputBytes
+<span class="lineNum">     583 </span>                :            :         // Failure will keep this value -1
+<span class="lineNum">     584 </span>[<span class="branchCov" title="Branch 0 was taken 173131 times"> + </span><span class="branchCov" title="Branch 1 was taken 1191 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 63141 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     174322 :         if (fSpendable &amp;&amp; tx) {</span>
+<span class="lineNum">     585 </span>                :<span class="lineCov">     173131 :             nInputBytes = tx-&gt;GetSpendSize(i, use_max_sig);</span>
+<span class="lineNum">     586 </span>                :            :         }
+<span class="lineNum">     587 </span>                :<span class="lineCov">      64332 :     }</span>
+<span class="lineNum">     588 </span>                :            : 
+<span class="lineNum">     589 </span>                :            :     std::string ToString() const;
+<span class="lineNum">     590 </span>                :            : 
+<span class="lineNum">     591 </span>                :            :     inline CInputCoin GetInputCoin() const
+<span class="lineNum">     592 </span>                :            :     {
+<span class="lineNum">     593 </span>                :<span class="lineCov">    1541080 :         return CInputCoin(tx-&gt;tx, i, nInputBytes);</span>
+<span class="lineNum">     594 </span>                :            :     }
+<span class="lineNum">     595 </span>                :            : };
+<span class="lineNum">     596 </span>                :            : 
+<span class="lineNum">     597 </span>                :            : /** Private key that includes an expiration date in case it never gets used. */
+<span class="lineNum">     598 </span>                :<span class="lineNoCov">          0 : class CWalletKey</span>
+<span class="lineNum">     599 </span>                :            : {
+<span class="lineNum">     600 </span>                :            : public:
+<span class="lineNum">     601 </span>                :            :     CPrivKey vchPrivKey;
+<span class="lineNum">     602 </span>                :            :     int64_t nTimeCreated;
+<span class="lineNum">     603 </span>                :            :     int64_t nTimeExpires;
+<span class="lineNum">     604 </span>                :            :     std::string strComment;
+<span class="lineNum">     605 </span>                :            :     // todo: add something to note what created it (user, getnewaddress, change)
+<span class="lineNum">     606 </span>                :            :     //   maybe should have a map&lt;string, string&gt; property map
+<span class="lineNum">     607 </span>                :            : 
+<span class="lineNum">     608 </span>                :            :     explicit CWalletKey(int64_t nExpires=0);
+<span class="lineNum">     609 </span>                :            : 
+<span class="lineNum">     610 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     ADD_SERIALIZE_METHODS;</span>
+<a name="611"><span class="lineNum">     611 </span>                :            : </a>
+<span class="lineNum">     612 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
+<span class="lineNum">     613 </span>                :<span class="lineNoCov">          0 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">     614 </span>                :<span class="lineNoCov">          0 :         int nVersion = s.GetVersion();</span>
+<span class="lineNum">     615 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!(s.GetType() &amp; SER_GETHASH))</span>
+<span class="lineNum">     616 </span>                :            :             READWRITE(nVersion);
+<span class="lineNum">     617 </span>                :<span class="lineNoCov">          0 :         READWRITE(vchPrivKey);</span>
+<span class="lineNum">     618 </span>                :<span class="lineNoCov">          0 :         READWRITE(nTimeCreated);</span>
+<span class="lineNum">     619 </span>                :<span class="lineNoCov">          0 :         READWRITE(nTimeExpires);</span>
+<span class="lineNum">     620 </span>                :<span class="lineNoCov">          0 :         READWRITE(LIMITED_STRING(strComment, 65536));</span>
+<span class="lineNum">     621 </span>                :<span class="lineNoCov">          0 :     }</span>
+<span class="lineNum">     622 </span>                :            : };
+<span class="lineNum">     623 </span>                :            : 
+<span class="lineNum">     624 </span>                :            : struct CoinSelectionParams
+<span class="lineNum">     625 </span>                :            : {
+<span class="lineNum">     626 </span>                :            :     bool use_bnb = true;
+<span class="lineNum">     627 </span>                :            :     size_t change_output_size = 0;
+<span class="lineNum">     628 </span>                :            :     size_t change_spend_size = 0;
+<span class="lineNum">     629 </span>                :            :     CFeeRate effective_fee = CFeeRate(0);
+<span class="lineNum">     630 </span>                :            :     size_t tx_noinputs_size = 0;
+<span class="lineNum">     631 </span>                :            : 
+<span class="lineNum">     632 </span>                :<span class="lineCov">        275 :     CoinSelectionParams(bool use_bnb, size_t change_output_size, size_t change_spend_size, CFeeRate effective_fee, size_t tx_noinputs_size) : use_bnb(use_bnb), change_output_size(change_output_size), change_spend_size(change_spend_size), effective_fee(effective_fee), tx_noinputs_size(tx_noinputs_size) {}</span>
+<span class="lineNum">     633 </span>                :<span class="lineCov">       1388 :     CoinSelectionParams() {}</span>
+<span class="lineNum">     634 </span>                :            : };
+<span class="lineNum">     635 </span>                :            : 
+<span class="lineNum">     636 </span>                :            : class WalletRescanReserver; //forward declarations for ScanForWalletTransactions/RescanFromTime
+<span class="lineNum">     637 </span>                :            : /**
+<span class="lineNum">     638 </span>                :            :  * A CWallet is an extension of a keystore, which also maintains a set of transactions and balances,
+<span class="lineNum">     639 </span>                :            :  * and provides the ability to create new transactions.
+<span class="lineNum">     640 </span>                :            :  */
+<span class="lineNum">     641 </span>                :            : class CWallet final : public CCryptoKeyStore, private interfaces::Chain::Notifications
+<span class="lineNum">     642 </span>                :            : {
+<span class="lineNum">     643 </span>                :            : private:
+<span class="lineNum">     644 </span>                :            :     std::atomic&lt;bool&gt; fAbortRescan{false};
+<span class="lineNum">     645 </span>                :            :     std::atomic&lt;bool&gt; fScanningWallet{false}; // controlled by WalletRescanReserver
+<span class="lineNum">     646 </span>                :            :     std::mutex mutexScanning;
+<span class="lineNum">     647 </span>                :            :     friend class WalletRescanReserver;
+<span class="lineNum">     648 </span>                :            : 
+<span class="lineNum">     649 </span>                :            :     WalletBatch *encrypted_batch GUARDED_BY(cs_wallet) = nullptr;
+<span class="lineNum">     650 </span>                :            : 
+<span class="lineNum">     651 </span>                :            :     //! the current wallet version: clients below this version are not able to load the wallet
+<span class="lineNum">     652 </span>                :            :     int nWalletVersion GUARDED_BY(cs_wallet){FEATURE_BASE};
+<span class="lineNum">     653 </span>                :            : 
+<span class="lineNum">     654 </span>                :            :     //! the maximum wallet format version: memory-only variable that specifies to what version this wallet may be upgraded
+<span class="lineNum">     655 </span>                :            :     int nWalletMaxVersion GUARDED_BY(cs_wallet) = FEATURE_BASE;
+<span class="lineNum">     656 </span>                :            : 
+<span class="lineNum">     657 </span>                :            :     int64_t nNextResend = 0;
+<span class="lineNum">     658 </span>                :            :     int64_t nLastResend = 0;
+<span class="lineNum">     659 </span>                :            :     bool fBroadcastTransactions = false;
+<span class="lineNum">     660 </span>                :            : 
+<span class="lineNum">     661 </span>                :            :     /**
+<span class="lineNum">     662 </span>                :            :      * Used to keep track of spent outpoints, and
+<span class="lineNum">     663 </span>                :            :      * detect and report conflicts (double-spends or
+<span class="lineNum">     664 </span>                :            :      * mutated transactions where the mutant gets mined).
+<span class="lineNum">     665 </span>                :            :      */
+<span class="lineNum">     666 </span>                :            :     typedef std::multimap&lt;COutPoint, uint256&gt; TxSpends;
+<span class="lineNum">     667 </span>                :            :     TxSpends mapTxSpends GUARDED_BY(cs_wallet);
+<span class="lineNum">     668 </span>                :            :     void AddToSpends(const COutPoint&amp; outpoint, const uint256&amp; wtxid) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     669 </span>                :            :     void AddToSpends(const uint256&amp; wtxid) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     670 </span>                :            : 
+<span class="lineNum">     671 </span>                :            :     /**
+<span class="lineNum">     672 </span>                :            :      * Add a transaction to the wallet, or update it.  pIndex and posInBlock should
+<span class="lineNum">     673 </span>                :            :      * be set when the transaction was known to be included in a block.  When
+<span class="lineNum">     674 </span>                :            :      * pIndex == nullptr, then wallet state is not updated in AddToWallet, but
+<span class="lineNum">     675 </span>                :            :      * notifications happen and cached balances are marked dirty.
+<span class="lineNum">     676 </span>                :            :      *
+<span class="lineNum">     677 </span>                :            :      * If fUpdate is true, existing transactions will be updated.
+<span class="lineNum">     678 </span>                :            :      * TODO: One exception to this is that the abandoned state is cleared under the
+<span class="lineNum">     679 </span>                :            :      * assumption that any further notification of a transaction that was considered
+<span class="lineNum">     680 </span>                :            :      * abandoned is an indication that it is not safe to be considered abandoned.
+<span class="lineNum">     681 </span>                :            :      * Abandoned state should probably be more carefully tracked via different
+<span class="lineNum">     682 </span>                :            :      * posInBlock signals or by checking mempool presence when necessary.
+<span class="lineNum">     683 </span>                :            :      */
+<span class="lineNum">     684 </span>                :            :     bool AddToWalletIfInvolvingMe(const CTransactionRef&amp; tx, const uint256&amp; block_hash, int posInBlock, bool fUpdate) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     685 </span>                :            : 
+<span class="lineNum">     686 </span>                :            :     /* Mark a transaction (and its in-wallet descendants) as conflicting with a particular block. */
+<span class="lineNum">     687 </span>                :            :     void MarkConflicted(const uint256&amp; hashBlock, const uint256&amp; hashTx);
+<span class="lineNum">     688 </span>                :            : 
+<span class="lineNum">     689 </span>                :            :     /* Mark a transaction's inputs dirty, thus forcing the outputs to be recomputed */
+<span class="lineNum">     690 </span>                :            :     void MarkInputsDirty(const CTransactionRef&amp; tx) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     691 </span>                :            : 
+<span class="lineNum">     692 </span>                :            :     void SyncMetaData(std::pair&lt;TxSpends::iterator, TxSpends::iterator&gt;) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     693 </span>                :            : 
+<span class="lineNum">     694 </span>                :            :     /* Used by TransactionAddedToMemorypool/BlockConnected/Disconnected/ScanForWalletTransactions.
+<span class="lineNum">     695 </span>                :            :      * Should be called with non-zero block_hash and posInBlock if this is for a transaction that is included in a block. */
+<span class="lineNum">     696 </span>                :            :     void SyncTransaction(const CTransactionRef&amp; tx, const uint256&amp; block_hash, int posInBlock = 0, bool update_tx = true) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     697 </span>                :            : 
+<span class="lineNum">     698 </span>                :            :     /* the HD chain data model (external chain counters) */
+<span class="lineNum">     699 </span>                :            :     CHDChain hdChain;
+<span class="lineNum">     700 </span>                :            : 
+<span class="lineNum">     701 </span>                :            :     /* HD derive new child key (on internal or external chain) */
+<span class="lineNum">     702 </span>                :            :     void DeriveNewChildKey(WalletBatch&amp; batch, CKeyMetadata&amp; metadata, CKey&amp; secret, bool internal = false) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     703 </span>                :            : 
+<span class="lineNum">     704 </span>                :            :     std::set&lt;int64_t&gt; setInternalKeyPool GUARDED_BY(cs_wallet);
+<span class="lineNum">     705 </span>                :            :     std::set&lt;int64_t&gt; setExternalKeyPool GUARDED_BY(cs_wallet);
+<span class="lineNum">     706 </span>                :            :     std::set&lt;int64_t&gt; set_pre_split_keypool GUARDED_BY(cs_wallet);
+<span class="lineNum">     707 </span>                :            :     int64_t m_max_keypool_index GUARDED_BY(cs_wallet) = 0;
+<span class="lineNum">     708 </span>                :            :     std::map&lt;CKeyID, int64_t&gt; m_pool_key_to_index;
+<span class="lineNum">     709 </span>                :            :     std::atomic&lt;uint64_t&gt; m_wallet_flags{0};
+<span class="lineNum">     710 </span>                :            : 
+<span class="lineNum">     711 </span>                :            :     int64_t nTimeFirstKey GUARDED_BY(cs_wallet) = 0;
+<span class="lineNum">     712 </span>                :            : 
+<span class="lineNum">     713 </span>                :            :     /**
+<span class="lineNum">     714 </span>                :            :      * Private version of AddWatchOnly method which does not accept a
+<span class="lineNum">     715 </span>                :            :      * timestamp, and which will reset the wallet's nTimeFirstKey value to 1 if
+<span class="lineNum">     716 </span>                :            :      * the watch key did not previously have a timestamp associated with it.
+<span class="lineNum">     717 </span>                :            :      * Because this is an inherited virtual method, it is accessible despite
+<span class="lineNum">     718 </span>                :            :      * being marked private, but it is marked private anyway to encourage use
+<span class="lineNum">     719 </span>                :            :      * of the other AddWatchOnly which accepts a timestamp and sets
+<span class="lineNum">     720 </span>                :            :      * nTimeFirstKey more intelligently for more efficient rescans.
+<span class="lineNum">     721 </span>                :            :      */
+<span class="lineNum">     722 </span>                :            :     bool AddWatchOnly(const CScript&amp; dest) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     723 </span>                :            : 
+<span class="lineNum">     724 </span>                :            :     /** Interface for accessing chain state. */
+<span class="lineNum">     725 </span>                :            :     interfaces::Chain&amp; m_chain;
+<span class="lineNum">     726 </span>                :            : 
+<span class="lineNum">     727 </span>                :            :     /** Wallet location which includes wallet name (see WalletLocation). */
+<span class="lineNum">     728 </span>                :            :     WalletLocation m_location;
+<span class="lineNum">     729 </span>                :            : 
+<span class="lineNum">     730 </span>                :            :     /** Internal database handle. */
+<span class="lineNum">     731 </span>                :            :     std::unique_ptr&lt;WalletDatabase&gt; database;
+<span class="lineNum">     732 </span>                :            : 
+<span class="lineNum">     733 </span>                :            :     /**
+<span class="lineNum">     734 </span>                :            :      * The following is used to keep track of how far behind the wallet is
+<span class="lineNum">     735 </span>                :            :      * from the chain sync, and to allow clients to block on us being caught up.
+<span class="lineNum">     736 </span>                :            :      *
+<span class="lineNum">     737 </span>                :            :      * Note that this is *not* how far we've processed, we may need some rescan
+<span class="lineNum">     738 </span>                :            :      * to have seen all transactions in the chain, but is only used to track
+<span class="lineNum">     739 </span>                :            :      * live BlockConnected callbacks.
+<span class="lineNum">     740 </span>                :            :      */
+<span class="lineNum">     741 </span>                :            :     uint256 m_last_block_processed;
+<span class="lineNum">     742 </span>                :            : 
+<span class="lineNum">     743 </span>                :            : public:
+<span class="lineNum">     744 </span>                :            :     /*
+<span class="lineNum">     745 </span>                :            :      * Main wallet lock.
+<span class="lineNum">     746 </span>                :            :      * This lock protects all the fields added by CWallet.
+<span class="lineNum">     747 </span>                :            :      */
+<span class="lineNum">     748 </span>                :            :     mutable CCriticalSection cs_wallet;
+<span class="lineNum">     749 </span>                :            : 
+<span class="lineNum">     750 </span>                :            :     /** Get database handle used by this wallet. Ideally this function would
+<span class="lineNum">     751 </span>                :            :      * not be necessary.
+<span class="lineNum">     752 </span>                :            :      */
+<span class="lineNum">     753 </span>                :            :     WalletDatabase&amp; GetDBHandle()
+<span class="lineNum">     754 </span>                :            :     {
+<span class="lineNum">     755 </span>                :<span class="lineCov">      18072 :         return *database;</span>
+<span class="lineNum">     756 </span>                :            :     }
+<span class="lineNum">     757 </span>                :            : 
+<span class="lineNum">     758 </span>                :            :     /**
+<span class="lineNum">     759 </span>                :            :      * Select a set of coins such that nValueRet &gt;= nTargetValue and at least
+<span class="lineNum">     760 </span>                :            :      * all coins from coinControl are selected; Never select unconfirmed coins
+<span class="lineNum">     761 </span>                :            :      * if they are not ours
+<span class="lineNum">     762 </span>                :            :      */
+<span class="lineNum">     763 </span>                :            :     bool SelectCoins(const std::vector&lt;COutput&gt;&amp; vAvailableCoins, const CAmount&amp; nTargetValue, std::set&lt;CInputCoin&gt;&amp; setCoinsRet, CAmount&amp; nValueRet,
+<span class="lineNum">     764 </span>                :            :                     const CCoinControl&amp; coin_control, CoinSelectionParams&amp; coin_selection_params, bool&amp; bnb_used) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     765 </span>                :            : 
+<span class="lineNum">     766 </span>                :            :     const WalletLocation&amp; GetLocation() const { return m_location; }
+<span class="lineNum">     767 </span>                :            : 
+<span class="lineNum">     768 </span>                :            :     /** Get a name for this wallet for logging/debugging purposes.
+<span class="lineNum">     769 </span>                :            :      */
+<span class="lineNum">     770 </span>                :<span class="lineCov">     172307 :     const std::string&amp; GetName() const { return m_location.GetName(); }</span>
+<span class="lineNum">     771 </span>                :            : 
+<span class="lineNum">     772 </span>                :            :     void LoadKeyPool(int64_t nIndex, const CKeyPool &amp;keypool) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     773 </span>                :            :     void MarkPreSplitKeys() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     774 </span>                :            : 
+<span class="lineNum">     775 </span>                :            :     // Map from Key ID to key metadata.
+<span class="lineNum">     776 </span>                :            :     std::map&lt;CKeyID, CKeyMetadata&gt; mapKeyMetadata GUARDED_BY(cs_wallet);
+<span class="lineNum">     777 </span>                :            : 
+<span class="lineNum">     778 </span>                :            :     // Map from Script ID to key metadata (for watch-only keys).
+<span class="lineNum">     779 </span>                :            :     std::map&lt;CScriptID, CKeyMetadata&gt; m_script_metadata GUARDED_BY(cs_wallet);
+<span class="lineNum">     780 </span>                :            : 
+<span class="lineNum">     781 </span>                :            :     bool WriteKeyMetadata(const CKeyMetadata&amp; meta, const CPubKey&amp; pubkey, bool overwrite);
+<span class="lineNum">     782 </span>                :            : 
+<span class="lineNum">     783 </span>                :            :     typedef std::map&lt;unsigned int, CMasterKey&gt; MasterKeyMap;
+<span class="lineNum">     784 </span>                :            :     MasterKeyMap mapMasterKeys;
+<span class="lineNum">     785 </span>                :            :     unsigned int nMasterKeyMaxID = 0;
+<a name="786"><span class="lineNum">     786 </span>                :            : </a>
+<span class="lineNum">     787 </span>                :            :     /** Construct wallet with specified name and database implementation. */
+<span class="lineNum">     788 </span>[<span class="branchCov" title="Branch 3 was taken 581 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>][<span class="branchCov" title="Branch 6 was taken 581 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]:<span class="lineCov">       1162 :     CWallet(interfaces::Chain&amp; chain, const WalletLocation&amp; location, std::unique_ptr&lt;WalletDatabase&gt; database) : m_chain(chain), m_location(location), database(std::move(database))</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 581 times"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 581 times"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 15 was taken 581 times"> + </span><span class="branchNoCov" title="Branch 16 was not taken"> - </span>][<span class="branchCov" title="Branch 18 was taken 581 times"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 21 was taken 581 times"> + </span><span class="branchNoCov" title="Branch 22 was not taken"> - </span>]
+<span class="lineNum">     789 </span>                :            :     {
+<a name="790"><span class="lineNum">     790 </span>                :<span class="lineCov">        581 :     }</span></a>
+<span class="lineNum">     791 </span>                :            : 
+<span class="lineNum">     792 </span>                :<span class="lineCov">        581 :     ~CWallet()</span>
+<span class="lineNum">     793 </span>                :<span class="lineCov">       1162 :     {</span>
+<span class="lineNum">     794 </span>                :            :         // Should not have slots connected at this point.
+<span class="lineNum">     795 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 581 times"> + </span>]:<span class="lineCov">        581 :         assert(NotifyUnload.empty());</span>
+<span class="lineNum">     796 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 581 times"> + </span>]:<span class="lineCov">        581 :         delete encrypted_batch;</span>
+<span class="lineNum">     797 </span>                :<span class="lineCov">        581 :         encrypted_batch = nullptr;</span>
+<span class="lineNum">     798 </span>                :<span class="lineCov">        490 :     }</span>
+<span class="lineNum">     799 </span>                :            : 
+<span class="lineNum">     800 </span>                :            :     std::map&lt;uint256, CWalletTx&gt; mapWallet GUARDED_BY(cs_wallet);
+<span class="lineNum">     801 </span>                :            : 
+<span class="lineNum">     802 </span>                :            :     typedef std::multimap&lt;int64_t, CWalletTx*&gt; TxItems;
+<span class="lineNum">     803 </span>                :            :     TxItems wtxOrdered;
+<span class="lineNum">     804 </span>                :            : 
+<span class="lineNum">     805 </span>                :            :     int64_t nOrderPosNext GUARDED_BY(cs_wallet) = 0;
+<span class="lineNum">     806 </span>                :            :     uint64_t nAccountingEntryNumber = 0;
+<span class="lineNum">     807 </span>                :            : 
+<span class="lineNum">     808 </span>                :            :     std::map&lt;CTxDestination, CAddressBookData&gt; mapAddressBook GUARDED_BY(cs_wallet);
+<span class="lineNum">     809 </span>                :            : 
+<span class="lineNum">     810 </span>                :            :     std::set&lt;COutPoint&gt; setLockedCoins GUARDED_BY(cs_wallet);
+<span class="lineNum">     811 </span>                :            : 
+<span class="lineNum">     812 </span>                :            :     /** Registered interfaces::Chain::Notifications handler. */
+<span class="lineNum">     813 </span>                :            :     std::unique_ptr&lt;interfaces::Handler&gt; m_chain_notifications_handler;
+<span class="lineNum">     814 </span>                :            : 
+<span class="lineNum">     815 </span>                :            :     /** Interface for accessing chain state. */
+<span class="lineNum">     816 </span>                :<span class="lineCov">     613989 :     interfaces::Chain&amp; chain() const { return m_chain; }</span>
+<span class="lineNum">     817 </span>                :            : 
+<span class="lineNum">     818 </span>                :            :     const CWalletTx* GetWalletTx(const uint256&amp; hash) const;
+<span class="lineNum">     819 </span>                :            : 
+<span class="lineNum">     820 </span>                :            :     //! check whether we are allowed to upgrade (or already support) to the named feature
+<span class="lineNum">     821 </span>                :<span class="lineCov">      29824 :     bool CanSupportFeature(enum WalletFeature wf) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet) { AssertLockHeld(cs_wallet); return nWalletMaxVersion &gt;= wf; }</span>
+<span class="lineNum">     822 </span>                :            : 
+<span class="lineNum">     823 </span>                :            :     /**
+<span class="lineNum">     824 </span>                :            :      * populate vCoins with vector of available COutputs.
+<span class="lineNum">     825 </span>                :            :      */
+<span class="lineNum">     826 </span>                :            :     void AvailableCoins(interfaces::Chain::Lock&amp; locked_chain, std::vector&lt;COutput&gt;&amp; vCoins, bool fOnlySafe=true, const CCoinControl *coinControl = nullptr, const CAmount&amp; nMinimumAmount = 1, const CAmount&amp; nMaximumAmount = MAX_MONEY, const CAmount&amp; nMinimumSumAmount = MAX_MONEY, const uint64_t nMaximumCount = 0, const int nMinDepth = 0, const int nMaxDepth = 9999999) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     827 </span>                :            : 
+<span class="lineNum">     828 </span>                :            :     /**
+<span class="lineNum">     829 </span>                :            :      * Return list of available coins and locked coins grouped by non-change output address.
+<span class="lineNum">     830 </span>                :            :      */
+<span class="lineNum">     831 </span>                :            :     std::map&lt;CTxDestination, std::vector&lt;COutput&gt;&gt; ListCoins(interfaces::Chain::Lock&amp; locked_chain) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     832 </span>                :            : 
+<span class="lineNum">     833 </span>                :            :     /**
+<span class="lineNum">     834 </span>                :            :      * Find non-change parent output.
+<span class="lineNum">     835 </span>                :            :      */
+<span class="lineNum">     836 </span>                :            :     const CTxOut&amp; FindNonChangeParentOutput(const CTransaction&amp; tx, int output) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     837 </span>                :            : 
+<span class="lineNum">     838 </span>                :            :     /**
+<span class="lineNum">     839 </span>                :            :      * Shuffle and select coins until nTargetValue is reached while avoiding
+<span class="lineNum">     840 </span>                :            :      * small change; This method is stochastic for some inputs and upon
+<span class="lineNum">     841 </span>                :            :      * completion the coin set and corresponding actual target value is
+<span class="lineNum">     842 </span>                :            :      * assembled
+<span class="lineNum">     843 </span>                :            :      */
+<span class="lineNum">     844 </span>                :            :     bool SelectCoinsMinConf(const CAmount&amp; nTargetValue, const CoinEligibilityFilter&amp; eligibility_filter, std::vector&lt;OutputGroup&gt; groups,
+<span class="lineNum">     845 </span>                :            :         std::set&lt;CInputCoin&gt;&amp; setCoinsRet, CAmount&amp; nValueRet, const CoinSelectionParams&amp; coin_selection_params, bool&amp; bnb_used) const;
+<span class="lineNum">     846 </span>                :            : 
+<span class="lineNum">     847 </span>                :            :     bool IsSpent(interfaces::Chain::Lock&amp; locked_chain, const uint256&amp; hash, unsigned int n) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     848 </span>                :            :     std::vector&lt;OutputGroup&gt; GroupOutputs(const std::vector&lt;COutput&gt;&amp; outputs, bool single_coin) const;
+<span class="lineNum">     849 </span>                :            : 
+<span class="lineNum">     850 </span>                :            :     bool IsLockedCoin(uint256 hash, unsigned int n) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     851 </span>                :            :     void LockCoin(const COutPoint&amp; output) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     852 </span>                :            :     void UnlockCoin(const COutPoint&amp; output) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     853 </span>                :            :     void UnlockAllCoins() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     854 </span>                :            :     void ListLockedCoins(std::vector&lt;COutPoint&gt;&amp; vOutpts) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     855 </span>                :            : 
+<span class="lineNum">     856 </span>                :            :     /*
+<span class="lineNum">     857 </span>                :            :      * Rescan abort properties
+<span class="lineNum">     858 </span>                :            :      */
+<span class="lineNum">     859 </span>                :<span class="lineNoCov">          0 :     void AbortRescan() { fAbortRescan = true; }</span>
+<span class="lineNum">     860 </span>                :<span class="lineCov">        656 :     bool IsAbortingRescan() { return fAbortRescan; }</span>
+<span class="lineNum">     861 </span>                :<span class="lineNoCov">          0 :     bool IsScanning() { return fScanningWallet; }</span>
+<span class="lineNum">     862 </span>                :            : 
+<span class="lineNum">     863 </span>                :            :     /**
+<span class="lineNum">     864 </span>                :            :      * keystore implementation
+<span class="lineNum">     865 </span>                :            :      * Generate a new key
+<span class="lineNum">     866 </span>                :            :      */
+<span class="lineNum">     867 </span>                :            :     CPubKey GenerateNewKey(WalletBatch&amp; batch, bool internal = false) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     868 </span>                :            :     //! Adds a key to the store, and saves it to disk.
+<span class="lineNum">     869 </span>                :            :     bool AddKeyPubKey(const CKey&amp; key, const CPubKey &amp;pubkey) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     870 </span>                :            :     bool AddKeyPubKeyWithDB(WalletBatch &amp;batch,const CKey&amp; key, const CPubKey &amp;pubkey) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     871 </span>                :            :     //! Adds a key to the store, without saving it to disk (used by LoadWallet)
+<span class="lineNum">     872 </span>        [<span class="branchCov" title="Branch 1 was taken 4784 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       4784 :     bool LoadKey(const CKey&amp; key, const CPubKey &amp;pubkey) { return CCryptoKeyStore::AddKeyPubKey(key, pubkey); }</span>
+<span class="lineNum">     873 </span>                :            :     //! Load metadata (used by LoadWallet)
+<span class="lineNum">     874 </span>                :            :     void LoadKeyMetadata(const CKeyID&amp; keyID, const CKeyMetadata &amp;metadata) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     875 </span>                :            :     void LoadScriptMetadata(const CScriptID&amp; script_id, const CKeyMetadata &amp;metadata) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     876 </span>                :            :     //! Upgrade stored CKeyMetadata objects to store key origin info as KeyOriginInfo
+<span class="lineNum">     877 </span>                :            :     void UpgradeKeyMetadata() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     878 </span>                :            : 
+<span class="lineNum">     879 </span>                :<span class="lineCov">        194 :     bool LoadMinVersion(int nVersion) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet) { AssertLockHeld(cs_wallet); nWalletVersion = nVersion; nWalletMaxVersion = std::max(nWalletMaxVersion, nVersion); return true; }</span>
+<span class="lineNum">     880 </span>                :            :     void UpdateTimeFirstKey(int64_t nCreateTime) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     881 </span>                :            : 
+<span class="lineNum">     882 </span>                :            :     //! Adds an encrypted key to the store, and saves it to disk.
+<span class="lineNum">     883 </span>                :            :     bool AddCryptedKey(const CPubKey &amp;vchPubKey, const std::vector&lt;unsigned char&gt; &amp;vchCryptedSecret) override;
+<span class="lineNum">     884 </span>                :            :     //! Adds an encrypted key to the store, without saving it to disk (used by LoadWallet)
+<span class="lineNum">     885 </span>                :            :     bool LoadCryptedKey(const CPubKey &amp;vchPubKey, const std::vector&lt;unsigned char&gt; &amp;vchCryptedSecret);
+<span class="lineNum">     886 </span>                :            :     bool AddCScript(const CScript&amp; redeemScript) override;
+<span class="lineNum">     887 </span>                :            :     bool LoadCScript(const CScript&amp; redeemScript);
+<span class="lineNum">     888 </span>                :            : 
+<span class="lineNum">     889 </span>                :            :     //! Adds a destination data tuple to the store, and saves it to disk
+<span class="lineNum">     890 </span>                :            :     bool AddDestData(const CTxDestination&amp; dest, const std::string&amp; key, const std::string&amp; value) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     891 </span>                :            :     //! Erases a destination data tuple in the store and on disk
+<span class="lineNum">     892 </span>                :            :     bool EraseDestData(const CTxDestination&amp; dest, const std::string&amp; key) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     893 </span>                :            :     //! Adds a destination data tuple to the store, without saving it to disk
+<span class="lineNum">     894 </span>                :            :     void LoadDestData(const CTxDestination&amp; dest, const std::string&amp; key, const std::string&amp; value) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     895 </span>                :            :     //! Look up a destination data tuple in the store, return true if found false otherwise
+<span class="lineNum">     896 </span>                :            :     bool GetDestData(const CTxDestination&amp; dest, const std::string&amp; key, std::string* value) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     897 </span>                :            :     //! Get all destination values matching a prefix.
+<span class="lineNum">     898 </span>                :            :     std::vector&lt;std::string&gt; GetDestValues(const std::string&amp; prefix) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     899 </span>                :            : 
+<span class="lineNum">     900 </span>                :            :     //! Adds a watch-only address to the store, and saves it to disk.
+<span class="lineNum">     901 </span>                :            :     bool AddWatchOnly(const CScript&amp; dest, int64_t nCreateTime) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     902 </span>                :            :     bool RemoveWatchOnly(const CScript &amp;dest) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     903 </span>                :            :     //! Adds a watch-only address to the store, without saving it to disk (used by LoadWallet)
+<span class="lineNum">     904 </span>                :            :     bool LoadWatchOnly(const CScript &amp;dest);
+<span class="lineNum">     905 </span>                :            : 
+<span class="lineNum">     906 </span>                :            :     //! Holds a timestamp at which point the wallet is scheduled (externally) to be relocked. Caller must arrange for actual relocking to occur via Lock().
+<span class="lineNum">     907 </span>                :            :     int64_t nRelockTime = 0;
+<span class="lineNum">     908 </span>                :            : 
+<span class="lineNum">     909 </span>                :            :     bool Unlock(const SecureString&amp; strWalletPassphrase, bool accept_no_keys = false);
+<span class="lineNum">     910 </span>                :            :     bool ChangeWalletPassphrase(const SecureString&amp; strOldWalletPassphrase, const SecureString&amp; strNewWalletPassphrase);
+<span class="lineNum">     911 </span>                :            :     bool EncryptWallet(const SecureString&amp; strWalletPassphrase);
+<span class="lineNum">     912 </span>                :            : 
+<span class="lineNum">     913 </span>                :            :     void GetKeyBirthTimes(interfaces::Chain::Lock&amp; locked_chain, std::map&lt;CTxDestination, int64_t&gt; &amp;mapKeyBirth) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     914 </span>                :            :     unsigned int ComputeTimeSmart(const CWalletTx&amp; wtx) const;
+<span class="lineNum">     915 </span>                :            : 
+<span class="lineNum">     916 </span>                :            :     /**
+<span class="lineNum">     917 </span>                :            :      * Increment the next transaction order id
+<span class="lineNum">     918 </span>                :            :      * @return next transaction order id
+<span class="lineNum">     919 </span>                :            :      */
+<span class="lineNum">     920 </span>                :            :     int64_t IncOrderPosNext(WalletBatch *batch = nullptr) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     921 </span>                :            :     DBErrors ReorderTransactions();
+<span class="lineNum">     922 </span>                :            : 
+<span class="lineNum">     923 </span>                :            :     void MarkDirty();
+<span class="lineNum">     924 </span>                :            :     bool AddToWallet(const CWalletTx&amp; wtxIn, bool fFlushOnClose=true);
+<span class="lineNum">     925 </span>                :            :     void LoadToWallet(const CWalletTx&amp; wtxIn) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     926 </span>                :            :     void TransactionAddedToMempool(const CTransactionRef&amp; tx) override;
+<span class="lineNum">     927 </span>                :            :     void BlockConnected(const CBlock&amp; block, const std::vector&lt;CTransactionRef&gt;&amp; vtxConflicted) override;
+<span class="lineNum">     928 </span>                :            :     void BlockDisconnected(const CBlock&amp; block) override;
+<a name="929"><span class="lineNum">     929 </span>                :            :     int64_t RescanFromTime(int64_t startTime, const WalletRescanReserver&amp; reserver, bool update);</a>
+<span class="lineNum">     930 </span>                :            : 
+<span class="lineNum">     931 </span>                :<span class="lineCov">        452 :     struct ScanResult {</span>
+<span class="lineNum">     932 </span>                :            :         enum { SUCCESS, FAILURE, USER_ABORT } status = SUCCESS;
+<span class="lineNum">     933 </span>                :            : 
+<span class="lineNum">     934 </span>                :            :         //! Hash and height of most recent block that was successfully scanned.
+<span class="lineNum">     935 </span>                :            :         //! Unset if no blocks were scanned due to read errors or the chain
+<span class="lineNum">     936 </span>                :            :         //! being empty.
+<span class="lineNum">     937 </span>                :            :         uint256 last_scanned_block;
+<span class="lineNum">     938 </span>                :            :         Optional&lt;int&gt; last_scanned_height;
+<span class="lineNum">     939 </span>                :            : 
+<span class="lineNum">     940 </span>                :            :         //! Height of the most recent block that could not be scanned due to
+<span class="lineNum">     941 </span>                :            :         //! read errors or pruning. Will be set if status is FAILURE, unset if
+<span class="lineNum">     942 </span>                :            :         //! status is SUCCESS, and may or may not be set if status is
+<span class="lineNum">     943 </span>                :            :         //! USER_ABORT.
+<span class="lineNum">     944 </span>                :            :         uint256 last_failed_block;
+<span class="lineNum">     945 </span>                :            :     };
+<span class="lineNum">     946 </span>                :            :     ScanResult ScanForWalletTransactions(const uint256&amp; first_block, const uint256&amp; last_block, const WalletRescanReserver&amp; reserver, bool fUpdate);
+<span class="lineNum">     947 </span>                :            :     void TransactionRemovedFromMempool(const CTransactionRef &amp;ptx) override;
+<span class="lineNum">     948 </span>                :            :     void ReacceptWalletTransactions();
+<span class="lineNum">     949 </span>                :            :     void ResendWalletTransactions(interfaces::Chain::Lock&amp; locked_chain, int64_t nBestBlockTime) override;
+<span class="lineNum">     950 </span>                :            :     // ResendWalletTransactionsBefore may only be called if fBroadcastTransactions!
+<span class="lineNum">     951 </span>                :            :     std::vector&lt;uint256&gt; ResendWalletTransactionsBefore(interfaces::Chain::Lock&amp; locked_chain, int64_t nTime);
+<span class="lineNum">     952 </span>                :            :     CAmount GetBalance(const isminefilter&amp; filter=ISMINE_SPENDABLE, const int min_depth=0) const;
+<span class="lineNum">     953 </span>                :            :     CAmount GetUnconfirmedBalance() const;
+<span class="lineNum">     954 </span>                :            :     CAmount GetImmatureBalance() const;
+<span class="lineNum">     955 </span>                :            :     CAmount GetUnconfirmedWatchOnlyBalance() const;
+<span class="lineNum">     956 </span>                :            :     CAmount GetImmatureWatchOnlyBalance() const;
+<span class="lineNum">     957 </span>                :            :     CAmount GetLegacyBalance(const isminefilter&amp; filter, int minDepth) const;
+<span class="lineNum">     958 </span>                :            :     CAmount GetAvailableBalance(const CCoinControl* coinControl = nullptr) const;
+<span class="lineNum">     959 </span>                :            : 
+<span class="lineNum">     960 </span>                :            :     OutputType TransactionChangeType(OutputType change_type, const std::vector&lt;CRecipient&gt;&amp; vecSend);
+<span class="lineNum">     961 </span>                :            : 
+<span class="lineNum">     962 </span>                :            :     /**
+<span class="lineNum">     963 </span>                :            :      * Insert additional inputs into the transaction by
+<span class="lineNum">     964 </span>                :            :      * calling CreateTransaction();
+<span class="lineNum">     965 </span>                :            :      */
+<span class="lineNum">     966 </span>                :            :     bool FundTransaction(CMutableTransaction&amp; tx, CAmount&amp; nFeeRet, int&amp; nChangePosInOut, std::string&amp; strFailReason, bool lockUnspents, const std::set&lt;int&gt;&amp; setSubtractFeeFromOutputs, CCoinControl);
+<span class="lineNum">     967 </span>                :            :     bool SignTransaction(CMutableTransaction&amp; tx) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">     968 </span>                :            : 
+<span class="lineNum">     969 </span>                :            :     /**
+<span class="lineNum">     970 </span>                :            :      * Create a new transaction paying the recipients with a set of coins
+<span class="lineNum">     971 </span>                :            :      * selected by SelectCoins(); Also create the change output, when needed
+<span class="lineNum">     972 </span>                :            :      * @note passing nChangePosInOut as -1 will result in setting a random position
+<span class="lineNum">     973 </span>                :            :      */
+<span class="lineNum">     974 </span>                :            :     bool CreateTransaction(interfaces::Chain::Lock&amp; locked_chain, const std::vector&lt;CRecipient&gt;&amp; vecSend, CTransactionRef&amp; tx, CReserveKey&amp; reservekey, CAmount&amp; nFeeRet, int&amp; nChangePosInOut,
+<span class="lineNum">     975 </span>                :            :                            std::string&amp; strFailReason, const CCoinControl&amp; coin_control, bool sign = true);
+<span class="lineNum">     976 </span>                :            :     bool CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::vector&lt;std::pair&lt;std::string, std::string&gt;&gt; orderForm, CReserveKey&amp; reservekey, CValidationState&amp; state);
+<span class="lineNum">     977 </span>                :            : 
+<span class="lineNum">     978 </span>                :            :     bool DummySignTx(CMutableTransaction &amp;txNew, const std::set&lt;CTxOut&gt; &amp;txouts, bool use_max_sig = false) const
+<span class="lineNum">     979 </span>                :            :     {
+<span class="lineNum">     980 </span>                :            :         std::vector&lt;CTxOut&gt; v_txouts(txouts.size());
+<span class="lineNum">     981 </span>                :            :         std::copy(txouts.begin(), txouts.end(), v_txouts.begin());
+<span class="lineNum">     982 </span>                :            :         return DummySignTx(txNew, v_txouts, use_max_sig);
+<span class="lineNum">     983 </span>                :            :     }
+<span class="lineNum">     984 </span>                :            :     bool DummySignTx(CMutableTransaction &amp;txNew, const std::vector&lt;CTxOut&gt; &amp;txouts, bool use_max_sig = false) const;
+<span class="lineNum">     985 </span>                :            :     bool DummySignInput(CTxIn &amp;tx_in, const CTxOut &amp;txout, bool use_max_sig = false) const;
+<span class="lineNum">     986 </span>                :            : 
+<span class="lineNum">     987 </span>                :            :     CFeeRate m_pay_tx_fee{DEFAULT_PAY_TX_FEE};
+<span class="lineNum">     988 </span>                :            :     unsigned int m_confirm_target{DEFAULT_TX_CONFIRM_TARGET};
+<span class="lineNum">     989 </span>                :            :     bool m_spend_zero_conf_change{DEFAULT_SPEND_ZEROCONF_CHANGE};
+<span class="lineNum">     990 </span>                :            :     bool m_signal_rbf{DEFAULT_WALLET_RBF};
+<span class="lineNum">     991 </span>                :            :     bool m_allow_fallback_fee{true}; //!&lt; will be defined via chainparams
+<span class="lineNum">     992 </span>                :            :     CFeeRate m_min_fee{DEFAULT_TRANSACTION_MINFEE}; //!&lt; Override with -mintxfee
+<span class="lineNum">     993 </span>                :            :     /**
+<span class="lineNum">     994 </span>                :            :      * If fee estimation does not have enough data to provide estimates, use this fee instead.
+<span class="lineNum">     995 </span>                :            :      * Has no effect if not using fee estimation
+<span class="lineNum">     996 </span>                :            :      * Override with -fallbackfee
+<span class="lineNum">     997 </span>                :            :      */
+<span class="lineNum">     998 </span>                :            :     CFeeRate m_fallback_fee{DEFAULT_FALLBACK_FEE};
+<span class="lineNum">     999 </span>                :            :     CFeeRate m_discard_rate{DEFAULT_DISCARD_FEE};
+<span class="lineNum">    1000 </span>                :            :     OutputType m_default_address_type{DEFAULT_ADDRESS_TYPE};
+<span class="lineNum">    1001 </span>                :            :     OutputType m_default_change_type{DEFAULT_CHANGE_TYPE};
+<span class="lineNum">    1002 </span>                :            : 
+<span class="lineNum">    1003 </span>                :            :     bool NewKeyPool();
+<span class="lineNum">    1004 </span>                :            :     size_t KeypoolCountExternalKeys() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">    1005 </span>                :            :     bool TopUpKeyPool(unsigned int kpSize = 0);
+<span class="lineNum">    1006 </span>                :            :     void AddKeypoolPubkey(const CPubKey&amp; pubkey, const bool internal);
+<span class="lineNum">    1007 </span>                :            :     void AddKeypoolPubkeyWithDB(const CPubKey&amp; pubkey, const bool internal, WalletBatch&amp; batch);
+<span class="lineNum">    1008 </span>                :            : 
+<span class="lineNum">    1009 </span>                :            :     /**
+<span class="lineNum">    1010 </span>                :            :      * Reserves a key from the keypool and sets nIndex to its index
+<span class="lineNum">    1011 </span>                :            :      *
+<span class="lineNum">    1012 </span>                :            :      * @param[out] nIndex the index of the key in keypool
+<span class="lineNum">    1013 </span>                :            :      * @param[out] keypool the keypool the key was drawn from, which could be the
+<span class="lineNum">    1014 </span>                :            :      *     the pre-split pool if present, or the internal or external pool
+<span class="lineNum">    1015 </span>                :            :      * @param fRequestedInternal true if the caller would like the key drawn
+<span class="lineNum">    1016 </span>                :            :      *     from the internal keypool, false if external is preferred
+<span class="lineNum">    1017 </span>                :            :      *
+<span class="lineNum">    1018 </span>                :            :      * @return true if succeeded, false if failed due to empty keypool
+<span class="lineNum">    1019 </span>                :            :      * @throws std::runtime_error if keypool read failed, key was invalid,
+<span class="lineNum">    1020 </span>                :            :      *     was not found in the wallet, or was misclassified in the internal
+<span class="lineNum">    1021 </span>                :            :      *     or external keypool
+<span class="lineNum">    1022 </span>                :            :      */
+<span class="lineNum">    1023 </span>                :            :     bool ReserveKeyFromKeyPool(int64_t&amp; nIndex, CKeyPool&amp; keypool, bool fRequestedInternal);
+<span class="lineNum">    1024 </span>                :            :     void KeepKey(int64_t nIndex);
+<span class="lineNum">    1025 </span>                :            :     void ReturnKey(int64_t nIndex, bool fInternal, const CPubKey&amp; pubkey);
+<span class="lineNum">    1026 </span>                :            :     bool GetKeyFromPool(CPubKey &amp;key, bool internal = false);
+<span class="lineNum">    1027 </span>                :            :     int64_t GetOldestKeyPoolTime();
+<span class="lineNum">    1028 </span>                :            :     /**
+<span class="lineNum">    1029 </span>                :            :      * Marks all keys in the keypool up to and including reserve_key as used.
+<span class="lineNum">    1030 </span>                :            :      */
+<span class="lineNum">    1031 </span>                :            :     void MarkReserveKeysAsUsed(int64_t keypool_id) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">    1032 </span>                :<span class="lineCov">          6 :     const std::map&lt;CKeyID, int64_t&gt;&amp; GetAllReserveKeys() const { return m_pool_key_to_index; }</span>
+<span class="lineNum">    1033 </span>                :            : 
+<span class="lineNum">    1034 </span>                :            :     std::set&lt;std::set&lt;CTxDestination&gt;&gt; GetAddressGroupings() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">    1035 </span>                :            :     std::map&lt;CTxDestination, CAmount&gt; GetAddressBalances(interfaces::Chain::Lock&amp; locked_chain);
+<span class="lineNum">    1036 </span>                :            : 
+<span class="lineNum">    1037 </span>                :            :     std::set&lt;CTxDestination&gt; GetLabelAddresses(const std::string&amp; label) const;
+<span class="lineNum">    1038 </span>                :            : 
+<span class="lineNum">    1039 </span>                :            :     isminetype IsMine(const CTxIn&amp; txin) const;
+<span class="lineNum">    1040 </span>                :            :     /**
+<span class="lineNum">    1041 </span>                :            :      * Returns amount of debit if the input matches the
+<span class="lineNum">    1042 </span>                :            :      * filter, otherwise returns 0
+<span class="lineNum">    1043 </span>                :            :      */
+<span class="lineNum">    1044 </span>                :            :     CAmount GetDebit(const CTxIn&amp; txin, const isminefilter&amp; filter) const;
+<span class="lineNum">    1045 </span>                :            :     isminetype IsMine(const CTxOut&amp; txout) const;
+<span class="lineNum">    1046 </span>                :            :     CAmount GetCredit(const CTxOut&amp; txout, const isminefilter&amp; filter) const;
+<span class="lineNum">    1047 </span>                :            :     bool IsChange(const CTxOut&amp; txout) const;
+<span class="lineNum">    1048 </span>                :            :     bool IsChange(const CScript&amp; script) const;
+<span class="lineNum">    1049 </span>                :            :     CAmount GetChange(const CTxOut&amp; txout) const;
+<span class="lineNum">    1050 </span>                :            :     bool IsMine(const CTransaction&amp; tx) const;
+<span class="lineNum">    1051 </span>                :            :     /** should probably be renamed to IsRelevantToMe */
+<span class="lineNum">    1052 </span>                :            :     bool IsFromMe(const CTransaction&amp; tx) const;
+<span class="lineNum">    1053 </span>                :            :     CAmount GetDebit(const CTransaction&amp; tx, const isminefilter&amp; filter) const;
+<span class="lineNum">    1054 </span>                :            :     /** Returns whether all of the inputs match the filter */
+<span class="lineNum">    1055 </span>                :            :     bool IsAllFromMe(const CTransaction&amp; tx, const isminefilter&amp; filter) const;
+<span class="lineNum">    1056 </span>                :            :     CAmount GetCredit(const CTransaction&amp; tx, const isminefilter&amp; filter) const;
+<span class="lineNum">    1057 </span>                :            :     CAmount GetChange(const CTransaction&amp; tx) const;
+<span class="lineNum">    1058 </span>                :            :     void ChainStateFlushed(const CBlockLocator&amp; loc) override;
+<span class="lineNum">    1059 </span>                :            : 
+<span class="lineNum">    1060 </span>                :            :     DBErrors LoadWallet(bool&amp; fFirstRunRet);
+<span class="lineNum">    1061 </span>                :            :     DBErrors ZapWalletTx(std::vector&lt;CWalletTx&gt;&amp; vWtx);
+<span class="lineNum">    1062 </span>                :            :     DBErrors ZapSelectTx(std::vector&lt;uint256&gt;&amp; vHashIn, std::vector&lt;uint256&gt;&amp; vHashOut) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">    1063 </span>                :            : 
+<span class="lineNum">    1064 </span>                :            :     bool SetAddressBook(const CTxDestination&amp; address, const std::string&amp; strName, const std::string&amp; purpose);
+<span class="lineNum">    1065 </span>                :            : 
+<span class="lineNum">    1066 </span>                :            :     bool DelAddressBook(const CTxDestination&amp; address);
+<span class="lineNum">    1067 </span>                :            : 
+<span class="lineNum">    1068 </span>                :            :     const std::string&amp; GetLabelName(const CScript&amp; scriptPubKey) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">    1069 </span>                :            : 
+<span class="lineNum">    1070 </span>                :            :     unsigned int GetKeyPoolSize() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet)
+<span class="lineNum">    1071 </span>                :            :     {
+<span class="lineNum">    1072 </span>                :<span class="lineCov">        767 :         AssertLockHeld(cs_wallet);</span>
+<span class="lineNum">    1073 </span>                :<span class="lineCov">       2301 :         return setInternalKeyPool.size() + setExternalKeyPool.size();</span>
+<span class="lineNum">    1074 </span>                :            :     }
+<span class="lineNum">    1075 </span>                :            : 
+<span class="lineNum">    1076 </span>                :            :     //! signify that a particular wallet feature is now used. this may change nWalletVersion and nWalletMaxVersion if those are lower
+<span class="lineNum">    1077 </span>                :            :     void SetMinVersion(enum WalletFeature, WalletBatch* batch_in = nullptr, bool fExplicit = false);
+<span class="lineNum">    1078 </span>                :            : 
+<span class="lineNum">    1079 </span>                :            :     //! change which version we're allowed to upgrade to (note that this does not immediately imply upgrading to that format)
+<span class="lineNum">    1080 </span>                :            :     bool SetMaxVersion(int nVersion);
+<a name="1081"><span class="lineNum">    1081 </span>                :            : </a>
+<span class="lineNum">    1082 </span>                :            :     //! get the current wallet format (the oldest client version guaranteed to understand this wallet)
+<span class="lineNum">    1083 </span>                :<span class="lineCov">       2072 :     int GetVersion() { LOCK(cs_wallet); return nWalletVersion; }</span>
+<span class="lineNum">    1084 </span>                :            : 
+<span class="lineNum">    1085 </span>                :            :     //! Get wallet transactions that conflict with given transaction (spend same outputs)
+<span class="lineNum">    1086 </span>                :            :     std::set&lt;uint256&gt; GetConflicts(const uint256&amp; txid) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">    1087 </span>                :            : 
+<span class="lineNum">    1088 </span>                :            :     //! Check if a given transaction has any of its outputs spent by another transaction in the wallet
+<span class="lineNum">    1089 </span>                :            :     bool HasWalletSpend(const uint256&amp; txid) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+<span class="lineNum">    1090 </span>                :            : 
+<span class="lineNum">    1091 </span>                :            :     //! Flush wallet (bitdb flush)
+<span class="lineNum">    1092 </span>                :            :     void Flush(bool shutdown=false);
+<span class="lineNum">    1093 </span>                :            : 
+<span class="lineNum">    1094 </span>                :            :     /** Wallet is about to be unloaded */
+<span class="lineNum">    1095 </span>                :            :     boost::signals2::signal&lt;void ()&gt; NotifyUnload;
+<span class="lineNum">    1096 </span>                :            : 
+<span class="lineNum">    1097 </span>                :            :     /**
+<span class="lineNum">    1098 </span>                :            :      * Address book entry changed.
+<span class="lineNum">    1099 </span>                :            :      * @note called with lock cs_wallet held.
+<span class="lineNum">    1100 </span>                :            :      */
+<span class="lineNum">    1101 </span>                :            :     boost::signals2::signal&lt;void (CWallet *wallet, const CTxDestination
+<span class="lineNum">    1102 </span>                :            :             &amp;address, const std::string &amp;label, bool isMine,
+<span class="lineNum">    1103 </span>                :            :             const std::string &amp;purpose,
+<span class="lineNum">    1104 </span>                :            :             ChangeType status)&gt; NotifyAddressBookChanged;
+<span class="lineNum">    1105 </span>                :            : 
+<span class="lineNum">    1106 </span>                :            :     /**
+<span class="lineNum">    1107 </span>                :            :      * Wallet transaction added, removed or updated.
+<span class="lineNum">    1108 </span>                :            :      * @note called with lock cs_wallet held.
+<span class="lineNum">    1109 </span>                :            :      */
+<span class="lineNum">    1110 </span>                :            :     boost::signals2::signal&lt;void (CWallet *wallet, const uint256 &amp;hashTx,
+<span class="lineNum">    1111 </span>                :            :             ChangeType status)&gt; NotifyTransactionChanged;
+<span class="lineNum">    1112 </span>                :            : 
+<span class="lineNum">    1113 </span>                :            :     /** Show progress e.g. for rescan */
+<span class="lineNum">    1114 </span>                :            :     boost::signals2::signal&lt;void (const std::string &amp;title, int nProgress)&gt; ShowProgress;
+<span class="lineNum">    1115 </span>                :            : 
+<span class="lineNum">    1116 </span>                :            :     /** Watch-only address added */
+<span class="lineNum">    1117 </span>                :            :     boost::signals2::signal&lt;void (bool fHaveWatchOnly)&gt; NotifyWatchonlyChanged;
+<span class="lineNum">    1118 </span>                :            : 
+<span class="lineNum">    1119 </span>                :            :     /** Keypool has new keys */
+<span class="lineNum">    1120 </span>                :            :     boost::signals2::signal&lt;void ()&gt; NotifyCanGetAddressesChanged;
+<span class="lineNum">    1121 </span>                :            : 
+<span class="lineNum">    1122 </span>                :            :     /** Inquire whether this wallet broadcasts transactions. */
+<span class="lineNum">    1123 </span>                :<span class="lineCov">      13490 :     bool GetBroadcastTransactions() const { return fBroadcastTransactions; }</span>
+<span class="lineNum">    1124 </span>                :            :     /** Set whether this wallet broadcasts transactions. */
+<span class="lineNum">    1125 </span>                :<span class="lineCov">        472 :     void SetBroadcastTransactions(bool broadcast) { fBroadcastTransactions = broadcast; }</span>
+<span class="lineNum">    1126 </span>                :            : 
+<span class="lineNum">    1127 </span>                :            :     /** Return whether transaction can be abandoned */
+<span class="lineNum">    1128 </span>                :            :     bool TransactionCanBeAbandoned(const uint256&amp; hashTx) const;
+<span class="lineNum">    1129 </span>                :            : 
+<span class="lineNum">    1130 </span>                :            :     /* Mark a transaction (and it in-wallet descendants) as abandoned so its inputs may be respent. */
+<span class="lineNum">    1131 </span>                :            :     bool AbandonTransaction(interfaces::Chain::Lock&amp; locked_chain, const uint256&amp; hashTx);
+<span class="lineNum">    1132 </span>                :            : 
+<span class="lineNum">    1133 </span>                :            :     /** Mark a transaction as replaced by another transaction (e.g., BIP 125). */
+<span class="lineNum">    1134 </span>                :            :     bool MarkReplaced(const uint256&amp; originalHash, const uint256&amp; newHash);
+<span class="lineNum">    1135 </span>                :            : 
+<span class="lineNum">    1136 </span>                :            :     //! Verify wallet naming and perform salvage on the wallet if required
+<span class="lineNum">    1137 </span>                :            :     static bool Verify(interfaces::Chain&amp; chain, const WalletLocation&amp; location, bool salvage_wallet, std::string&amp; error_string, std::string&amp; warning_string);
+<span class="lineNum">    1138 </span>                :            : 
+<span class="lineNum">    1139 </span>                :            :     /* Initializes the wallet, returns a new CWallet instance or a null pointer in case of an error */
+<span class="lineNum">    1140 </span>                :            :     static std::shared_ptr&lt;CWallet&gt; CreateWalletFromFile(interfaces::Chain&amp; chain, const WalletLocation&amp; location, uint64_t wallet_creation_flags = 0);
+<span class="lineNum">    1141 </span>                :            : 
+<span class="lineNum">    1142 </span>                :            :     /**
+<span class="lineNum">    1143 </span>                :            :      * Wallet post-init setup
+<span class="lineNum">    1144 </span>                :            :      * Gives the wallet a chance to register repetitive tasks and complete post-init tasks
+<span class="lineNum">    1145 </span>                :            :      */
+<span class="lineNum">    1146 </span>                :            :     void postInitProcess();
+<span class="lineNum">    1147 </span>                :            : 
+<span class="lineNum">    1148 </span>                :            :     bool BackupWallet(const std::string&amp; strDest);
+<span class="lineNum">    1149 </span>                :            : 
+<span class="lineNum">    1150 </span>                :            :     /* Set the HD chain model (chain child index counters) */
+<span class="lineNum">    1151 </span>                :            :     void SetHDChain(const CHDChain&amp; chain, bool memonly);
+<span class="lineNum">    1152 </span>                :            :     const CHDChain&amp; GetHDChain() const { return hdChain; }
+<span class="lineNum">    1153 </span>                :            : 
+<span class="lineNum">    1154 </span>                :            :     /* Returns true if HD is enabled */
+<span class="lineNum">    1155 </span>                :            :     bool IsHDEnabled() const;
+<span class="lineNum">    1156 </span>                :            : 
+<span class="lineNum">    1157 </span>                :            :     /* Returns true if the wallet can generate new keys */
+<span class="lineNum">    1158 </span>                :            :     bool CanGenerateKeys();
+<span class="lineNum">    1159 </span>                :            : 
+<span class="lineNum">    1160 </span>                :            :     /* Returns true if the wallet can give out new addresses. This means it has keys in the keypool or can generate new keys */
+<span class="lineNum">    1161 </span>                :            :     bool CanGetAddresses(bool internal = false);
+<span class="lineNum">    1162 </span>                :            : 
+<span class="lineNum">    1163 </span>                :            :     /* Generates a new HD seed (will not be activated) */
+<span class="lineNum">    1164 </span>                :            :     CPubKey GenerateNewSeed();
+<span class="lineNum">    1165 </span>                :            : 
+<span class="lineNum">    1166 </span>                :            :     /* Derives a new HD seed (will not be activated) */
+<span class="lineNum">    1167 </span>                :            :     CPubKey DeriveNewSeed(const CKey&amp; key);
+<span class="lineNum">    1168 </span>                :            : 
+<span class="lineNum">    1169 </span>                :            :     /* Set the current HD seed (will reset the chain child index counters)
+<span class="lineNum">    1170 </span>                :            :        Sets the seed's version based on the current wallet version (so the
+<span class="lineNum">    1171 </span>                :            :        caller must ensure the current wallet version is correct before calling
+<span class="lineNum">    1172 </span>                :            :        this function). */
+<span class="lineNum">    1173 </span>                :            :     void SetHDSeed(const CPubKey&amp; key);
+<span class="lineNum">    1174 </span>                :            : 
+<span class="lineNum">    1175 </span>                :            :     /**
+<span class="lineNum">    1176 </span>                :            :      * Blocks until the wallet state is up-to-date to /at least/ the current
+<span class="lineNum">    1177 </span>                :            :      * chain at the time this function is entered
+<span class="lineNum">    1178 </span>                :            :      * Obviously holding cs_main/cs_wallet when going into this call may cause
+<span class="lineNum">    1179 </span>                :            :      * deadlock
+<span class="lineNum">    1180 </span>                :            :      */
+<span class="lineNum">    1181 </span>                :            :     void BlockUntilSyncedToCurrentChain() LOCKS_EXCLUDED(cs_main, cs_wallet);
+<span class="lineNum">    1182 </span>                :            : 
+<span class="lineNum">    1183 </span>                :            :     /**
+<span class="lineNum">    1184 </span>                :            :      * Explicitly make the wallet learn the related scripts for outputs to the
+<span class="lineNum">    1185 </span>                :            :      * given key. This is purely to make the wallet file compatible with older
+<span class="lineNum">    1186 </span>                :            :      * software, as CBasicKeyStore automatically does this implicitly for all
+<span class="lineNum">    1187 </span>                :            :      * keys now.
+<span class="lineNum">    1188 </span>                :            :      */
+<span class="lineNum">    1189 </span>                :            :     void LearnRelatedScripts(const CPubKey&amp; key, OutputType);
+<span class="lineNum">    1190 </span>                :            : 
+<span class="lineNum">    1191 </span>                :            :     /**
+<span class="lineNum">    1192 </span>                :            :      * Same as LearnRelatedScripts, but when the OutputType is not known (and could
+<span class="lineNum">    1193 </span>                :            :      * be anything).
+<span class="lineNum">    1194 </span>                :            :      */
+<span class="lineNum">    1195 </span>                :            :     void LearnAllRelatedScripts(const CPubKey&amp; key);
+<span class="lineNum">    1196 </span>                :            : 
+<span class="lineNum">    1197 </span>                :            :     /** set a single wallet flag */
+<span class="lineNum">    1198 </span>                :            :     void SetWalletFlag(uint64_t flags);
+<span class="lineNum">    1199 </span>                :            : 
+<span class="lineNum">    1200 </span>                :            :     /** Unsets a single wallet flag */
+<span class="lineNum">    1201 </span>                :            :     void UnsetWalletFlag(uint64_t flag);
+<span class="lineNum">    1202 </span>                :            : 
+<span class="lineNum">    1203 </span>                :            :     /** check if a certain wallet flag is set */
+<span class="lineNum">    1204 </span>                :            :     bool IsWalletFlagSet(uint64_t flag);
+<span class="lineNum">    1205 </span>                :            : 
+<span class="lineNum">    1206 </span>                :            :     /** overwrite all flags by the given uint64_t
+<span class="lineNum">    1207 </span>                :            :        returns false if unknown, non-tolerable flags are present */
+<span class="lineNum">    1208 </span>                :            :     bool SetWalletFlags(uint64_t overwriteFlags, bool memOnly);
+<a name="1209"><span class="lineNum">    1209 </span>                :            : </a>
+<span class="lineNum">    1210 </span>                :            :     /** Returns a bracketed wallet name for displaying in logs, will return [default wallet] if the wallet has no name */
+<span class="lineNum">    1211 </span>                :<span class="lineCov">     166258 :     const std::string GetDisplayName() const {</span>
+<span class="lineNum">    1212 </span>[<span class="branchCov" title="Branch 0 was taken 164093 times"> + </span><span class="branchCov" title="Branch 1 was taken 2165 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 164093 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">     166258 :         std::string wallet_name = GetName().length() == 0 ? &quot;default wallet&quot; : GetName();</span>
+<span class="lineNum">    1213 </span>        [<span class="branchCov" title="Branch 1 was taken 166258 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     332516 :         return strprintf(&quot;[%s]&quot;, wallet_name);</span>
+<span class="lineNum">    1214 </span>                :            :     };
+<span class="lineNum">    1215 </span>                :            : 
+<a name="1216"><span class="lineNum">    1216 </span>                :            :     /** Prepends the wallet name in logging output to ease debugging in multi-wallet use cases */</a>
+<span class="lineNum">    1217 </span>                :            :     template&lt;typename... Params&gt;
+<span class="lineNum">    1218 </span>                :<span class="lineCov">     165481 :     void WalletLogPrintf(std::string fmt, Params... parameters) const {</span>
+<span class="lineNum">    1219 </span>[<span class="branchCov" title="Branch 2 was taken 1442 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1442 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">     165481 :         LogPrintf((&quot;%s &quot; + fmt).c_str(), GetDisplayName(), parameters...);</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 51 times"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 51 times"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 484 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>][<span class="branchCov" title="Branch 19 was taken 484 times"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 23 was taken 280 times"> + </span><span class="branchNoCov" title="Branch 24 was not taken"> - </span>][<span class="branchCov" title="Branch 26 was taken 280 times"> + </span><span class="branchNoCov" title="Branch 27 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>][<span class="branchNoExec" title="Branch 33 was not executed"> # </span><span class="branchNoExec" title="Branch 34 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 5237 times"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchCov" title="Branch 40 was taken 5237 times"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 44 was taken 2439 times"> + </span><span class="branchNoCov" title="Branch 45 was not taken"> - </span>][<span class="branchCov" title="Branch 47 was taken 2439 times"> + </span><span class="branchNoCov" title="Branch 48 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 51 was taken 687 times"> + </span><span class="branchNoCov" title="Branch 52 was not taken"> - </span>][<span class="branchCov" title="Branch 54 was taken 687 times"> + </span><span class="branchNoCov" title="Branch 55 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 58 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 59 was not taken"> - </span>][<span class="branchCov" title="Branch 61 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 62 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 65 was not executed"> # </span><span class="branchNoExec" title="Branch 66 was not executed"> # </span>][<span class="branchNoExec" title="Branch 68 was not executed"> # </span><span class="branchNoExec" title="Branch 69 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 72 was taken 328 times"> + </span><span class="branchNoCov" title="Branch 73 was not taken"> - </span>][<span class="branchCov" title="Branch 75 was taken 328 times"> + </span><span class="branchNoCov" title="Branch 76 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 79 was taken 3348 times"> + </span><span class="branchNoCov" title="Branch 80 was not taken"> - </span>][<span class="branchCov" title="Branch 82 was taken 3348 times"> + </span><span class="branchNoCov" title="Branch 83 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 86 was taken 40 times"> + </span><span class="branchNoCov" title="Branch 87 was not taken"> - </span>][<span class="branchCov" title="Branch 89 was taken 40 times"> + </span><span class="branchNoCov" title="Branch 90 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 93 was taken 216 times"> + </span><span class="branchNoCov" title="Branch 94 was not taken"> - </span>][<span class="branchCov" title="Branch 96 was taken 216 times"> + </span><span class="branchNoCov" title="Branch 97 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 100 was taken 149946 times"> + </span><span class="branchNoCov" title="Branch 101 was not taken"> - </span>][<span class="branchCov" title="Branch 103 was taken 149946 times"> + </span><span class="branchNoCov" title="Branch 104 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 107 was not executed"> # </span><span class="branchNoExec" title="Branch 108 was not executed"> # </span>][<span class="branchNoExec" title="Branch 110 was not executed"> # </span><span class="branchNoExec" title="Branch 111 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 114 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 115 was not taken"> - </span>][<span class="branchCov" title="Branch 117 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 118 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 121 was not executed"> # </span><span class="branchNoExec" title="Branch 122 was not executed"> # </span>][<span class="branchNoExec" title="Branch 124 was not executed"> # </span><span class="branchNoExec" title="Branch 125 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 128 was taken 493 times"> + </span><span class="branchNoCov" title="Branch 129 was not taken"> - </span>][<span class="branchCov" title="Branch 131 was taken 493 times"> + </span><span class="branchNoCov" title="Branch 132 was not taken"> - </span>]
+<span class="lineNum">    1220 </span>                :<span class="lineCov">     165481 :     };</span>
+<span class="lineNum">    1221 </span>                :            : 
+<span class="lineNum">    1222 </span>                :            :     /** Implement lookup of key origin information through wallet key metadata. */
+<span class="lineNum">    1223 </span>                :            :     bool GetKeyOrigin(const CKeyID&amp; keyid, KeyOriginInfo&amp; info) const override;
+<span class="lineNum">    1224 </span>                :            : 
+<span class="lineNum">    1225 </span>                :            :     /** Add a KeyOriginInfo to the wallet */
+<span class="lineNum">    1226 </span>                :            :     bool AddKeyOrigin(const CPubKey&amp; pubkey, const KeyOriginInfo&amp; info);
+<span class="lineNum">    1227 </span>                :            : 
+<span class="lineNum">    1228 </span>                :            :     friend struct WalletTestingSetup;
+<span class="lineNum">    1229 </span>                :            : };
+<span class="lineNum">    1230 </span>                :            : 
+<span class="lineNum">    1231 </span>                :            : /** A key allocated from the key pool. */
+<span class="lineNum">    1232 </span>                :            : class CReserveKey final : public CReserveScript
+<span class="lineNum">    1233 </span>                :            : {
+<span class="lineNum">    1234 </span>                :            : protected:
+<span class="lineNum">    1235 </span>                :            :     CWallet* pwallet;
+<span class="lineNum">    1236 </span>                :            :     int64_t nIndex{-1};
+<span class="lineNum">    1237 </span>                :            :     CPubKey vchPubKey;
+<span class="lineNum">    1238 </span>                :            :     bool fInternal{false};
+<span class="lineNum">    1239 </span>                :            : 
+<span class="lineNum">    1240 </span>                :            : public:
+<span class="lineNum">    1241 </span>                :            :     explicit CReserveKey(CWallet* pwalletIn)
+<span class="lineNum">    1242 </span>                :<span class="lineCov">       2241 :     {</span>
+<span class="lineNum">    1243 </span>                :<span class="lineCov">        747 :         pwallet = pwalletIn;</span>
+<span class="lineNum">    1244 </span>                :            :     }
+<span class="lineNum">    1245 </span>                :            : 
+<span class="lineNum">    1246 </span>                :            :     CReserveKey(const CReserveKey&amp;) = delete;
+<a name="1247"><span class="lineNum">    1247 </span>                :            :     CReserveKey&amp; operator=(const CReserveKey&amp;) = delete;</a>
+<span class="lineNum">    1248 </span>                :            : 
+<span class="lineNum">    1249 </span>                :<span class="lineCov">        747 :     ~CReserveKey()</span>
+<span class="lineNum">    1250 </span>                :<span class="lineCov">       2241 :     {</span>
+<span class="lineNum">    1251 </span>                :<span class="lineCov">        747 :         ReturnKey();</span>
+<span class="lineNum">    1252 </span>                :<span class="lineNoCov">          0 :     }</span>
+<span class="lineNum">    1253 </span>                :            : 
+<span class="lineNum">    1254 </span>                :            :     void ReturnKey();
+<a name="1255"><span class="lineNum">    1255 </span>                :            :     bool GetReservedKey(CPubKey &amp;pubkey, bool internal = false);</a>
+<span class="lineNum">    1256 </span>                :            :     void KeepKey();
+<span class="lineNum">    1257 </span>                :<span class="lineNoCov">          0 :     void KeepScript() override { KeepKey(); }</span>
+<span class="lineNum">    1258 </span>                :            : };
+<span class="lineNum">    1259 </span>                :            : 
+<span class="lineNum">    1260 </span>                :            : /** RAII object to check and reserve a wallet rescan */
+<span class="lineNum">    1261 </span>                :            : class WalletRescanReserver
+<span class="lineNum">    1262 </span>                :            : {
+<span class="lineNum">    1263 </span>                :            : private:
+<span class="lineNum">    1264 </span>                :            :     CWallet* m_wallet;
+<span class="lineNum">    1265 </span>                :            :     bool m_could_reserve;
+<span class="lineNum">    1266 </span>                :            : public:
+<a name="1267"><span class="lineNum">    1267 </span>                :<span class="lineCov">        478 :     explicit WalletRescanReserver(CWallet* w) : m_wallet(w), m_could_reserve(false) {}</span></a>
+<span class="lineNum">    1268 </span>                :            : 
+<span class="lineNum">    1269 </span>                :<span class="lineCov">        405 :     bool reserve()</span>
+<span class="lineNum">    1270 </span>                :            :     {
+<span class="lineNum">    1271 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 405 times"> + </span>]:<span class="lineCov">        405 :         assert(!m_could_reserve);</span>
+<span class="lineNum">    1272 </span>                :<span class="lineCov">       1215 :         std::lock_guard&lt;std::mutex&gt; lock(m_wallet-&gt;mutexScanning);</span>
+<span class="lineNum">    1273 </span>        [<span class="branchCov" title="Branch 0 was taken 405 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        405 :         if (m_wallet-&gt;fScanningWallet) {</span>
+<span class="lineNum">    1274 </span>                :            :             return false;
+<span class="lineNum">    1275 </span>                :            :         }
+<span class="lineNum">    1276 </span>                :<span class="lineCov">        810 :         m_wallet-&gt;fScanningWallet = true;</span>
+<span class="lineNum">    1277 </span>                :<span class="lineCov">        405 :         m_could_reserve = true;</span>
+<span class="lineNum">    1278 </span>                :<span class="lineCov">        405 :         return true;</span>
+<span class="lineNum">    1279 </span>                :            :     }
+<span class="lineNum">    1280 </span>                :            : 
+<span class="lineNum">    1281 </span>                :            :     bool isReserved() const
+<span class="lineNum">    1282 </span>                :            :     {
+<span class="lineNum">    1283 </span>[<span class="branchCov" title="Branch 0 was taken 386 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 386 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        386 :         return (m_could_reserve &amp;&amp; m_wallet-&gt;fScanningWallet);</span>
+<a name="1284"><span class="lineNum">    1284 </span>                :            :     }</a>
+<span class="lineNum">    1285 </span>                :            : 
+<span class="lineNum">    1286 </span>                :<span class="lineCov">        478 :     ~WalletRescanReserver()</span>
+<span class="lineNum">    1287 </span>                :<span class="lineCov">        478 :     {</span>
+<span class="lineNum">    1288 </span>                :<span class="lineCov">       1434 :         std::lock_guard&lt;std::mutex&gt; lock(m_wallet-&gt;mutexScanning);</span>
+<span class="lineNum">    1289 </span>        [<span class="branchCov" title="Branch 0 was taken 405 times"> + </span><span class="branchCov" title="Branch 1 was taken 73 times"> + </span>]:<span class="lineCov">        478 :         if (m_could_reserve) {</span>
+<span class="lineNum">    1290 </span>                :<span class="lineCov">        405 :             m_wallet-&gt;fScanningWallet = false;</span>
+<span class="lineNum">    1291 </span>                :            :         }
+<span class="lineNum">    1292 </span>                :<span class="lineCov">        478 :     }</span>
+<span class="lineNum">    1293 </span>                :            : };
+<span class="lineNum">    1294 </span>                :            : 
+<span class="lineNum">    1295 </span>                :            : // Calculate the size of the transaction assuming all signatures are max size
+<span class="lineNum">    1296 </span>                :            : // Use DummySignatureCreator, which inserts 71 byte signatures everywhere.
+<span class="lineNum">    1297 </span>                :            : // NOTE: this requires that all inputs must be in mapWallet (eg the tx should
+<span class="lineNum">    1298 </span>                :            : // be IsAllFromMe).
+<span class="lineNum">    1299 </span>                :            : int64_t CalculateMaximumSignedTxSize(const CTransaction &amp;tx, const CWallet *wallet, bool use_max_sig = false) EXCLUSIVE_LOCKS_REQUIRED(wallet-&gt;cs_wallet);
+<span class="lineNum">    1300 </span>                :            : int64_t CalculateMaximumSignedTxSize(const CTransaction &amp;tx, const CWallet *wallet, const std::vector&lt;CTxOut&gt;&amp; txouts, bool use_max_sig = false);
+<span class="lineNum">    1301 </span>                :            : #endif // BITCOIN_WALLET_WALLET_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

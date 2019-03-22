@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/support/allocators/secure.h</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">src/support/allocators</a> - secure.h<span style="font-size: 80%;"> (source / <a href="secure.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">12</td>
+            <td class="headerCovTableEntry">13</td>
+            <td class="headerCovTableEntryHi">92.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntryLo">50.0 %</td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #ifndef BITCOIN_SUPPORT_ALLOCATORS_SECURE_H
+<span class="lineNum">       7 </span>                :            : #define BITCOIN_SUPPORT_ALLOCATORS_SECURE_H
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : #include &lt;support/lockedpool.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;support/cleanse.h&gt;
+<span class="lineNum">      11 </span>                :            : 
+<span class="lineNum">      12 </span>                :            : #include &lt;string&gt;
+<span class="lineNum">      13 </span>                :            : 
+<span class="lineNum">      14 </span>                :            : //
+<span class="lineNum">      15 </span>                :            : // Allocator that locks its contents from being paged
+<span class="lineNum">      16 </span>                :            : // out of memory and clears its contents before deletion.
+<span class="lineNum">      17 </span>                :            : //
+<span class="lineNum">      18 </span>                :            : template &lt;typename T&gt;
+<span class="lineNum">      19 </span>                :            : struct secure_allocator : public std::allocator&lt;T&gt; {
+<span class="lineNum">      20 </span>                :            :     // MSVC8 default copy constructor is broken
+<span class="lineNum">      21 </span>                :            :     typedef std::allocator&lt;T&gt; base;
+<span class="lineNum">      22 </span>                :            :     typedef typename base::size_type size_type;
+<span class="lineNum">      23 </span>                :            :     typedef typename base::difference_type difference_type;
+<span class="lineNum">      24 </span>                :            :     typedef typename base::pointer pointer;
+<span class="lineNum">      25 </span>                :            :     typedef typename base::const_pointer const_pointer;
+<span class="lineNum">      26 </span>                :            :     typedef typename base::reference reference;
+<span class="lineNum">      27 </span>                :            :     typedef typename base::const_reference const_reference;
+<span class="lineNum">      28 </span>                :            :     typedef typename base::value_type value_type;
+<span class="lineNum">      29 </span>                :<span class="lineCov">     603507 :     secure_allocator() noexcept {}</span>
+<span class="lineNum">      30 </span>                :<span class="lineCov">      98386 :     secure_allocator(const secure_allocator&amp; a) noexcept : base(a) {}</span>
+<span class="lineNum">      31 </span>                :            :     template &lt;typename U&gt;
+<span class="lineNum">      32 </span>                :            :     secure_allocator(const secure_allocator&lt;U&gt;&amp; a) noexcept : base(a)
+<span class="lineNum">      33 </span>                :            :     {
+<span class="lineNum">      34 </span>                :            :     }
+<span class="lineNum">      35 </span>                :<span class="lineCov">     701893 :     ~secure_allocator() noexcept {}</span>
+<span class="lineNum">      36 </span>                :            :     template &lt;typename _Other&gt;
+<span class="lineNum">      37 </span>                :            :     struct rebind {
+<span class="lineNum">      38 </span>                :            :         typedef secure_allocator&lt;_Other&gt; other;
+<a name="39"><span class="lineNum">      39 </span>                :            :     };</a>
+<span class="lineNum">      40 </span>                :            : 
+<span class="lineNum">      41 </span>                :<span class="lineCov">     614320 :     T* allocate(std::size_t n, const void* hint = 0)</span>
+<span class="lineNum">      42 </span>                :            :     {
+<span class="lineNum">      43 </span>                :<span class="lineCov">     614320 :         T* allocation = static_cast&lt;T*&gt;(LockedPoolManager::Instance().alloc(sizeof(T) * n));</span>
+<span class="lineNum">      44 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 607617 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 6703 times"> + </span>]:<span class="lineCov">     614320 :         if (!allocation) {</span>
+<span class="lineNum">      45 </span>                :<span class="lineNoCov">          0 :             throw std::bad_alloc();</span>
+<span class="lineNum">      46 </span>                :            :         }
+<span class="lineNum">      47 </span>                :<span class="lineCov">     614320 :         return allocation;</span>
+<a name="48"><span class="lineNum">      48 </span>                :            :     }</a>
+<span class="lineNum">      49 </span>                :            : 
+<span class="lineNum">      50 </span>                :<span class="lineCov">     614320 :     void deallocate(T* p, std::size_t n)</span>
+<span class="lineNum">      51 </span>                :            :     {
+<span class="lineNum">      52 </span>[<span class="branchCov" title="Branch 0 was taken 610879 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 3441 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     614320 :         if (p != nullptr) {</span>
+<span class="lineNum">      53 </span>                :<span class="lineCov">     614320 :             memory_cleanse(p, sizeof(T) * n);</span>
+<span class="lineNum">      54 </span>                :            :         }
+<span class="lineNum">      55 </span>                :<span class="lineCov">     614320 :         LockedPoolManager::Instance().free(p);</span>
+<span class="lineNum">      56 </span>                :<span class="lineCov">     614320 :     }</span>
+<span class="lineNum">      57 </span>                :            : };
+<span class="lineNum">      58 </span>                :            : 
+<span class="lineNum">      59 </span>                :            : // This is exactly like std::string, but with a custom allocator.
+<span class="lineNum">      60 </span>                :            : typedef std::basic_string&lt;char, std::char_traits&lt;char&gt;, secure_allocator&lt;char&gt; &gt; SecureString;
+<span class="lineNum">      61 </span>                :            : 
+<span class="lineNum">      62 </span>                :            : #endif // BITCOIN_SUPPORT_ALLOCATORS_SECURE_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

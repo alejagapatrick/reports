@@ -1,0 +1,415 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/wallet/crypter.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/wallet</a> - crypter.cpp<span style="font-size: 80%;"> (source / <a href="crypter.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">57</td>
+            <td class="headerCovTableEntry">161</td>
+            <td class="headerCovTableEntryLo">35.4 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">12</td>
+            <td class="headerCovTableEntry">21</td>
+            <td class="headerCovTableEntryLo">57.1 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">30</td>
+            <td class="headerCovTableEntry">172</td>
+            <td class="headerCovTableEntryLo">17.4 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #include &lt;wallet/crypter.h&gt;
+<span class="lineNum">       6 </span>                :            : 
+<span class="lineNum">       7 </span>                :            : #include &lt;crypto/aes.h&gt;
+<span class="lineNum">       8 </span>                :            : #include &lt;crypto/sha512.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;script/script.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;script/standard.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;util/system.h&gt;
+<span class="lineNum">      12 </span>                :            : 
+<span class="lineNum">      13 </span>                :            : #include &lt;string&gt;
+<a name="14"><span class="lineNum">      14 </span>                :            : #include &lt;vector&gt;</a>
+<span class="lineNum">      15 </span>                :            : 
+<span class="lineNum">      16 </span>                :<span class="lineCov">         72 : int CCrypter::BytesToKeySHA512AES(const std::vector&lt;unsigned char&gt;&amp; chSalt, const SecureString&amp; strKeyData, int count, unsigned char *key,unsigned char *iv) const</span>
+<span class="lineNum">      17 </span>                :            : {
+<span class="lineNum">      18 </span>                :            :     // This mimics the behavior of openssl's EVP_BytesToKey with an aes256cbc
+<span class="lineNum">      19 </span>                :            :     // cipher and sha512 message digest. Because sha512's output size (64b) is
+<span class="lineNum">      20 </span>                :            :     // greater than the aes256 block size (16b) + aes256 key size (32b),
+<span class="lineNum">      21 </span>                :            :     // there's no need to process more than once (D_0).
+<span class="lineNum">      22 </span>                :            : 
+<span class="lineNum">      23 </span>[<span class="branchCov" title="Branch 0 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">         72 :     if(!count || !key || !iv)</span>
+<span class="lineNum">      24 </span>                :            :         return 0;
+<span class="lineNum">      25 </span>                :            : 
+<span class="lineNum">      26 </span>                :            :     unsigned char buf[CSHA512::OUTPUT_SIZE];
+<span class="lineNum">      27 </span>                :<span class="lineCov">         72 :     CSHA512 di;</span>
+<span class="lineNum">      28 </span>                :            : 
+<span class="lineNum">      29 </span>                :<span class="lineCov">         72 :     di.Write((const unsigned char*)strKeyData.c_str(), strKeyData.size());</span>
+<span class="lineNum">      30 </span>                :<span class="lineCov">         72 :     di.Write(chSalt.data(), chSalt.size());</span>
+<span class="lineNum">      31 </span>                :<span class="lineCov">         72 :     di.Finalize(buf);</span>
+<span class="lineNum">      32 </span>                :            : 
+<span class="lineNum">      33 </span>        [<span class="branchCov" title="Branch 0 was taken 2124928 times"> + </span><span class="branchCov" title="Branch 1 was taken 72 times"> + </span>]:<span class="lineCov">    2125000 :     for(int i = 0; i != count - 1; i++)</span>
+<span class="lineNum">      34 </span>                :<span class="lineCov">    2124928 :         di.Reset().Write(buf, sizeof(buf)).Finalize(buf);</span>
+<span class="lineNum">      35 </span>                :            : 
+<span class="lineNum">      36 </span>                :<span class="lineCov">         72 :     memcpy(key, buf, WALLET_CRYPTO_KEY_SIZE);</span>
+<span class="lineNum">      37 </span>                :<span class="lineCov">        144 :     memcpy(iv, buf + WALLET_CRYPTO_KEY_SIZE, WALLET_CRYPTO_IV_SIZE);</span>
+<span class="lineNum">      38 </span>                :<span class="lineCov">         72 :     memory_cleanse(buf, sizeof(buf));</span>
+<span class="lineNum">      39 </span>                :            :     return WALLET_CRYPTO_KEY_SIZE;
+<a name="40"><span class="lineNum">      40 </span>                :            : }</a>
+<span class="lineNum">      41 </span>                :            : 
+<span class="lineNum">      42 </span>                :<span class="lineCov">         72 : bool CCrypter::SetKeyFromPassphrase(const SecureString&amp; strKeyData, const std::vector&lt;unsigned char&gt;&amp; chSalt, const unsigned int nRounds, const unsigned int nDerivationMethod)</span>
+<span class="lineNum">      43 </span>                :            : {
+<span class="lineNum">      44 </span>[<span class="branchCov" title="Branch 0 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">         72 :     if (nRounds &lt; 1 || chSalt.size() != WALLET_CRYPTO_SALT_SIZE)</span>
+<span class="lineNum">      45 </span>                :            :         return false;
+<span class="lineNum">      46 </span>                :            : 
+<span class="lineNum">      47 </span>                :<span class="lineCov">         72 :     int i = 0;</span>
+<span class="lineNum">      48 </span>        [<span class="branchCov" title="Branch 0 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         72 :     if (nDerivationMethod == 0)</span>
+<span class="lineNum">      49 </span>                :<span class="lineCov">         72 :         i = BytesToKeySHA512AES(chSalt, strKeyData, nRounds, vchKey.data(), vchIV.data());</span>
+<span class="lineNum">      50 </span>                :            : 
+<span class="lineNum">      51 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 72 times"> + </span>]:<span class="lineCov">         72 :     if (i != (int)WALLET_CRYPTO_KEY_SIZE)</span>
+<span class="lineNum">      52 </span>                :            :     {
+<span class="lineNum">      53 </span>                :<span class="lineNoCov">          0 :         memory_cleanse(vchKey.data(), vchKey.size());</span>
+<span class="lineNum">      54 </span>                :<span class="lineNoCov">          0 :         memory_cleanse(vchIV.data(), vchIV.size());</span>
+<span class="lineNum">      55 </span>                :<span class="lineNoCov">          0 :         return false;</span>
+<span class="lineNum">      56 </span>                :            :     }
+<span class="lineNum">      57 </span>                :            : 
+<span class="lineNum">      58 </span>                :<span class="lineCov">         72 :     fKeySet = true;</span>
+<span class="lineNum">      59 </span>                :<span class="lineCov">         72 :     return true;</span>
+<a name="60"><span class="lineNum">      60 </span>                :            : }</a>
+<span class="lineNum">      61 </span>                :            : 
+<span class="lineNum">      62 </span>                :<span class="lineNoCov">          0 : bool CCrypter::SetKey(const CKeyingMaterial&amp; chNewKey, const std::vector&lt;unsigned char&gt;&amp; chNewIV)</span>
+<span class="lineNum">      63 </span>                :            : {
+<span class="lineNum">      64 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (chNewKey.size() != WALLET_CRYPTO_KEY_SIZE || chNewIV.size() != WALLET_CRYPTO_IV_SIZE)</span>
+<span class="lineNum">      65 </span>                :            :         return false;
+<span class="lineNum">      66 </span>                :            : 
+<span class="lineNum">      67 </span>                :<span class="lineNoCov">          0 :     memcpy(vchKey.data(), chNewKey.data(), chNewKey.size());</span>
+<span class="lineNum">      68 </span>                :<span class="lineNoCov">          0 :     memcpy(vchIV.data(), chNewIV.data(), chNewIV.size());</span>
+<span class="lineNum">      69 </span>                :            : 
+<span class="lineNum">      70 </span>                :<span class="lineNoCov">          0 :     fKeySet = true;</span>
+<span class="lineNum">      71 </span>                :<span class="lineNoCov">          0 :     return true;</span>
+<a name="72"><span class="lineNum">      72 </span>                :            : }</a>
+<span class="lineNum">      73 </span>                :            : 
+<span class="lineNum">      74 </span>                :<span class="lineCov">       3333 : bool CCrypter::Encrypt(const CKeyingMaterial&amp; vchPlaintext, std::vector&lt;unsigned char&gt; &amp;vchCiphertext) const</span>
+<span class="lineNum">      75 </span>                :            : {
+<span class="lineNum">      76 </span>        [<span class="branchCov" title="Branch 0 was taken 3333 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       3333 :     if (!fKeySet)</span>
+<span class="lineNum">      77 </span>                :            :         return false;
+<span class="lineNum">      78 </span>                :            : 
+<span class="lineNum">      79 </span>                :            :     // max ciphertext len for a n bytes of plaintext is
+<span class="lineNum">      80 </span>                :            :     // n + AES_BLOCKSIZE bytes
+<span class="lineNum">      81 </span>                :<span class="lineCov">       3333 :     vchCiphertext.resize(vchPlaintext.size() + AES_BLOCKSIZE);</span>
+<span class="lineNum">      82 </span>                :            : 
+<span class="lineNum">      83 </span>                :<span class="lineCov">       6666 :     AES256CBCEncrypt enc(vchKey.data(), vchIV.data(), true);</span>
+<span class="lineNum">      84 </span>        [<span class="branchCov" title="Branch 1 was taken 3333 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3333 :     size_t nLen = enc.Encrypt(&amp;vchPlaintext[0], vchPlaintext.size(), vchCiphertext.data());</span>
+<span class="lineNum">      85 </span>        [<span class="branchCov" title="Branch 0 was taken 3333 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       3333 :     if(nLen &lt; vchPlaintext.size())</span>
+<span class="lineNum">      86 </span>                :            :         return false;
+<span class="lineNum">      87 </span>        [<span class="branchCov" title="Branch 1 was taken 3333 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3333 :     vchCiphertext.resize(nLen);</span>
+<span class="lineNum">      88 </span>                :            : 
+<span class="lineNum">      89 </span>                :            :     return true;
+<a name="90"><span class="lineNum">      90 </span>                :            : }</a>
+<span class="lineNum">      91 </span>                :            : 
+<span class="lineNum">      92 </span>                :<span class="lineCov">       3439 : bool CCrypter::Decrypt(const std::vector&lt;unsigned char&gt;&amp; vchCiphertext, CKeyingMaterial&amp; vchPlaintext) const</span>
+<span class="lineNum">      93 </span>                :            : {
+<span class="lineNum">      94 </span>        [<span class="branchCov" title="Branch 0 was taken 3439 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       3439 :     if (!fKeySet)</span>
+<span class="lineNum">      95 </span>                :            :         return false;
+<span class="lineNum">      96 </span>                :            : 
+<span class="lineNum">      97 </span>                :            :     // plaintext will always be equal to or lesser than length of ciphertext
+<span class="lineNum">      98 </span>                :<span class="lineCov">       3439 :     int nLen = vchCiphertext.size();</span>
+<span class="lineNum">      99 </span>                :            : 
+<span class="lineNum">     100 </span>                :<span class="lineCov">       3439 :     vchPlaintext.resize(nLen);</span>
+<span class="lineNum">     101 </span>                :            : 
+<span class="lineNum">     102 </span>                :<span class="lineCov">       6878 :     AES256CBCDecrypt dec(vchKey.data(), vchIV.data(), true);</span>
+<span class="lineNum">     103 </span>        [<span class="branchCov" title="Branch 1 was taken 3439 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3439 :     nLen = dec.Decrypt(vchCiphertext.data(), vchCiphertext.size(), &amp;vchPlaintext[0]);</span>
+<span class="lineNum">     104 </span>        [<span class="branchCov" title="Branch 0 was taken 3333 times"> + </span><span class="branchCov" title="Branch 1 was taken 106 times"> + </span>]:<span class="lineCov">       3439 :     if(nLen == 0)</span>
+<span class="lineNum">     105 </span>                :            :         return false;
+<span class="lineNum">     106 </span>        [<span class="branchCov" title="Branch 1 was taken 3333 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3333 :     vchPlaintext.resize(nLen);</span>
+<span class="lineNum">     107 </span>                :            :     return true;
+<span class="lineNum">     108 </span>                :            : }
+<span class="lineNum">     109 </span>                :            : 
+<span class="lineNum">     110 </span>                :            : 
+<span class="lineNum">     111 </span>                :<span class="lineNoCov">          0 : static bool EncryptSecret(const CKeyingMaterial&amp; vMasterKey, const CKeyingMaterial &amp;vchPlaintext, const uint256&amp; nIV, std::vector&lt;unsigned char&gt; &amp;vchCiphertext)</span>
+<span class="lineNum">     112 </span>                :            : {
+<span class="lineNum">     113 </span>                :<span class="lineNoCov">          0 :     CCrypter cKeyCrypter;</span>
+<span class="lineNum">     114 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     std::vector&lt;unsigned char&gt; chIV(WALLET_CRYPTO_IV_SIZE);</span>
+<span class="lineNum">     115 </span>                :<span class="lineNoCov">          0 :     memcpy(chIV.data(), &amp;nIV, WALLET_CRYPTO_IV_SIZE);</span>
+<span class="lineNum">     116 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if(!cKeyCrypter.SetKey(vMasterKey, chIV))</span>
+<span class="lineNum">     117 </span>                :            :         return false;
+<span class="lineNum">     118 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return cKeyCrypter.Encrypt(*((const CKeyingMaterial*)&amp;vchPlaintext), vchCiphertext);</span>
+<span class="lineNum">     119 </span>                :            : }
+<span class="lineNum">     120 </span>                :            : 
+<span class="lineNum">     121 </span>                :<span class="lineNoCov">          0 : static bool DecryptSecret(const CKeyingMaterial&amp; vMasterKey, const std::vector&lt;unsigned char&gt;&amp; vchCiphertext, const uint256&amp; nIV, CKeyingMaterial&amp; vchPlaintext)</span>
+<span class="lineNum">     122 </span>                :            : {
+<span class="lineNum">     123 </span>                :<span class="lineNoCov">          0 :     CCrypter cKeyCrypter;</span>
+<span class="lineNum">     124 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     std::vector&lt;unsigned char&gt; chIV(WALLET_CRYPTO_IV_SIZE);</span>
+<span class="lineNum">     125 </span>                :<span class="lineNoCov">          0 :     memcpy(chIV.data(), &amp;nIV, WALLET_CRYPTO_IV_SIZE);</span>
+<span class="lineNum">     126 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if(!cKeyCrypter.SetKey(vMasterKey, chIV))</span>
+<span class="lineNum">     127 </span>                :            :         return false;
+<span class="lineNum">     128 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return cKeyCrypter.Decrypt(vchCiphertext, *((CKeyingMaterial*)&amp;vchPlaintext));</span>
+<span class="lineNum">     129 </span>                :            : }
+<span class="lineNum">     130 </span>                :            : 
+<span class="lineNum">     131 </span>                :<span class="lineNoCov">          0 : static bool DecryptKey(const CKeyingMaterial&amp; vMasterKey, const std::vector&lt;unsigned char&gt;&amp; vchCryptedSecret, const CPubKey&amp; vchPubKey, CKey&amp; key)</span>
+<span class="lineNum">     132 </span>                :            : {
+<span class="lineNum">     133 </span>                :<span class="lineNoCov">          0 :     CKeyingMaterial vchSecret;</span>
+<span class="lineNum">     134 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if(!DecryptSecret(vMasterKey, vchCryptedSecret, vchPubKey.GetHash(), vchSecret))</span>
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">     135 </span>                :            :         return false;
+<span class="lineNum">     136 </span>                :            : 
+<span class="lineNum">     137 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (vchSecret.size() != 32)</span>
+<span class="lineNum">     138 </span>                :            :         return false;
+<span class="lineNum">     139 </span>                :            : 
+<span class="lineNum">     140 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     key.Set(vchSecret.begin(), vchSecret.end(), vchPubKey.IsCompressed());</span>
+<span class="lineNum">     141 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return key.VerifyPubKey(vchPubKey);</span>
+<a name="142"><span class="lineNum">     142 </span>                :            : }</a>
+<span class="lineNum">     143 </span>                :            : 
+<span class="lineNum">     144 </span>                :<span class="lineNoCov">          0 : bool CCryptoKeyStore::SetCrypted()</span>
+<span class="lineNum">     145 </span>                :            : {
+<span class="lineNum">     146 </span>                :<span class="lineNoCov">          0 :     LOCK(cs_KeyStore);</span>
+<span class="lineNum">     147 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (fUseCrypto)</span>
+<span class="lineNum">     148 </span>                :            :         return true;
+<span class="lineNum">     149 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (!mapKeys.empty())</span>
+<span class="lineNum">     150 </span>                :            :         return false;
+<span class="lineNum">     151 </span>                :<span class="lineNoCov">          0 :     fUseCrypto = true;</span>
+<span class="lineNum">     152 </span>                :<span class="lineNoCov">          0 :     return true;</span>
+<a name="153"><span class="lineNum">     153 </span>                :            : }</a>
+<span class="lineNum">     154 </span>                :            : 
+<span class="lineNum">     155 </span>                :<span class="lineCov">         15 : bool CCryptoKeyStore::IsLocked() const</span>
+<span class="lineNum">     156 </span>                :            : {
+<span class="lineNum">     157 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 15 times"> + </span>]:<span class="lineCov">         15 :     if (!IsCrypted()) {</span>
+<span class="lineNum">     158 </span>                :            :         return false;
+<span class="lineNum">     159 </span>                :            :     }
+<span class="lineNum">     160 </span>                :<span class="lineNoCov">          0 :     LOCK(cs_KeyStore);</span>
+<span class="lineNum">     161 </span>                :<span class="lineNoCov">          0 :     return vMasterKey.empty();</span>
+<a name="162"><span class="lineNum">     162 </span>                :            : }</a>
+<span class="lineNum">     163 </span>                :            : 
+<span class="lineNum">     164 </span>                :<span class="lineNoCov">          0 : bool CCryptoKeyStore::Lock()</span>
+<span class="lineNum">     165 </span>                :            : {
+<span class="lineNum">     166 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (!SetCrypted())</span>
+<span class="lineNum">     167 </span>                :            :         return false;
+<span class="lineNum">     168 </span>                :            : 
+<span class="lineNum">     169 </span>                :            :     {
+<span class="lineNum">     170 </span>                :<span class="lineNoCov">          0 :         LOCK(cs_KeyStore);</span>
+<span class="lineNum">     171 </span>                :<span class="lineNoCov">          0 :         vMasterKey.clear();</span>
+<span class="lineNum">     172 </span>                :            :     }
+<span class="lineNum">     173 </span>                :            : 
+<span class="lineNum">     174 </span>                :<span class="lineNoCov">          0 :     NotifyStatusChanged(this);</span>
+<span class="lineNum">     175 </span>                :<span class="lineNoCov">          0 :     return true;</span>
+<span class="lineNum">     176 </span>                :            : }
+<span class="lineNum">     177 </span>                :            : 
+<span class="lineNum">     178 </span>                :<span class="lineNoCov">          0 : bool CCryptoKeyStore::Unlock(const CKeyingMaterial&amp; vMasterKeyIn, bool accept_no_keys)</span>
+<span class="lineNum">     179 </span>                :            : {
+<span class="lineNum">     180 </span>                :            :     {
+<span class="lineNum">     181 </span>                :<span class="lineNoCov">          0 :         LOCK(cs_KeyStore);</span>
+<span class="lineNum">     182 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!SetCrypted())</span>
+<span class="lineNum">     183 </span>                :<span class="lineNoCov">          0 :             return false;</span>
+<span class="lineNum">     184 </span>                :            : 
+<span class="lineNum">     185 </span>                :<span class="lineNoCov">          0 :         bool keyPass = mapCryptedKeys.empty(); // Always pass when there are no encrypted keys</span>
+<span class="lineNum">     186 </span>                :<span class="lineNoCov">          0 :         bool keyFail = false;</span>
+<span class="lineNum">     187 </span>                :<span class="lineNoCov">          0 :         CryptedKeyMap::const_iterator mi = mapCryptedKeys.begin();</span>
+<span class="lineNum">     188 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         for (; mi != mapCryptedKeys.end(); ++mi)</span>
+<span class="lineNum">     189 </span>                :            :         {
+<span class="lineNum">     190 </span>                :<span class="lineNoCov">          0 :             const CPubKey &amp;vchPubKey = (*mi).second.first;</span>
+<span class="lineNum">     191 </span>                :<span class="lineNoCov">          0 :             const std::vector&lt;unsigned char&gt; &amp;vchCryptedSecret = (*mi).second.second;</span>
+<span class="lineNum">     192 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             CKey key;</span>
+<span class="lineNum">     193 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (!DecryptKey(vMasterKeyIn, vchCryptedSecret, vchPubKey, key))</span>
+<span class="lineNum">     194 </span>                :            :             {
+<span class="lineNum">     195 </span>                :            :                 keyFail = true;
+<span class="lineNum">     196 </span>                :<span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     197 </span>                :            :             }
+<span class="lineNum">     198 </span>                :<span class="lineNoCov">          0 :             keyPass = true;</span>
+<span class="lineNum">     199 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (fDecryptionThoroughlyChecked)</span>
+<span class="lineNum">     200 </span>                :            :                 break;
+<span class="lineNum">     201 </span>                :            :         }
+<span class="lineNum">     202 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (keyPass &amp;&amp; keyFail)</span>
+<span class="lineNum">     203 </span>                :            :         {
+<span class="lineNum">     204 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             LogPrintf(&quot;The wallet is probably corrupted: Some keys decrypt but not all.\n&quot;);</span>
+<span class="lineNum">     205 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::runtime_error(&quot;Error unlocking wallet: some keys decrypt but not all. Your wallet file may be corrupt.&quot;);</span>
+<span class="lineNum">     206 </span>                :            :         }
+<span class="lineNum">     207 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (keyFail || (!keyPass &amp;&amp; !accept_no_keys))</span>
+<span class="lineNum">     208 </span>                :            :             return false;
+<span class="lineNum">     209 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         vMasterKey = vMasterKeyIn;</span>
+<span class="lineNum">     210 </span>                :<span class="lineNoCov">          0 :         fDecryptionThoroughlyChecked = true;</span>
+<span class="lineNum">     211 </span>                :            :     }
+<span class="lineNum">     212 </span>                :<span class="lineNoCov">          0 :     NotifyStatusChanged(this);</span>
+<span class="lineNum">     213 </span>                :<span class="lineNoCov">          0 :     return true;</span>
+<span class="lineNum">     214 </span>                :            : }
+<span class="lineNum">     215 </span>                :            : 
+<span class="lineNum">     216 </span>                :<span class="lineCov">       2009 : bool CCryptoKeyStore::AddKeyPubKey(const CKey&amp; key, const CPubKey &amp;pubkey)</span>
+<span class="lineNum">     217 </span>                :            : {
+<span class="lineNum">     218 </span>                :<span class="lineCov">       4018 :     LOCK(cs_KeyStore);</span>
+<span class="lineNum">     219 </span>        [<span class="branchCov" title="Branch 0 was taken 2009 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       2009 :     if (!IsCrypted()) {</span>
+<span class="lineNum">     220 </span>        [<span class="branchCov" title="Branch 1 was taken 2009 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2009 :         return CBasicKeyStore::AddKeyPubKey(key, pubkey);</span>
+<span class="lineNum">     221 </span>                :            :     }
+<span class="lineNum">     222 </span>                :            : 
+<span class="lineNum">     223 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (IsLocked()) {</span>
+<span class="lineNum">     224 </span>                :            :         return false;
+<span class="lineNum">     225 </span>                :            :     }
+<span class="lineNum">     226 </span>                :            : 
+<span class="lineNum">     227 </span>                :<span class="lineNoCov">          0 :     std::vector&lt;unsigned char&gt; vchCryptedSecret;</span>
+<span class="lineNum">     228 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     CKeyingMaterial vchSecret(key.begin(), key.end());</span>
+<span class="lineNum">     229 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (!EncryptSecret(vMasterKey, vchSecret, pubkey.GetHash(), vchCryptedSecret)) {</span>
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">     230 </span>                :            :         return false;
+<span class="lineNum">     231 </span>                :            :     }
+<span class="lineNum">     232 </span>                :            : 
+<span class="lineNum">     233 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (!AddCryptedKey(pubkey, vchCryptedSecret)) {</span>
+<span class="lineNum">     234 </span>                :            :         return false;
+<span class="lineNum">     235 </span>                :            :     }
+<span class="lineNum">     236 </span>                :<span class="lineNoCov">          0 :     return true;</span>
+<span class="lineNum">     237 </span>                :            : }
+<span class="lineNum">     238 </span>                :            : 
+<span class="lineNum">     239 </span>                :            : 
+<span class="lineNum">     240 </span>                :<span class="lineNoCov">          0 : bool CCryptoKeyStore::AddCryptedKey(const CPubKey &amp;vchPubKey, const std::vector&lt;unsigned char&gt; &amp;vchCryptedSecret)</span>
+<span class="lineNum">     241 </span>                :            : {
+<span class="lineNum">     242 </span>                :<span class="lineNoCov">          0 :     LOCK(cs_KeyStore);</span>
+<span class="lineNum">     243 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (!SetCrypted()) {</span>
+<span class="lineNum">     244 </span>                :            :         return false;
+<span class="lineNum">     245 </span>                :            :     }
+<span class="lineNum">     246 </span>                :            : 
+<span class="lineNum">     247 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :     mapCryptedKeys[vchPubKey.GetID()] = make_pair(vchPubKey, vchCryptedSecret);</span>
+<span class="lineNum">     248 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     ImplicitlyLearnRelatedKeyScripts(vchPubKey);</span>
+<span class="lineNum">     249 </span>                :            :     return true;
+<a name="250"><span class="lineNum">     250 </span>                :            : }</a>
+<span class="lineNum">     251 </span>                :            : 
+<span class="lineNum">     252 </span>                :<span class="lineCov">       3146 : bool CCryptoKeyStore::HaveKey(const CKeyID &amp;address) const</span>
+<span class="lineNum">     253 </span>                :            : {
+<span class="lineNum">     254 </span>                :<span class="lineCov">       6292 :     LOCK(cs_KeyStore);</span>
+<span class="lineNum">     255 </span>        [<span class="branchCov" title="Branch 0 was taken 3146 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       3146 :     if (!IsCrypted()) {</span>
+<span class="lineNum">     256 </span>        [<span class="branchCov" title="Branch 1 was taken 3146 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3146 :         return CBasicKeyStore::HaveKey(address);</span>
+<span class="lineNum">     257 </span>                :            :     }
+<span class="lineNum">     258 </span>                :<span class="lineNoCov">          0 :     return mapCryptedKeys.count(address) &gt; 0;</span>
+<a name="259"><span class="lineNum">     259 </span>                :            : }</a>
+<span class="lineNum">     260 </span>                :            : 
+<span class="lineNum">     261 </span>                :<span class="lineCov">       1013 : bool CCryptoKeyStore::GetKey(const CKeyID &amp;address, CKey&amp; keyOut) const</span>
+<span class="lineNum">     262 </span>                :            : {
+<span class="lineNum">     263 </span>                :<span class="lineCov">       2026 :     LOCK(cs_KeyStore);</span>
+<span class="lineNum">     264 </span>        [<span class="branchCov" title="Branch 0 was taken 1013 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       1013 :     if (!IsCrypted()) {</span>
+<span class="lineNum">     265 </span>        [<span class="branchCov" title="Branch 1 was taken 1013 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1013 :         return CBasicKeyStore::GetKey(address, keyOut);</span>
+<span class="lineNum">     266 </span>                :            :     }
+<span class="lineNum">     267 </span>                :            : 
+<span class="lineNum">     268 </span>                :<span class="lineNoCov">          0 :     CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address);</span>
+<span class="lineNum">     269 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (mi != mapCryptedKeys.end())</span>
+<span class="lineNum">     270 </span>                :            :     {
+<span class="lineNum">     271 </span>                :<span class="lineNoCov">          0 :         const CPubKey &amp;vchPubKey = (*mi).second.first;</span>
+<span class="lineNum">     272 </span>                :<span class="lineNoCov">          0 :         const std::vector&lt;unsigned char&gt; &amp;vchCryptedSecret = (*mi).second.second;</span>
+<span class="lineNum">     273 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         return DecryptKey(vMasterKey, vchCryptedSecret, vchPubKey, keyOut);</span>
+<span class="lineNum">     274 </span>                :            :     }
+<span class="lineNum">     275 </span>                :            :     return false;
+<a name="276"><span class="lineNum">     276 </span>                :            : }</a>
+<span class="lineNum">     277 </span>                :            : 
+<span class="lineNum">     278 </span>                :<span class="lineCov">         10 : bool CCryptoKeyStore::GetPubKey(const CKeyID &amp;address, CPubKey&amp; vchPubKeyOut) const</span>
+<span class="lineNum">     279 </span>                :            : {
+<span class="lineNum">     280 </span>                :<span class="lineCov">         20 :     LOCK(cs_KeyStore);</span>
+<span class="lineNum">     281 </span>        [<span class="branchCov" title="Branch 0 was taken 10 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         10 :     if (!IsCrypted())</span>
+<span class="lineNum">     282 </span>        [<span class="branchCov" title="Branch 1 was taken 10 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         10 :         return CBasicKeyStore::GetPubKey(address, vchPubKeyOut);</span>
+<span class="lineNum">     283 </span>                :            : 
+<span class="lineNum">     284 </span>                :<span class="lineNoCov">          0 :     CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address);</span>
+<span class="lineNum">     285 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (mi != mapCryptedKeys.end())</span>
+<span class="lineNum">     286 </span>                :            :     {
+<span class="lineNum">     287 </span>                :<span class="lineNoCov">          0 :         vchPubKeyOut = (*mi).second.first;</span>
+<span class="lineNum">     288 </span>                :<span class="lineNoCov">          0 :         return true;</span>
+<span class="lineNum">     289 </span>                :            :     }
+<span class="lineNum">     290 </span>                :            :     // Check for watch-only pubkeys
+<span class="lineNum">     291 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return CBasicKeyStore::GetPubKey(address, vchPubKeyOut);</span>
+<a name="292"><span class="lineNum">     292 </span>                :            : }</a>
+<span class="lineNum">     293 </span>                :            : 
+<span class="lineNum">     294 </span>                :<span class="lineCov">          1 : std::set&lt;CKeyID&gt; CCryptoKeyStore::GetKeys() const</span>
+<span class="lineNum">     295 </span>                :            : {
+<span class="lineNum">     296 </span>                :<span class="lineCov">          2 :     LOCK(cs_KeyStore);</span>
+<span class="lineNum">     297 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          1 :     if (!IsCrypted()) {</span>
+<span class="lineNum">     298 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :         return CBasicKeyStore::GetKeys();</span>
+<span class="lineNum">     299 </span>                :            :     }
+<span class="lineNum">     300 </span>                :<span class="lineNoCov">          0 :     std::set&lt;CKeyID&gt; set_address;</span>
+<span class="lineNum">     301 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     for (const auto&amp; mi : mapCryptedKeys) {</span>
+<span class="lineNum">     302 </span>                :<span class="lineNoCov">          0 :         set_address.insert(mi.first);</span>
+<span class="lineNum">     303 </span>                :            :     }
+<span class="lineNum">     304 </span>                :<span class="lineNoCov">          0 :     return set_address;</span>
+<span class="lineNum">     305 </span>                :            : }
+<span class="lineNum">     306 </span>                :            : 
+<span class="lineNum">     307 </span>                :<span class="lineNoCov">          0 : bool CCryptoKeyStore::EncryptKeys(CKeyingMaterial&amp; vMasterKeyIn)</span>
+<span class="lineNum">     308 </span>                :            : {
+<span class="lineNum">     309 </span>                :<span class="lineNoCov">          0 :     LOCK(cs_KeyStore);</span>
+<span class="lineNum">     310 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (!mapCryptedKeys.empty() || IsCrypted())</span>
+<span class="lineNum">     311 </span>                :            :         return false;
+<span class="lineNum">     312 </span>                :            : 
+<span class="lineNum">     313 </span>                :<span class="lineNoCov">          0 :     fUseCrypto = true;</span>
+<span class="lineNum">     314 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     for (const KeyMap::value_type&amp; mKey : mapKeys)</span>
+<span class="lineNum">     315 </span>                :            :     {
+<span class="lineNum">     316 </span>                :<span class="lineNoCov">          0 :         const CKey &amp;key = mKey.second;</span>
+<span class="lineNum">     317 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         CPubKey vchPubKey = key.GetPubKey();</span>
+<span class="lineNum">     318 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         CKeyingMaterial vchSecret(key.begin(), key.end());</span>
+<span class="lineNum">     319 </span>                :<span class="lineNoCov">          0 :         std::vector&lt;unsigned char&gt; vchCryptedSecret;</span>
+<span class="lineNum">     320 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!EncryptSecret(vMasterKeyIn, vchSecret, vchPubKey.GetHash(), vchCryptedSecret))</span>
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">     321 </span>                :<span class="lineNoCov">          0 :             return false;</span>
+<span class="lineNum">     322 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!AddCryptedKey(vchPubKey, vchCryptedSecret))</span>
+<span class="lineNum">     323 </span>                :            :             return false;
+<span class="lineNum">     324 </span>                :            :     }
+<a name="325"><span class="lineNum">     325 </span>                :<span class="lineNoCov">          0 :     mapKeys.clear();</span></a>
+<span class="lineNum">     326 </span>                :<span class="lineNoCov">          0 :     return true;</span>
+<span class="lineNum">     327 </span>[<span class="branchCov" title="Branch 1 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        296 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

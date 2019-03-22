@@ -1,0 +1,223 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/consensus/validation.h</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/consensus</a> - validation.h<span style="font-size: 80%;"> (source / <a href="validation.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">26</td>
+            <td class="headerCovTableEntry">29</td>
+            <td class="headerCovTableEntryMed">89.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">57</td>
+            <td class="headerCovTableEntry">122</td>
+            <td class="headerCovTableEntryLo">46.7 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #ifndef BITCOIN_CONSENSUS_VALIDATION_H
+<span class="lineNum">       7 </span>                :            : #define BITCOIN_CONSENSUS_VALIDATION_H
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : #include &lt;string&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;version.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;consensus/consensus.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;primitives/transaction.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;primitives/block.h&gt;
+<span class="lineNum">      14 </span>                :            : 
+<span class="lineNum">      15 </span>                :            : /** &quot;reject&quot; message codes */
+<span class="lineNum">      16 </span>                :            : static const unsigned char REJECT_MALFORMED = 0x01;
+<span class="lineNum">      17 </span>                :            : static const unsigned char REJECT_INVALID = 0x10;
+<span class="lineNum">      18 </span>                :            : static const unsigned char REJECT_OBSOLETE = 0x11;
+<span class="lineNum">      19 </span>                :            : static const unsigned char REJECT_DUPLICATE = 0x12;
+<span class="lineNum">      20 </span>                :            : static const unsigned char REJECT_NONSTANDARD = 0x40;
+<span class="lineNum">      21 </span>                :            : // static const unsigned char REJECT_DUST = 0x41; // part of BIP 61
+<span class="lineNum">      22 </span>                :            : static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
+<span class="lineNum">      23 </span>                :            : static const unsigned char REJECT_CHECKPOINT = 0x43;
+<a name="24"><span class="lineNum">      24 </span>                :            : </a>
+<span class="lineNum">      25 </span>                :            : /** Capture information about block/transaction validation */
+<span class="lineNum">      26 </span>                :<span class="lineCov">    4704265 : class CValidationState {</span>
+<span class="lineNum">      27 </span>                :            : private:
+<span class="lineNum">      28 </span>                :            :     enum mode_state {
+<span class="lineNum">      29 </span>                :            :         MODE_VALID,   //!&lt; everything ok
+<span class="lineNum">      30 </span>                :            :         MODE_INVALID, //!&lt; network rule violation (DoS value may be set)
+<span class="lineNum">      31 </span>                :            :         MODE_ERROR,   //!&lt; run-time error
+<span class="lineNum">      32 </span>                :            :     } mode;
+<span class="lineNum">      33 </span>                :            :     int nDoS;
+<span class="lineNum">      34 </span>                :            :     std::string strRejectReason;
+<span class="lineNum">      35 </span>                :            :     unsigned int chRejectCode;
+<span class="lineNum">      36 </span>                :            :     bool corruptionPossible;
+<span class="lineNum">      37 </span>                :            :     std::string strDebugMessage;
+<span class="lineNum">      38 </span>                :            : public:
+<span class="lineNum">      39 </span>                :<span class="lineCov">   13758319 :     CValidationState() : mode(MODE_VALID), nDoS(0), chRejectCode(0), corruptionPossible(false) {}</span>
+<span class="lineNum">      40 </span>                :            :     bool DoS(int level, bool ret = false,
+<span class="lineNum">      41 </span>                :            :              unsigned int chRejectCodeIn=0, const std::string &amp;strRejectReasonIn=&quot;&quot;,
+<span class="lineNum">      42 </span>                :            :              bool corruptionIn=false,
+<span class="lineNum">      43 </span>                :            :              const std::string &amp;strDebugMessageIn=&quot;&quot;) {
+<span class="lineNum">      44 </span>                :<span class="lineCov">      65453 :         chRejectCode = chRejectCodeIn;</span>
+<span class="lineNum">      45 </span>                :<span class="lineCov">     131098 :         strRejectReason = strRejectReasonIn;</span>
+<span class="lineNum">      46 </span>                :<span class="lineCov">      65549 :         corruptionPossible = corruptionIn;</span>
+<span class="lineNum">      47 </span>                :<span class="lineCov">     131098 :         strDebugMessage = strDebugMessageIn;</span>
+<span class="lineNum">      48 </span>[<span class="branchCov" title="Branch 0 was taken 642 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">      65549 :         if (mode == MODE_ERROR)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 26 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchCov" title="Branch 6 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 7 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 12 was taken 17 times"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>][<span class="branchCov" title="Branch 14 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 10 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>][<span class="branchCov" title="Branch 18 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 20 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>][<span class="branchCov" title="Branch 22 was taken 77 times"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 10 times"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 26 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 27 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 28 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>][<span class="branchCov" title="Branch 30 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 31 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 32 was taken 124 times"> + </span><span class="branchNoCov" title="Branch 33 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 36 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 37 was not taken"> - </span>][<span class="branchCov" title="Branch 38 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 39 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 40 was taken 96 times"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>][<span class="branchCov" title="Branch 42 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 43 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 44 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 45 was not taken"> - </span>][<span class="branchCov" title="Branch 46 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 47 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 48 was not executed"> # </span><span class="branchNoExec" title="Branch 49 was not executed"> # </span>][<span class="branchCov" title="Branch 50 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 51 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 52 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 53 was not taken"> - </span>][<span class="branchCov" title="Branch 54 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 55 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 56 was taken 121 times"> + </span><span class="branchNoCov" title="Branch 57 was not taken"> - </span>][<span class="branchCov" title="Branch 58 was taken 47049 times"> + </span><span class="branchNoCov" title="Branch 59 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 60 was taken 16396 times"> + </span><span class="branchNoCov" title="Branch 61 was not taken"> - </span>][<span class="branchCov" title="Branch 62 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 63 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 64 was taken 127 times"> + </span><span class="branchNoCov" title="Branch 65 was not taken"> - </span>][<span class="branchCov" title="Branch 66 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 67 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 68 was taken 55 times"> + </span><span class="branchNoCov" title="Branch 69 was not taken"> - </span>][<span class="branchCov" title="Branch 70 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 71 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 72 was taken 7 times"> + </span><span class="branchNoCov" title="Branch 73 was not taken"> - </span>][<span class="branchCov" title="Branch 74 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 75 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 76 was taken 423 times"> + </span><span class="branchNoCov" title="Branch 77 was not taken"> - </span>][<span class="branchCov" title="Branch 78 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 79 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 80 was taken 7 times"> + </span><span class="branchNoCov" title="Branch 81 was not taken"> - </span>][<span class="branchCov" title="Branch 82 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 83 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 84 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 85 was not taken"> - </span>][<span class="branchCov" title="Branch 86 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 87 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 88 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 89 was not taken"> - </span>][<span class="branchCov" title="Branch 90 was taken 203 times"> + </span><span class="branchNoCov" title="Branch 91 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 92 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 93 was not taken"> - </span>][<span class="branchCov" title="Branch 94 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 95 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 96 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 97 was not taken"> - </span>][<span class="branchCov" title="Branch 98 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 99 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 100 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 101 was not taken"> - </span>][<span class="branchNoExec" title="Branch 102 was not executed"> # </span><span class="branchNoExec" title="Branch 103 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 104 was not executed"> # </span><span class="branchNoExec" title="Branch 105 was not executed"> # </span>]
+<span class="lineNum">      49 </span>                :            :             return ret;
+<span class="lineNum">      50 </span>                :<span class="lineCov">      16890 :         nDoS += level;</span>
+<span class="lineNum">      51 </span>                :<span class="lineCov">      65549 :         mode = MODE_INVALID;</span>
+<span class="lineNum">      52 </span>                :            :         return ret;
+<span class="lineNum">      53 </span>                :            :     }
+<span class="lineNum">      54 </span>                :            :     bool Invalid(bool ret = false,
+<span class="lineNum">      55 </span>                :            :                  unsigned int _chRejectCode=0, const std::string &amp;_strRejectReason=&quot;&quot;,
+<span class="lineNum">      56 </span>                :            :                  const std::string &amp;_strDebugMessage=&quot;&quot;) {
+<span class="lineNum">      57 </span>                :<span class="lineCov">      95630 :         return DoS(0, ret, _chRejectCode, _strRejectReason, false, _strDebugMessage);</span>
+<span class="lineNum">      58 </span>                :            :     }
+<span class="lineNum">      59 </span>                :            :     bool Error(const std::string&amp; strRejectReasonIn) {
+<span class="lineNum">      60 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (mode == MODE_VALID)</span>
+<span class="lineNum">      61 </span>                :<span class="lineNoCov">          0 :             strRejectReason = strRejectReasonIn;</span>
+<span class="lineNum">      62 </span>                :<span class="lineNoCov">          0 :         mode = MODE_ERROR;</span>
+<span class="lineNum">      63 </span>                :            :         return false;
+<span class="lineNum">      64 </span>                :            :     }
+<span class="lineNum">      65 </span>                :            :     bool IsValid() const {
+<span class="lineNum">      66 </span>                :<span class="lineCov">      19778 :         return mode == MODE_VALID;</span>
+<span class="lineNum">      67 </span>                :            :     }
+<span class="lineNum">      68 </span>                :            :     bool IsInvalid() const {
+<span class="lineNum">      69 </span>                :<span class="lineCov">      43881 :         return mode == MODE_INVALID;</span>
+<span class="lineNum">      70 </span>                :            :     }
+<span class="lineNum">      71 </span>                :            :     bool IsError() const {
+<span class="lineNum">      72 </span>                :<span class="lineCov">        661 :         return mode == MODE_ERROR;</span>
+<span class="lineNum">      73 </span>                :            :     }
+<span class="lineNum">      74 </span>                :            :     bool IsInvalid(int &amp;nDoSOut) const {
+<span class="lineNum">      75 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">      43075 :         if (IsInvalid()) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 315 times"> + </span><span class="branchCov" title="Branch 5 was taken 9215 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 8 was taken 34 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span><span class="branchCov" title="Branch 10 was taken 33068 times"> + </span><span class="branchCov" title="Branch 11 was taken 438 times"> + </span>]
+<span class="lineNum">      76 </span>                :<span class="lineCov">          1 :             nDoSOut = nDoS;</span>
+<span class="lineNum">      77 </span>                :            :             return true;
+<span class="lineNum">      78 </span>                :            :         }
+<span class="lineNum">      79 </span>                :            :         return false;
+<span class="lineNum">      80 </span>                :            :     }
+<span class="lineNum">      81 </span>                :            :     bool CorruptionPossible() const {
+<span class="lineNum">      82 </span>                :<span class="lineCov">        620 :         return corruptionPossible;</span>
+<span class="lineNum">      83 </span>                :            :     }
+<span class="lineNum">      84 </span>                :            :     void SetCorruptionPossible() {
+<span class="lineNum">      85 </span>                :<span class="lineCov">         24 :         corruptionPossible = true;</span>
+<span class="lineNum">      86 </span>                :            :     }
+<span class="lineNum">      87 </span>                :<span class="lineCov">       2294 :     unsigned int GetRejectCode() const { return chRejectCode; }</span>
+<span class="lineNum">      88 </span>                :<span class="lineCov">       4844 :     std::string GetRejectReason() const { return strRejectReason; }</span>
+<span class="lineNum">      89 </span>                :<span class="lineCov">       5048 :     std::string GetDebugMessage() const { return strDebugMessage; }</span>
+<span class="lineNum">      90 </span>                :            : };
+<span class="lineNum">      91 </span>                :            : 
+<span class="lineNum">      92 </span>                :            : // These implement the weight = (stripped_size * 4) + witness_size formula,
+<span class="lineNum">      93 </span>                :            : // using only serialization with and without witness data. As witness_size
+<a name="94"><span class="lineNum">      94 </span>                :            : // is equal to total_size - stripped_size, this formula is identical to:</a>
+<span class="lineNum">      95 </span>                :            : // weight = (stripped_size * 3) + total_size.
+<span class="lineNum">      96 </span>                :<span class="lineCov">      53898 : static inline int64_t GetTransactionWeight(const CTransaction&amp; tx)</span>
+<span class="lineNum">      97 </span>                :            : {
+<a name="98"><span class="lineNum">      98 </span>                :<span class="lineCov">      53898 :     return ::GetSerializeSize(tx, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * (WITNESS_SCALE_FACTOR - 1) + ::GetSerializeSize(tx, PROTOCOL_VERSION);</span></a>
+<span class="lineNum">      99 </span>                :            : }
+<span class="lineNum">     100 </span>                :<span class="lineCov">      63566 : static inline int64_t GetBlockWeight(const CBlock&amp; block)</span>
+<span class="lineNum">     101 </span>                :            : {
+<a name="102"><span class="lineNum">     102 </span>                :<span class="lineCov">      63566 :     return ::GetSerializeSize(block, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * (WITNESS_SCALE_FACTOR - 1) + ::GetSerializeSize(block, PROTOCOL_VERSION);</span></a>
+<span class="lineNum">     103 </span>                :            : }
+<span class="lineNum">     104 </span>                :<span class="lineCov">      64644 : static inline int64_t GetTransactionInputWeight(const CTxIn&amp; txin)</span>
+<span class="lineNum">     105 </span>                :            : {
+<span class="lineNum">     106 </span>                :            :     // scriptWitness size is added here because witnesses and txins are split up in segwit serialization.
+<span class="lineNum">     107 </span>                :<span class="lineCov">      64644 :     return ::GetSerializeSize(txin, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * (WITNESS_SCALE_FACTOR - 1) + ::GetSerializeSize(txin, PROTOCOL_VERSION) + ::GetSerializeSize(txin.scriptWitness.stack, PROTOCOL_VERSION);</span>
+<span class="lineNum">     108 </span>                :            : }
+<span class="lineNum">     109 </span>                :            : 
+<span class="lineNum">     110 </span>                :            : #endif // BITCOIN_CONSENSUS_VALIDATION_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
