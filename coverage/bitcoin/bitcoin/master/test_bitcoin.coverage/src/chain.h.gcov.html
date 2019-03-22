@@ -31,27 +31,27 @@
             <td class="headerValue">test_bitcoin_coverage.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">104</td>
-            <td class="headerCovTableEntry">164</td>
-            <td class="headerCovTableEntryLo">63.4 %</td>
+            <td class="headerCovTableEntry">91</td>
+            <td class="headerCovTableEntry">151</td>
+            <td class="headerCovTableEntryLo">60.3 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
             <td class="headerValue">2000-01-01 12:00:00</td>
             <td></td>
             <td class="headerItem">Functions:</td>
-            <td class="headerCovTableEntry">8</td>
-            <td class="headerCovTableEntry">18</td>
-            <td class="headerCovTableEntryLo">44.4 %</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntryLo">37.5 %</td>
           </tr>
           <tr>
             <td></td>
             <td></td>
             <td></td>
             <td class="headerItem">Branches:</td>
-            <td class="headerCovTableEntry">111</td>
-            <td class="headerCovTableEntry">348</td>
-            <td class="headerCovTableEntryLo">31.9 %</td>
+            <td class="headerCovTableEntry">112</td>
+            <td class="headerCovTableEntry">364</td>
+            <td class="headerCovTableEntryLo">30.8 %</td>
           </tr>
           <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
         </table>
@@ -79,481 +79,439 @@
 <span class="lineNum">       8 </span>                :            : 
 <span class="lineNum">       9 </span>                :            : #include &lt;arith_uint256.h&gt;
 <span class="lineNum">      10 </span>                :            : #include &lt;consensus/params.h&gt;
-<span class="lineNum">      11 </span>                :            : #include &lt;primitives/block.h&gt;
-<span class="lineNum">      12 </span>                :            : #include &lt;tinyformat.h&gt;
-<span class="lineNum">      13 </span>                :            : #include &lt;uint256.h&gt;
-<span class="lineNum">      14 </span>                :            : 
-<span class="lineNum">      15 </span>                :            : #include &lt;vector&gt;
-<span class="lineNum">      16 </span>                :            : 
-<span class="lineNum">      17 </span>                :            : /**
-<span class="lineNum">      18 </span>                :            :  * Maximum amount of time that a block timestamp is allowed to exceed the
-<span class="lineNum">      19 </span>                :            :  * current network-adjusted time before the block will be accepted.
-<span class="lineNum">      20 </span>                :            :  */
-<span class="lineNum">      21 </span>                :            : static constexpr int64_t MAX_FUTURE_BLOCK_TIME = 2 * 60 * 60;
-<span class="lineNum">      22 </span>                :            : 
-<span class="lineNum">      23 </span>                :            : /**
-<span class="lineNum">      24 </span>                :            :  * Timestamp window used as a grace period by code that compares external
-<span class="lineNum">      25 </span>                :            :  * timestamps (such as timestamps passed to RPCs, or wallet key creation times)
-<span class="lineNum">      26 </span>                :            :  * to block timestamps. This should be set at least as high as
-<span class="lineNum">      27 </span>                :            :  * MAX_FUTURE_BLOCK_TIME.
-<span class="lineNum">      28 </span>                :            :  */
-<span class="lineNum">      29 </span>                :            : static constexpr int64_t TIMESTAMP_WINDOW = MAX_FUTURE_BLOCK_TIME;
-<span class="lineNum">      30 </span>                :            : 
-<span class="lineNum">      31 </span>                :            : /**
-<span class="lineNum">      32 </span>                :            :  * Maximum gap between node time and block time used
-<span class="lineNum">      33 </span>                :            :  * for the &quot;Catching up...&quot; mode in GUI.
-<span class="lineNum">      34 </span>                :            :  *
-<span class="lineNum">      35 </span>                :            :  * Ref: https://github.com/bitcoin/bitcoin/pull/1026
-<span class="lineNum">      36 </span>                :            :  */
-<span class="lineNum">      37 </span>                :            : static constexpr int64_t MAX_BLOCK_TIME_GAP = 90 * 60;
-<span class="lineNum">      38 </span>                :            : 
-<span class="lineNum">      39 </span>                :            : class CBlockFileInfo
-<span class="lineNum">      40 </span>                :            : {
-<span class="lineNum">      41 </span>                :            : public:
-<span class="lineNum">      42 </span>                :            :     unsigned int nBlocks;      //!&lt; number of blocks stored in file
-<span class="lineNum">      43 </span>                :            :     unsigned int nSize;        //!&lt; number of used bytes of block file
-<span class="lineNum">      44 </span>                :            :     unsigned int nUndoSize;    //!&lt; number of used bytes in the undo file
-<span class="lineNum">      45 </span>                :            :     unsigned int nHeightFirst; //!&lt; lowest height of block in file
-<span class="lineNum">      46 </span>                :            :     unsigned int nHeightLast;  //!&lt; highest height of block in file
-<span class="lineNum">      47 </span>                :            :     uint64_t nTimeFirst;       //!&lt; earliest time of block in file
-<span class="lineNum">      48 </span>                :            :     uint64_t nTimeLast;        //!&lt; latest time of block in file
-<span class="lineNum">      49 </span>                :            : 
-<span class="lineNum">      50 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     ADD_SERIALIZE_METHODS;</span>
-<a name="51"><span class="lineNum">      51 </span>                :            : </a>
-<span class="lineNum">      52 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
-<span class="lineNum">      53 </span>                :<span class="lineNoCov">          0 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
-<span class="lineNum">      54 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nBlocks));</span>
-<span class="lineNum">      55 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nSize));</span>
-<span class="lineNum">      56 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nUndoSize));</span>
-<span class="lineNum">      57 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nHeightFirst));</span>
-<span class="lineNum">      58 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nHeightLast));</span>
-<span class="lineNum">      59 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nTimeFirst));</span>
-<span class="lineNum">      60 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nTimeLast));</span>
-<span class="lineNum">      61 </span>                :<span class="lineNoCov">          0 :     }</span>
-<span class="lineNum">      62 </span>                :            : 
-<span class="lineNum">      63 </span>                :            :      void SetNull() {
-<span class="lineNum">      64 </span>                :<span class="lineCov">         71 :          nBlocks = 0;</span>
-<span class="lineNum">      65 </span>                :<span class="lineCov">         71 :          nSize = 0;</span>
-<span class="lineNum">      66 </span>                :<span class="lineCov">         71 :          nUndoSize = 0;</span>
-<span class="lineNum">      67 </span>                :<span class="lineCov">         71 :          nHeightFirst = 0;</span>
-<span class="lineNum">      68 </span>                :<span class="lineCov">         71 :          nHeightLast = 0;</span>
-<span class="lineNum">      69 </span>                :<span class="lineCov">         71 :          nTimeFirst = 0;</span>
-<span class="lineNum">      70 </span>                :<span class="lineCov">         71 :          nTimeLast = 0;</span>
-<span class="lineNum">      71 </span>                :            :      }
-<span class="lineNum">      72 </span>                :            : 
-<span class="lineNum">      73 </span>                :<span class="lineCov">         68 :      CBlockFileInfo() {</span>
-<span class="lineNum">      74 </span>                :<span class="lineCov">         68 :          SetNull();</span>
-<span class="lineNum">      75 </span>                :            :      }
-<span class="lineNum">      76 </span>                :            : 
-<span class="lineNum">      77 </span>                :            :      std::string ToString() const;
-<span class="lineNum">      78 </span>                :            : 
-<span class="lineNum">      79 </span>                :            :      /** update statistics (does not update nSize) */
-<span class="lineNum">      80 </span>                :            :      void AddBlock(unsigned int nHeightIn, uint64_t nTimeIn) {
-<span class="lineNum">      81 </span>[<span class="branchCov" title="Branch 0 was taken 1731 times"> + </span><span class="branchCov" title="Branch 1 was taken 68 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 1731 times"> + </span>]:<span class="lineCov">       1799 :          if (nBlocks==0 || nHeightFirst &gt; nHeightIn)</span>
-<span class="lineNum">      82 </span>                :<span class="lineCov">         68 :              nHeightFirst = nHeightIn;</span>
-<span class="lineNum">      83 </span>[<span class="branchCov" title="Branch 0 was taken 1731 times"> + </span><span class="branchCov" title="Branch 1 was taken 68 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 1731 times"> + </span>]:<span class="lineCov">       1799 :          if (nBlocks==0 || nTimeFirst &gt; nTimeIn)</span>
-<span class="lineNum">      84 </span>                :<span class="lineCov">         68 :              nTimeFirst = nTimeIn;</span>
-<span class="lineNum">      85 </span>                :<span class="lineCov">       1799 :          nBlocks++;</span>
-<span class="lineNum">      86 </span>        [<span class="branchCov" title="Branch 0 was taken 1238 times"> + </span><span class="branchCov" title="Branch 1 was taken 561 times"> + </span>]:<span class="lineCov">       1799 :          if (nHeightIn &gt; nHeightLast)</span>
-<span class="lineNum">      87 </span>                :<span class="lineCov">       1238 :              nHeightLast = nHeightIn;</span>
-<span class="lineNum">      88 </span>        [<span class="branchCov" title="Branch 0 was taken 311 times"> + </span><span class="branchCov" title="Branch 1 was taken 1488 times"> + </span>]:<span class="lineCov">       1799 :          if (nTimeIn &gt; nTimeLast)</span>
-<span class="lineNum">      89 </span>                :<span class="lineCov">        311 :              nTimeLast = nTimeIn;</span>
-<span class="lineNum">      90 </span>                :            :      }
-<span class="lineNum">      91 </span>                :            : };
-<span class="lineNum">      92 </span>                :            : 
-<span class="lineNum">      93 </span>                :            : struct CDiskBlockPos
-<span class="lineNum">      94 </span>                :            : {
-<span class="lineNum">      95 </span>                :            :     int nFile;
-<span class="lineNum">      96 </span>                :            :     unsigned int nPos;
+<span class="lineNum">      11 </span>                :            : #include &lt;flatfile.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;primitives/block.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;tinyformat.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;uint256.h&gt;
+<span class="lineNum">      15 </span>                :            : 
+<span class="lineNum">      16 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">      17 </span>                :            : 
+<span class="lineNum">      18 </span>                :            : /**
+<span class="lineNum">      19 </span>                :            :  * Maximum amount of time that a block timestamp is allowed to exceed the
+<span class="lineNum">      20 </span>                :            :  * current network-adjusted time before the block will be accepted.
+<span class="lineNum">      21 </span>                :            :  */
+<span class="lineNum">      22 </span>                :            : static constexpr int64_t MAX_FUTURE_BLOCK_TIME = 2 * 60 * 60;
+<span class="lineNum">      23 </span>                :            : 
+<span class="lineNum">      24 </span>                :            : /**
+<span class="lineNum">      25 </span>                :            :  * Timestamp window used as a grace period by code that compares external
+<span class="lineNum">      26 </span>                :            :  * timestamps (such as timestamps passed to RPCs, or wallet key creation times)
+<span class="lineNum">      27 </span>                :            :  * to block timestamps. This should be set at least as high as
+<span class="lineNum">      28 </span>                :            :  * MAX_FUTURE_BLOCK_TIME.
+<span class="lineNum">      29 </span>                :            :  */
+<span class="lineNum">      30 </span>                :            : static constexpr int64_t TIMESTAMP_WINDOW = MAX_FUTURE_BLOCK_TIME;
+<span class="lineNum">      31 </span>                :            : 
+<span class="lineNum">      32 </span>                :            : /**
+<span class="lineNum">      33 </span>                :            :  * Maximum gap between node time and block time used
+<span class="lineNum">      34 </span>                :            :  * for the &quot;Catching up...&quot; mode in GUI.
+<span class="lineNum">      35 </span>                :            :  *
+<span class="lineNum">      36 </span>                :            :  * Ref: https://github.com/bitcoin/bitcoin/pull/1026
+<span class="lineNum">      37 </span>                :            :  */
+<span class="lineNum">      38 </span>                :            : static constexpr int64_t MAX_BLOCK_TIME_GAP = 90 * 60;
+<span class="lineNum">      39 </span>                :            : 
+<span class="lineNum">      40 </span>                :            : class CBlockFileInfo
+<span class="lineNum">      41 </span>                :            : {
+<span class="lineNum">      42 </span>                :            : public:
+<span class="lineNum">      43 </span>                :            :     unsigned int nBlocks;      //!&lt; number of blocks stored in file
+<span class="lineNum">      44 </span>                :            :     unsigned int nSize;        //!&lt; number of used bytes of block file
+<span class="lineNum">      45 </span>                :            :     unsigned int nUndoSize;    //!&lt; number of used bytes in the undo file
+<span class="lineNum">      46 </span>                :            :     unsigned int nHeightFirst; //!&lt; lowest height of block in file
+<span class="lineNum">      47 </span>                :            :     unsigned int nHeightLast;  //!&lt; highest height of block in file
+<span class="lineNum">      48 </span>                :            :     uint64_t nTimeFirst;       //!&lt; earliest time of block in file
+<span class="lineNum">      49 </span>                :            :     uint64_t nTimeLast;        //!&lt; latest time of block in file
+<span class="lineNum">      50 </span>                :            : 
+<span class="lineNum">      51 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     ADD_SERIALIZE_METHODS;</span>
+<a name="52"><span class="lineNum">      52 </span>                :            : </a>
+<span class="lineNum">      53 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
+<span class="lineNum">      54 </span>                :<span class="lineNoCov">          0 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">      55 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nBlocks));</span>
+<span class="lineNum">      56 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nSize));</span>
+<span class="lineNum">      57 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nUndoSize));</span>
+<span class="lineNum">      58 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nHeightFirst));</span>
+<span class="lineNum">      59 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nHeightLast));</span>
+<span class="lineNum">      60 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nTimeFirst));</span>
+<span class="lineNum">      61 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nTimeLast));</span>
+<span class="lineNum">      62 </span>                :<span class="lineNoCov">          0 :     }</span>
+<span class="lineNum">      63 </span>                :            : 
+<span class="lineNum">      64 </span>                :            :      void SetNull() {
+<span class="lineNum">      65 </span>                :<span class="lineCov">         71 :          nBlocks = 0;</span>
+<span class="lineNum">      66 </span>                :<span class="lineCov">         71 :          nSize = 0;</span>
+<span class="lineNum">      67 </span>                :<span class="lineCov">         71 :          nUndoSize = 0;</span>
+<span class="lineNum">      68 </span>                :<span class="lineCov">         71 :          nHeightFirst = 0;</span>
+<span class="lineNum">      69 </span>                :<span class="lineCov">         71 :          nHeightLast = 0;</span>
+<span class="lineNum">      70 </span>                :<span class="lineCov">         71 :          nTimeFirst = 0;</span>
+<span class="lineNum">      71 </span>                :<span class="lineCov">         71 :          nTimeLast = 0;</span>
+<span class="lineNum">      72 </span>                :            :      }
+<span class="lineNum">      73 </span>                :            : 
+<span class="lineNum">      74 </span>                :<span class="lineCov">         68 :      CBlockFileInfo() {</span>
+<span class="lineNum">      75 </span>                :<span class="lineCov">         68 :          SetNull();</span>
+<span class="lineNum">      76 </span>                :            :      }
+<span class="lineNum">      77 </span>                :            : 
+<span class="lineNum">      78 </span>                :            :      std::string ToString() const;
+<span class="lineNum">      79 </span>                :            : 
+<span class="lineNum">      80 </span>                :            :      /** update statistics (does not update nSize) */
+<span class="lineNum">      81 </span>                :            :      void AddBlock(unsigned int nHeightIn, uint64_t nTimeIn) {
+<span class="lineNum">      82 </span>[<span class="branchCov" title="Branch 0 was taken 1321 times"> + </span><span class="branchCov" title="Branch 1 was taken 68 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 1321 times"> + </span>]:<span class="lineCov">       1389 :          if (nBlocks==0 || nHeightFirst &gt; nHeightIn)</span>
+<span class="lineNum">      83 </span>                :<span class="lineCov">         68 :              nHeightFirst = nHeightIn;</span>
+<span class="lineNum">      84 </span>[<span class="branchCov" title="Branch 0 was taken 1321 times"> + </span><span class="branchCov" title="Branch 1 was taken 68 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 1321 times"> + </span>]:<span class="lineCov">       1389 :          if (nBlocks==0 || nTimeFirst &gt; nTimeIn)</span>
+<span class="lineNum">      85 </span>                :<span class="lineCov">         68 :              nTimeFirst = nTimeIn;</span>
+<span class="lineNum">      86 </span>                :<span class="lineCov">       1389 :          nBlocks++;</span>
+<span class="lineNum">      87 </span>        [<span class="branchCov" title="Branch 0 was taken 1233 times"> + </span><span class="branchCov" title="Branch 1 was taken 156 times"> + </span>]:<span class="lineCov">       1389 :          if (nHeightIn &gt; nHeightLast)</span>
+<span class="lineNum">      88 </span>                :<span class="lineCov">       1233 :              nHeightLast = nHeightIn;</span>
+<span class="lineNum">      89 </span>        [<span class="branchCov" title="Branch 0 was taken 306 times"> + </span><span class="branchCov" title="Branch 1 was taken 1083 times"> + </span>]:<span class="lineCov">       1389 :          if (nTimeIn &gt; nTimeLast)</span>
+<span class="lineNum">      90 </span>                :<span class="lineCov">        306 :              nTimeLast = nTimeIn;</span>
+<span class="lineNum">      91 </span>                :            :      }
+<span class="lineNum">      92 </span>                :            : };
+<span class="lineNum">      93 </span>                :            : 
+<span class="lineNum">      94 </span>                :            : enum BlockStatus: uint32_t {
+<span class="lineNum">      95 </span>                :            :     //! Unused.
+<span class="lineNum">      96 </span>                :            :     BLOCK_VALID_UNKNOWN      =    0,
 <span class="lineNum">      97 </span>                :            : 
-<span class="lineNum">      98 </span>                :<span class="lineCov">        220 :     ADD_SERIALIZE_METHODS;</span>
-<a name="99"><span class="lineNum">      99 </span>                :            : </a>
-<span class="lineNum">     100 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
-<span class="lineNum">     101 </span>                :<span class="lineCov">        220 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
-<span class="lineNum">     102 </span>                :<span class="lineCov">        220 :         READWRITE(VARINT(nFile, VarIntMode::NONNEGATIVE_SIGNED));</span>
-<span class="lineNum">     103 </span>                :<span class="lineCov">        220 :         READWRITE(VARINT(nPos));</span>
-<span class="lineNum">     104 </span>                :<span class="lineCov">        220 :     }</span>
-<span class="lineNum">     105 </span>                :            : 
-<span class="lineNum">     106 </span>                :<span class="lineCov">       6119 :     CDiskBlockPos() {</span>
-<span class="lineNum">     107 </span>                :<span class="lineCov">       6119 :         SetNull();</span>
-<span class="lineNum">     108 </span>                :            :     }
-<span class="lineNum">     109 </span>                :            : 
-<span class="lineNum">     110 </span>                :<span class="lineCov">        115 :     CDiskBlockPos(int nFileIn, unsigned int nPosIn) {</span>
-<span class="lineNum">     111 </span>                :<span class="lineCov">        115 :         nFile = nFileIn;</span>
-<span class="lineNum">     112 </span>                :<span class="lineCov">        115 :         nPos = nPosIn;</span>
-<span class="lineNum">     113 </span>                :            :     }
-<span class="lineNum">     114 </span>                :            : 
-<span class="lineNum">     115 </span>                :            :     friend bool operator==(const CDiskBlockPos &amp;a, const CDiskBlockPos &amp;b) {
-<span class="lineNum">     116 </span>                :            :         return (a.nFile == b.nFile &amp;&amp; a.nPos == b.nPos);
-<span class="lineNum">     117 </span>                :            :     }
+<span class="lineNum">      98 </span>                :            :     //! Parsed, version ok, hash satisfies claimed PoW, 1 &lt;= vtx count &lt;= max, timestamp not in future
+<span class="lineNum">      99 </span>                :            :     BLOCK_VALID_HEADER       =    1,
+<span class="lineNum">     100 </span>                :            : 
+<span class="lineNum">     101 </span>                :            :     //! All parent headers found, difficulty matches, timestamp &gt;= median previous, checkpoint. Implies all parents
+<span class="lineNum">     102 </span>                :            :     //! are also at least TREE.
+<span class="lineNum">     103 </span>                :            :     BLOCK_VALID_TREE         =    2,
+<span class="lineNum">     104 </span>                :            : 
+<span class="lineNum">     105 </span>                :            :     /**
+<span class="lineNum">     106 </span>                :            :      * Only first tx is coinbase, 2 &lt;= coinbase input script length &lt;= 100, transactions valid, no duplicate txids,
+<span class="lineNum">     107 </span>                :            :      * sigops, size, merkle root. Implies all parents are at least TREE but not necessarily TRANSACTIONS. When all
+<span class="lineNum">     108 </span>                :            :      * parent blocks also have TRANSACTIONS, CBlockIndex::nChainTx will be set.
+<span class="lineNum">     109 </span>                :            :      */
+<span class="lineNum">     110 </span>                :            :     BLOCK_VALID_TRANSACTIONS =    3,
+<span class="lineNum">     111 </span>                :            : 
+<span class="lineNum">     112 </span>                :            :     //! Outputs do not overspend inputs, no double spends, coinbase output ok, no immature coinbase spends, BIP30.
+<span class="lineNum">     113 </span>                :            :     //! Implies all parents are also at least CHAIN.
+<span class="lineNum">     114 </span>                :            :     BLOCK_VALID_CHAIN        =    4,
+<span class="lineNum">     115 </span>                :            : 
+<span class="lineNum">     116 </span>                :            :     //! Scripts &amp; signatures ok. Implies all parents are also at least SCRIPTS.
+<span class="lineNum">     117 </span>                :            :     BLOCK_VALID_SCRIPTS      =    5,
 <span class="lineNum">     118 </span>                :            : 
-<span class="lineNum">     119 </span>                :            :     friend bool operator!=(const CDiskBlockPos &amp;a, const CDiskBlockPos &amp;b) {
-<span class="lineNum">     120 </span>                :            :         return !(a == b);
-<span class="lineNum">     121 </span>                :            :     }
+<span class="lineNum">     119 </span>                :            :     //! All validity bits.
+<span class="lineNum">     120 </span>                :            :     BLOCK_VALID_MASK         =   BLOCK_VALID_HEADER | BLOCK_VALID_TREE | BLOCK_VALID_TRANSACTIONS |
+<span class="lineNum">     121 </span>                :            :                                  BLOCK_VALID_CHAIN | BLOCK_VALID_SCRIPTS,
 <span class="lineNum">     122 </span>                :            : 
-<span class="lineNum">     123 </span>                :<span class="lineCov">       6119 :     void SetNull() { nFile = -1; nPos = 0; }</span>
-<span class="lineNum">     124 </span>                :<span class="lineCov">       7249 :     bool IsNull() const { return (nFile == -1); }</span>
-<span class="lineNum">     125 </span>                :            : 
-<span class="lineNum">     126 </span>                :            :     std::string ToString() const
-<span class="lineNum">     127 </span>                :            :     {
-<span class="lineNum">     128 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineCov">        104 :         return strprintf(&quot;CDiskBlockPos(nFile=%i, nPos=%i)&quot;, nFile, nPos);</span>
-<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 14 was taken 104 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>]
-<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 17 was not executed"> # </span><span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>]
-<span class="lineNum">     129 </span>                :            :     }
+<span class="lineNum">     123 </span>                :            :     BLOCK_HAVE_DATA          =    8, //!&lt; full block available in blk*.dat
+<span class="lineNum">     124 </span>                :            :     BLOCK_HAVE_UNDO          =   16, //!&lt; undo data available in rev*.dat
+<span class="lineNum">     125 </span>                :            :     BLOCK_HAVE_MASK          =   BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO,
+<span class="lineNum">     126 </span>                :            : 
+<span class="lineNum">     127 </span>                :            :     BLOCK_FAILED_VALID       =   32, //!&lt; stage after last reached validness failed
+<span class="lineNum">     128 </span>                :            :     BLOCK_FAILED_CHILD       =   64, //!&lt; descends from failed block
+<span class="lineNum">     129 </span>                :            :     BLOCK_FAILED_MASK        =   BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD,
 <span class="lineNum">     130 </span>                :            : 
-<span class="lineNum">     131 </span>                :            : };
-<span class="lineNum">     132 </span>                :            : 
-<span class="lineNum">     133 </span>                :            : enum BlockStatus: uint32_t {
-<span class="lineNum">     134 </span>                :            :     //! Unused.
-<span class="lineNum">     135 </span>                :            :     BLOCK_VALID_UNKNOWN      =    0,
-<span class="lineNum">     136 </span>                :            : 
-<span class="lineNum">     137 </span>                :            :     //! Parsed, version ok, hash satisfies claimed PoW, 1 &lt;= vtx count &lt;= max, timestamp not in future
-<span class="lineNum">     138 </span>                :            :     BLOCK_VALID_HEADER       =    1,
-<span class="lineNum">     139 </span>                :            : 
-<span class="lineNum">     140 </span>                :            :     //! All parent headers found, difficulty matches, timestamp &gt;= median previous, checkpoint. Implies all parents
-<span class="lineNum">     141 </span>                :            :     //! are also at least TREE.
-<span class="lineNum">     142 </span>                :            :     BLOCK_VALID_TREE         =    2,
-<span class="lineNum">     143 </span>                :            : 
-<span class="lineNum">     144 </span>                :            :     /**
-<span class="lineNum">     145 </span>                :            :      * Only first tx is coinbase, 2 &lt;= coinbase input script length &lt;= 100, transactions valid, no duplicate txids,
-<span class="lineNum">     146 </span>                :            :      * sigops, size, merkle root. Implies all parents are at least TREE but not necessarily TRANSACTIONS. When all
-<span class="lineNum">     147 </span>                :            :      * parent blocks also have TRANSACTIONS, CBlockIndex::nChainTx will be set.
-<span class="lineNum">     148 </span>                :            :      */
-<span class="lineNum">     149 </span>                :            :     BLOCK_VALID_TRANSACTIONS =    3,
+<span class="lineNum">     131 </span>                :            :     BLOCK_OPT_WITNESS       =   128, //!&lt; block data in blk*.data was received with a witness-enforcing client
+<span class="lineNum">     132 </span>                :            : };
+<span class="lineNum">     133 </span>                :            : 
+<span class="lineNum">     134 </span>                :            : /** The block chain is a tree shaped structure starting with the
+<span class="lineNum">     135 </span>                :            :  * genesis block at the root, with each block potentially having multiple
+<span class="lineNum">     136 </span>                :            :  * candidates to be the next block. A blockindex may have multiple pprev pointing
+<a name="137"><span class="lineNum">     137 </span>                :            :  * to it, but at most one of them can be part of the currently active branch.</a>
+<span class="lineNum">     138 </span>                :            :  */
+<span class="lineNum">     139 </span>                :<span class="lineNoCov">          0 : class CBlockIndex</span>
+<span class="lineNum">     140 </span>                :            : {
+<span class="lineNum">     141 </span>                :            : public:
+<span class="lineNum">     142 </span>                :            :     //! pointer to the hash of the block, if any. Memory is owned by this CBlockIndex
+<span class="lineNum">     143 </span>                :            :     const uint256* phashBlock;
+<span class="lineNum">     144 </span>                :            : 
+<span class="lineNum">     145 </span>                :            :     //! pointer to the index of the predecessor of this block
+<span class="lineNum">     146 </span>                :            :     CBlockIndex* pprev;
+<span class="lineNum">     147 </span>                :            : 
+<span class="lineNum">     148 </span>                :            :     //! pointer to the index of some further predecessor of this block
+<span class="lineNum">     149 </span>                :            :     CBlockIndex* pskip;
 <span class="lineNum">     150 </span>                :            : 
-<span class="lineNum">     151 </span>                :            :     //! Outputs do not overspend inputs, no double spends, coinbase output ok, no immature coinbase spends, BIP30.
-<span class="lineNum">     152 </span>                :            :     //! Implies all parents are also at least CHAIN.
-<span class="lineNum">     153 </span>                :            :     BLOCK_VALID_CHAIN        =    4,
-<span class="lineNum">     154 </span>                :            : 
-<span class="lineNum">     155 </span>                :            :     //! Scripts &amp; signatures ok. Implies all parents are also at least SCRIPTS.
-<span class="lineNum">     156 </span>                :            :     BLOCK_VALID_SCRIPTS      =    5,
-<span class="lineNum">     157 </span>                :            : 
-<span class="lineNum">     158 </span>                :            :     //! All validity bits.
-<span class="lineNum">     159 </span>                :            :     BLOCK_VALID_MASK         =   BLOCK_VALID_HEADER | BLOCK_VALID_TREE | BLOCK_VALID_TRANSACTIONS |
-<span class="lineNum">     160 </span>                :            :                                  BLOCK_VALID_CHAIN | BLOCK_VALID_SCRIPTS,
-<span class="lineNum">     161 </span>                :            : 
-<span class="lineNum">     162 </span>                :            :     BLOCK_HAVE_DATA          =    8, //!&lt; full block available in blk*.dat
-<span class="lineNum">     163 </span>                :            :     BLOCK_HAVE_UNDO          =   16, //!&lt; undo data available in rev*.dat
-<span class="lineNum">     164 </span>                :            :     BLOCK_HAVE_MASK          =   BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO,
+<span class="lineNum">     151 </span>                :            :     //! height of the entry in the chain. The genesis block has height 0
+<span class="lineNum">     152 </span>                :            :     int nHeight;
+<span class="lineNum">     153 </span>                :            : 
+<span class="lineNum">     154 </span>                :            :     //! Which # file this block is stored in (blk?????.dat)
+<span class="lineNum">     155 </span>                :            :     int nFile;
+<span class="lineNum">     156 </span>                :            : 
+<span class="lineNum">     157 </span>                :            :     //! Byte offset within blk?????.dat where this block's data is stored
+<span class="lineNum">     158 </span>                :            :     unsigned int nDataPos;
+<span class="lineNum">     159 </span>                :            : 
+<span class="lineNum">     160 </span>                :            :     //! Byte offset within rev?????.dat where this block's undo data is stored
+<span class="lineNum">     161 </span>                :            :     unsigned int nUndoPos;
+<span class="lineNum">     162 </span>                :            : 
+<span class="lineNum">     163 </span>                :            :     //! (memory only) Total amount of work (expected number of hashes) in the chain up to and including this block
+<span class="lineNum">     164 </span>                :            :     arith_uint256 nChainWork;
 <span class="lineNum">     165 </span>                :            : 
-<span class="lineNum">     166 </span>                :            :     BLOCK_FAILED_VALID       =   32, //!&lt; stage after last reached validness failed
-<span class="lineNum">     167 </span>                :            :     BLOCK_FAILED_CHILD       =   64, //!&lt; descends from failed block
-<span class="lineNum">     168 </span>                :            :     BLOCK_FAILED_MASK        =   BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD,
+<span class="lineNum">     166 </span>                :            :     //! Number of transactions in this block.
+<span class="lineNum">     167 </span>                :            :     //! Note: in a potential headers-first mode, this number cannot be relied upon
+<span class="lineNum">     168 </span>                :            :     unsigned int nTx;
 <span class="lineNum">     169 </span>                :            : 
-<span class="lineNum">     170 </span>                :            :     BLOCK_OPT_WITNESS       =   128, //!&lt; block data in blk*.data was received with a witness-enforcing client
-<span class="lineNum">     171 </span>                :            : };
-<span class="lineNum">     172 </span>                :            : 
-<span class="lineNum">     173 </span>                :            : /** The block chain is a tree shaped structure starting with the
-<span class="lineNum">     174 </span>                :            :  * genesis block at the root, with each block potentially having multiple
-<span class="lineNum">     175 </span>                :            :  * candidates to be the next block. A blockindex may have multiple pprev pointing
-<a name="176"><span class="lineNum">     176 </span>                :            :  * to it, but at most one of them can be part of the currently active branch.</a>
-<span class="lineNum">     177 </span>                :            :  */
-<span class="lineNum">     178 </span>                :<span class="lineNoCov">          0 : class CBlockIndex</span>
-<span class="lineNum">     179 </span>                :            : {
-<span class="lineNum">     180 </span>                :            : public:
-<span class="lineNum">     181 </span>                :            :     //! pointer to the hash of the block, if any. Memory is owned by this CBlockIndex
-<span class="lineNum">     182 </span>                :            :     const uint256* phashBlock;
-<span class="lineNum">     183 </span>                :            : 
-<span class="lineNum">     184 </span>                :            :     //! pointer to the index of the predecessor of this block
-<span class="lineNum">     185 </span>                :            :     CBlockIndex* pprev;
-<span class="lineNum">     186 </span>                :            : 
-<span class="lineNum">     187 </span>                :            :     //! pointer to the index of some further predecessor of this block
-<span class="lineNum">     188 </span>                :            :     CBlockIndex* pskip;
-<span class="lineNum">     189 </span>                :            : 
-<span class="lineNum">     190 </span>                :            :     //! height of the entry in the chain. The genesis block has height 0
-<span class="lineNum">     191 </span>                :            :     int nHeight;
-<span class="lineNum">     192 </span>                :            : 
-<span class="lineNum">     193 </span>                :            :     //! Which # file this block is stored in (blk?????.dat)
-<span class="lineNum">     194 </span>                :            :     int nFile;
-<span class="lineNum">     195 </span>                :            : 
-<span class="lineNum">     196 </span>                :            :     //! Byte offset within blk?????.dat where this block's data is stored
-<span class="lineNum">     197 </span>                :            :     unsigned int nDataPos;
-<span class="lineNum">     198 </span>                :            : 
-<span class="lineNum">     199 </span>                :            :     //! Byte offset within rev?????.dat where this block's undo data is stored
-<span class="lineNum">     200 </span>                :            :     unsigned int nUndoPos;
-<span class="lineNum">     201 </span>                :            : 
-<span class="lineNum">     202 </span>                :            :     //! (memory only) Total amount of work (expected number of hashes) in the chain up to and including this block
-<span class="lineNum">     203 </span>                :            :     arith_uint256 nChainWork;
-<span class="lineNum">     204 </span>                :            : 
-<span class="lineNum">     205 </span>                :            :     //! Number of transactions in this block.
-<span class="lineNum">     206 </span>                :            :     //! Note: in a potential headers-first mode, this number cannot be relied upon
-<span class="lineNum">     207 </span>                :            :     unsigned int nTx;
-<span class="lineNum">     208 </span>                :            : 
-<span class="lineNum">     209 </span>                :            :     //! (memory only) Number of transactions in the chain up to and including this block.
-<span class="lineNum">     210 </span>                :            :     //! This value will be non-zero only if and only if transactions for this block and all its parents are available.
-<span class="lineNum">     211 </span>                :            :     //! Change to 64-bit type when necessary; won't happen before 2030
-<span class="lineNum">     212 </span>                :            :     unsigned int nChainTx;
+<span class="lineNum">     170 </span>                :            :     //! (memory only) Number of transactions in the chain up to and including this block.
+<span class="lineNum">     171 </span>                :            :     //! This value will be non-zero only if and only if transactions for this block and all its parents are available.
+<span class="lineNum">     172 </span>                :            :     //! Change to 64-bit type when necessary; won't happen before 2030
+<span class="lineNum">     173 </span>                :            :     unsigned int nChainTx;
+<span class="lineNum">     174 </span>                :            : 
+<span class="lineNum">     175 </span>                :            :     //! Verification status of this block. See enum BlockStatus
+<span class="lineNum">     176 </span>                :            :     uint32_t nStatus;
+<span class="lineNum">     177 </span>                :            : 
+<span class="lineNum">     178 </span>                :            :     //! block header
+<span class="lineNum">     179 </span>                :            :     int32_t nVersion;
+<span class="lineNum">     180 </span>                :            :     uint256 hashMerkleRoot;
+<span class="lineNum">     181 </span>                :            :     uint32_t nTime;
+<span class="lineNum">     182 </span>                :            :     uint32_t nBits;
+<span class="lineNum">     183 </span>                :            :     uint32_t nNonce;
+<span class="lineNum">     184 </span>                :            : 
+<span class="lineNum">     185 </span>                :            :     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
+<span class="lineNum">     186 </span>                :            :     int32_t nSequenceId;
+<span class="lineNum">     187 </span>                :            : 
+<span class="lineNum">     188 </span>                :            :     //! (memory only) Maximum nTime in the chain up to and including this block.
+<a name="189"><span class="lineNum">     189 </span>                :            :     unsigned int nTimeMax;</a>
+<span class="lineNum">     190 </span>                :            : 
+<span class="lineNum">     191 </span>                :<span class="lineCov">    4758695 :     void SetNull()</span>
+<span class="lineNum">     192 </span>                :            :     {
+<span class="lineNum">     193 </span>                :<span class="lineCov">    4758695 :         phashBlock = nullptr;</span>
+<span class="lineNum">     194 </span>                :<span class="lineCov">    4758695 :         pprev = nullptr;</span>
+<span class="lineNum">     195 </span>                :<span class="lineCov">    4758695 :         pskip = nullptr;</span>
+<span class="lineNum">     196 </span>                :<span class="lineCov">    4758695 :         nHeight = 0;</span>
+<span class="lineNum">     197 </span>                :<span class="lineCov">    4758695 :         nFile = 0;</span>
+<span class="lineNum">     198 </span>                :<span class="lineCov">    4758695 :         nDataPos = 0;</span>
+<span class="lineNum">     199 </span>                :<span class="lineCov">    4758695 :         nUndoPos = 0;</span>
+<span class="lineNum">     200 </span>                :<span class="lineCov">    4758695 :         nChainWork = arith_uint256();</span>
+<span class="lineNum">     201 </span>                :<span class="lineCov">    4758695 :         nTx = 0;</span>
+<span class="lineNum">     202 </span>                :<span class="lineCov">    4758695 :         nChainTx = 0;</span>
+<span class="lineNum">     203 </span>                :<span class="lineCov">    4758695 :         nStatus = 0;</span>
+<span class="lineNum">     204 </span>                :<span class="lineCov">    4758695 :         nSequenceId = 0;</span>
+<span class="lineNum">     205 </span>                :<span class="lineCov">    4758695 :         nTimeMax = 0;</span>
+<span class="lineNum">     206 </span>                :            : 
+<span class="lineNum">     207 </span>                :<span class="lineCov">    4758695 :         nVersion       = 0;</span>
+<span class="lineNum">     208 </span>                :<span class="lineCov">    4758695 :         hashMerkleRoot = uint256();</span>
+<span class="lineNum">     209 </span>                :<span class="lineCov">    4758695 :         nTime          = 0;</span>
+<span class="lineNum">     210 </span>                :<span class="lineCov">    4758695 :         nBits          = 0;</span>
+<span class="lineNum">     211 </span>                :<span class="lineCov">    4758695 :         nNonce         = 0;</span>
+<a name="212"><span class="lineNum">     212 </span>                :<span class="lineCov">    4758695 :     }</span></a>
 <span class="lineNum">     213 </span>                :            : 
-<span class="lineNum">     214 </span>                :            :     //! Verification status of this block. See enum BlockStatus
-<span class="lineNum">     215 </span>                :            :     uint32_t nStatus;
-<span class="lineNum">     216 </span>                :            : 
-<span class="lineNum">     217 </span>                :            :     //! block header
-<span class="lineNum">     218 </span>                :            :     int32_t nVersion;
-<span class="lineNum">     219 </span>                :            :     uint256 hashMerkleRoot;
-<span class="lineNum">     220 </span>                :            :     uint32_t nTime;
-<span class="lineNum">     221 </span>                :            :     uint32_t nBits;
-<span class="lineNum">     222 </span>                :            :     uint32_t nNonce;
-<span class="lineNum">     223 </span>                :            : 
-<span class="lineNum">     224 </span>                :            :     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
-<span class="lineNum">     225 </span>                :            :     int32_t nSequenceId;
-<span class="lineNum">     226 </span>                :            : 
-<span class="lineNum">     227 </span>                :            :     //! (memory only) Maximum nTime in the chain up to and including this block.
-<a name="228"><span class="lineNum">     228 </span>                :            :     unsigned int nTimeMax;</a>
+<span class="lineNum">     214 </span>                :<span class="lineCov">    4756070 :     CBlockIndex()</span>
+<span class="lineNum">     215 </span>                :<span class="lineCov">   14268210 :     {</span>
+<span class="lineNum">     216 </span>                :<span class="lineCov">    4756070 :         SetNull();</span>
+<a name="217"><span class="lineNum">     217 </span>                :<span class="lineCov">    4756070 :     }</span></a>
+<span class="lineNum">     218 </span>                :            : 
+<span class="lineNum">     219 </span>                :<span class="lineCov">       2625 :     explicit CBlockIndex(const CBlockHeader&amp; block)</span>
+<span class="lineNum">     220 </span>                :<span class="lineCov">       7875 :     {</span>
+<span class="lineNum">     221 </span>                :<span class="lineCov">       2625 :         SetNull();</span>
+<span class="lineNum">     222 </span>                :            : 
+<span class="lineNum">     223 </span>                :<span class="lineCov">       2625 :         nVersion       = block.nVersion;</span>
+<span class="lineNum">     224 </span>                :<span class="lineCov">       2625 :         hashMerkleRoot = block.hashMerkleRoot;</span>
+<span class="lineNum">     225 </span>                :<span class="lineCov">       2625 :         nTime          = block.nTime;</span>
+<span class="lineNum">     226 </span>                :<span class="lineCov">       2625 :         nBits          = block.nBits;</span>
+<span class="lineNum">     227 </span>                :<span class="lineCov">       2625 :         nNonce         = block.nNonce;</span>
+<span class="lineNum">     228 </span>                :<span class="lineCov">       2625 :     }</span>
 <span class="lineNum">     229 </span>                :            : 
-<span class="lineNum">     230 </span>                :<span class="lineCov">    4759585 :     void SetNull()</span>
-<span class="lineNum">     231 </span>                :            :     {
-<span class="lineNum">     232 </span>                :<span class="lineCov">    4759585 :         phashBlock = nullptr;</span>
-<span class="lineNum">     233 </span>                :<span class="lineCov">    4759585 :         pprev = nullptr;</span>
-<span class="lineNum">     234 </span>                :<span class="lineCov">    4759585 :         pskip = nullptr;</span>
-<span class="lineNum">     235 </span>                :<span class="lineCov">    4759585 :         nHeight = 0;</span>
-<span class="lineNum">     236 </span>                :<span class="lineCov">    4759585 :         nFile = 0;</span>
-<span class="lineNum">     237 </span>                :<span class="lineCov">    4759585 :         nDataPos = 0;</span>
-<span class="lineNum">     238 </span>                :<span class="lineCov">    4759585 :         nUndoPos = 0;</span>
-<span class="lineNum">     239 </span>                :<span class="lineCov">    4759585 :         nChainWork = arith_uint256();</span>
-<span class="lineNum">     240 </span>                :<span class="lineCov">    4759585 :         nTx = 0;</span>
-<span class="lineNum">     241 </span>                :<span class="lineCov">    4759585 :         nChainTx = 0;</span>
-<span class="lineNum">     242 </span>                :<span class="lineCov">    4759585 :         nStatus = 0;</span>
-<span class="lineNum">     243 </span>                :<span class="lineCov">    4759585 :         nSequenceId = 0;</span>
-<span class="lineNum">     244 </span>                :<span class="lineCov">    4759585 :         nTimeMax = 0;</span>
-<span class="lineNum">     245 </span>                :            : 
-<span class="lineNum">     246 </span>                :<span class="lineCov">    4759585 :         nVersion       = 0;</span>
-<span class="lineNum">     247 </span>                :<span class="lineCov">    4759585 :         hashMerkleRoot = uint256();</span>
-<span class="lineNum">     248 </span>                :<span class="lineCov">    4759585 :         nTime          = 0;</span>
-<span class="lineNum">     249 </span>                :<span class="lineCov">    4759585 :         nBits          = 0;</span>
-<span class="lineNum">     250 </span>                :<span class="lineCov">    4759585 :         nNonce         = 0;</span>
-<a name="251"><span class="lineNum">     251 </span>                :<span class="lineCov">    4759585 :     }</span></a>
-<span class="lineNum">     252 </span>                :            : 
-<span class="lineNum">     253 </span>                :<span class="lineCov">    4756070 :     CBlockIndex()</span>
-<span class="lineNum">     254 </span>                :<span class="lineCov">    9512140 :     {</span>
-<span class="lineNum">     255 </span>                :<span class="lineCov">    4756070 :         SetNull();</span>
-<a name="256"><span class="lineNum">     256 </span>                :<span class="lineCov">    4756070 :     }</span></a>
-<span class="lineNum">     257 </span>                :            : 
-<span class="lineNum">     258 </span>                :<span class="lineCov">       3515 :     explicit CBlockIndex(const CBlockHeader&amp; block)</span>
-<span class="lineNum">     259 </span>                :<span class="lineCov">      10545 :     {</span>
-<span class="lineNum">     260 </span>                :<span class="lineCov">       3515 :         SetNull();</span>
-<span class="lineNum">     261 </span>                :            : 
-<span class="lineNum">     262 </span>                :<span class="lineCov">       3515 :         nVersion       = block.nVersion;</span>
-<span class="lineNum">     263 </span>                :<span class="lineCov">       3515 :         hashMerkleRoot = block.hashMerkleRoot;</span>
-<span class="lineNum">     264 </span>                :<span class="lineCov">       3515 :         nTime          = block.nTime;</span>
-<span class="lineNum">     265 </span>                :<span class="lineCov">       3515 :         nBits          = block.nBits;</span>
-<span class="lineNum">     266 </span>                :<span class="lineCov">       3515 :         nNonce         = block.nNonce;</span>
-<span class="lineNum">     267 </span>                :<span class="lineCov">       3515 :     }</span>
-<span class="lineNum">     268 </span>                :            : 
-<span class="lineNum">     269 </span>                :            :     CDiskBlockPos GetBlockPos() const {
-<span class="lineNum">     270 </span>                :<span class="lineCov">        708 :         CDiskBlockPos ret;</span>
-<span class="lineNum">     271 </span>[<span class="branchCov" title="Branch 0 was taken 111 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        708 :         if (nStatus &amp; BLOCK_HAVE_DATA) {</span>
+<span class="lineNum">     230 </span>                :            :     FlatFilePos GetBlockPos() const {
+<span class="lineNum">     231 </span>                :<span class="lineCov">        586 :         FlatFilePos ret;</span>
+<span class="lineNum">     232 </span>[<span class="branchCov" title="Branch 0 was taken 111 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        586 :         if (nStatus &amp; BLOCK_HAVE_DATA) {</span>
 <span class="lineNum">         </span>        [<span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 1 time"> + </span>]
 <span class="lineNum">         </span>  [<span class="branchCov" title="Branch 6 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span><span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
 <span class="lineNum">         </span>  [<span class="branchNoCov" title="Branch 10 was not taken"> - </span><span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
 <span class="lineNum">         </span>        [<span class="branchNoCov" title="Branch 14 was not taken"> - </span><span class="branchCov" title="Branch 15 was taken 1 time"> + </span>]
-<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchCov" title="Branch 2 was taken 486 times"> + </span><span class="branchCov" title="Branch 3 was taken 104 times"> + </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchCov" title="Branch 2 was taken 364 times"> + </span><span class="branchCov" title="Branch 3 was taken 104 times"> + </span>]
 <span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
-<span class="lineNum">     272 </span>                :<span class="lineCov">        601 :             ret.nFile = nFile;</span>
-<span class="lineNum">     273 </span>                :<span class="lineCov">        601 :             ret.nPos  = nDataPos;</span>
-<span class="lineNum">     274 </span>                :            :         }
-<span class="lineNum">     275 </span>                :<span class="lineCov">        708 :         return ret;</span>
-<span class="lineNum">     276 </span>                :            :     }
-<span class="lineNum">     277 </span>                :            : 
-<span class="lineNum">     278 </span>                :            :     CDiskBlockPos GetUndoPos() const {
-<span class="lineNum">     279 </span>                :<span class="lineCov">       1435 :         CDiskBlockPos ret;</span>
-<span class="lineNum">     280 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchCov" title="Branch 2 was taken 6 times"> + </span><span class="branchCov" title="Branch 3 was taken 1376 times"> + </span>]:<span class="lineCov">       1435 :         if (nStatus &amp; BLOCK_HAVE_UNDO) {</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 53 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
-<span class="lineNum">     281 </span>                :<span class="lineCov">         59 :             ret.nFile = nFile;</span>
-<span class="lineNum">     282 </span>                :<span class="lineCov">         59 :             ret.nPos  = nUndoPos;</span>
-<span class="lineNum">     283 </span>                :            :         }
-<span class="lineNum">     284 </span>                :<span class="lineCov">       1435 :         return ret;</span>
-<a name="285"><span class="lineNum">     285 </span>                :            :     }</a>
+<span class="lineNum">     233 </span>                :<span class="lineCov">        479 :             ret.nFile = nFile;</span>
+<span class="lineNum">     234 </span>                :<span class="lineCov">        479 :             ret.nPos  = nDataPos;</span>
+<span class="lineNum">     235 </span>                :            :         }
+<span class="lineNum">     236 </span>                :<span class="lineCov">        586 :         return ret;</span>
+<span class="lineNum">     237 </span>                :            :     }
+<span class="lineNum">     238 </span>                :            : 
+<span class="lineNum">     239 </span>                :            :     FlatFilePos GetUndoPos() const {
+<span class="lineNum">     240 </span>                :<span class="lineCov">       1316 :         FlatFilePos ret;</span>
+<span class="lineNum">     241 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 1293 times"> + </span>]:<span class="lineCov">       1316 :         if (nStatus &amp; BLOCK_HAVE_UNDO) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 22 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
+<span class="lineNum">     242 </span>                :<span class="lineCov">         23 :             ret.nFile = nFile;</span>
+<span class="lineNum">     243 </span>                :<span class="lineCov">         23 :             ret.nPos  = nUndoPos;</span>
+<span class="lineNum">     244 </span>                :            :         }
+<span class="lineNum">     245 </span>                :<span class="lineCov">       1316 :         return ret;</span>
+<a name="246"><span class="lineNum">     246 </span>                :            :     }</a>
+<span class="lineNum">     247 </span>                :            : 
+<span class="lineNum">     248 </span>                :<span class="lineNoCov">          0 :     CBlockHeader GetBlockHeader() const</span>
+<span class="lineNum">     249 </span>                :            :     {
+<span class="lineNum">     250 </span>                :<span class="lineNoCov">          0 :         CBlockHeader block;</span>
+<span class="lineNum">     251 </span>                :<span class="lineNoCov">          0 :         block.nVersion       = nVersion;</span>
+<span class="lineNum">     252 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (pprev)</span>
+<span class="lineNum">     253 </span>                :<span class="lineNoCov">          0 :             block.hashPrevBlock = pprev-&gt;GetBlockHash();</span>
+<span class="lineNum">     254 </span>                :<span class="lineNoCov">          0 :         block.hashMerkleRoot = hashMerkleRoot;</span>
+<span class="lineNum">     255 </span>                :<span class="lineNoCov">          0 :         block.nTime          = nTime;</span>
+<span class="lineNum">     256 </span>                :<span class="lineNoCov">          0 :         block.nBits          = nBits;</span>
+<span class="lineNum">     257 </span>                :<span class="lineNoCov">          0 :         block.nNonce         = nNonce;</span>
+<span class="lineNum">     258 </span>                :<span class="lineNoCov">          0 :         return block;</span>
+<span class="lineNum">     259 </span>                :            :     }
+<span class="lineNum">     260 </span>                :            : 
+<span class="lineNum">     261 </span>                :            :     uint256 GetBlockHash() const
+<span class="lineNum">     262 </span>                :            :     {
+<span class="lineNum">     263 </span>                :<span class="lineCov">     577043 :         return *phashBlock;</span>
+<span class="lineNum">     264 </span>                :            :     }
+<span class="lineNum">     265 </span>                :            : 
+<span class="lineNum">     266 </span>                :            :     /**
+<span class="lineNum">     267 </span>                :            :      * Check whether this block's and all previous blocks' transactions have been
+<span class="lineNum">     268 </span>                :            :      * downloaded (and stored to disk) at some point.
+<span class="lineNum">     269 </span>                :            :      *
+<span class="lineNum">     270 </span>                :            :      * Does not imply the transactions are consensus-valid (ConnectTip might fail)
+<span class="lineNum">     271 </span>                :            :      * Does not imply the transactions are still stored on disk. (IsBlockPruned might return true)
+<span class="lineNum">     272 </span>                :            :      */
+<span class="lineNum">     273 </span>                :<span class="lineCov">     211400 :     bool HaveTxsDownloaded() const { return nChainTx != 0; }</span>
+<span class="lineNum">     274 </span>                :            : 
+<span class="lineNum">     275 </span>                :            :     int64_t GetBlockTime() const
+<span class="lineNum">     276 </span>                :            :     {
+<span class="lineNum">     277 </span>                :<span class="lineCov">    1364467 :         return (int64_t)nTime;</span>
+<span class="lineNum">     278 </span>                :            :     }
+<span class="lineNum">     279 </span>                :            : 
+<span class="lineNum">     280 </span>                :            :     int64_t GetBlockTimeMax() const
+<span class="lineNum">     281 </span>                :            :     {
+<span class="lineNum">     282 </span>                :<span class="lineCov">     167656 :         return (int64_t)nTimeMax;</span>
+<span class="lineNum">     283 </span>                :            :     }
+<span class="lineNum">     284 </span>                :            : 
+<a name="285"><span class="lineNum">     285 </span>                :            :     static constexpr int nMedianTimeSpan = 11;</a>
 <span class="lineNum">     286 </span>                :            : 
-<span class="lineNum">     287 </span>                :<span class="lineNoCov">          0 :     CBlockHeader GetBlockHeader() const</span>
+<span class="lineNum">     287 </span>                :<span class="lineCov">     123554 :     int64_t GetMedianTimePast() const</span>
 <span class="lineNum">     288 </span>                :            :     {
-<span class="lineNum">     289 </span>                :<span class="lineNoCov">          0 :         CBlockHeader block;</span>
-<span class="lineNum">     290 </span>                :<span class="lineNoCov">          0 :         block.nVersion       = nVersion;</span>
-<span class="lineNum">     291 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (pprev)</span>
-<span class="lineNum">     292 </span>                :<span class="lineNoCov">          0 :             block.hashPrevBlock = pprev-&gt;GetBlockHash();</span>
-<span class="lineNum">     293 </span>                :<span class="lineNoCov">          0 :         block.hashMerkleRoot = hashMerkleRoot;</span>
-<span class="lineNum">     294 </span>                :<span class="lineNoCov">          0 :         block.nTime          = nTime;</span>
-<span class="lineNum">     295 </span>                :<span class="lineNoCov">          0 :         block.nBits          = nBits;</span>
-<span class="lineNum">     296 </span>                :<span class="lineNoCov">          0 :         block.nNonce         = nNonce;</span>
-<span class="lineNum">     297 </span>                :<span class="lineNoCov">          0 :         return block;</span>
-<span class="lineNum">     298 </span>                :            :     }
-<span class="lineNum">     299 </span>                :            : 
-<span class="lineNum">     300 </span>                :            :     uint256 GetBlockHash() const
-<span class="lineNum">     301 </span>                :            :     {
-<span class="lineNum">     302 </span>                :<span class="lineCov">     578244 :         return *phashBlock;</span>
-<span class="lineNum">     303 </span>                :            :     }
-<span class="lineNum">     304 </span>                :            : 
-<span class="lineNum">     305 </span>                :            :     /**
-<span class="lineNum">     306 </span>                :            :      * Check whether this block's and all previous blocks' transactions have been
-<span class="lineNum">     307 </span>                :            :      * downloaded (and stored to disk) at some point.
-<span class="lineNum">     308 </span>                :            :      *
-<span class="lineNum">     309 </span>                :            :      * Does not imply the transactions are consensus-valid (ConnectTip might fail)
-<span class="lineNum">     310 </span>                :            :      * Does not imply the transactions are still stored on disk. (IsBlockPruned might return true)
-<span class="lineNum">     311 </span>                :            :      */
-<span class="lineNum">     312 </span>                :<span class="lineCov">     578492 :     bool HaveTxsDownloaded() const { return nChainTx != 0; }</span>
-<span class="lineNum">     313 </span>                :            : 
-<span class="lineNum">     314 </span>                :            :     int64_t GetBlockTime() const
-<span class="lineNum">     315 </span>                :            :     {
-<span class="lineNum">     316 </span>                :<span class="lineCov">    1376293 :         return (int64_t)nTime;</span>
-<span class="lineNum">     317 </span>                :            :     }
-<span class="lineNum">     318 </span>                :            : 
-<span class="lineNum">     319 </span>                :            :     int64_t GetBlockTimeMax() const
-<span class="lineNum">     320 </span>                :            :     {
-<span class="lineNum">     321 </span>                :<span class="lineCov">     167723 :         return (int64_t)nTimeMax;</span>
-<span class="lineNum">     322 </span>                :            :     }
-<span class="lineNum">     323 </span>                :            : 
-<a name="324"><span class="lineNum">     324 </span>                :            :     static constexpr int nMedianTimeSpan = 11;</a>
-<span class="lineNum">     325 </span>                :            : 
-<span class="lineNum">     326 </span>                :<span class="lineCov">     125697 :     int64_t GetMedianTimePast() const</span>
-<span class="lineNum">     327 </span>                :            :     {
-<span class="lineNum">     328 </span>                :            :         int64_t pmedian[nMedianTimeSpan];
-<span class="lineNum">     329 </span>                :<span class="lineCov">     125697 :         int64_t* pbegin = &amp;pmedian[nMedianTimeSpan];</span>
-<span class="lineNum">     330 </span>                :<span class="lineCov">     125697 :         int64_t* pend = &amp;pmedian[nMedianTimeSpan];</span>
-<span class="lineNum">     331 </span>                :            : 
-<span class="lineNum">     332 </span>                :<span class="lineCov">     125697 :         const CBlockIndex* pindex = this;</span>
-<span class="lineNum">     333 </span>        [<span class="branchCov" title="Branch 0 was taken 1362691 times"> + </span><span class="branchCov" title="Branch 1 was taken 125697 times"> + </span>]:<span class="lineCov">    1488388 :         for (int i = 0; i &lt; nMedianTimeSpan &amp;&amp; pindex; i++, pindex = pindex-&gt;pprev)</span>
-<span class="lineNum">     334 </span>                :<span class="lineCov">    2725382 :             *(--pbegin) = pindex-&gt;GetBlockTime();</span>
-<span class="lineNum">     335 </span>                :            : 
-<span class="lineNum">     336 </span>                :<span class="lineCov">     125697 :         std::sort(pbegin, pend);</span>
-<span class="lineNum">     337 </span>                :<span class="lineCov">     125697 :         return pbegin[(pend - pbegin)/2];</span>
-<a name="338"><span class="lineNum">     338 </span>                :            :     }</a>
-<span class="lineNum">     339 </span>                :            : 
-<span class="lineNum">     340 </span>                :<span class="lineNoCov">          0 :     std::string ToString() const</span>
-<span class="lineNum">     341 </span>                :            :     {
-<span class="lineNum">     342 </span>                :            :         return strprintf(&quot;CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s)&quot;,
-<span class="lineNum">     343 </span>                :            :             pprev, nHeight,
-<span class="lineNum">     344 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             hashMerkleRoot.ToString(),</span>
-<span class="lineNum">     345 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             GetBlockHash().ToString());</span>
-<span class="lineNum">     346 </span>                :            :     }
-<span class="lineNum">     347 </span>                :            : 
-<span class="lineNum">     348 </span>                :            :     //! Check whether this block index entry is valid up to the passed validity level.
-<span class="lineNum">     349 </span>                :            :     bool IsValid(enum BlockStatus nUpTo = BLOCK_VALID_TRANSACTIONS) const
-<span class="lineNum">     350 </span>                :            :     {
-<span class="lineNum">     351 </span>                :            :         assert(!(nUpTo &amp; ~BLOCK_VALID_MASK)); // Only validity flags allowed.
-<span class="lineNum">     352 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">       3597 :         if (nStatus &amp; BLOCK_FAILED_MASK)</span>
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchCov" title="Branch 6 was taken 1733 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 482 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     289 </span>                :            :         int64_t pmedian[nMedianTimeSpan];
+<span class="lineNum">     290 </span>                :<span class="lineCov">     123554 :         int64_t* pbegin = &amp;pmedian[nMedianTimeSpan];</span>
+<span class="lineNum">     291 </span>                :<span class="lineCov">     123554 :         int64_t* pend = &amp;pmedian[nMedianTimeSpan];</span>
+<span class="lineNum">     292 </span>                :            : 
+<span class="lineNum">     293 </span>                :<span class="lineCov">     123554 :         const CBlockIndex* pindex = this;</span>
+<span class="lineNum">     294 </span>        [<span class="branchCov" title="Branch 0 was taken 1353622 times"> + </span><span class="branchCov" title="Branch 1 was taken 123554 times"> + </span>]:<span class="lineCov">    1477176 :         for (int i = 0; i &lt; nMedianTimeSpan &amp;&amp; pindex; i++, pindex = pindex-&gt;pprev)</span>
+<span class="lineNum">     295 </span>                :<span class="lineCov">    2707244 :             *(--pbegin) = pindex-&gt;GetBlockTime();</span>
+<span class="lineNum">     296 </span>                :            : 
+<span class="lineNum">     297 </span>                :<span class="lineCov">     123554 :         std::sort(pbegin, pend);</span>
+<span class="lineNum">     298 </span>                :<span class="lineCov">     123554 :         return pbegin[(pend - pbegin)/2];</span>
+<a name="299"><span class="lineNum">     299 </span>                :            :     }</a>
+<span class="lineNum">     300 </span>                :            : 
+<span class="lineNum">     301 </span>                :<span class="lineNoCov">          0 :     std::string ToString() const</span>
+<span class="lineNum">     302 </span>                :            :     {
+<span class="lineNum">     303 </span>                :            :         return strprintf(&quot;CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s)&quot;,
+<span class="lineNum">     304 </span>                :            :             pprev, nHeight,
+<span class="lineNum">     305 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             hashMerkleRoot.ToString(),</span>
+<span class="lineNum">     306 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             GetBlockHash().ToString());</span>
+<span class="lineNum">     307 </span>                :            :     }
+<span class="lineNum">     308 </span>                :            : 
+<span class="lineNum">     309 </span>                :            :     //! Check whether this block index entry is valid up to the passed validity level.
+<span class="lineNum">     310 </span>                :            :     bool IsValid(enum BlockStatus nUpTo = BLOCK_VALID_TRANSACTIONS) const
+<span class="lineNum">     311 </span>                :            :     {
+<span class="lineNum">     312 </span>                :            :         assert(!(nUpTo &amp; ~BLOCK_VALID_MASK)); // Only validity flags allowed.
+<span class="lineNum">     313 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">       2703 :         if (nStatus &amp; BLOCK_FAILED_MASK)</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchCov" title="Branch 6 was taken 1324 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 85 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
 <span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span><span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
 <span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>][<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 18 was taken 1382 times"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span>][<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
-<span class="lineNum">     353 </span>                :            :             return false;
-<span class="lineNum">     354 </span>                :<span class="lineCov">       3597 :         return ((nStatus &amp; BLOCK_VALID_MASK) &gt;= nUpTo);</span>
-<span class="lineNum">     355 </span>                :            :     }
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 18 was taken 1294 times"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span>][<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
+<span class="lineNum">     314 </span>                :            :             return false;
+<span class="lineNum">     315 </span>                :<span class="lineCov">       2703 :         return ((nStatus &amp; BLOCK_VALID_MASK) &gt;= nUpTo);</span>
+<span class="lineNum">     316 </span>                :            :     }
+<span class="lineNum">     317 </span>                :            : 
+<a name="318"><span class="lineNum">     318 </span>                :            :     //! Raise the validity level of this block index entry.</a>
+<span class="lineNum">     319 </span>                :            :     //! Returns true if the validity was changed.
+<span class="lineNum">     320 </span>                :<span class="lineCov">       4072 :     bool RaiseValidity(enum BlockStatus nUpTo)</span>
+<span class="lineNum">     321 </span>                :            :     {
+<span class="lineNum">     322 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 4072 times"> + </span>]:<span class="lineCov">       4072 :         assert(!(nUpTo &amp; ~BLOCK_VALID_MASK)); // Only validity flags allowed.</span>
+<span class="lineNum">     323 </span>        [<span class="branchCov" title="Branch 0 was taken 4072 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       4072 :         if (nStatus &amp; BLOCK_FAILED_MASK)</span>
+<span class="lineNum">     324 </span>                :            :             return false;
+<span class="lineNum">     325 </span>        [<span class="branchCov" title="Branch 0 was taken 4072 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       4072 :         if ((nStatus &amp; BLOCK_VALID_MASK) &lt; nUpTo) {</span>
+<span class="lineNum">     326 </span>                :<span class="lineCov">       4072 :             nStatus = (nStatus &amp; ~BLOCK_VALID_MASK) | nUpTo;</span>
+<span class="lineNum">     327 </span>                :<span class="lineCov">       4072 :             return true;</span>
+<span class="lineNum">     328 </span>                :            :         }
+<span class="lineNum">     329 </span>                :            :         return false;
+<span class="lineNum">     330 </span>                :            :     }
+<span class="lineNum">     331 </span>                :            : 
+<span class="lineNum">     332 </span>                :            :     //! Build the skiplist pointer for this entry.
+<span class="lineNum">     333 </span>                :            :     void BuildSkip();
+<span class="lineNum">     334 </span>                :            : 
+<span class="lineNum">     335 </span>                :            :     //! Efficiently find an ancestor of this block.
+<span class="lineNum">     336 </span>                :            :     CBlockIndex* GetAncestor(int height);
+<span class="lineNum">     337 </span>                :            :     const CBlockIndex* GetAncestor(int height) const;
+<span class="lineNum">     338 </span>                :            : };
+<span class="lineNum">     339 </span>                :            : 
+<span class="lineNum">     340 </span>                :            : arith_uint256 GetBlockProof(const CBlockIndex&amp; block);
+<span class="lineNum">     341 </span>                :            : /** Return the time it would take to redo the work difference between from and to, assuming the current hashrate corresponds to the difficulty at tip, in seconds. */
+<span class="lineNum">     342 </span>                :            : int64_t GetBlockProofEquivalentTime(const CBlockIndex&amp; to, const CBlockIndex&amp; from, const CBlockIndex&amp; tip, const Consensus::Params&amp;);
+<span class="lineNum">     343 </span>                :            : /** Find the forking point between two chain tips. */
+<span class="lineNum">     344 </span>                :            : const CBlockIndex* LastCommonAncestor(const CBlockIndex* pa, const CBlockIndex* pb);
+<span class="lineNum">     345 </span>                :            : 
+<span class="lineNum">     346 </span>                :            : 
+<span class="lineNum">     347 </span>                :            : /** Used to marshal pointers into hashes for db storage. */
+<span class="lineNum">     348 </span>                :            : class CDiskBlockIndex : public CBlockIndex
+<span class="lineNum">     349 </span>                :            : {
+<span class="lineNum">     350 </span>                :            : public:
+<a name="351"><span class="lineNum">     351 </span>                :            :     uint256 hashPrev;</a>
+<span class="lineNum">     352 </span>                :            : 
+<span class="lineNum">     353 </span>                :<span class="lineNoCov">          0 :     CDiskBlockIndex() {</span>
+<span class="lineNum">     354 </span>                :<span class="lineNoCov">          0 :         hashPrev = uint256();</span>
+<a name="355"><span class="lineNum">     355 </span>                :<span class="lineNoCov">          0 :     }</span></a>
 <span class="lineNum">     356 </span>                :            : 
-<a name="357"><span class="lineNum">     357 </span>                :            :     //! Raise the validity level of this block index entry.</a>
-<span class="lineNum">     358 </span>                :            :     //! Returns true if the validity was changed.
-<span class="lineNum">     359 </span>                :<span class="lineCov">       4974 :     bool RaiseValidity(enum BlockStatus nUpTo)</span>
-<span class="lineNum">     360 </span>                :            :     {
-<span class="lineNum">     361 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 4974 times"> + </span>]:<span class="lineCov">       4974 :         assert(!(nUpTo &amp; ~BLOCK_VALID_MASK)); // Only validity flags allowed.</span>
-<span class="lineNum">     362 </span>        [<span class="branchCov" title="Branch 0 was taken 4974 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       4974 :         if (nStatus &amp; BLOCK_FAILED_MASK)</span>
-<span class="lineNum">     363 </span>                :            :             return false;
-<span class="lineNum">     364 </span>        [<span class="branchCov" title="Branch 0 was taken 4974 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       4974 :         if ((nStatus &amp; BLOCK_VALID_MASK) &lt; nUpTo) {</span>
-<span class="lineNum">     365 </span>                :<span class="lineCov">       4974 :             nStatus = (nStatus &amp; ~BLOCK_VALID_MASK) | nUpTo;</span>
-<span class="lineNum">     366 </span>                :<span class="lineCov">       4974 :             return true;</span>
-<span class="lineNum">     367 </span>                :            :         }
-<span class="lineNum">     368 </span>                :            :         return false;
-<span class="lineNum">     369 </span>                :            :     }
-<span class="lineNum">     370 </span>                :            : 
-<span class="lineNum">     371 </span>                :            :     //! Build the skiplist pointer for this entry.
-<span class="lineNum">     372 </span>                :            :     void BuildSkip();
-<span class="lineNum">     373 </span>                :            : 
-<span class="lineNum">     374 </span>                :            :     //! Efficiently find an ancestor of this block.
-<span class="lineNum">     375 </span>                :            :     CBlockIndex* GetAncestor(int height);
-<span class="lineNum">     376 </span>                :            :     const CBlockIndex* GetAncestor(int height) const;
-<span class="lineNum">     377 </span>                :            : };
+<span class="lineNum">     357 </span>                :<span class="lineNoCov">          0 :     explicit CDiskBlockIndex(const CBlockIndex* pindex) : CBlockIndex(*pindex) {</span>
+<span class="lineNum">     358 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         hashPrev = (pprev ? pprev-&gt;GetBlockHash() : uint256());</span>
+<span class="lineNum">     359 </span>                :<span class="lineNoCov">          0 :     }</span>
+<span class="lineNum">     360 </span>                :            : 
+<span class="lineNum">     361 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     ADD_SERIALIZE_METHODS;</span>
+<a name="362"><span class="lineNum">     362 </span>                :            : </a>
+<span class="lineNum">     363 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
+<span class="lineNum">     364 </span>                :<span class="lineNoCov">          0 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">     365 </span>                :<span class="lineNoCov">          0 :         int _nVersion = s.GetVersion();</span>
+<span class="lineNum">     366 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!(s.GetType() &amp; SER_GETHASH))</span>
+<span class="lineNum">     367 </span>                :<span class="lineNoCov">          0 :             READWRITE(VARINT(_nVersion, VarIntMode::NONNEGATIVE_SIGNED));</span>
+<span class="lineNum">     368 </span>                :            : 
+<span class="lineNum">     369 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nHeight, VarIntMode::NONNEGATIVE_SIGNED));</span>
+<span class="lineNum">     370 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nStatus));</span>
+<span class="lineNum">     371 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nTx));</span>
+<span class="lineNum">     372 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (nStatus &amp; (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))</span>
+<span class="lineNum">     373 </span>                :<span class="lineNoCov">          0 :             READWRITE(VARINT(nFile, VarIntMode::NONNEGATIVE_SIGNED));</span>
+<span class="lineNum">     374 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (nStatus &amp; BLOCK_HAVE_DATA)</span>
+<span class="lineNum">     375 </span>                :<span class="lineNoCov">          0 :             READWRITE(VARINT(nDataPos));</span>
+<span class="lineNum">     376 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (nStatus &amp; BLOCK_HAVE_UNDO)</span>
+<span class="lineNum">     377 </span>                :<span class="lineNoCov">          0 :             READWRITE(VARINT(nUndoPos));</span>
 <span class="lineNum">     378 </span>                :            : 
-<span class="lineNum">     379 </span>                :            : arith_uint256 GetBlockProof(const CBlockIndex&amp; block);
-<span class="lineNum">     380 </span>                :            : /** Return the time it would take to redo the work difference between from and to, assuming the current hashrate corresponds to the difficulty at tip, in seconds. */
-<span class="lineNum">     381 </span>                :            : int64_t GetBlockProofEquivalentTime(const CBlockIndex&amp; to, const CBlockIndex&amp; from, const CBlockIndex&amp; tip, const Consensus::Params&amp;);
-<span class="lineNum">     382 </span>                :            : /** Find the forking point between two chain tips. */
-<span class="lineNum">     383 </span>                :            : const CBlockIndex* LastCommonAncestor(const CBlockIndex* pa, const CBlockIndex* pb);
-<span class="lineNum">     384 </span>                :            : 
-<span class="lineNum">     385 </span>                :            : 
-<span class="lineNum">     386 </span>                :            : /** Used to marshal pointers into hashes for db storage. */
-<span class="lineNum">     387 </span>                :            : class CDiskBlockIndex : public CBlockIndex
-<span class="lineNum">     388 </span>                :            : {
-<span class="lineNum">     389 </span>                :            : public:
-<a name="390"><span class="lineNum">     390 </span>                :            :     uint256 hashPrev;</a>
-<span class="lineNum">     391 </span>                :            : 
-<span class="lineNum">     392 </span>                :<span class="lineNoCov">          0 :     CDiskBlockIndex() {</span>
-<span class="lineNum">     393 </span>                :<span class="lineNoCov">          0 :         hashPrev = uint256();</span>
-<a name="394"><span class="lineNum">     394 </span>                :<span class="lineNoCov">          0 :     }</span></a>
-<span class="lineNum">     395 </span>                :            : 
-<span class="lineNum">     396 </span>                :<span class="lineNoCov">          0 :     explicit CDiskBlockIndex(const CBlockIndex* pindex) : CBlockIndex(*pindex) {</span>
-<span class="lineNum">     397 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         hashPrev = (pprev ? pprev-&gt;GetBlockHash() : uint256());</span>
-<span class="lineNum">     398 </span>                :<span class="lineNoCov">          0 :     }</span>
+<span class="lineNum">     379 </span>                :            :         // block header
+<span class="lineNum">     380 </span>                :<span class="lineNoCov">          0 :         READWRITE(this-&gt;nVersion);</span>
+<span class="lineNum">     381 </span>                :<span class="lineNoCov">          0 :         READWRITE(hashPrev);</span>
+<span class="lineNum">     382 </span>                :<span class="lineNoCov">          0 :         READWRITE(hashMerkleRoot);</span>
+<span class="lineNum">     383 </span>                :<span class="lineNoCov">          0 :         READWRITE(nTime);</span>
+<span class="lineNum">     384 </span>                :<span class="lineNoCov">          0 :         READWRITE(nBits);</span>
+<span class="lineNum">     385 </span>                :<span class="lineNoCov">          0 :         READWRITE(nNonce);</span>
+<a name="386"><span class="lineNum">     386 </span>                :<span class="lineNoCov">          0 :     }</span></a>
+<span class="lineNum">     387 </span>                :            : 
+<span class="lineNum">     388 </span>                :<span class="lineNoCov">          0 :     uint256 GetBlockHash() const</span>
+<span class="lineNum">     389 </span>                :            :     {
+<span class="lineNum">     390 </span>                :<span class="lineNoCov">          0 :         CBlockHeader block;</span>
+<span class="lineNum">     391 </span>                :<span class="lineNoCov">          0 :         block.nVersion        = nVersion;</span>
+<span class="lineNum">     392 </span>                :<span class="lineNoCov">          0 :         block.hashPrevBlock   = hashPrev;</span>
+<span class="lineNum">     393 </span>                :<span class="lineNoCov">          0 :         block.hashMerkleRoot  = hashMerkleRoot;</span>
+<span class="lineNum">     394 </span>                :<span class="lineNoCov">          0 :         block.nTime           = nTime;</span>
+<span class="lineNum">     395 </span>                :<span class="lineNoCov">          0 :         block.nBits           = nBits;</span>
+<span class="lineNum">     396 </span>                :<span class="lineNoCov">          0 :         block.nNonce          = nNonce;</span>
+<span class="lineNum">     397 </span>                :<span class="lineNoCov">          0 :         return block.GetHash();</span>
+<span class="lineNum">     398 </span>                :            :     }
 <span class="lineNum">     399 </span>                :            : 
-<span class="lineNum">     400 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     ADD_SERIALIZE_METHODS;</span>
-<a name="401"><span class="lineNum">     401 </span>                :            : </a>
-<span class="lineNum">     402 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
-<span class="lineNum">     403 </span>                :<span class="lineNoCov">          0 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
-<span class="lineNum">     404 </span>                :<span class="lineNoCov">          0 :         int _nVersion = s.GetVersion();</span>
-<span class="lineNum">     405 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!(s.GetType() &amp; SER_GETHASH))</span>
-<span class="lineNum">     406 </span>                :<span class="lineNoCov">          0 :             READWRITE(VARINT(_nVersion, VarIntMode::NONNEGATIVE_SIGNED));</span>
-<span class="lineNum">     407 </span>                :            : 
-<span class="lineNum">     408 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nHeight, VarIntMode::NONNEGATIVE_SIGNED));</span>
-<span class="lineNum">     409 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nStatus));</span>
-<span class="lineNum">     410 </span>                :<span class="lineNoCov">          0 :         READWRITE(VARINT(nTx));</span>
-<span class="lineNum">     411 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (nStatus &amp; (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))</span>
-<span class="lineNum">     412 </span>                :<span class="lineNoCov">          0 :             READWRITE(VARINT(nFile, VarIntMode::NONNEGATIVE_SIGNED));</span>
-<span class="lineNum">     413 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (nStatus &amp; BLOCK_HAVE_DATA)</span>
-<span class="lineNum">     414 </span>                :<span class="lineNoCov">          0 :             READWRITE(VARINT(nDataPos));</span>
-<span class="lineNum">     415 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (nStatus &amp; BLOCK_HAVE_UNDO)</span>
-<span class="lineNum">     416 </span>                :<span class="lineNoCov">          0 :             READWRITE(VARINT(nUndoPos));</span>
-<span class="lineNum">     417 </span>                :            : 
-<span class="lineNum">     418 </span>                :            :         // block header
-<span class="lineNum">     419 </span>                :<span class="lineNoCov">          0 :         READWRITE(this-&gt;nVersion);</span>
-<span class="lineNum">     420 </span>                :<span class="lineNoCov">          0 :         READWRITE(hashPrev);</span>
-<span class="lineNum">     421 </span>                :<span class="lineNoCov">          0 :         READWRITE(hashMerkleRoot);</span>
-<span class="lineNum">     422 </span>                :<span class="lineNoCov">          0 :         READWRITE(nTime);</span>
-<span class="lineNum">     423 </span>                :<span class="lineNoCov">          0 :         READWRITE(nBits);</span>
-<span class="lineNum">     424 </span>                :<span class="lineNoCov">          0 :         READWRITE(nNonce);</span>
-<a name="425"><span class="lineNum">     425 </span>                :<span class="lineNoCov">          0 :     }</span></a>
-<span class="lineNum">     426 </span>                :            : 
-<span class="lineNum">     427 </span>                :<span class="lineNoCov">          0 :     uint256 GetBlockHash() const</span>
-<span class="lineNum">     428 </span>                :            :     {
-<span class="lineNum">     429 </span>                :<span class="lineNoCov">          0 :         CBlockHeader block;</span>
-<span class="lineNum">     430 </span>                :<span class="lineNoCov">          0 :         block.nVersion        = nVersion;</span>
-<span class="lineNum">     431 </span>                :<span class="lineNoCov">          0 :         block.hashPrevBlock   = hashPrev;</span>
-<span class="lineNum">     432 </span>                :<span class="lineNoCov">          0 :         block.hashMerkleRoot  = hashMerkleRoot;</span>
-<span class="lineNum">     433 </span>                :<span class="lineNoCov">          0 :         block.nTime           = nTime;</span>
-<span class="lineNum">     434 </span>                :<span class="lineNoCov">          0 :         block.nBits           = nBits;</span>
-<span class="lineNum">     435 </span>                :<span class="lineNoCov">          0 :         block.nNonce          = nNonce;</span>
-<span class="lineNum">     436 </span>                :<span class="lineNoCov">          0 :         return block.GetHash();</span>
-<span class="lineNum">     437 </span>                :            :     }
-<span class="lineNum">     438 </span>                :            : 
-<span class="lineNum">     439 </span>                :            : 
-<span class="lineNum">     440 </span>                :            :     std::string ToString() const
-<span class="lineNum">     441 </span>                :            :     {
-<span class="lineNum">     442 </span>                :            :         std::string str = &quot;CDiskBlockIndex(&quot;;
-<span class="lineNum">     443 </span>                :            :         str += CBlockIndex::ToString();
-<span class="lineNum">     444 </span>                :            :         str += strprintf(&quot;\n                hashBlock=%s, hashPrev=%s)&quot;,
-<span class="lineNum">     445 </span>                :            :             GetBlockHash().ToString(),
-<span class="lineNum">     446 </span>                :            :             hashPrev.ToString());
-<span class="lineNum">     447 </span>                :            :         return str;
-<span class="lineNum">     448 </span>                :            :     }
-<span class="lineNum">     449 </span>                :            : };
-<span class="lineNum">     450 </span>                :            : 
-<span class="lineNum">     451 </span>                :            : /** An in-memory indexed chain of blocks. */
-<span class="lineNum">     452 </span>                :<span class="lineCov">        304 : class CChain {</span>
-<span class="lineNum">     453 </span>                :            : private:
-<span class="lineNum">     454 </span>                :            :     std::vector&lt;CBlockIndex*&gt; vChain;
-<span class="lineNum">     455 </span>                :            : 
-<span class="lineNum">     456 </span>                :            : public:
-<span class="lineNum">     457 </span>                :            :     /** Returns the index entry for the genesis block of this chain, or nullptr if none. */
-<span class="lineNum">     458 </span>                :            :     CBlockIndex *Genesis() const {
-<span class="lineNum">     459 </span>[<span class="branchCov" title="Branch 0 was taken 4765 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">       4765 :         return vChain.size() &gt; 0 ? vChain[0] : nullptr;</span>
-<span class="lineNum">     460 </span>                :            :     }
-<span class="lineNum">     461 </span>                :            : 
-<span class="lineNum">     462 </span>                :            :     /** Returns the index entry for the tip of this chain, or nullptr if none. */
-<span class="lineNum">     463 </span>                :            :     CBlockIndex *Tip() const {
-<span class="lineNum">     464 </span>[<span class="branchCov" title="Branch 0 was taken 2954 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">    1067795 :         return vChain.size() &gt; 0 ? vChain[vChain.size() - 1] : nullptr;</span>
+<span class="lineNum">     400 </span>                :            : 
+<span class="lineNum">     401 </span>                :            :     std::string ToString() const
+<span class="lineNum">     402 </span>                :            :     {
+<span class="lineNum">     403 </span>                :            :         std::string str = &quot;CDiskBlockIndex(&quot;;
+<span class="lineNum">     404 </span>                :            :         str += CBlockIndex::ToString();
+<span class="lineNum">     405 </span>                :            :         str += strprintf(&quot;\n                hashBlock=%s, hashPrev=%s)&quot;,
+<span class="lineNum">     406 </span>                :            :             GetBlockHash().ToString(),
+<span class="lineNum">     407 </span>                :            :             hashPrev.ToString());
+<span class="lineNum">     408 </span>                :            :         return str;
+<span class="lineNum">     409 </span>                :            :     }
+<span class="lineNum">     410 </span>                :            : };
+<span class="lineNum">     411 </span>                :            : 
+<span class="lineNum">     412 </span>                :            : /** An in-memory indexed chain of blocks. */
+<span class="lineNum">     413 </span>                :<span class="lineCov">        308 : class CChain {</span>
+<span class="lineNum">     414 </span>                :            : private:
+<span class="lineNum">     415 </span>                :            :     std::vector&lt;CBlockIndex*&gt; vChain;
+<span class="lineNum">     416 </span>                :            : 
+<span class="lineNum">     417 </span>                :            : public:
+<span class="lineNum">     418 </span>                :            :     /** Returns the index entry for the genesis block of this chain, or nullptr if none. */
+<span class="lineNum">     419 </span>                :            :     CBlockIndex *Genesis() const {
+<span class="lineNum">     420 </span>[<span class="branchCov" title="Branch 0 was taken 3950 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">       3950 :         return vChain.size() &gt; 0 ? vChain[0] : nullptr;</span>
+<span class="lineNum">     421 </span>                :            :     }
+<span class="lineNum">     422 </span>                :            : 
+<span class="lineNum">     423 </span>                :            :     /** Returns the index entry for the tip of this chain, or nullptr if none. */
+<span class="lineNum">     424 </span>                :            :     CBlockIndex *Tip() const {
+<span class="lineNum">     425 </span>[<span class="branchCov" title="Branch 0 was taken 2472 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     686469 :         return vChain.size() &gt; 0 ? vChain[vChain.size() - 1] : nullptr;</span>
 <span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchCov" title="Branch 2 was taken 209893 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchCov" title="Branch 6 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>][<span class="branchCov" title="Branch 14 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 0 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchCov" title="Branch 6 was taken 575305 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchCov" title="Branch 6 was taken 208714 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
 <span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>][<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
 <span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span><span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>]
@@ -562,95 +520,103 @@
 <span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>][<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>]
 <span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>][<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>]
 <span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>][<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 42 was taken 1716 times"> + </span><span class="branchNoCov" title="Branch 43 was not taken"> - </span>][<span class="branchCov" title="Branch 44 was taken 15721 times"> + </span><span class="branchNoCov" title="Branch 45 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 46 was taken 1117 times"> + </span><span class="branchNoCov" title="Branch 47 was not taken"> - </span>][<span class="branchCov" title="Branch 48 was taken 1733 times"> + </span><span class="branchCov" title="Branch 49 was taken 66 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 42 was taken 1235 times"> + </span><span class="branchNoCov" title="Branch 43 was not taken"> - </span>][<span class="branchCov" title="Branch 44 was taken 11977 times"> + </span><span class="branchNoCov" title="Branch 45 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 46 was taken 1117 times"> + </span><span class="branchNoCov" title="Branch 47 was not taken"> - </span>][<span class="branchCov" title="Branch 48 was taken 1323 times"> + </span><span class="branchCov" title="Branch 49 was taken 66 times"> + </span>]
 <span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>][<span class="branchNoExec" title="Branch 52 was not executed"> # </span><span class="branchNoExec" title="Branch 53 was not executed"> # </span>]
 <span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 54 was not executed"> # </span><span class="branchNoExec" title="Branch 55 was not executed"> # </span>][<span class="branchNoExec" title="Branch 56 was not executed"> # </span><span class="branchNoExec" title="Branch 57 was not executed"> # </span>]
 <span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 58 was not executed"> # </span><span class="branchNoExec" title="Branch 59 was not executed"> # </span>][<span class="branchNoExec" title="Branch 60 was not executed"> # </span><span class="branchNoExec" title="Branch 61 was not executed"> # </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 62 was taken 15826 times"> + </span><span class="branchCov" title="Branch 63 was taken 66 times"> + </span>][<span class="branchCov" title="Branch 64 was taken 15826 times"> + </span><span class="branchCov" title="Branch 65 was taken 66 times"> + </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 66 was taken 1401 times"> + </span><span class="branchNoCov" title="Branch 67 was not taken"> - </span>][<span class="branchCov" title="Branch 68 was taken 1401 times"> + </span><span class="branchNoCov" title="Branch 69 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 70 was taken 1335 times"> + </span><span class="branchCov" title="Branch 71 was taken 66 times"> + </span>][<span class="branchCov" title="Branch 72 was taken 1388 times"> + </span><span class="branchCov" title="Branch 73 was taken 66 times"> + </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 74 was taken 1382 times"> + </span><span class="branchNoCov" title="Branch 75 was not taken"> - </span>][<span class="branchCov" title="Branch 76 was taken 2854 times"> + </span><span class="branchNoCov" title="Branch 77 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 78 was taken 1388 times"> + </span><span class="branchCov" title="Branch 79 was taken 66 times"> + </span>][<span class="branchCov" title="Branch 80 was taken 53 times"> + </span><span class="branchNoCov" title="Branch 81 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 82 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 83 was not taken"> - </span>][<span class="branchCov" title="Branch 84 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 85 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 86 was taken 7 times"> + </span><span class="branchNoCov" title="Branch 87 was not taken"> - </span>][<span class="branchCov" title="Branch 88 was taken 7 times"> + </span><span class="branchNoCov" title="Branch 89 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 90 was taken 1670 times"> + </span><span class="branchNoCov" title="Branch 91 was not taken"> - </span>][<span class="branchCov" title="Branch 92 was taken 1670 times"> + </span><span class="branchNoCov" title="Branch 93 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 94 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 95 was not taken"> - </span>][<span class="branchCov" title="Branch 96 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 97 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 98 was not executed"> # </span><span class="branchNoExec" title="Branch 99 was not executed"> # </span>][<span class="branchCov" title="Branch 100 was taken 11 times"> + </span><span class="branchNoCov" title="Branch 101 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 102 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 103 was not taken"> - </span>][<span class="branchNoExec" title="Branch 104 was not executed"> # </span><span class="branchNoExec" title="Branch 105 was not executed"> # </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 6 was taken 209893 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>][<span class="branchCov" title="Branch 8 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 10 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 14 was taken 11 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>][<span class="branchCov" title="Branch 16 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 18 was taken 11 times"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 22 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>][<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 28 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>][<span class="branchCov" title="Branch 30 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 31 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 32 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 33 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 11 times"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 36 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 37 was not taken"> - </span>][<span class="branchCov" title="Branch 38 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 39 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 40 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>][<span class="branchCov" title="Branch 42 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 43 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>][<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>][<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>][<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>]
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>][<span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span>]
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span>][<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span>]
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>][<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>]
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>][<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
-<span class="lineNum">     465 </span>                :            :     }
-<span class="lineNum">     466 </span>                :            : 
-<span class="lineNum">     467 </span>                :            :     /** Returns the index entry at a particular height in this chain, or nullptr if no such height exists. */
-<span class="lineNum">     468 </span>                :            :     CBlockIndex *operator[](int nHeight) const {
-<span class="lineNum">     469 </span>[<span class="branchCov" title="Branch 0 was taken 2879 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2879 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">      26107 :         if (nHeight &lt; 0 || nHeight &gt;= (int)vChain.size())</span>
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 2740 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchCov" title="Branch 6 was taken 2738 times"> + </span><span class="branchCov" title="Branch 7 was taken 2 times"> + </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 1805 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 1805 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 62 was not executed"> # </span><span class="branchNoExec" title="Branch 63 was not executed"> # </span>][<span class="branchCov" title="Branch 64 was taken 12018 times"> + </span><span class="branchCov" title="Branch 65 was taken 66 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 66 was taken 12018 times"> + </span><span class="branchCov" title="Branch 67 was taken 66 times"> + </span>][<span class="branchCov" title="Branch 68 was taken 1341 times"> + </span><span class="branchNoCov" title="Branch 69 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 70 was taken 1341 times"> + </span><span class="branchNoCov" title="Branch 71 was not taken"> - </span>][<span class="branchCov" title="Branch 72 was taken 1275 times"> + </span><span class="branchCov" title="Branch 73 was taken 66 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 74 was taken 1297 times"> + </span><span class="branchCov" title="Branch 75 was taken 66 times"> + </span>][<span class="branchCov" title="Branch 76 was taken 1294 times"> + </span><span class="branchNoCov" title="Branch 77 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 78 was taken 2657 times"> + </span><span class="branchNoCov" title="Branch 79 was not taken"> - </span>][<span class="branchCov" title="Branch 80 was taken 1297 times"> + </span><span class="branchCov" title="Branch 81 was taken 66 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 82 was taken 22 times"> + </span><span class="branchNoCov" title="Branch 83 was not taken"> - </span>][<span class="branchCov" title="Branch 84 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 85 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 86 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 87 was not taken"> - </span>][<span class="branchCov" title="Branch 88 was taken 7 times"> + </span><span class="branchNoCov" title="Branch 89 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 90 was taken 7 times"> + </span><span class="branchNoCov" title="Branch 91 was not taken"> - </span>][<span class="branchCov" title="Branch 92 was taken 1015 times"> + </span><span class="branchNoCov" title="Branch 93 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 94 was taken 1015 times"> + </span><span class="branchNoCov" title="Branch 95 was not taken"> - </span>][<span class="branchCov" title="Branch 96 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 97 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 98 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 99 was not taken"> - </span>][<span class="branchNoExec" title="Branch 100 was not executed"> # </span><span class="branchNoExec" title="Branch 101 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 102 was taken 11 times"> + </span><span class="branchNoCov" title="Branch 103 was not taken"> - </span>][<span class="branchCov" title="Branch 104 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 105 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 106 was not executed"> # </span><span class="branchNoExec" title="Branch 107 was not executed"> # </span>][<span class="branchCov" title="Branch 6 was taken 209893 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>][<span class="branchCov" title="Branch 14 was taken 11 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>][<span class="branchCov" title="Branch 18 was taken 11 times"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>][<span class="branchCov" title="Branch 22 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 28 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 30 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 31 was not taken"> - </span>][<span class="branchCov" title="Branch 32 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 33 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 34 was taken 11 times"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>][<span class="branchCov" title="Branch 36 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 37 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 38 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 39 was not taken"> - </span>][<span class="branchCov" title="Branch 40 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 42 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 43 was not taken"> - </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>][<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>][<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>][<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span>][<span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span>][<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
+<span class="lineNum">     426 </span>                :            :     }
+<span class="lineNum">     427 </span>                :            : 
+<span class="lineNum">     428 </span>                :            :     /** Returns the index entry at a particular height in this chain, or nullptr if no such height exists. */
+<span class="lineNum">     429 </span>                :            :     CBlockIndex *operator[](int nHeight) const {
+<span class="lineNum">     430 </span>[<span class="branchCov" title="Branch 0 was taken 2697 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2697 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">      21886 :         if (nHeight &lt; 0 || nHeight &gt;= (int)vChain.size())</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 2737 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchCov" title="Branch 6 was taken 2735 times"> + </span><span class="branchCov" title="Branch 7 was taken 2 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 1606 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 1606 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>][<span class="branchCov" title="Branch 14 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 17184 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>][<span class="branchCov" title="Branch 18 was taken 15783 times"> + </span><span class="branchCov" title="Branch 19 was taken 1401 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>][<span class="branchCov" title="Branch 18 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 20 was taken 422 times"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>][<span class="branchCov" title="Branch 22 was taken 422 times"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1075 times"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 26 was taken 1075 times"> + </span><span class="branchNoCov" title="Branch 27 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span>][<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>]
 <span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>][<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>]
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]
-<span class="lineNum">     470 </span>                :            :             return nullptr;
-<span class="lineNum">     471 </span>                :<span class="lineCov">      24278 :         return vChain[nHeight];</span>
-<span class="lineNum">     472 </span>                :            :     }
-<span class="lineNum">     473 </span>                :            : 
-<span class="lineNum">     474 </span>                :            :     /** Compare two chains efficiently. */
-<span class="lineNum">     475 </span>                :            :     friend bool operator==(const CChain &amp;a, const CChain &amp;b) {
-<span class="lineNum">     476 </span>                :            :         return a.vChain.size() == b.vChain.size() &amp;&amp;
-<span class="lineNum">     477 </span>                :            :                a.vChain[a.vChain.size() - 1] == b.vChain[b.vChain.size() - 1];
-<span class="lineNum">     478 </span>                :            :     }
-<span class="lineNum">     479 </span>                :            : 
-<span class="lineNum">     480 </span>                :            :     /** Efficiently check whether a block is present in this chain. */
-<span class="lineNum">     481 </span>                :            :     bool Contains(const CBlockIndex *pindex) const {
-<span class="lineNum">     482 </span>                :<span class="lineCov">      47546 :         return (*this)[pindex-&gt;nHeight] == pindex;</span>
-<span class="lineNum">     483 </span>                :            :     }
-<a name="484"><span class="lineNum">     484 </span>                :            : </a>
-<span class="lineNum">     485 </span>                :            :     /** Find the successor of a block in this chain, or nullptr if the given index is not found or is the tip. */
-<span class="lineNum">     486 </span>                :<span class="lineCov">        102 :     CBlockIndex *Next(const CBlockIndex *pindex) const {</span>
-<span class="lineNum">     487 </span>        [<span class="branchCov" title="Branch 0 was taken 102 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        102 :         if (Contains(pindex))</span>
-<span class="lineNum">     488 </span>                :<span class="lineCov">        102 :             return (*this)[pindex-&gt;nHeight + 1];</span>
-<span class="lineNum">     489 </span>                :            :         else
-<span class="lineNum">     490 </span>                :            :             return nullptr;
-<span class="lineNum">     491 </span>                :            :     }
-<span class="lineNum">     492 </span>                :            : 
-<span class="lineNum">     493 </span>                :            :     /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()-&gt;nHeight : -1. */
-<span class="lineNum">     494 </span>                :            :     int Height() const {
-<span class="lineNum">     495 </span>                :<span class="lineCov">      51527 :         return vChain.size() - 1;</span>
-<span class="lineNum">     496 </span>                :            :     }
-<span class="lineNum">     497 </span>                :            : 
-<span class="lineNum">     498 </span>                :            :     /** Set/initialize a chain with a given tip. */
-<span class="lineNum">     499 </span>                :            :     void SetTip(CBlockIndex *pindex);
-<span class="lineNum">     500 </span>                :            : 
-<span class="lineNum">     501 </span>                :            :     /** Return a CBlockLocator that refers to a block in this chain (by default the tip). */
-<span class="lineNum">     502 </span>                :            :     CBlockLocator GetLocator(const CBlockIndex *pindex = nullptr) const;
-<span class="lineNum">     503 </span>                :            : 
-<span class="lineNum">     504 </span>                :            :     /** Find the last common block between this chain and a block index entry. */
-<span class="lineNum">     505 </span>                :            :     const CBlockIndex *FindFork(const CBlockIndex *pindex) const;
-<span class="lineNum">     506 </span>                :            : 
-<span class="lineNum">     507 </span>                :            :     /** Find the earliest block with timestamp equal or greater than the given. */
-<span class="lineNum">     508 </span>                :            :     CBlockIndex* FindEarliestAtLeast(int64_t nTime) const;
-<span class="lineNum">     509 </span>                :            : };
-<span class="lineNum">     510 </span>                :            : 
-<span class="lineNum">     511 </span>                :            : #endif // BITCOIN_CHAIN_H
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span><span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>][<span class="branchCov" title="Branch 24 was taken 13343 times"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 26 was taken 12002 times"> + </span><span class="branchCov" title="Branch 27 was taken 1341 times"> + </span>][<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>][<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>][<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>][<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>][<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]
+<span class="lineNum">     431 </span>                :            :             return nullptr;
+<span class="lineNum">     432 </span>                :<span class="lineCov">      20116 :         return vChain[nHeight];</span>
+<span class="lineNum">     433 </span>                :            :     }
+<span class="lineNum">     434 </span>                :            : 
+<span class="lineNum">     435 </span>                :            :     /** Compare two chains efficiently. */
+<span class="lineNum">     436 </span>                :            :     friend bool operator==(const CChain &amp;a, const CChain &amp;b) {
+<span class="lineNum">     437 </span>                :            :         return a.vChain.size() == b.vChain.size() &amp;&amp;
+<span class="lineNum">     438 </span>                :            :                a.vChain[a.vChain.size() - 1] == b.vChain[b.vChain.size() - 1];
+<span class="lineNum">     439 </span>                :            :     }
+<span class="lineNum">     440 </span>                :            : 
+<span class="lineNum">     441 </span>                :            :     /** Efficiently check whether a block is present in this chain. */
+<span class="lineNum">     442 </span>                :            :     bool Contains(const CBlockIndex *pindex) const {
+<span class="lineNum">     443 </span>                :<span class="lineCov">      39500 :         return (*this)[pindex-&gt;nHeight] == pindex;</span>
+<span class="lineNum">     444 </span>                :            :     }
+<a name="445"><span class="lineNum">     445 </span>                :            : </a>
+<span class="lineNum">     446 </span>                :            :     /** Find the successor of a block in this chain, or nullptr if the given index is not found or is the tip. */
+<span class="lineNum">     447 </span>                :<span class="lineCov">        102 :     CBlockIndex *Next(const CBlockIndex *pindex) const {</span>
+<span class="lineNum">     448 </span>        [<span class="branchCov" title="Branch 0 was taken 102 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        102 :         if (Contains(pindex))</span>
+<span class="lineNum">     449 </span>                :<span class="lineCov">        102 :             return (*this)[pindex-&gt;nHeight + 1];</span>
+<span class="lineNum">     450 </span>                :            :         else
+<span class="lineNum">     451 </span>                :            :             return nullptr;
+<span class="lineNum">     452 </span>                :            :     }
+<span class="lineNum">     453 </span>                :            : 
+<span class="lineNum">     454 </span>                :            :     /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()-&gt;nHeight : -1. */
+<span class="lineNum">     455 </span>                :            :     int Height() const {
+<span class="lineNum">     456 </span>                :<span class="lineCov">      42099 :         return vChain.size() - 1;</span>
+<span class="lineNum">     457 </span>                :            :     }
+<span class="lineNum">     458 </span>                :            : 
+<span class="lineNum">     459 </span>                :            :     /** Set/initialize a chain with a given tip. */
+<span class="lineNum">     460 </span>                :            :     void SetTip(CBlockIndex *pindex);
+<span class="lineNum">     461 </span>                :            : 
+<span class="lineNum">     462 </span>                :            :     /** Return a CBlockLocator that refers to a block in this chain (by default the tip). */
+<span class="lineNum">     463 </span>                :            :     CBlockLocator GetLocator(const CBlockIndex *pindex = nullptr) const;
+<span class="lineNum">     464 </span>                :            : 
+<span class="lineNum">     465 </span>                :            :     /** Find the last common block between this chain and a block index entry. */
+<span class="lineNum">     466 </span>                :            :     const CBlockIndex *FindFork(const CBlockIndex *pindex) const;
+<span class="lineNum">     467 </span>                :            : 
+<span class="lineNum">     468 </span>                :            :     /** Find the earliest block with timestamp equal or greater than the given. */
+<span class="lineNum">     469 </span>                :            :     CBlockIndex* FindEarliestAtLeast(int64_t nTime) const;
+<span class="lineNum">     470 </span>                :            : };
+<span class="lineNum">     471 </span>                :            : 
+<span class="lineNum">     472 </span>                :            : #endif // BITCOIN_CHAIN_H
 </pre>
       </td>
     </tr>

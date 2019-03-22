@@ -363,96 +363,93 @@
 <span class="lineNum">     292 </span>                :            :     //! Get transaction data.
 <span class="lineNum">     293 </span>                :            :     virtual const CTransaction&amp; get() = 0;
 <span class="lineNum">     294 </span>                :            : 
-<span class="lineNum">     295 </span>                :            :     //! Get virtual transaction size.
-<span class="lineNum">     296 </span>                :            :     virtual int64_t getVirtualSize() = 0;
-<span class="lineNum">     297 </span>                :            : 
-<span class="lineNum">     298 </span>                :            :     //! Send pending transaction and commit to wallet.
-<span class="lineNum">     299 </span>                :            :     virtual bool commit(WalletValueMap value_map,
-<span class="lineNum">     300 </span>                :            :         WalletOrderForm order_form,
-<span class="lineNum">     301 </span>                :            :         std::string&amp; reject_reason) = 0;
-<span class="lineNum">     302 </span>                :            : };
-<a name="303"><span class="lineNum">     303 </span>                :            : </a>
-<span class="lineNum">     304 </span>                :            : //! Information about one wallet address.
-<span class="lineNum">     305 </span>                :<span class="lineNoCov">          0 : struct WalletAddress</span>
-<span class="lineNum">     306 </span>                :            : {
-<span class="lineNum">     307 </span>                :            :     CTxDestination dest;
-<span class="lineNum">     308 </span>                :            :     isminetype is_mine;
-<span class="lineNum">     309 </span>                :            :     std::string name;
-<a name="310"><span class="lineNum">     310 </span>                :            :     std::string purpose;</a>
-<span class="lineNum">     311 </span>                :            : 
-<span class="lineNum">     312 </span>                :<span class="lineNoCov">          0 :     WalletAddress(CTxDestination dest, isminetype is_mine, std::string name, std::string purpose)</span>
-<span class="lineNum">     313 </span>                :<span class="lineNoCov">          0 :         : dest(std::move(dest)), is_mine(is_mine), name(std::move(name)), purpose(std::move(purpose))</span>
-<span class="lineNum">     314 </span>                :            :     {
-<span class="lineNum">     315 </span>                :<span class="lineNoCov">          0 :     }</span>
-<span class="lineNum">     316 </span>                :            : };
-<span class="lineNum">     317 </span>                :            : 
-<span class="lineNum">     318 </span>                :            : //! Collection of wallet balances.
-<span class="lineNum">     319 </span>                :            : struct WalletBalances
-<span class="lineNum">     320 </span>                :            : {
-<span class="lineNum">     321 </span>                :            :     CAmount balance = 0;
-<span class="lineNum">     322 </span>                :            :     CAmount unconfirmed_balance = 0;
-<span class="lineNum">     323 </span>                :            :     CAmount immature_balance = 0;
-<span class="lineNum">     324 </span>                :            :     bool have_watch_only = false;
-<span class="lineNum">     325 </span>                :            :     CAmount watch_only_balance = 0;
-<span class="lineNum">     326 </span>                :            :     CAmount unconfirmed_watch_only_balance = 0;
-<span class="lineNum">     327 </span>                :            :     CAmount immature_watch_only_balance = 0;
-<span class="lineNum">     328 </span>                :            : 
-<span class="lineNum">     329 </span>                :            :     bool balanceChanged(const WalletBalances&amp; prev) const
-<span class="lineNum">     330 </span>                :            :     {
-<span class="lineNum">     331 </span>                :            :         return balance != prev.balance || unconfirmed_balance != prev.unconfirmed_balance ||
-<span class="lineNum">     332 </span>                :            :                immature_balance != prev.immature_balance || watch_only_balance != prev.watch_only_balance ||
-<span class="lineNum">     333 </span>                :            :                unconfirmed_watch_only_balance != prev.unconfirmed_watch_only_balance ||
-<span class="lineNum">     334 </span>                :            :                immature_watch_only_balance != prev.immature_watch_only_balance;
-<span class="lineNum">     335 </span>                :            :     }
-<span class="lineNum">     336 </span>                :            : };
-<a name="337"><span class="lineNum">     337 </span>                :            : </a>
-<span class="lineNum">     338 </span>                :            : // Wallet transaction information.
-<span class="lineNum">     339 </span>                :<span class="lineNoCov">          0 : struct WalletTx</span>
-<span class="lineNum">     340 </span>                :            : {
-<span class="lineNum">     341 </span>                :            :     CTransactionRef tx;
-<span class="lineNum">     342 </span>                :            :     std::vector&lt;isminetype&gt; txin_is_mine;
-<span class="lineNum">     343 </span>                :            :     std::vector&lt;isminetype&gt; txout_is_mine;
-<span class="lineNum">     344 </span>                :            :     std::vector&lt;CTxDestination&gt; txout_address;
-<span class="lineNum">     345 </span>                :            :     std::vector&lt;isminetype&gt; txout_address_is_mine;
-<span class="lineNum">     346 </span>                :            :     CAmount credit;
-<span class="lineNum">     347 </span>                :            :     CAmount debit;
-<span class="lineNum">     348 </span>                :            :     CAmount change;
-<span class="lineNum">     349 </span>                :            :     int64_t time;
-<span class="lineNum">     350 </span>                :            :     std::map&lt;std::string, std::string&gt; value_map;
-<span class="lineNum">     351 </span>                :            :     bool is_coinbase;
-<span class="lineNum">     352 </span>                :            : };
-<span class="lineNum">     353 </span>                :            : 
-<span class="lineNum">     354 </span>                :            : //! Updated transaction status.
-<span class="lineNum">     355 </span>                :            : struct WalletTxStatus
-<span class="lineNum">     356 </span>                :            : {
-<span class="lineNum">     357 </span>                :            :     int block_height;
-<span class="lineNum">     358 </span>                :            :     int blocks_to_maturity;
-<span class="lineNum">     359 </span>                :            :     int depth_in_main_chain;
-<span class="lineNum">     360 </span>                :            :     unsigned int time_received;
-<span class="lineNum">     361 </span>                :            :     uint32_t lock_time;
-<span class="lineNum">     362 </span>                :            :     bool is_final;
-<span class="lineNum">     363 </span>                :            :     bool is_trusted;
-<span class="lineNum">     364 </span>                :            :     bool is_abandoned;
-<span class="lineNum">     365 </span>                :            :     bool is_coinbase;
-<span class="lineNum">     366 </span>                :            :     bool is_in_main_chain;
-<span class="lineNum">     367 </span>                :            : };
-<a name="368"><span class="lineNum">     368 </span>                :            : </a>
-<span class="lineNum">     369 </span>                :            : //! Wallet transaction output.
-<span class="lineNum">     370 </span>                :<span class="lineNoCov">          0 : struct WalletTxOut</span>
-<span class="lineNum">     371 </span>                :            : {
-<span class="lineNum">     372 </span>                :            :     CTxOut txout;
-<span class="lineNum">     373 </span>                :            :     int64_t time;
-<span class="lineNum">     374 </span>                :            :     int depth_in_main_chain = -1;
-<span class="lineNum">     375 </span>                :            :     bool is_spent = false;
-<span class="lineNum">     376 </span>                :            : };
-<span class="lineNum">     377 </span>                :            : 
-<span class="lineNum">     378 </span>                :            : //! Return implementation of Wallet interface. This function is defined in
-<span class="lineNum">     379 </span>                :            : //! dummywallet.cpp and throws if the wallet component is not compiled.
-<span class="lineNum">     380 </span>                :            : std::unique_ptr&lt;Wallet&gt; MakeWallet(const std::shared_ptr&lt;CWallet&gt;&amp; wallet);
-<span class="lineNum">     381 </span>                :            : 
-<span class="lineNum">     382 </span>                :            : } // namespace interfaces
-<span class="lineNum">     383 </span>                :            : 
-<span class="lineNum">     384 </span>                :            : #endif // BITCOIN_INTERFACES_WALLET_H
+<span class="lineNum">     295 </span>                :            :     //! Send pending transaction and commit to wallet.
+<span class="lineNum">     296 </span>                :            :     virtual bool commit(WalletValueMap value_map,
+<span class="lineNum">     297 </span>                :            :         WalletOrderForm order_form,
+<span class="lineNum">     298 </span>                :            :         std::string&amp; reject_reason) = 0;
+<span class="lineNum">     299 </span>                :            : };
+<a name="300"><span class="lineNum">     300 </span>                :            : </a>
+<span class="lineNum">     301 </span>                :            : //! Information about one wallet address.
+<span class="lineNum">     302 </span>                :<span class="lineNoCov">          0 : struct WalletAddress</span>
+<span class="lineNum">     303 </span>                :            : {
+<span class="lineNum">     304 </span>                :            :     CTxDestination dest;
+<span class="lineNum">     305 </span>                :            :     isminetype is_mine;
+<span class="lineNum">     306 </span>                :            :     std::string name;
+<a name="307"><span class="lineNum">     307 </span>                :            :     std::string purpose;</a>
+<span class="lineNum">     308 </span>                :            : 
+<span class="lineNum">     309 </span>                :<span class="lineNoCov">          0 :     WalletAddress(CTxDestination dest, isminetype is_mine, std::string name, std::string purpose)</span>
+<span class="lineNum">     310 </span>                :<span class="lineNoCov">          0 :         : dest(std::move(dest)), is_mine(is_mine), name(std::move(name)), purpose(std::move(purpose))</span>
+<span class="lineNum">     311 </span>                :            :     {
+<span class="lineNum">     312 </span>                :<span class="lineNoCov">          0 :     }</span>
+<span class="lineNum">     313 </span>                :            : };
+<span class="lineNum">     314 </span>                :            : 
+<span class="lineNum">     315 </span>                :            : //! Collection of wallet balances.
+<span class="lineNum">     316 </span>                :            : struct WalletBalances
+<span class="lineNum">     317 </span>                :            : {
+<span class="lineNum">     318 </span>                :            :     CAmount balance = 0;
+<span class="lineNum">     319 </span>                :            :     CAmount unconfirmed_balance = 0;
+<span class="lineNum">     320 </span>                :            :     CAmount immature_balance = 0;
+<span class="lineNum">     321 </span>                :            :     bool have_watch_only = false;
+<span class="lineNum">     322 </span>                :            :     CAmount watch_only_balance = 0;
+<span class="lineNum">     323 </span>                :            :     CAmount unconfirmed_watch_only_balance = 0;
+<span class="lineNum">     324 </span>                :            :     CAmount immature_watch_only_balance = 0;
+<span class="lineNum">     325 </span>                :            : 
+<span class="lineNum">     326 </span>                :            :     bool balanceChanged(const WalletBalances&amp; prev) const
+<span class="lineNum">     327 </span>                :            :     {
+<span class="lineNum">     328 </span>                :            :         return balance != prev.balance || unconfirmed_balance != prev.unconfirmed_balance ||
+<span class="lineNum">     329 </span>                :            :                immature_balance != prev.immature_balance || watch_only_balance != prev.watch_only_balance ||
+<span class="lineNum">     330 </span>                :            :                unconfirmed_watch_only_balance != prev.unconfirmed_watch_only_balance ||
+<span class="lineNum">     331 </span>                :            :                immature_watch_only_balance != prev.immature_watch_only_balance;
+<span class="lineNum">     332 </span>                :            :     }
+<span class="lineNum">     333 </span>                :            : };
+<span class="lineNum">     334 </span>                :            : 
+<span class="lineNum">     335 </span>                :            : // Wallet transaction information.
+<span class="lineNum">     336 </span>                :<span class="lineNoCov">          0 : struct WalletTx</span>
+<span class="lineNum">     337 </span>                :            : {
+<span class="lineNum">     338 </span>                :            :     CTransactionRef tx;
+<span class="lineNum">     339 </span>                :            :     std::vector&lt;isminetype&gt; txin_is_mine;
+<span class="lineNum">     340 </span>                :            :     std::vector&lt;isminetype&gt; txout_is_mine;
+<span class="lineNum">     341 </span>                :            :     std::vector&lt;CTxDestination&gt; txout_address;
+<span class="lineNum">     342 </span>                :            :     std::vector&lt;isminetype&gt; txout_address_is_mine;
+<span class="lineNum">     343 </span>                :            :     CAmount credit;
+<span class="lineNum">     344 </span>                :            :     CAmount debit;
+<span class="lineNum">     345 </span>                :            :     CAmount change;
+<span class="lineNum">     346 </span>                :            :     int64_t time;
+<span class="lineNum">     347 </span>                :            :     std::map&lt;std::string, std::string&gt; value_map;
+<span class="lineNum">     348 </span>                :            :     bool is_coinbase;
+<span class="lineNum">     349 </span>                :            : };
+<span class="lineNum">     350 </span>                :            : 
+<span class="lineNum">     351 </span>                :            : //! Updated transaction status.
+<span class="lineNum">     352 </span>                :            : struct WalletTxStatus
+<span class="lineNum">     353 </span>                :            : {
+<span class="lineNum">     354 </span>                :            :     int block_height;
+<span class="lineNum">     355 </span>                :            :     int blocks_to_maturity;
+<span class="lineNum">     356 </span>                :            :     int depth_in_main_chain;
+<span class="lineNum">     357 </span>                :            :     unsigned int time_received;
+<span class="lineNum">     358 </span>                :            :     uint32_t lock_time;
+<span class="lineNum">     359 </span>                :            :     bool is_final;
+<span class="lineNum">     360 </span>                :            :     bool is_trusted;
+<span class="lineNum">     361 </span>                :            :     bool is_abandoned;
+<span class="lineNum">     362 </span>                :            :     bool is_coinbase;
+<span class="lineNum">     363 </span>                :            :     bool is_in_main_chain;
+<span class="lineNum">     364 </span>                :            : };
+<a name="365"><span class="lineNum">     365 </span>                :            : </a>
+<span class="lineNum">     366 </span>                :            : //! Wallet transaction output.
+<span class="lineNum">     367 </span>                :<span class="lineNoCov">          0 : struct WalletTxOut</span>
+<span class="lineNum">     368 </span>                :            : {
+<span class="lineNum">     369 </span>                :            :     CTxOut txout;
+<span class="lineNum">     370 </span>                :            :     int64_t time;
+<span class="lineNum">     371 </span>                :            :     int depth_in_main_chain = -1;
+<span class="lineNum">     372 </span>                :            :     bool is_spent = false;
+<span class="lineNum">     373 </span>                :            : };
+<span class="lineNum">     374 </span>                :            : 
+<span class="lineNum">     375 </span>                :            : //! Return implementation of Wallet interface. This function is defined in
+<span class="lineNum">     376 </span>                :            : //! dummywallet.cpp and throws if the wallet component is not compiled.
+<span class="lineNum">     377 </span>                :            : std::unique_ptr&lt;Wallet&gt; MakeWallet(const std::shared_ptr&lt;CWallet&gt;&amp; wallet);
+<span class="lineNum">     378 </span>                :            : 
+<span class="lineNum">     379 </span>                :            : } // namespace interfaces
+<span class="lineNum">     380 </span>                :            : 
+<span class="lineNum">     381 </span>                :            : #endif // BITCOIN_INTERFACES_WALLET_H
 </pre>
       </td>
     </tr>

@@ -76,82 +76,82 @@
 <span class="lineNum">       5 </span>                :            : #include &lt;versionbits.h&gt;
 <a name="6"><span class="lineNum">       6 </span>                :            : #include &lt;consensus/params.h&gt;</a>
 <span class="lineNum">       7 </span>                :            : 
-<span class="lineNum">       8 </span>                :<span class="lineCov">    9864822 : ThresholdState AbstractThresholdConditionChecker::GetStateFor(const CBlockIndex* pindexPrev, const Consensus::Params&amp; params, ThresholdConditionCache&amp; cache) const</span>
+<span class="lineNum">       8 </span>                :<span class="lineCov">    9848660 : ThresholdState AbstractThresholdConditionChecker::GetStateFor(const CBlockIndex* pindexPrev, const Consensus::Params&amp; params, ThresholdConditionCache&amp; cache) const</span>
 <span class="lineNum">       9 </span>                :            : {
-<span class="lineNum">      10 </span>                :<span class="lineCov">    9864822 :     int nPeriod = Period(params);</span>
-<span class="lineNum">      11 </span>                :<span class="lineCov">    9864822 :     int nThreshold = Threshold(params);</span>
-<span class="lineNum">      12 </span>                :<span class="lineCov">    9864822 :     int64_t nTimeStart = BeginTime(params);</span>
-<span class="lineNum">      13 </span>                :<span class="lineCov">    9864822 :     int64_t nTimeTimeout = EndTime(params);</span>
+<span class="lineNum">      10 </span>                :<span class="lineCov">    9848660 :     int nPeriod = Period(params);</span>
+<span class="lineNum">      11 </span>                :<span class="lineCov">    9848660 :     int nThreshold = Threshold(params);</span>
+<span class="lineNum">      12 </span>                :<span class="lineCov">    9848660 :     int64_t nTimeStart = BeginTime(params);</span>
+<span class="lineNum">      13 </span>                :<span class="lineCov">    9848660 :     int64_t nTimeTimeout = EndTime(params);</span>
 <span class="lineNum">      14 </span>                :            : 
 <span class="lineNum">      15 </span>                :            :     // Check if this deployment is always active.
-<span class="lineNum">      16 </span>        [<span class="branchCov" title="Branch 0 was taken 7449820 times"> + </span><span class="branchCov" title="Branch 1 was taken 2415002 times"> + </span>]:<span class="lineCov">    9864822 :     if (nTimeStart == Consensus::BIP9Deployment::ALWAYS_ACTIVE) {</span>
+<span class="lineNum">      16 </span>        [<span class="branchCov" title="Branch 0 was taken 7444718 times"> + </span><span class="branchCov" title="Branch 1 was taken 2403942 times"> + </span>]:<span class="lineCov">    9848660 :     if (nTimeStart == Consensus::BIP9Deployment::ALWAYS_ACTIVE) {</span>
 <span class="lineNum">      17 </span>                :            :         return ThresholdState::ACTIVE;
 <span class="lineNum">      18 </span>                :            :     }
 <span class="lineNum">      19 </span>                :            : 
 <span class="lineNum">      20 </span>                :            :     // A block's state is always the same as that of the first of its period, so it is computed based on a pindexPrev whose height equals a multiple of nPeriod - 1.
-<span class="lineNum">      21 </span>        [<span class="branchCov" title="Branch 0 was taken 7424656 times"> + </span><span class="branchCov" title="Branch 1 was taken 25164 times"> + </span>]:<span class="lineCov">    7449820 :     if (pindexPrev != nullptr) {</span>
-<span class="lineNum">      22 </span>                :<span class="lineCov">    7424656 :         pindexPrev = pindexPrev-&gt;GetAncestor(pindexPrev-&gt;nHeight - ((pindexPrev-&gt;nHeight + 1) % nPeriod));</span>
+<span class="lineNum">      21 </span>        [<span class="branchCov" title="Branch 0 was taken 7419542 times"> + </span><span class="branchCov" title="Branch 1 was taken 25176 times"> + </span>]:<span class="lineCov">    7444718 :     if (pindexPrev != nullptr) {</span>
+<span class="lineNum">      22 </span>                :<span class="lineCov">    7419542 :         pindexPrev = pindexPrev-&gt;GetAncestor(pindexPrev-&gt;nHeight - ((pindexPrev-&gt;nHeight + 1) % nPeriod));</span>
 <span class="lineNum">      23 </span>                :            :     }
 <span class="lineNum">      24 </span>                :            : 
 <span class="lineNum">      25 </span>                :            :     // Walk backwards in steps of nPeriod to find a pindexPrev whose information is known
 <span class="lineNum">      26 </span>                :<span class="lineNoCov">          0 :     std::vector&lt;const CBlockIndex*&gt; vToCompute;</span>
-<span class="lineNum">      27 </span>                :<span class="lineCov">    7459253 :     while (cache.count(pindexPrev) == 0) {</span>
-<span class="lineNum">      28 </span>        [<span class="branchCov" title="Branch 0 was taken 8933 times"> + </span><span class="branchCov" title="Branch 1 was taken 21232 times"> + </span>]:<span class="lineCov">      30165 :         if (pindexPrev == nullptr) {</span>
+<span class="lineNum">      27 </span>                :<span class="lineCov">    7453976 :     while (cache.count(pindexPrev) == 0) {</span>
+<span class="lineNum">      28 </span>        [<span class="branchCov" title="Branch 0 was taken 8906 times"> + </span><span class="branchCov" title="Branch 1 was taken 20986 times"> + </span>]:<span class="lineCov">      29892 :         if (pindexPrev == nullptr) {</span>
 <span class="lineNum">      29 </span>                :            :             // The genesis block is by definition defined.
-<span class="lineNum">      30 </span>        [<span class="branchCov" title="Branch 1 was taken 8933 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       8933 :             cache[pindexPrev] = ThresholdState::DEFINED;</span>
-<span class="lineNum">      31 </span>                :<span class="lineCov">       8933 :             break;</span>
+<span class="lineNum">      30 </span>        [<span class="branchCov" title="Branch 1 was taken 8906 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       8906 :             cache[pindexPrev] = ThresholdState::DEFINED;</span>
+<span class="lineNum">      31 </span>                :<span class="lineCov">       8906 :             break;</span>
 <span class="lineNum">      32 </span>                :            :         }
-<span class="lineNum">      33 </span>        [<span class="branchCov" title="Branch 1 was taken 1433 times"> + </span><span class="branchCov" title="Branch 2 was taken 19799 times"> + </span>]:<span class="lineCov">      21232 :         if (pindexPrev-&gt;GetMedianTimePast() &lt; nTimeStart) {</span>
+<span class="lineNum">      33 </span>        [<span class="branchCov" title="Branch 1 was taken 1411 times"> + </span><span class="branchCov" title="Branch 2 was taken 19575 times"> + </span>]:<span class="lineCov">      20986 :         if (pindexPrev-&gt;GetMedianTimePast() &lt; nTimeStart) {</span>
 <span class="lineNum">      34 </span>                :            :             // Optimization: don't recompute down further, as we know every earlier block will be before the start time
-<span class="lineNum">      35 </span>        [<span class="branchCov" title="Branch 1 was taken 1433 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1433 :             cache[pindexPrev] = ThresholdState::DEFINED;</span>
-<span class="lineNum">      36 </span>                :<span class="lineCov">       1433 :             break;</span>
+<span class="lineNum">      35 </span>        [<span class="branchCov" title="Branch 1 was taken 1411 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1411 :             cache[pindexPrev] = ThresholdState::DEFINED;</span>
+<span class="lineNum">      36 </span>                :<span class="lineCov">       1411 :             break;</span>
 <span class="lineNum">      37 </span>                :            :         }
-<span class="lineNum">      38 </span>        [<span class="branchCov" title="Branch 1 was taken 19799 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      19799 :         vToCompute.push_back(pindexPrev);</span>
-<span class="lineNum">      39 </span>        [<span class="branchCov" title="Branch 1 was taken 19799 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      19799 :         pindexPrev = pindexPrev-&gt;GetAncestor(pindexPrev-&gt;nHeight - nPeriod);</span>
+<span class="lineNum">      38 </span>        [<span class="branchCov" title="Branch 1 was taken 19575 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      19575 :         vToCompute.push_back(pindexPrev);</span>
+<span class="lineNum">      39 </span>        [<span class="branchCov" title="Branch 1 was taken 19575 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      19575 :         pindexPrev = pindexPrev-&gt;GetAncestor(pindexPrev-&gt;nHeight - nPeriod);</span>
 <span class="lineNum">      40 </span>                :            :     }
 <span class="lineNum">      41 </span>                :            : 
 <span class="lineNum">      42 </span>                :            :     // At this point, cache[pindexPrev] is known
 <span class="lineNum">      43 </span>                :<span class="lineNoCov">          0 :     assert(cache.count(pindexPrev));</span>
-<span class="lineNum">      44 </span>        [<span class="branchCov" title="Branch 1 was taken 7449820 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    7449820 :     ThresholdState state = cache[pindexPrev];</span>
+<span class="lineNum">      44 </span>        [<span class="branchCov" title="Branch 1 was taken 7444718 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    7444718 :     ThresholdState state = cache[pindexPrev];</span>
 <span class="lineNum">      45 </span>                :            : 
 <span class="lineNum">      46 </span>                :            :     // Now walk forward and compute the state of descendants of pindexPrev
-<span class="lineNum">      47 </span>        [<span class="branchCov" title="Branch 0 was taken 19799 times"> + </span><span class="branchCov" title="Branch 1 was taken 7449820 times"> + </span>]:<span class="lineCov">    7469619 :     while (!vToCompute.empty()) {</span>
-<span class="lineNum">      48 </span>                :<span class="lineCov">      19799 :         ThresholdState stateNext = state;</span>
-<span class="lineNum">      49 </span>                :<span class="lineCov">      19799 :         pindexPrev = vToCompute.back();</span>
-<span class="lineNum">      50 </span>                :<span class="lineCov">      19799 :         vToCompute.pop_back();</span>
+<span class="lineNum">      47 </span>        [<span class="branchCov" title="Branch 0 was taken 19575 times"> + </span><span class="branchCov" title="Branch 1 was taken 7444718 times"> + </span>]:<span class="lineCov">    7464293 :     while (!vToCompute.empty()) {</span>
+<span class="lineNum">      48 </span>                :<span class="lineCov">      19575 :         ThresholdState stateNext = state;</span>
+<span class="lineNum">      49 </span>                :<span class="lineCov">      19575 :         pindexPrev = vToCompute.back();</span>
+<span class="lineNum">      50 </span>                :<span class="lineCov">      19575 :         vToCompute.pop_back();</span>
 <span class="lineNum">      51 </span>                :            : 
-<span class="lineNum">      52 </span>  [<span class="branchCov" title="Branch 0 was taken 6349 times"> + </span><span class="branchCov" title="Branch 1 was taken 4378 times"> + </span><span class="branchCov" title="Branch 2 was taken 293 times"> + </span><span class="branchCov" title="Branch 3 was taken 8779 times"> + </span>]:<span class="lineCov">      19799 :         switch (state) {</span>
-<span class="lineNum">      53 </span>                :<span class="lineCov">       6349 :             case ThresholdState::DEFINED: {</span>
-<span class="lineNum">      54 </span>        [<span class="branchCov" title="Branch 1 was taken 6049 times"> + </span><span class="branchCov" title="Branch 2 was taken 300 times"> + </span>]:<span class="lineCov">       6349 :                 if (pindexPrev-&gt;GetMedianTimePast() &gt;= nTimeTimeout) {</span>
+<span class="lineNum">      52 </span>  [<span class="branchCov" title="Branch 0 was taken 6379 times"> + </span><span class="branchCov" title="Branch 1 was taken 4371 times"> + </span><span class="branchCov" title="Branch 2 was taken 281 times"> + </span><span class="branchCov" title="Branch 3 was taken 8544 times"> + </span>]:<span class="lineCov">      19575 :         switch (state) {</span>
+<span class="lineNum">      53 </span>                :<span class="lineCov">       6379 :             case ThresholdState::DEFINED: {</span>
+<span class="lineNum">      54 </span>        [<span class="branchCov" title="Branch 1 was taken 6074 times"> + </span><span class="branchCov" title="Branch 2 was taken 305 times"> + </span>]:<span class="lineCov">       6379 :                 if (pindexPrev-&gt;GetMedianTimePast() &gt;= nTimeTimeout) {</span>
 <span class="lineNum">      55 </span>                :            :                     stateNext = ThresholdState::FAILED;
-<span class="lineNum">      56 </span>        [<span class="branchCov" title="Branch 1 was taken 6049 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       6049 :                 } else if (pindexPrev-&gt;GetMedianTimePast() &gt;= nTimeStart) {</span>
-<span class="lineNum">      57 </span>                :<span class="lineCov">       6049 :                     stateNext = ThresholdState::STARTED;</span>
+<span class="lineNum">      56 </span>        [<span class="branchCov" title="Branch 1 was taken 6074 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       6074 :                 } else if (pindexPrev-&gt;GetMedianTimePast() &gt;= nTimeStart) {</span>
+<span class="lineNum">      57 </span>                :<span class="lineCov">       6074 :                     stateNext = ThresholdState::STARTED;</span>
 <span class="lineNum">      58 </span>                :            :                 }
 <span class="lineNum">      59 </span>                :            :                 break;
 <span class="lineNum">      60 </span>                :            :             }
-<span class="lineNum">      61 </span>                :<span class="lineCov">       4378 :             case ThresholdState::STARTED: {</span>
-<span class="lineNum">      62 </span>        [<span class="branchCov" title="Branch 1 was taken 3670 times"> + </span><span class="branchCov" title="Branch 2 was taken 708 times"> + </span>]:<span class="lineCov">       4378 :                 if (pindexPrev-&gt;GetMedianTimePast() &gt;= nTimeTimeout) {</span>
+<span class="lineNum">      61 </span>                :<span class="lineCov">       4371 :             case ThresholdState::STARTED: {</span>
+<span class="lineNum">      62 </span>        [<span class="branchCov" title="Branch 1 was taken 3667 times"> + </span><span class="branchCov" title="Branch 2 was taken 704 times"> + </span>]:<span class="lineCov">       4371 :                 if (pindexPrev-&gt;GetMedianTimePast() &gt;= nTimeTimeout) {</span>
 <span class="lineNum">      63 </span>                :            :                     stateNext = ThresholdState::FAILED;
 <span class="lineNum">      64 </span>                :            :                     break;
 <span class="lineNum">      65 </span>                :            :                 }
 <span class="lineNum">      66 </span>                :            :                 // We need to count
-<span class="lineNum">      67 </span>                :<span class="lineCov">       3670 :                 const CBlockIndex* pindexCount = pindexPrev;</span>
-<span class="lineNum">      68 </span>                :<span class="lineCov">       3670 :                 int count = 0;</span>
-<span class="lineNum">      69 </span>        [<span class="branchCov" title="Branch 0 was taken 1202632 times"> + </span><span class="branchCov" title="Branch 1 was taken 3670 times"> + </span>]:<span class="lineCov">    1206302 :                 for (int i = 0; i &lt; nPeriod; i++) {</span>
-<span class="lineNum">      70 </span>[<span class="branchCov" title="Branch 1 was taken 1202632 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 271330 times"> + </span><span class="branchCov" title="Branch 4 was taken 931302 times"> + </span>]:<span class="lineCov">    1202632 :                     if (Condition(pindexCount, params)) {</span>
-<span class="lineNum">      71 </span>                :<span class="lineCov">     271330 :                         count++;</span>
+<span class="lineNum">      67 </span>                :<span class="lineCov">       3667 :                 const CBlockIndex* pindexCount = pindexPrev;</span>
+<span class="lineNum">      68 </span>                :<span class="lineCov">       3667 :                 int count = 0;</span>
+<span class="lineNum">      69 </span>        [<span class="branchCov" title="Branch 0 was taken 1199632 times"> + </span><span class="branchCov" title="Branch 1 was taken 3667 times"> + </span>]:<span class="lineCov">    1203299 :                 for (int i = 0; i &lt; nPeriod; i++) {</span>
+<span class="lineNum">      70 </span>[<span class="branchCov" title="Branch 1 was taken 1199632 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 270430 times"> + </span><span class="branchCov" title="Branch 4 was taken 929202 times"> + </span>]:<span class="lineCov">    1199632 :                     if (Condition(pindexCount, params)) {</span>
+<span class="lineNum">      71 </span>                :<span class="lineCov">     270430 :                         count++;</span>
 <span class="lineNum">      72 </span>                :            :                     }
-<span class="lineNum">      73 </span>                :<span class="lineCov">    1202632 :                     pindexCount = pindexCount-&gt;pprev;</span>
+<span class="lineNum">      73 </span>                :<span class="lineCov">    1199632 :                     pindexCount = pindexCount-&gt;pprev;</span>
 <span class="lineNum">      74 </span>                :            :                 }
-<span class="lineNum">      75 </span>        [<span class="branchCov" title="Branch 0 was taken 370 times"> + </span><span class="branchCov" title="Branch 1 was taken 3300 times"> + </span>]:<span class="lineCov">       3670 :                 if (count &gt;= nThreshold) {</span>
-<span class="lineNum">      76 </span>                :<span class="lineCov">        370 :                     stateNext = ThresholdState::LOCKED_IN;</span>
+<span class="lineNum">      75 </span>        [<span class="branchCov" title="Branch 0 was taken 369 times"> + </span><span class="branchCov" title="Branch 1 was taken 3298 times"> + </span>]:<span class="lineCov">       3667 :                 if (count &gt;= nThreshold) {</span>
+<span class="lineNum">      76 </span>                :<span class="lineCov">        369 :                     stateNext = ThresholdState::LOCKED_IN;</span>
 <span class="lineNum">      77 </span>                :            :                 }
 <span class="lineNum">      78 </span>                :            :                 break;
 <span class="lineNum">      79 </span>                :            :             }
-<span class="lineNum">      80 </span>                :<span class="lineCov">        293 :             case ThresholdState::LOCKED_IN: {</span>
+<span class="lineNum">      80 </span>                :<span class="lineCov">        281 :             case ThresholdState::LOCKED_IN: {</span>
 <span class="lineNum">      81 </span>                :            :                 // Always progresses into ACTIVE.
-<span class="lineNum">      82 </span>                :<span class="lineCov">        293 :                 stateNext = ThresholdState::ACTIVE;</span>
-<span class="lineNum">      83 </span>                :<span class="lineCov">        293 :                 break;</span>
+<span class="lineNum">      82 </span>                :<span class="lineCov">        281 :                 stateNext = ThresholdState::ACTIVE;</span>
+<span class="lineNum">      83 </span>                :<span class="lineCov">        281 :                 break;</span>
 <span class="lineNum">      84 </span>                :            :             }
 <span class="lineNum">      85 </span>                :            :             case ThresholdState::FAILED:
 <span class="lineNum">      86 </span>                :            :             case ThresholdState::ACTIVE: {
@@ -159,57 +159,57 @@
 <span class="lineNum">      88 </span>                :            :                 break;
 <span class="lineNum">      89 </span>                :            :             }
 <span class="lineNum">      90 </span>                :            :         }
-<span class="lineNum">      91 </span>        [<span class="branchCov" title="Branch 1 was taken 19799 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      19799 :         cache[pindexPrev] = state = stateNext;</span>
+<span class="lineNum">      91 </span>        [<span class="branchCov" title="Branch 1 was taken 19575 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      19575 :         cache[pindexPrev] = state = stateNext;</span>
 <span class="lineNum">      92 </span>                :            :     }
 <span class="lineNum">      93 </span>                :            : 
-<span class="lineNum">      94 </span>                :<span class="lineCov">    7449820 :     return state;</span>
+<span class="lineNum">      94 </span>                :<span class="lineCov">    7444718 :     return state;</span>
 <span class="lineNum">      95 </span>                :            : }
 <a name="96"><span class="lineNum">      96 </span>                :            : </a>
 <span class="lineNum">      97 </span>                :            : // return the numerical statistics of blocks signalling the specified BIP9 condition in this current period
-<span class="lineNum">      98 </span>                :<span class="lineCov">        190 : BIP9Stats AbstractThresholdConditionChecker::GetStateStatisticsFor(const CBlockIndex* pindex, const Consensus::Params&amp; params) const</span>
+<span class="lineNum">      98 </span>                :<span class="lineCov">        192 : BIP9Stats AbstractThresholdConditionChecker::GetStateStatisticsFor(const CBlockIndex* pindex, const Consensus::Params&amp; params) const</span>
 <span class="lineNum">      99 </span>                :            : {
-<span class="lineNum">     100 </span>                :<span class="lineCov">        190 :     BIP9Stats stats = {};</span>
+<span class="lineNum">     100 </span>                :<span class="lineCov">        192 :     BIP9Stats stats = {};</span>
 <span class="lineNum">     101 </span>                :            : 
-<span class="lineNum">     102 </span>                :<span class="lineCov">        190 :     stats.period = Period(params);</span>
-<span class="lineNum">     103 </span>                :<span class="lineCov">        190 :     stats.threshold = Threshold(params);</span>
+<span class="lineNum">     102 </span>                :<span class="lineCov">        192 :     stats.period = Period(params);</span>
+<span class="lineNum">     103 </span>                :<span class="lineCov">        192 :     stats.threshold = Threshold(params);</span>
 <span class="lineNum">     104 </span>                :            : 
-<span class="lineNum">     105 </span>        [<span class="branchCov" title="Branch 0 was taken 190 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        190 :     if (pindex == nullptr)</span>
+<span class="lineNum">     105 </span>        [<span class="branchCov" title="Branch 0 was taken 192 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        192 :     if (pindex == nullptr)</span>
 <span class="lineNum">     106 </span>                :            :         return stats;
 <span class="lineNum">     107 </span>                :            : 
 <span class="lineNum">     108 </span>                :            :     // Find beginning of period
-<span class="lineNum">     109 </span>                :<span class="lineCov">        190 :     const CBlockIndex* pindexEndOfPrevPeriod = pindex-&gt;GetAncestor(pindex-&gt;nHeight - ((pindex-&gt;nHeight + 1) % stats.period));</span>
-<span class="lineNum">     110 </span>                :<span class="lineCov">        190 :     stats.elapsed = pindex-&gt;nHeight - pindexEndOfPrevPeriod-&gt;nHeight;</span>
+<span class="lineNum">     109 </span>                :<span class="lineCov">        192 :     const CBlockIndex* pindexEndOfPrevPeriod = pindex-&gt;GetAncestor(pindex-&gt;nHeight - ((pindex-&gt;nHeight + 1) % stats.period));</span>
+<span class="lineNum">     110 </span>                :<span class="lineCov">        192 :     stats.elapsed = pindex-&gt;nHeight - pindexEndOfPrevPeriod-&gt;nHeight;</span>
 <span class="lineNum">     111 </span>                :            : 
 <span class="lineNum">     112 </span>                :            :     // Count from current block to beginning of period
-<span class="lineNum">     113 </span>                :<span class="lineCov">        190 :     int count = 0;</span>
-<span class="lineNum">     114 </span>                :<span class="lineCov">        190 :     const CBlockIndex* currentIndex = pindex;</span>
-<span class="lineNum">     115 </span>        [<span class="branchCov" title="Branch 0 was taken 10306 times"> + </span><span class="branchCov" title="Branch 1 was taken 190 times"> + </span>]:<span class="lineCov">      10496 :     while (pindexEndOfPrevPeriod-&gt;nHeight != currentIndex-&gt;nHeight){</span>
-<span class="lineNum">     116 </span>        [<span class="branchCov" title="Branch 1 was taken 10306 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      10306 :         if (Condition(currentIndex, params))</span>
-<span class="lineNum">     117 </span>                :<span class="lineCov">      10306 :             count++;</span>
-<span class="lineNum">     118 </span>                :<span class="lineCov">      10306 :         currentIndex = currentIndex-&gt;pprev;</span>
+<span class="lineNum">     113 </span>                :<span class="lineCov">        192 :     int count = 0;</span>
+<span class="lineNum">     114 </span>                :<span class="lineCov">        192 :     const CBlockIndex* currentIndex = pindex;</span>
+<span class="lineNum">     115 </span>        [<span class="branchCov" title="Branch 0 was taken 10419 times"> + </span><span class="branchCov" title="Branch 1 was taken 192 times"> + </span>]:<span class="lineCov">      10611 :     while (pindexEndOfPrevPeriod-&gt;nHeight != currentIndex-&gt;nHeight){</span>
+<span class="lineNum">     116 </span>        [<span class="branchCov" title="Branch 1 was taken 10419 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      10419 :         if (Condition(currentIndex, params))</span>
+<span class="lineNum">     117 </span>                :<span class="lineCov">      10419 :             count++;</span>
+<span class="lineNum">     118 </span>                :<span class="lineCov">      10419 :         currentIndex = currentIndex-&gt;pprev;</span>
 <span class="lineNum">     119 </span>                :            :     }
 <span class="lineNum">     120 </span>                :            : 
-<span class="lineNum">     121 </span>                :<span class="lineCov">        190 :     stats.count = count;</span>
-<span class="lineNum">     122 </span>                :<span class="lineCov">        190 :     stats.possible = (stats.period - stats.threshold ) &gt;= (stats.elapsed - count);</span>
+<span class="lineNum">     121 </span>                :<span class="lineCov">        192 :     stats.count = count;</span>
+<span class="lineNum">     122 </span>                :<span class="lineCov">        192 :     stats.possible = (stats.period - stats.threshold ) &gt;= (stats.elapsed - count);</span>
 <span class="lineNum">     123 </span>                :            : 
-<span class="lineNum">     124 </span>                :<span class="lineCov">        190 :     return stats;</span>
+<span class="lineNum">     124 </span>                :<span class="lineCov">        192 :     return stats;</span>
 <a name="125"><span class="lineNum">     125 </span>                :            : }</a>
 <span class="lineNum">     126 </span>                :            : 
-<span class="lineNum">     127 </span>                :<span class="lineCov">      12900 : int AbstractThresholdConditionChecker::GetStateSinceHeightFor(const CBlockIndex* pindexPrev, const Consensus::Params&amp; params, ThresholdConditionCache&amp; cache) const</span>
+<span class="lineNum">     127 </span>                :<span class="lineCov">      12746 : int AbstractThresholdConditionChecker::GetStateSinceHeightFor(const CBlockIndex* pindexPrev, const Consensus::Params&amp; params, ThresholdConditionCache&amp; cache) const</span>
 <span class="lineNum">     128 </span>                :            : {
-<span class="lineNum">     129 </span>                :<span class="lineCov">      12900 :     int64_t start_time = BeginTime(params);</span>
-<span class="lineNum">     130 </span>        [<span class="branchCov" title="Branch 0 was taken 6521 times"> + </span><span class="branchCov" title="Branch 1 was taken 6379 times"> + </span>]:<span class="lineCov">      12900 :     if (start_time == Consensus::BIP9Deployment::ALWAYS_ACTIVE) {</span>
+<span class="lineNum">     129 </span>                :<span class="lineCov">      12746 :     int64_t start_time = BeginTime(params);</span>
+<span class="lineNum">     130 </span>        [<span class="branchCov" title="Branch 0 was taken 6444 times"> + </span><span class="branchCov" title="Branch 1 was taken 6302 times"> + </span>]:<span class="lineCov">      12746 :     if (start_time == Consensus::BIP9Deployment::ALWAYS_ACTIVE) {</span>
 <span class="lineNum">     131 </span>                :            :         return 0;
 <span class="lineNum">     132 </span>                :            :     }
 <span class="lineNum">     133 </span>                :            : 
-<span class="lineNum">     134 </span>                :<span class="lineCov">       6521 :     const ThresholdState initialState = GetStateFor(pindexPrev, params, cache);</span>
+<span class="lineNum">     134 </span>                :<span class="lineCov">       6444 :     const ThresholdState initialState = GetStateFor(pindexPrev, params, cache);</span>
 <span class="lineNum">     135 </span>                :            : 
 <span class="lineNum">     136 </span>                :            :     // BIP 9 about state DEFINED: &quot;The genesis block is by definition in this state for each deployment.&quot;
-<span class="lineNum">     137 </span>        [<span class="branchCov" title="Branch 0 was taken 4397 times"> + </span><span class="branchCov" title="Branch 1 was taken 2124 times"> + </span>]:<span class="lineCov">       6521 :     if (initialState == ThresholdState::DEFINED) {</span>
+<span class="lineNum">     137 </span>        [<span class="branchCov" title="Branch 0 was taken 4324 times"> + </span><span class="branchCov" title="Branch 1 was taken 2120 times"> + </span>]:<span class="lineCov">       6444 :     if (initialState == ThresholdState::DEFINED) {</span>
 <span class="lineNum">     138 </span>                :            :         return 0;
 <span class="lineNum">     139 </span>                :            :     }
 <span class="lineNum">     140 </span>                :            : 
-<span class="lineNum">     141 </span>                :<span class="lineCov">       4397 :     const int nPeriod = Period(params);</span>
+<span class="lineNum">     141 </span>                :<span class="lineCov">       4324 :     const int nPeriod = Period(params);</span>
 <span class="lineNum">     142 </span>                :            : 
 <span class="lineNum">     143 </span>                :            :     // A block's state is always the same as that of the first of its period, so it is computed based on a pindexPrev whose height equals a multiple of nPeriod - 1.
 <span class="lineNum">     144 </span>                :            :     // To ease understanding of the following height calculation, it helps to remember that
@@ -217,17 +217,17 @@
 <span class="lineNum">     146 </span>                :            :     // if we are computing for the last block of a period, then pindexPrev points to the second to last block of the period, and
 <span class="lineNum">     147 </span>                :            :     // if we are computing for the first block of a period, then pindexPrev points to the last block of the previous period.
 <span class="lineNum">     148 </span>                :            :     // The parent of the genesis block is represented by nullptr.
-<span class="lineNum">     149 </span>                :<span class="lineCov">       4397 :     pindexPrev = pindexPrev-&gt;GetAncestor(pindexPrev-&gt;nHeight - ((pindexPrev-&gt;nHeight + 1) % nPeriod));</span>
+<span class="lineNum">     149 </span>                :<span class="lineCov">       4324 :     pindexPrev = pindexPrev-&gt;GetAncestor(pindexPrev-&gt;nHeight - ((pindexPrev-&gt;nHeight + 1) % nPeriod));</span>
 <span class="lineNum">     150 </span>                :            : 
-<span class="lineNum">     151 </span>                :<span class="lineCov">       4397 :     const CBlockIndex* previousPeriodParent = pindexPrev-&gt;GetAncestor(pindexPrev-&gt;nHeight - nPeriod);</span>
+<span class="lineNum">     151 </span>                :<span class="lineCov">       4324 :     const CBlockIndex* previousPeriodParent = pindexPrev-&gt;GetAncestor(pindexPrev-&gt;nHeight - nPeriod);</span>
 <span class="lineNum">     152 </span>                :            : 
-<span class="lineNum">     153 </span>[<span class="branchCov" title="Branch 0 was taken 12812 times"> + </span><span class="branchCov" title="Branch 1 was taken 982 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 9397 times"> + </span><span class="branchCov" title="Branch 4 was taken 3415 times"> + </span>]:<span class="lineCov">      13794 :     while (previousPeriodParent != nullptr &amp;&amp; GetStateFor(previousPeriodParent, params, cache) == initialState) {</span>
-<span class="lineNum">     154 </span>                :<span class="lineCov">       9397 :         pindexPrev = previousPeriodParent;</span>
-<span class="lineNum">     155 </span>                :<span class="lineCov">       9397 :         previousPeriodParent = pindexPrev-&gt;GetAncestor(pindexPrev-&gt;nHeight - nPeriod);</span>
+<span class="lineNum">     153 </span>[<span class="branchCov" title="Branch 0 was taken 12518 times"> + </span><span class="branchCov" title="Branch 1 was taken 959 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 9153 times"> + </span><span class="branchCov" title="Branch 4 was taken 3365 times"> + </span>]:<span class="lineCov">      13477 :     while (previousPeriodParent != nullptr &amp;&amp; GetStateFor(previousPeriodParent, params, cache) == initialState) {</span>
+<span class="lineNum">     154 </span>                :<span class="lineCov">       9153 :         pindexPrev = previousPeriodParent;</span>
+<span class="lineNum">     155 </span>                :<span class="lineCov">       9153 :         previousPeriodParent = pindexPrev-&gt;GetAncestor(pindexPrev-&gt;nHeight - nPeriod);</span>
 <span class="lineNum">     156 </span>                :            :     }
 <span class="lineNum">     157 </span>                :            : 
 <span class="lineNum">     158 </span>                :            :     // Adjust the result because right now we point to the parent block.
-<span class="lineNum">     159 </span>                :<span class="lineCov">       4397 :     return pindexPrev-&gt;nHeight + 1;</span>
+<span class="lineNum">     159 </span>                :<span class="lineCov">       4324 :     return pindexPrev-&gt;nHeight + 1;</span>
 <span class="lineNum">     160 </span>                :            : }
 <span class="lineNum">     161 </span>                :            : 
 <span class="lineNum">     162 </span>                :            : namespace
@@ -240,49 +240,49 @@
 <span class="lineNum">     169 </span>                :            :     const Consensus::DeploymentPos id;
 <a name="170"><span class="lineNum">     170 </span>                :            : </a>
 <a name="171"><span class="lineNum">     171 </span>                :            : protected:</a>
-<a name="172"><span class="lineNum">     172 </span>                :<span class="lineCov">    8873156 :     int64_t BeginTime(const Consensus::Params&amp; params) const override { return params.vDeployments[id].nStartTime; }</span></a>
-<a name="173"><span class="lineNum">     173 </span>                :<span class="lineCov">    8872628 :     int64_t EndTime(const Consensus::Params&amp; params) const override { return params.vDeployments[id].nTimeout; }</span></a>
-<span class="lineNum">     174 </span>                :<span class="lineCov">    8873127 :     int Period(const Consensus::Params&amp; params) const override { return params.nMinerConfirmationWindow; }</span>
-<a name="175"><span class="lineNum">     175 </span>                :<span class="lineCov">    8872818 :     int Threshold(const Consensus::Params&amp; params) const override { return params.nRuleChangeActivationThreshold; }</span></a>
+<a name="172"><span class="lineNum">     172 </span>                :<span class="lineCov">    8857514 :     int64_t BeginTime(const Consensus::Params&amp; params) const override { return params.vDeployments[id].nStartTime; }</span></a>
+<a name="173"><span class="lineNum">     173 </span>                :<span class="lineCov">    8856982 :     int64_t EndTime(const Consensus::Params&amp; params) const override { return params.vDeployments[id].nTimeout; }</span></a>
+<span class="lineNum">     174 </span>                :<span class="lineCov">    8857485 :     int Period(const Consensus::Params&amp; params) const override { return params.nMinerConfirmationWindow; }</span>
+<a name="175"><span class="lineNum">     175 </span>                :<span class="lineCov">    8857174 :     int Threshold(const Consensus::Params&amp; params) const override { return params.nRuleChangeActivationThreshold; }</span></a>
 <span class="lineNum">     176 </span>                :            : 
-<span class="lineNum">     177 </span>                :<span class="lineCov">      36370 :     bool Condition(const CBlockIndex* pindex, const Consensus::Params&amp; params) const override</span>
+<span class="lineNum">     177 </span>                :<span class="lineCov">      36483 :     bool Condition(const CBlockIndex* pindex, const Consensus::Params&amp; params) const override</span>
 <span class="lineNum">     178 </span>                :            :     {
-<span class="lineNum">     179 </span>[<span class="branchCov" title="Branch 0 was taken 25460 times"> + </span><span class="branchCov" title="Branch 1 was taken 10910 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1223 times"> + </span><span class="branchCov" title="Branch 3 was taken 24237 times"> + </span>]:<span class="lineCov">      36370 :         return (((pindex-&gt;nVersion &amp; VERSIONBITS_TOP_MASK) == VERSIONBITS_TOP_BITS) &amp;&amp; (pindex-&gt;nVersion &amp; Mask(params)) != 0);</span>
+<span class="lineNum">     179 </span>[<span class="branchCov" title="Branch 0 was taken 25573 times"> + </span><span class="branchCov" title="Branch 1 was taken 10910 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1223 times"> + </span><span class="branchCov" title="Branch 3 was taken 24350 times"> + </span>]:<span class="lineCov">      36483 :         return (((pindex-&gt;nVersion &amp; VERSIONBITS_TOP_MASK) == VERSIONBITS_TOP_BITS) &amp;&amp; (pindex-&gt;nVersion &amp; Mask(params)) != 0);</span>
 <span class="lineNum">     180 </span>                :            :     }
 <span class="lineNum">     181 </span>                :            : 
 <span class="lineNum">     182 </span>                :            : public:
-<span class="lineNum">     183 </span>                :<span class="lineCov">   11730866 :     explicit VersionBitsConditionChecker(Consensus::DeploymentPos id_) : id(id_) {}</span>
-<span class="lineNum">     184 </span>                :<span class="lineCov">    2883454 :     uint32_t Mask(const Consensus::Params&amp; params) const { return ((uint32_t)1) &lt;&lt; params.vDeployments[id].bit; }</span>
+<span class="lineNum">     183 </span>                :<span class="lineCov">   11717748 :     explicit VersionBitsConditionChecker(Consensus::DeploymentPos id_) : id(id_) {}</span>
+<span class="lineNum">     184 </span>                :<span class="lineCov">    2886091 :     uint32_t Mask(const Consensus::Params&amp; params) const { return ((uint32_t)1) &lt;&lt; params.vDeployments[id].bit; }</span>
 <span class="lineNum">     185 </span>                :            : };
 <span class="lineNum">     186 </span>                :            : 
 <a name="187"><span class="lineNum">     187 </span>                :            : } // namespace</a>
 <span class="lineNum">     188 </span>                :            : 
-<span class="lineNum">     189 </span>                :<span class="lineCov">    8872154 : ThresholdState VersionBitsState(const CBlockIndex* pindexPrev, const Consensus::Params&amp; params, Consensus::DeploymentPos pos, VersionBitsCache&amp; cache)</span>
+<span class="lineNum">     189 </span>                :<span class="lineCov">    8856506 : ThresholdState VersionBitsState(const CBlockIndex* pindexPrev, const Consensus::Params&amp; params, Consensus::DeploymentPos pos, VersionBitsCache&amp; cache)</span>
 <span class="lineNum">     190 </span>                :            : {
-<span class="lineNum">     191 </span>                :<span class="lineCov">    8872154 :     return VersionBitsConditionChecker(pos).GetStateFor(pindexPrev, params, cache.caches[pos]);</span>
+<span class="lineNum">     191 </span>                :<span class="lineCov">    8856506 :     return VersionBitsConditionChecker(pos).GetStateFor(pindexPrev, params, cache.caches[pos]);</span>
 <a name="192"><span class="lineNum">     192 </span>                :            : }</a>
 <span class="lineNum">     193 </span>                :            : 
-<span class="lineNum">     194 </span>                :<span class="lineCov">        190 : BIP9Stats VersionBitsStatistics(const CBlockIndex* pindexPrev, const Consensus::Params&amp; params, Consensus::DeploymentPos pos)</span>
+<span class="lineNum">     194 </span>                :<span class="lineCov">        192 : BIP9Stats VersionBitsStatistics(const CBlockIndex* pindexPrev, const Consensus::Params&amp; params, Consensus::DeploymentPos pos)</span>
 <span class="lineNum">     195 </span>                :            : {
-<span class="lineNum">     196 </span>                :<span class="lineCov">        190 :     return VersionBitsConditionChecker(pos).GetStateStatisticsFor(pindexPrev, params);</span>
+<span class="lineNum">     196 </span>                :<span class="lineCov">        192 :     return VersionBitsConditionChecker(pos).GetStateStatisticsFor(pindexPrev, params);</span>
 <a name="197"><span class="lineNum">     197 </span>                :            : }</a>
 <span class="lineNum">     198 </span>                :            : 
-<span class="lineNum">     199 </span>                :<span class="lineCov">        528 : int VersionBitsStateSinceHeight(const CBlockIndex* pindexPrev, const Consensus::Params&amp; params, Consensus::DeploymentPos pos, VersionBitsCache&amp; cache)</span>
+<span class="lineNum">     199 </span>                :<span class="lineCov">        532 : int VersionBitsStateSinceHeight(const CBlockIndex* pindexPrev, const Consensus::Params&amp; params, Consensus::DeploymentPos pos, VersionBitsCache&amp; cache)</span>
 <span class="lineNum">     200 </span>                :            : {
-<span class="lineNum">     201 </span>                :<span class="lineCov">        528 :     return VersionBitsConditionChecker(pos).GetStateSinceHeightFor(pindexPrev, params, cache.caches[pos]);</span>
+<span class="lineNum">     201 </span>                :<span class="lineCov">        532 :     return VersionBitsConditionChecker(pos).GetStateSinceHeightFor(pindexPrev, params, cache.caches[pos]);</span>
 <a name="202"><span class="lineNum">     202 </span>                :            : }</a>
 <span class="lineNum">     203 </span>                :            : 
-<span class="lineNum">     204 </span>                :<span class="lineCov">    2857994 : uint32_t VersionBitsMask(const Consensus::Params&amp; params, Consensus::DeploymentPos pos)</span>
+<span class="lineNum">     204 </span>                :<span class="lineCov">    2860518 : uint32_t VersionBitsMask(const Consensus::Params&amp; params, Consensus::DeploymentPos pos)</span>
 <span class="lineNum">     205 </span>                :            : {
-<span class="lineNum">     206 </span>                :<span class="lineCov">    5715988 :     return VersionBitsConditionChecker(pos).Mask(params);</span>
+<span class="lineNum">     206 </span>                :<span class="lineCov">    5721036 :     return VersionBitsConditionChecker(pos).Mask(params);</span>
 <a name="207"><span class="lineNum">     207 </span>                :            : }</a>
 <span class="lineNum">     208 </span>                :            : 
-<span class="lineNum">     209 </span>                :<span class="lineCov">        425 : void VersionBitsCache::Clear()</span>
+<span class="lineNum">     209 </span>                :<span class="lineCov">        426 : void VersionBitsCache::Clear()</span>
 <span class="lineNum">     210 </span>                :            : {
-<span class="lineNum">     211 </span>        [<span class="branchCov" title="Branch 0 was taken 1275 times"> + </span><span class="branchCov" title="Branch 1 was taken 425 times"> + </span>]:<span class="lineCov">       1700 :     for (unsigned int d = 0; d &lt; Consensus::MAX_VERSION_BITS_DEPLOYMENTS; d++) {</span>
-<a name="212"><span class="lineNum">     212 </span>                :<span class="lineCov">       2550 :         caches[d].clear();</span></a>
+<span class="lineNum">     211 </span>        [<span class="branchCov" title="Branch 0 was taken 1278 times"> + </span><span class="branchCov" title="Branch 1 was taken 426 times"> + </span>]:<span class="lineCov">       1704 :     for (unsigned int d = 0; d &lt; Consensus::MAX_VERSION_BITS_DEPLOYMENTS; d++) {</span>
+<a name="212"><span class="lineNum">     212 </span>                :<span class="lineCov">       2556 :         caches[d].clear();</span></a>
 <span class="lineNum">     213 </span>                :            :     }
-<span class="lineNum">     214 </span>[<span class="branchCov" title="Branch 1 was taken 496 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 496 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1984 : }</span>
+<span class="lineNum">     214 </span>[<span class="branchCov" title="Branch 1 was taken 498 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 498 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1992 : }</span>
 </pre>
       </td>
     </tr>

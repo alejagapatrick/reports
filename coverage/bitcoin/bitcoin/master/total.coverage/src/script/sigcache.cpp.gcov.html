@@ -91,7 +91,7 @@
 <span class="lineNum">      20 </span>                :            :  * twice for every transaction (once when accepted into memory pool, and
 <a name="21"><span class="lineNum">      21 </span>                :            :  * again when accepted into the block chain)</a>
 <span class="lineNum">      22 </span>                :            :  */
-<span class="lineNum">      23 </span>                :<span class="lineCov">        992 : class CSignatureCache</span>
+<span class="lineNum">      23 </span>                :<span class="lineCov">        996 : class CSignatureCache</span>
 <span class="lineNum">      24 </span>                :            : {
 <span class="lineNum">      25 </span>                :            : private:
 <span class="lineNum">      26 </span>                :            :      //! Entries are SHA256(nonce || signature hash || public key || signature):
@@ -101,32 +101,32 @@
 <span class="lineNum">      30 </span>                :            :     boost::shared_mutex cs_sigcache;
 <a name="31"><span class="lineNum">      31 </span>                :            : </a>
 <span class="lineNum">      32 </span>                :            : public:
-<span class="lineNum">      33 </span>                :<span class="lineCov">        496 :     CSignatureCache()</span>
-<span class="lineNum">      34 </span>        [<span class="branchCov" title="Branch 2 was taken 496 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        496 :     {</span>
-<span class="lineNum">      35 </span>                :<span class="lineCov">        496 :         GetRandBytes(nonce.begin(), 32);</span>
-<span class="lineNum">      36 </span>                :<span class="lineCov">        496 :     }</span>
+<span class="lineNum">      33 </span>                :<span class="lineCov">        498 :     CSignatureCache()</span>
+<span class="lineNum">      34 </span>        [<span class="branchCov" title="Branch 2 was taken 498 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        498 :     {</span>
+<span class="lineNum">      35 </span>                :<span class="lineCov">        498 :         GetRandBytes(nonce.begin(), 32);</span>
+<span class="lineNum">      36 </span>                :<span class="lineCov">        498 :     }</span>
 <a name="37"><span class="lineNum">      37 </span>                :            : </a>
 <span class="lineNum">      38 </span>                :            :     void
-<span class="lineNum">      39 </span>                :<span class="lineCov">     174598 :     ComputeEntry(uint256&amp; entry, const uint256 &amp;hash, const std::vector&lt;unsigned char&gt;&amp; vchSig, const CPubKey&amp; pubkey)</span>
+<span class="lineNum">      39 </span>                :<span class="lineCov">     173228 :     ComputeEntry(uint256&amp; entry, const uint256 &amp;hash, const std::vector&lt;unsigned char&gt;&amp; vchSig, const CPubKey&amp; pubkey)</span>
 <span class="lineNum">      40 </span>                :            :     {
-<span class="lineNum">      41 </span>                :<span class="lineCov">     349196 :         CSHA256().Write(nonce.begin(), 32).Write(hash.begin(), 32).Write(&amp;pubkey[0], pubkey.size()).Write(&amp;vchSig[0], vchSig.size()).Finalize(entry.begin());</span>
-<span class="lineNum">      42 </span>                :<span class="lineCov">     174598 :     }</span>
+<span class="lineNum">      41 </span>                :<span class="lineCov">     346456 :         CSHA256().Write(nonce.begin(), 32).Write(hash.begin(), 32).Write(&amp;pubkey[0], pubkey.size()).Write(&amp;vchSig[0], vchSig.size()).Finalize(entry.begin());</span>
+<span class="lineNum">      42 </span>                :<span class="lineCov">     173228 :     }</span>
 <a name="43"><span class="lineNum">      43 </span>                :            : </a>
 <span class="lineNum">      44 </span>                :            :     bool
-<span class="lineNum">      45 </span>                :<span class="lineCov">     174598 :     Get(const uint256&amp; entry, const bool erase)</span>
+<span class="lineNum">      45 </span>                :<span class="lineCov">     173228 :     Get(const uint256&amp; entry, const bool erase)</span>
 <span class="lineNum">      46 </span>                :            :     {
-<span class="lineNum">      47 </span>                :<span class="lineCov">     523794 :         boost::shared_lock&lt;boost::shared_mutex&gt; lock(cs_sigcache);</span>
-<span class="lineNum">      48 </span>                :<span class="lineCov">     174598 :         return setValid.contains(entry, erase);</span>
+<span class="lineNum">      47 </span>                :<span class="lineCov">     519684 :         boost::shared_lock&lt;boost::shared_mutex&gt; lock(cs_sigcache);</span>
+<span class="lineNum">      48 </span>                :<span class="lineCov">     173228 :         return setValid.contains(entry, erase);</span>
 <a name="49"><span class="lineNum">      49 </span>                :            :     }</a>
 <span class="lineNum">      50 </span>                :            : 
-<span class="lineNum">      51 </span>                :<span class="lineCov">       6133 :     void Set(uint256&amp; entry)</span>
+<span class="lineNum">      51 </span>                :<span class="lineCov">       5834 :     void Set(uint256&amp; entry)</span>
 <span class="lineNum">      52 </span>                :            :     {
-<span class="lineNum">      53 </span>                :<span class="lineCov">      18399 :         boost::unique_lock&lt;boost::shared_mutex&gt; lock(cs_sigcache);</span>
-<span class="lineNum">      54 </span>                :<span class="lineCov">       6133 :         setValid.insert(entry);</span>
-<span class="lineNum">      55 </span>                :<span class="lineCov">       6133 :     }</span>
+<span class="lineNum">      53 </span>                :<span class="lineCov">      17502 :         boost::unique_lock&lt;boost::shared_mutex&gt; lock(cs_sigcache);</span>
+<span class="lineNum">      54 </span>                :<span class="lineCov">       5834 :         setValid.insert(entry);</span>
+<span class="lineNum">      55 </span>                :<span class="lineCov">       5834 :     }</span>
 <span class="lineNum">      56 </span>                :            :     uint32_t setup_bytes(size_t n)
 <span class="lineNum">      57 </span>                :            :     {
-<span class="lineNum">      58 </span>                :<span class="lineCov">       1478 :         return setValid.setup_bytes(n);</span>
+<span class="lineNum">      58 </span>                :<span class="lineCov">       1488 :         return setValid.setup_bytes(n);</span>
 <span class="lineNum">      59 </span>                :            :     }
 <span class="lineNum">      60 </span>                :            : };
 <span class="lineNum">      61 </span>                :            : 
@@ -141,28 +141,28 @@
 <span class="lineNum">      70 </span>                :            : 
 <a name="71"><span class="lineNum">      71 </span>                :            : // To be called once in AppInitMain/BasicTestingSetup to initialize the</a>
 <span class="lineNum">      72 </span>                :            : // signatureCache.
-<span class="lineNum">      73 </span>                :<span class="lineCov">        739 : void InitSignatureCache()</span>
+<span class="lineNum">      73 </span>                :<span class="lineCov">        744 : void InitSignatureCache()</span>
 <span class="lineNum">      74 </span>                :            : {
 <span class="lineNum">      75 </span>                :            :     // nMaxCacheSize is unsigned. If -maxsigcachesize is set to zero,
 <span class="lineNum">      76 </span>                :            :     // setup_bytes creates the minimum possible cache (2 elements).
-<span class="lineNum">      77 </span>[<span class="branchCov" title="Branch 1 was taken 739 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 739 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        739 :     size_t nMaxCacheSize = std::min(std::max((int64_t)0, gArgs.GetArg(&quot;-maxsigcachesize&quot;, DEFAULT_MAX_SIG_CACHE_SIZE) / 2), MAX_MAX_SIG_CACHE_SIZE) * ((size_t) 1 &lt;&lt; 20);</span>
-<span class="lineNum">      78 </span>                :<span class="lineCov">        739 :     size_t nElems = signatureCache.setup_bytes(nMaxCacheSize);</span>
-<span class="lineNum">      79 </span>                :<span class="lineCov">        739 :     LogPrintf(&quot;Using %zu MiB out of %zu/2 requested for signature cache, able to store %zu elements\n&quot;,</span>
-<span class="lineNum">      80 </span>                :<span class="lineCov">       1478 :             (nElems*sizeof(uint256)) &gt;&gt;20, (nMaxCacheSize*2)&gt;&gt;20, nElems);</span>
-<a name="81"><span class="lineNum">      81 </span>                :<span class="lineCov">        739 : }</span></a>
+<span class="lineNum">      77 </span>[<span class="branchCov" title="Branch 1 was taken 744 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 744 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        744 :     size_t nMaxCacheSize = std::min(std::max((int64_t)0, gArgs.GetArg(&quot;-maxsigcachesize&quot;, DEFAULT_MAX_SIG_CACHE_SIZE) / 2), MAX_MAX_SIG_CACHE_SIZE) * ((size_t) 1 &lt;&lt; 20);</span>
+<span class="lineNum">      78 </span>                :<span class="lineCov">        744 :     size_t nElems = signatureCache.setup_bytes(nMaxCacheSize);</span>
+<span class="lineNum">      79 </span>                :<span class="lineCov">        744 :     LogPrintf(&quot;Using %zu MiB out of %zu/2 requested for signature cache, able to store %zu elements\n&quot;,</span>
+<span class="lineNum">      80 </span>                :<span class="lineCov">       1488 :             (nElems*sizeof(uint256)) &gt;&gt;20, (nMaxCacheSize*2)&gt;&gt;20, nElems);</span>
+<a name="81"><span class="lineNum">      81 </span>                :<span class="lineCov">        744 : }</span></a>
 <span class="lineNum">      82 </span>                :            : 
-<span class="lineNum">      83 </span>                :<span class="lineCov">     174598 : bool CachingTransactionSignatureChecker::VerifySignature(const std::vector&lt;unsigned char&gt;&amp; vchSig, const CPubKey&amp; pubkey, const uint256&amp; sighash) const</span>
+<span class="lineNum">      83 </span>                :<span class="lineCov">     173228 : bool CachingTransactionSignatureChecker::VerifySignature(const std::vector&lt;unsigned char&gt;&amp; vchSig, const CPubKey&amp; pubkey, const uint256&amp; sighash) const</span>
 <span class="lineNum">      84 </span>                :            : {
-<span class="lineNum">      85 </span>                :<span class="lineCov">     174598 :     uint256 entry;</span>
-<span class="lineNum">      86 </span>                :<span class="lineCov">     174598 :     signatureCache.ComputeEntry(entry, sighash, vchSig, pubkey);</span>
-<span class="lineNum">      87 </span>        [<span class="branchCov" title="Branch 1 was taken 67664 times"> + </span><span class="branchCov" title="Branch 2 was taken 106934 times"> + </span>]:<span class="lineCov">     174598 :     if (signatureCache.Get(entry, !store))</span>
+<span class="lineNum">      85 </span>                :<span class="lineCov">     173228 :     uint256 entry;</span>
+<span class="lineNum">      86 </span>                :<span class="lineCov">     173228 :     signatureCache.ComputeEntry(entry, sighash, vchSig, pubkey);</span>
+<span class="lineNum">      87 </span>        [<span class="branchCov" title="Branch 1 was taken 66721 times"> + </span><span class="branchCov" title="Branch 2 was taken 106507 times"> + </span>]:<span class="lineCov">     173228 :     if (signatureCache.Get(entry, !store))</span>
 <span class="lineNum">      88 </span>                :            :         return true;
-<span class="lineNum">      89 </span>        [<span class="branchCov" title="Branch 1 was taken 67564 times"> + </span><span class="branchCov" title="Branch 2 was taken 100 times"> + </span>]:<span class="lineCov">      67664 :     if (!TransactionSignatureChecker::VerifySignature(vchSig, pubkey, sighash))</span>
+<span class="lineNum">      89 </span>        [<span class="branchCov" title="Branch 1 was taken 66621 times"> + </span><span class="branchCov" title="Branch 2 was taken 100 times"> + </span>]:<span class="lineCov">      66721 :     if (!TransactionSignatureChecker::VerifySignature(vchSig, pubkey, sighash))</span>
 <span class="lineNum">      90 </span>                :            :         return false;
-<span class="lineNum">      91 </span>        [<span class="branchCov" title="Branch 0 was taken 6133 times"> + </span><span class="branchCov" title="Branch 1 was taken 61431 times"> + </span>]:<span class="lineCov">      67564 :     if (store)</span>
-<a name="92"><span class="lineNum">      92 </span>                :<span class="lineCov">       6133 :         signatureCache.Set(entry);</span></a>
+<span class="lineNum">      91 </span>        [<span class="branchCov" title="Branch 0 was taken 5834 times"> + </span><span class="branchCov" title="Branch 1 was taken 60787 times"> + </span>]:<span class="lineCov">      66621 :     if (store)</span>
+<a name="92"><span class="lineNum">      92 </span>                :<span class="lineCov">       5834 :         signatureCache.Set(entry);</span></a>
 <span class="lineNum">      93 </span>                :            :     return true;
-<span class="lineNum">      94 </span>[<span class="branchCov" title="Branch 1 was taken 496 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 496 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1984 : }</span>
+<span class="lineNum">      94 </span>[<span class="branchCov" title="Branch 1 was taken 498 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 498 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1992 : }</span>
 </pre>
       </td>
     </tr>

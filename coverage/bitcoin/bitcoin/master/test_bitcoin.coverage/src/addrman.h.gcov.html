@@ -245,470 +245,473 @@
 <span class="lineNum">     166 </span>                :            : //! the maximum number of tried addr collisions to store
 <span class="lineNum">     167 </span>                :            : #define ADDRMAN_SET_TRIED_COLLISION_SIZE 10
 <span class="lineNum">     168 </span>                :            : 
-<span class="lineNum">     169 </span>                :            : /**
-<span class="lineNum">     170 </span>                :            :  * Stochastical (IP) address manager
-<span class="lineNum">     171 </span>                :            :  */
-<span class="lineNum">     172 </span>                :            : class CAddrMan
-<span class="lineNum">     173 </span>                :            : {
-<span class="lineNum">     174 </span>                :            : protected:
-<span class="lineNum">     175 </span>                :            :     //! critical section to protect the inner data structures
-<span class="lineNum">     176 </span>                :            :     mutable CCriticalSection cs;
-<span class="lineNum">     177 </span>                :            : 
-<span class="lineNum">     178 </span>                :            : private:
-<span class="lineNum">     179 </span>                :            :     //! last used nId
-<span class="lineNum">     180 </span>                :            :     int nIdCount GUARDED_BY(cs);
-<span class="lineNum">     181 </span>                :            : 
-<span class="lineNum">     182 </span>                :            :     //! table with information about all nIds
-<span class="lineNum">     183 </span>                :            :     std::map&lt;int, CAddrInfo&gt; mapInfo GUARDED_BY(cs);
+<span class="lineNum">     169 </span>                :            : //! the maximum time we'll spend trying to resolve a tried table collision, in seconds
+<span class="lineNum">     170 </span>                :            : static const int64_t ADDRMAN_TEST_WINDOW = 40*60; // 40 minutes
+<span class="lineNum">     171 </span>                :            : 
+<span class="lineNum">     172 </span>                :            : /**
+<span class="lineNum">     173 </span>                :            :  * Stochastical (IP) address manager
+<span class="lineNum">     174 </span>                :            :  */
+<span class="lineNum">     175 </span>                :            : class CAddrMan
+<span class="lineNum">     176 </span>                :            : {
+<span class="lineNum">     177 </span>                :            : protected:
+<span class="lineNum">     178 </span>                :            :     //! critical section to protect the inner data structures
+<span class="lineNum">     179 </span>                :            :     mutable CCriticalSection cs;
+<span class="lineNum">     180 </span>                :            : 
+<span class="lineNum">     181 </span>                :            : private:
+<span class="lineNum">     182 </span>                :            :     //! last used nId
+<span class="lineNum">     183 </span>                :            :     int nIdCount GUARDED_BY(cs);
 <span class="lineNum">     184 </span>                :            : 
-<span class="lineNum">     185 </span>                :            :     //! find an nId based on its network address
-<span class="lineNum">     186 </span>                :            :     std::map&lt;CNetAddr, int&gt; mapAddr GUARDED_BY(cs);
+<span class="lineNum">     185 </span>                :            :     //! table with information about all nIds
+<span class="lineNum">     186 </span>                :            :     std::map&lt;int, CAddrInfo&gt; mapInfo GUARDED_BY(cs);
 <span class="lineNum">     187 </span>                :            : 
-<span class="lineNum">     188 </span>                :            :     //! randomly-ordered vector of all nIds
-<span class="lineNum">     189 </span>                :            :     std::vector&lt;int&gt; vRandom GUARDED_BY(cs);
+<span class="lineNum">     188 </span>                :            :     //! find an nId based on its network address
+<span class="lineNum">     189 </span>                :            :     std::map&lt;CNetAddr, int&gt; mapAddr GUARDED_BY(cs);
 <span class="lineNum">     190 </span>                :            : 
-<span class="lineNum">     191 </span>                :            :     // number of &quot;tried&quot; entries
-<span class="lineNum">     192 </span>                :            :     int nTried GUARDED_BY(cs);
+<span class="lineNum">     191 </span>                :            :     //! randomly-ordered vector of all nIds
+<span class="lineNum">     192 </span>                :            :     std::vector&lt;int&gt; vRandom GUARDED_BY(cs);
 <span class="lineNum">     193 </span>                :            : 
-<span class="lineNum">     194 </span>                :            :     //! list of &quot;tried&quot; buckets
-<span class="lineNum">     195 </span>                :            :     int vvTried[ADDRMAN_TRIED_BUCKET_COUNT][ADDRMAN_BUCKET_SIZE] GUARDED_BY(cs);
+<span class="lineNum">     194 </span>                :            :     // number of &quot;tried&quot; entries
+<span class="lineNum">     195 </span>                :            :     int nTried GUARDED_BY(cs);
 <span class="lineNum">     196 </span>                :            : 
-<span class="lineNum">     197 </span>                :            :     //! number of (unique) &quot;new&quot; entries
-<span class="lineNum">     198 </span>                :            :     int nNew GUARDED_BY(cs);
+<span class="lineNum">     197 </span>                :            :     //! list of &quot;tried&quot; buckets
+<span class="lineNum">     198 </span>                :            :     int vvTried[ADDRMAN_TRIED_BUCKET_COUNT][ADDRMAN_BUCKET_SIZE] GUARDED_BY(cs);
 <span class="lineNum">     199 </span>                :            : 
-<span class="lineNum">     200 </span>                :            :     //! list of &quot;new&quot; buckets
-<span class="lineNum">     201 </span>                :            :     int vvNew[ADDRMAN_NEW_BUCKET_COUNT][ADDRMAN_BUCKET_SIZE] GUARDED_BY(cs);
+<span class="lineNum">     200 </span>                :            :     //! number of (unique) &quot;new&quot; entries
+<span class="lineNum">     201 </span>                :            :     int nNew GUARDED_BY(cs);
 <span class="lineNum">     202 </span>                :            : 
-<span class="lineNum">     203 </span>                :            :     //! last time Good was called (memory only)
-<span class="lineNum">     204 </span>                :            :     int64_t nLastGood GUARDED_BY(cs);
+<span class="lineNum">     203 </span>                :            :     //! list of &quot;new&quot; buckets
+<span class="lineNum">     204 </span>                :            :     int vvNew[ADDRMAN_NEW_BUCKET_COUNT][ADDRMAN_BUCKET_SIZE] GUARDED_BY(cs);
 <span class="lineNum">     205 </span>                :            : 
-<span class="lineNum">     206 </span>                :            :     //! Holds addrs inserted into tried table that collide with existing entries. Test-before-evict discipline used to resolve these collisions.
-<span class="lineNum">     207 </span>                :            :     std::set&lt;int&gt; m_tried_collisions;
+<span class="lineNum">     206 </span>                :            :     //! last time Good was called (memory only)
+<span class="lineNum">     207 </span>                :            :     int64_t nLastGood GUARDED_BY(cs);
 <span class="lineNum">     208 </span>                :            : 
-<span class="lineNum">     209 </span>                :            : protected:
-<span class="lineNum">     210 </span>                :            :     //! secret key to randomize bucket select with
-<span class="lineNum">     211 </span>                :            :     uint256 nKey;
-<span class="lineNum">     212 </span>                :            : 
-<span class="lineNum">     213 </span>                :            :     //! Source of random numbers for randomization in inner loops
-<span class="lineNum">     214 </span>                :            :     FastRandomContext insecure_rand;
+<span class="lineNum">     209 </span>                :            :     //! Holds addrs inserted into tried table that collide with existing entries. Test-before-evict discipline used to resolve these collisions.
+<span class="lineNum">     210 </span>                :            :     std::set&lt;int&gt; m_tried_collisions;
+<span class="lineNum">     211 </span>                :            : 
+<span class="lineNum">     212 </span>                :            : protected:
+<span class="lineNum">     213 </span>                :            :     //! secret key to randomize bucket select with
+<span class="lineNum">     214 </span>                :            :     uint256 nKey;
 <span class="lineNum">     215 </span>                :            : 
-<span class="lineNum">     216 </span>                :            :     //! Find an entry.
-<span class="lineNum">     217 </span>                :            :     CAddrInfo* Find(const CNetAddr&amp; addr, int *pnId = nullptr) EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     216 </span>                :            :     //! Source of random numbers for randomization in inner loops
+<span class="lineNum">     217 </span>                :            :     FastRandomContext insecure_rand;
 <span class="lineNum">     218 </span>                :            : 
-<span class="lineNum">     219 </span>                :            :     //! find an entry, creating it if necessary.
-<span class="lineNum">     220 </span>                :            :     //! nTime and nServices of the found node are updated, if necessary.
-<span class="lineNum">     221 </span>                :            :     CAddrInfo* Create(const CAddress &amp;addr, const CNetAddr &amp;addrSource, int *pnId = nullptr) EXCLUSIVE_LOCKS_REQUIRED(cs);
-<span class="lineNum">     222 </span>                :            : 
-<span class="lineNum">     223 </span>                :            :     //! Swap two elements in vRandom.
-<span class="lineNum">     224 </span>                :            :     void SwapRandom(unsigned int nRandomPos1, unsigned int nRandomPos2) EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     219 </span>                :            :     //! Find an entry.
+<span class="lineNum">     220 </span>                :            :     CAddrInfo* Find(const CNetAddr&amp; addr, int *pnId = nullptr) EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     221 </span>                :            : 
+<span class="lineNum">     222 </span>                :            :     //! find an entry, creating it if necessary.
+<span class="lineNum">     223 </span>                :            :     //! nTime and nServices of the found node are updated, if necessary.
+<span class="lineNum">     224 </span>                :            :     CAddrInfo* Create(const CAddress &amp;addr, const CNetAddr &amp;addrSource, int *pnId = nullptr) EXCLUSIVE_LOCKS_REQUIRED(cs);
 <span class="lineNum">     225 </span>                :            : 
-<span class="lineNum">     226 </span>                :            :     //! Move an entry from the &quot;new&quot; table(s) to the &quot;tried&quot; table
-<span class="lineNum">     227 </span>                :            :     void MakeTried(CAddrInfo&amp; info, int nId) EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     226 </span>                :            :     //! Swap two elements in vRandom.
+<span class="lineNum">     227 </span>                :            :     void SwapRandom(unsigned int nRandomPos1, unsigned int nRandomPos2) EXCLUSIVE_LOCKS_REQUIRED(cs);
 <span class="lineNum">     228 </span>                :            : 
-<span class="lineNum">     229 </span>                :            :     //! Delete an entry. It must not be in tried, and have refcount 0.
-<span class="lineNum">     230 </span>                :            :     void Delete(int nId) EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     229 </span>                :            :     //! Move an entry from the &quot;new&quot; table(s) to the &quot;tried&quot; table
+<span class="lineNum">     230 </span>                :            :     void MakeTried(CAddrInfo&amp; info, int nId) EXCLUSIVE_LOCKS_REQUIRED(cs);
 <span class="lineNum">     231 </span>                :            : 
-<span class="lineNum">     232 </span>                :            :     //! Clear a position in a &quot;new&quot; table. This is the only place where entries are actually deleted.
-<span class="lineNum">     233 </span>                :            :     void ClearNew(int nUBucket, int nUBucketPos) EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     232 </span>                :            :     //! Delete an entry. It must not be in tried, and have refcount 0.
+<span class="lineNum">     233 </span>                :            :     void Delete(int nId) EXCLUSIVE_LOCKS_REQUIRED(cs);
 <span class="lineNum">     234 </span>                :            : 
-<span class="lineNum">     235 </span>                :            :     //! Mark an entry &quot;good&quot;, possibly moving it from &quot;new&quot; to &quot;tried&quot;.
-<span class="lineNum">     236 </span>                :            :     void Good_(const CService &amp;addr, bool test_before_evict, int64_t time) EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     235 </span>                :            :     //! Clear a position in a &quot;new&quot; table. This is the only place where entries are actually deleted.
+<span class="lineNum">     236 </span>                :            :     void ClearNew(int nUBucket, int nUBucketPos) EXCLUSIVE_LOCKS_REQUIRED(cs);
 <span class="lineNum">     237 </span>                :            : 
-<span class="lineNum">     238 </span>                :            :     //! Add an entry to the &quot;new&quot; table.
-<span class="lineNum">     239 </span>                :            :     bool Add_(const CAddress &amp;addr, const CNetAddr&amp; source, int64_t nTimePenalty) EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     238 </span>                :            :     //! Mark an entry &quot;good&quot;, possibly moving it from &quot;new&quot; to &quot;tried&quot;.
+<span class="lineNum">     239 </span>                :            :     void Good_(const CService &amp;addr, bool test_before_evict, int64_t time) EXCLUSIVE_LOCKS_REQUIRED(cs);
 <span class="lineNum">     240 </span>                :            : 
-<span class="lineNum">     241 </span>                :            :     //! Mark an entry as attempted to connect.
-<span class="lineNum">     242 </span>                :            :     void Attempt_(const CService &amp;addr, bool fCountFailure, int64_t nTime) EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     241 </span>                :            :     //! Add an entry to the &quot;new&quot; table.
+<span class="lineNum">     242 </span>                :            :     bool Add_(const CAddress &amp;addr, const CNetAddr&amp; source, int64_t nTimePenalty) EXCLUSIVE_LOCKS_REQUIRED(cs);
 <span class="lineNum">     243 </span>                :            : 
-<span class="lineNum">     244 </span>                :            :     //! Select an address to connect to, if newOnly is set to true, only the new table is selected from.
-<span class="lineNum">     245 </span>                :            :     CAddrInfo Select_(bool newOnly) EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     244 </span>                :            :     //! Mark an entry as attempted to connect.
+<span class="lineNum">     245 </span>                :            :     void Attempt_(const CService &amp;addr, bool fCountFailure, int64_t nTime) EXCLUSIVE_LOCKS_REQUIRED(cs);
 <span class="lineNum">     246 </span>                :            : 
-<span class="lineNum">     247 </span>                :            :     //! See if any to-be-evicted tried table entries have been tested and if so resolve the collisions.
-<span class="lineNum">     248 </span>                :            :     void ResolveCollisions_() EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     247 </span>                :            :     //! Select an address to connect to, if newOnly is set to true, only the new table is selected from.
+<span class="lineNum">     248 </span>                :            :     CAddrInfo Select_(bool newOnly) EXCLUSIVE_LOCKS_REQUIRED(cs);
 <span class="lineNum">     249 </span>                :            : 
-<span class="lineNum">     250 </span>                :            :     //! Return a random to-be-evicted tried table address.
-<span class="lineNum">     251 </span>                :            :     CAddrInfo SelectTriedCollision_() EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     250 </span>                :            :     //! See if any to-be-evicted tried table entries have been tested and if so resolve the collisions.
+<span class="lineNum">     251 </span>                :            :     void ResolveCollisions_() EXCLUSIVE_LOCKS_REQUIRED(cs);
 <span class="lineNum">     252 </span>                :            : 
-<span class="lineNum">     253 </span>                :            : #ifdef DEBUG_ADDRMAN
-<span class="lineNum">     254 </span>                :            :     //! Perform consistency check. Returns an error code or zero.
-<span class="lineNum">     255 </span>                :            :     int Check_() EXCLUSIVE_LOCKS_REQUIRED(cs);
-<span class="lineNum">     256 </span>                :            : #endif
-<span class="lineNum">     257 </span>                :            : 
-<span class="lineNum">     258 </span>                :            :     //! Select several addresses at once.
-<span class="lineNum">     259 </span>                :            :     void GetAddr_(std::vector&lt;CAddress&gt; &amp;vAddr) EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     253 </span>                :            :     //! Return a random to-be-evicted tried table address.
+<span class="lineNum">     254 </span>                :            :     CAddrInfo SelectTriedCollision_() EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     255 </span>                :            : 
+<span class="lineNum">     256 </span>                :            : #ifdef DEBUG_ADDRMAN
+<span class="lineNum">     257 </span>                :            :     //! Perform consistency check. Returns an error code or zero.
+<span class="lineNum">     258 </span>                :            :     int Check_() EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     259 </span>                :            : #endif
 <span class="lineNum">     260 </span>                :            : 
-<span class="lineNum">     261 </span>                :            :     //! Mark an entry as currently-connected-to.
-<span class="lineNum">     262 </span>                :            :     void Connected_(const CService &amp;addr, int64_t nTime) EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     261 </span>                :            :     //! Select several addresses at once.
+<span class="lineNum">     262 </span>                :            :     void GetAddr_(std::vector&lt;CAddress&gt; &amp;vAddr) EXCLUSIVE_LOCKS_REQUIRED(cs);
 <span class="lineNum">     263 </span>                :            : 
-<span class="lineNum">     264 </span>                :            :     //! Update an entry's service bits.
-<span class="lineNum">     265 </span>                :            :     void SetServices_(const CService &amp;addr, ServiceFlags nServices) EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     264 </span>                :            :     //! Mark an entry as currently-connected-to.
+<span class="lineNum">     265 </span>                :            :     void Connected_(const CService &amp;addr, int64_t nTime) EXCLUSIVE_LOCKS_REQUIRED(cs);
 <span class="lineNum">     266 </span>                :            : 
-<span class="lineNum">     267 </span>                :            : public:
-<span class="lineNum">     268 </span>                :            :     /**
-<span class="lineNum">     269 </span>                :            :      * serialized format:
-<span class="lineNum">     270 </span>                :            :      * * version byte (currently 1)
-<span class="lineNum">     271 </span>                :            :      * * 0x20 + nKey (serialized as if it were a vector, for backward compatibility)
-<span class="lineNum">     272 </span>                :            :      * * nNew
-<span class="lineNum">     273 </span>                :            :      * * nTried
-<span class="lineNum">     274 </span>                :            :      * * number of &quot;new&quot; buckets XOR 2**30
-<span class="lineNum">     275 </span>                :            :      * * all nNew addrinfos in vvNew
-<span class="lineNum">     276 </span>                :            :      * * all nTried addrinfos in vvTried
-<span class="lineNum">     277 </span>                :            :      * * for each bucket:
-<span class="lineNum">     278 </span>                :            :      *   * number of elements
-<span class="lineNum">     279 </span>                :            :      *   * for each element: index
-<span class="lineNum">     280 </span>                :            :      *
-<span class="lineNum">     281 </span>                :            :      * 2**30 is xorred with the number of buckets to make addrman deserializer v0 detect it
-<span class="lineNum">     282 </span>                :            :      * as incompatible. This is necessary because it did not check the version number on
-<span class="lineNum">     283 </span>                :            :      * deserialization.
-<span class="lineNum">     284 </span>                :            :      *
-<span class="lineNum">     285 </span>                :            :      * Notice that vvTried, mapAddr and vVector are never encoded explicitly;
-<span class="lineNum">     286 </span>                :            :      * they are instead reconstructed from the other information.
+<span class="lineNum">     267 </span>                :            :     //! Update an entry's service bits.
+<span class="lineNum">     268 </span>                :            :     void SetServices_(const CService &amp;addr, ServiceFlags nServices) EXCLUSIVE_LOCKS_REQUIRED(cs);
+<span class="lineNum">     269 </span>                :            : 
+<span class="lineNum">     270 </span>                :            : public:
+<span class="lineNum">     271 </span>                :            :     /**
+<span class="lineNum">     272 </span>                :            :      * serialized format:
+<span class="lineNum">     273 </span>                :            :      * * version byte (currently 1)
+<span class="lineNum">     274 </span>                :            :      * * 0x20 + nKey (serialized as if it were a vector, for backward compatibility)
+<span class="lineNum">     275 </span>                :            :      * * nNew
+<span class="lineNum">     276 </span>                :            :      * * nTried
+<span class="lineNum">     277 </span>                :            :      * * number of &quot;new&quot; buckets XOR 2**30
+<span class="lineNum">     278 </span>                :            :      * * all nNew addrinfos in vvNew
+<span class="lineNum">     279 </span>                :            :      * * all nTried addrinfos in vvTried
+<span class="lineNum">     280 </span>                :            :      * * for each bucket:
+<span class="lineNum">     281 </span>                :            :      *   * number of elements
+<span class="lineNum">     282 </span>                :            :      *   * for each element: index
+<span class="lineNum">     283 </span>                :            :      *
+<span class="lineNum">     284 </span>                :            :      * 2**30 is xorred with the number of buckets to make addrman deserializer v0 detect it
+<span class="lineNum">     285 </span>                :            :      * as incompatible. This is necessary because it did not check the version number on
+<span class="lineNum">     286 </span>                :            :      * deserialization.
 <span class="lineNum">     287 </span>                :            :      *
-<span class="lineNum">     288 </span>                :            :      * vvNew is serialized, but only used if ADDRMAN_UNKNOWN_BUCKET_COUNT didn't change,
-<span class="lineNum">     289 </span>                :            :      * otherwise it is reconstructed as well.
+<span class="lineNum">     288 </span>                :            :      * Notice that vvTried, mapAddr and vVector are never encoded explicitly;
+<span class="lineNum">     289 </span>                :            :      * they are instead reconstructed from the other information.
 <span class="lineNum">     290 </span>                :            :      *
-<span class="lineNum">     291 </span>                :            :      * This format is more complex, but significantly smaller (at most 1.5 MiB), and supports
-<span class="lineNum">     292 </span>                :            :      * changes to the ADDRMAN_ parameters without breaking the on-disk structure.
+<span class="lineNum">     291 </span>                :            :      * vvNew is serialized, but only used if ADDRMAN_UNKNOWN_BUCKET_COUNT didn't change,
+<span class="lineNum">     292 </span>                :            :      * otherwise it is reconstructed as well.
 <span class="lineNum">     293 </span>                :            :      *
-<span class="lineNum">     294 </span>                :            :      * We don't use ADD_SERIALIZE_METHODS since the serialization and deserialization code has
-<span class="lineNum">     295 </span>                :            :      * very little in common.
-<a name="296"><span class="lineNum">     296 </span>                :            :      */</a>
-<span class="lineNum">     297 </span>                :            :     template&lt;typename Stream&gt;
-<span class="lineNum">     298 </span>                :<span class="lineCov">          2 :     void Serialize(Stream &amp;s) const</span>
-<span class="lineNum">     299 </span>                :            :     {
-<span class="lineNum">     300 </span>                :<span class="lineCov">          2 :         LOCK(cs);</span>
-<span class="lineNum">     301 </span>                :            : 
-<span class="lineNum">     302 </span>                :<span class="lineCov">          2 :         unsigned char nVersion = 1;</span>
-<span class="lineNum">     303 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          2 :         s &lt;&lt; nVersion;</span>
-<span class="lineNum">     304 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          4 :         s &lt;&lt; ((unsigned char)32);</span>
-<span class="lineNum">     305 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          4 :         s &lt;&lt; nKey;</span>
-<span class="lineNum">     306 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          4 :         s &lt;&lt; nNew;</span>
-<span class="lineNum">     307 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          4 :         s &lt;&lt; nTried;</span>
-<span class="lineNum">     308 </span>                :            : 
-<span class="lineNum">     309 </span>                :<span class="lineCov">          2 :         int nUBuckets = ADDRMAN_NEW_BUCKET_COUNT ^ (1 &lt;&lt; 30);</span>
-<span class="lineNum">     310 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          2 :         s &lt;&lt; nUBuckets;</span>
-<span class="lineNum">     311 </span>                :<span class="lineNoCov">          0 :         std::map&lt;int, int&gt; mapUnkIds;</span>
-<span class="lineNum">     312 </span>                :<span class="lineCov">          2 :         int nIds = 0;</span>
-<span class="lineNum">     313 </span>[<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">          8 :         for (const auto&amp; entry : mapInfo) {</span>
-<span class="lineNum">     314 </span>[<span class="branchCov" title="Branch 1 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineCov">          6 :             mapUnkIds[entry.first] = nIds;</span>
-<span class="lineNum">     315 </span>                :<span class="lineCov">          6 :             const CAddrInfo &amp;info = entry.second;</span>
-<span class="lineNum">     316 </span>[<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">          6 :             if (info.nRefCount) {</span>
-<span class="lineNum">     317 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineCov">          6 :                 assert(nIds != nNew); // this means nNew was wrong, oh ow</span>
-<span class="lineNum">     318 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          6 :                 s &lt;&lt; info;</span>
-<span class="lineNum">     319 </span>                :<span class="lineCov">          6 :                 nIds++;</span>
-<span class="lineNum">     320 </span>                :            :             }
-<span class="lineNum">     321 </span>                :            :         }
-<span class="lineNum">     322 </span>                :<span class="lineCov">          2 :         nIds = 0;</span>
-<span class="lineNum">     323 </span>[<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">          8 :         for (const auto&amp; entry : mapInfo) {</span>
-<span class="lineNum">     324 </span>                :<span class="lineCov">          6 :             const CAddrInfo &amp;info = entry.second;</span>
-<span class="lineNum">     325 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">          6 :             if (info.fInTried) {</span>
-<span class="lineNum">     326 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 assert(nIds != nTried); // this means nTried was wrong, oh ow</span>
-<span class="lineNum">     327 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 s &lt;&lt; info;</span>
-<span class="lineNum">     328 </span>                :<span class="lineNoCov">          0 :                 nIds++;</span>
-<span class="lineNum">     329 </span>                :            :             }
-<span class="lineNum">     330 </span>                :            :         }
-<span class="lineNum">     331 </span>[<span class="branchCov" title="Branch 0 was taken 2048 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">       2050 :         for (int bucket = 0; bucket &lt; ADDRMAN_NEW_BUCKET_COUNT; bucket++) {</span>
-<span class="lineNum">     332 </span>                :<span class="lineNoCov">          0 :             int nSize = 0;</span>
-<span class="lineNum">     333 </span>[<span class="branchCov" title="Branch 0 was taken 131072 times"> + </span><span class="branchCov" title="Branch 1 was taken 2048 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">     133120 :             for (int i = 0; i &lt; ADDRMAN_BUCKET_SIZE; i++) {</span>
-<span class="lineNum">     334 </span>[<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 131066 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">     131072 :                 if (vvNew[bucket][i] != -1)</span>
-<span class="lineNum">     335 </span>                :<span class="lineCov">          6 :                     nSize++;</span>
-<span class="lineNum">     336 </span>                :            :             }
-<span class="lineNum">     337 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">       2048 :             s &lt;&lt; nSize;</span>
-<span class="lineNum">     338 </span>[<span class="branchCov" title="Branch 0 was taken 131072 times"> + </span><span class="branchCov" title="Branch 1 was taken 2048 times"> + </span>][<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineCov">     133120 :             for (int i = 0; i &lt; ADDRMAN_BUCKET_SIZE; i++) {</span>
+<span class="lineNum">     294 </span>                :            :      * This format is more complex, but significantly smaller (at most 1.5 MiB), and supports
+<span class="lineNum">     295 </span>                :            :      * changes to the ADDRMAN_ parameters without breaking the on-disk structure.
+<span class="lineNum">     296 </span>                :            :      *
+<span class="lineNum">     297 </span>                :            :      * We don't use ADD_SERIALIZE_METHODS since the serialization and deserialization code has
+<span class="lineNum">     298 </span>                :            :      * very little in common.
+<a name="299"><span class="lineNum">     299 </span>                :            :      */</a>
+<span class="lineNum">     300 </span>                :            :     template&lt;typename Stream&gt;
+<span class="lineNum">     301 </span>                :<span class="lineCov">          2 :     void Serialize(Stream &amp;s) const</span>
+<span class="lineNum">     302 </span>                :            :     {
+<span class="lineNum">     303 </span>                :<span class="lineCov">          2 :         LOCK(cs);</span>
+<span class="lineNum">     304 </span>                :            : 
+<span class="lineNum">     305 </span>                :<span class="lineCov">          2 :         unsigned char nVersion = 1;</span>
+<span class="lineNum">     306 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          2 :         s &lt;&lt; nVersion;</span>
+<span class="lineNum">     307 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          4 :         s &lt;&lt; ((unsigned char)32);</span>
+<span class="lineNum">     308 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          4 :         s &lt;&lt; nKey;</span>
+<span class="lineNum">     309 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          4 :         s &lt;&lt; nNew;</span>
+<span class="lineNum">     310 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          4 :         s &lt;&lt; nTried;</span>
+<span class="lineNum">     311 </span>                :            : 
+<span class="lineNum">     312 </span>                :<span class="lineCov">          2 :         int nUBuckets = ADDRMAN_NEW_BUCKET_COUNT ^ (1 &lt;&lt; 30);</span>
+<span class="lineNum">     313 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          2 :         s &lt;&lt; nUBuckets;</span>
+<span class="lineNum">     314 </span>                :<span class="lineNoCov">          0 :         std::map&lt;int, int&gt; mapUnkIds;</span>
+<span class="lineNum">     315 </span>                :<span class="lineCov">          2 :         int nIds = 0;</span>
+<span class="lineNum">     316 </span>[<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">          8 :         for (const auto&amp; entry : mapInfo) {</span>
+<span class="lineNum">     317 </span>[<span class="branchCov" title="Branch 1 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineCov">          6 :             mapUnkIds[entry.first] = nIds;</span>
+<span class="lineNum">     318 </span>                :<span class="lineCov">          6 :             const CAddrInfo &amp;info = entry.second;</span>
+<span class="lineNum">     319 </span>[<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">          6 :             if (info.nRefCount) {</span>
+<span class="lineNum">     320 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineCov">          6 :                 assert(nIds != nNew); // this means nNew was wrong, oh ow</span>
+<span class="lineNum">     321 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          6 :                 s &lt;&lt; info;</span>
+<span class="lineNum">     322 </span>                :<span class="lineCov">          6 :                 nIds++;</span>
+<span class="lineNum">     323 </span>                :            :             }
+<span class="lineNum">     324 </span>                :            :         }
+<span class="lineNum">     325 </span>                :<span class="lineCov">          2 :         nIds = 0;</span>
+<span class="lineNum">     326 </span>[<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">          8 :         for (const auto&amp; entry : mapInfo) {</span>
+<span class="lineNum">     327 </span>                :<span class="lineCov">          6 :             const CAddrInfo &amp;info = entry.second;</span>
+<span class="lineNum">     328 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">          6 :             if (info.fInTried) {</span>
+<span class="lineNum">     329 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 assert(nIds != nTried); // this means nTried was wrong, oh ow</span>
+<span class="lineNum">     330 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 s &lt;&lt; info;</span>
+<span class="lineNum">     331 </span>                :<span class="lineNoCov">          0 :                 nIds++;</span>
+<span class="lineNum">     332 </span>                :            :             }
+<span class="lineNum">     333 </span>                :            :         }
+<span class="lineNum">     334 </span>[<span class="branchCov" title="Branch 0 was taken 2048 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">       2050 :         for (int bucket = 0; bucket &lt; ADDRMAN_NEW_BUCKET_COUNT; bucket++) {</span>
+<span class="lineNum">     335 </span>                :<span class="lineNoCov">          0 :             int nSize = 0;</span>
+<span class="lineNum">     336 </span>[<span class="branchCov" title="Branch 0 was taken 131072 times"> + </span><span class="branchCov" title="Branch 1 was taken 2048 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">     133120 :             for (int i = 0; i &lt; ADDRMAN_BUCKET_SIZE; i++) {</span>
+<span class="lineNum">     337 </span>[<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 131066 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">     131072 :                 if (vvNew[bucket][i] != -1)</span>
+<span class="lineNum">     338 </span>                :<span class="lineCov">          6 :                     nSize++;</span>
+<span class="lineNum">     339 </span>                :            :             }
+<span class="lineNum">     340 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">       2048 :             s &lt;&lt; nSize;</span>
+<span class="lineNum">     341 </span>[<span class="branchCov" title="Branch 0 was taken 131072 times"> + </span><span class="branchCov" title="Branch 1 was taken 2048 times"> + </span>][<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineCov">     133120 :             for (int i = 0; i &lt; ADDRMAN_BUCKET_SIZE; i++) {</span>
 <span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]
-<span class="lineNum">     339 </span>[<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 131066 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">     131072 :                 if (vvNew[bucket][i] != -1) {</span>
-<span class="lineNum">     340 </span>[<span class="branchCov" title="Branch 1 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineCov">          6 :                     int nIndex = mapUnkIds[vvNew[bucket][i]];</span>
-<span class="lineNum">     341 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          6 :                     s &lt;&lt; nIndex;</span>
-<span class="lineNum">     342 </span>                :            :                 }
-<span class="lineNum">     343 </span>                :            :             }
-<span class="lineNum">     344 </span>                :            :         }
-<span class="lineNum">     345 </span>                :<span class="lineCov">          2 :     }</span>
-<a name="346"><span class="lineNum">     346 </span>                :            : </a>
-<span class="lineNum">     347 </span>                :            :     template&lt;typename Stream&gt;
-<span class="lineNum">     348 </span>                :<span class="lineCov">          4 :     void Unserialize(Stream&amp; s)</span>
-<span class="lineNum">     349 </span>                :            :     {
-<span class="lineNum">     350 </span>                :<span class="lineCov">          4 :         LOCK(cs);</span>
-<span class="lineNum">     351 </span>                :            : 
-<span class="lineNum">     352 </span>  [<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          4 :         Clear();</span>
-<span class="lineNum">     353 </span>                :            : 
-<span class="lineNum">     354 </span>                :            :         unsigned char nVersion;
-<span class="lineNum">     355 </span>                :<span class="lineCov">          4 :         s &gt;&gt; nVersion;</span>
-<span class="lineNum">     356 </span>                :            :         unsigned char nKeySize;
-<span class="lineNum">     357 </span>                :<span class="lineCov">          4 :         s &gt;&gt; nKeySize;</span>
-<span class="lineNum">     358 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineCov">          4 :         if (nKeySize != 32) throw std::ios_base::failure(&quot;Incorrect keysize in addrman deserialization&quot;);</span>
+<span class="lineNum">     342 </span>[<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 131066 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">     131072 :                 if (vvNew[bucket][i] != -1) {</span>
+<span class="lineNum">     343 </span>[<span class="branchCov" title="Branch 1 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineCov">          6 :                     int nIndex = mapUnkIds[vvNew[bucket][i]];</span>
+<span class="lineNum">     344 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">          6 :                     s &lt;&lt; nIndex;</span>
+<span class="lineNum">     345 </span>                :            :                 }
+<span class="lineNum">     346 </span>                :            :             }
+<span class="lineNum">     347 </span>                :            :         }
+<span class="lineNum">     348 </span>                :<span class="lineCov">          2 :     }</span>
+<a name="349"><span class="lineNum">     349 </span>                :            : </a>
+<span class="lineNum">     350 </span>                :            :     template&lt;typename Stream&gt;
+<span class="lineNum">     351 </span>                :<span class="lineCov">          4 :     void Unserialize(Stream&amp; s)</span>
+<span class="lineNum">     352 </span>                :            :     {
+<span class="lineNum">     353 </span>                :<span class="lineCov">          4 :         LOCK(cs);</span>
+<span class="lineNum">     354 </span>                :            : 
+<span class="lineNum">     355 </span>  [<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          4 :         Clear();</span>
+<span class="lineNum">     356 </span>                :            : 
+<span class="lineNum">     357 </span>                :            :         unsigned char nVersion;
+<span class="lineNum">     358 </span>                :<span class="lineCov">          4 :         s &gt;&gt; nVersion;</span>
+<span class="lineNum">     359 </span>                :            :         unsigned char nKeySize;
+<span class="lineNum">     360 </span>                :<span class="lineCov">          4 :         s &gt;&gt; nKeySize;</span>
+<span class="lineNum">     361 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineCov">          4 :         if (nKeySize != 32) throw std::ios_base::failure(&quot;Incorrect keysize in addrman deserialization&quot;);</span>
 <span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 8 was not taken"> - </span><span class="branchCov" title="Branch 9 was taken 2 times"> + </span>][<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
-<span class="lineNum">     359 </span>                :<span class="lineCov">          8 :         s &gt;&gt; nKey;</span>
-<span class="lineNum">     360 </span>                :<span class="lineCov">          8 :         s &gt;&gt; nNew;</span>
-<span class="lineNum">     361 </span>                :<span class="lineCov">          8 :         s &gt;&gt; nTried;</span>
-<span class="lineNum">     362 </span>                :<span class="lineCov">          4 :         int nUBuckets = 0;</span>
-<span class="lineNum">     363 </span>                :<span class="lineCov">          4 :         s &gt;&gt; nUBuckets;</span>
-<span class="lineNum">     364 </span>[<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          4 :         if (nVersion != 0) {</span>
-<span class="lineNum">     365 </span>                :<span class="lineCov">          4 :             nUBuckets ^= (1 &lt;&lt; 30);</span>
-<span class="lineNum">     366 </span>                :            :         }
-<span class="lineNum">     367 </span>                :            : 
-<span class="lineNum">     368 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          4 :         if (nNew &gt; ADDRMAN_NEW_BUCKET_COUNT * ADDRMAN_BUCKET_SIZE) {</span>
-<span class="lineNum">     369 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Corrupt CAddrMan serialization, nNew exceeds limit.&quot;);</span>
-<span class="lineNum">     370 </span>                :            :         }
-<span class="lineNum">     371 </span>                :            : 
-<span class="lineNum">     372 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          4 :         if (nTried &gt; ADDRMAN_TRIED_BUCKET_COUNT * ADDRMAN_BUCKET_SIZE) {</span>
-<span class="lineNum">     373 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Corrupt CAddrMan serialization, nTried exceeds limit.&quot;);</span>
-<span class="lineNum">     374 </span>                :            :         }
-<span class="lineNum">     375 </span>                :            : 
-<span class="lineNum">     376 </span>                :            :         // Deserialize entries from the new table.
-<span class="lineNum">     377 </span>[<span class="branchCov" title="Branch 0 was taken 5 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 5 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">         12 :         for (int n = 0; n &lt; nNew; n++) {</span>
-<span class="lineNum">     378 </span>[<span class="branchCov" title="Branch 1 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         10 :             CAddrInfo &amp;info = mapInfo[n];</span>
-<span class="lineNum">     379 </span>                :<span class="lineCov">          8 :             s &gt;&gt; info;</span>
-<span class="lineNum">     380 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          8 :             mapAddr[info] = n;</span>
-<span class="lineNum">     381 </span>                :<span class="lineCov">         16 :             info.nRandomPos = vRandom.size();</span>
-<span class="lineNum">     382 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          8 :             vRandom.push_back(n);</span>
-<span class="lineNum">     383 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          8 :             if (nVersion != 1 || nUBuckets != ADDRMAN_NEW_BUCKET_COUNT) {</span>
+<span class="lineNum">     362 </span>                :<span class="lineCov">          8 :         s &gt;&gt; nKey;</span>
+<span class="lineNum">     363 </span>                :<span class="lineCov">          8 :         s &gt;&gt; nNew;</span>
+<span class="lineNum">     364 </span>                :<span class="lineCov">          8 :         s &gt;&gt; nTried;</span>
+<span class="lineNum">     365 </span>                :<span class="lineCov">          4 :         int nUBuckets = 0;</span>
+<span class="lineNum">     366 </span>                :<span class="lineCov">          4 :         s &gt;&gt; nUBuckets;</span>
+<span class="lineNum">     367 </span>[<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          4 :         if (nVersion != 0) {</span>
+<span class="lineNum">     368 </span>                :<span class="lineCov">          4 :             nUBuckets ^= (1 &lt;&lt; 30);</span>
+<span class="lineNum">     369 </span>                :            :         }
+<span class="lineNum">     370 </span>                :            : 
+<span class="lineNum">     371 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          4 :         if (nNew &gt; ADDRMAN_NEW_BUCKET_COUNT * ADDRMAN_BUCKET_SIZE) {</span>
+<span class="lineNum">     372 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Corrupt CAddrMan serialization, nNew exceeds limit.&quot;);</span>
+<span class="lineNum">     373 </span>                :            :         }
+<span class="lineNum">     374 </span>                :            : 
+<span class="lineNum">     375 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          4 :         if (nTried &gt; ADDRMAN_TRIED_BUCKET_COUNT * ADDRMAN_BUCKET_SIZE) {</span>
+<span class="lineNum">     376 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Corrupt CAddrMan serialization, nTried exceeds limit.&quot;);</span>
+<span class="lineNum">     377 </span>                :            :         }
+<span class="lineNum">     378 </span>                :            : 
+<span class="lineNum">     379 </span>                :            :         // Deserialize entries from the new table.
+<span class="lineNum">     380 </span>[<span class="branchCov" title="Branch 0 was taken 5 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 5 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">         12 :         for (int n = 0; n &lt; nNew; n++) {</span>
+<span class="lineNum">     381 </span>[<span class="branchCov" title="Branch 1 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         10 :             CAddrInfo &amp;info = mapInfo[n];</span>
+<span class="lineNum">     382 </span>                :<span class="lineCov">          8 :             s &gt;&gt; info;</span>
+<span class="lineNum">     383 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          8 :             mapAddr[info] = n;</span>
+<span class="lineNum">     384 </span>                :<span class="lineCov">         16 :             info.nRandomPos = vRandom.size();</span>
+<span class="lineNum">     385 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          8 :             vRandom.push_back(n);</span>
+<span class="lineNum">     386 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          8 :             if (nVersion != 1 || nUBuckets != ADDRMAN_NEW_BUCKET_COUNT) {</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchNoCov" title="Branch 6 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 4 times"> + </span>]
-<span class="lineNum">     384 </span>                :            :                 // In case the new table data cannot be used (nVersion unknown, or bucket count wrong),
-<span class="lineNum">     385 </span>                :            :                 // immediately try to give them a reference based on their primary source address.
-<span class="lineNum">     386 </span>                :<span class="lineNoCov">          0 :                 int nUBucket = info.GetNewBucket(nKey);</span>
-<span class="lineNum">     387 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 int nUBucketPos = info.GetBucketPosition(nKey, true, nUBucket);</span>
-<span class="lineNum">     388 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 if (vvNew[nUBucket][nUBucketPos] == -1) {</span>
-<span class="lineNum">     389 </span>                :<span class="lineNoCov">          0 :                     vvNew[nUBucket][nUBucketPos] = n;</span>
-<span class="lineNum">     390 </span>                :<span class="lineNoCov">          0 :                     info.nRefCount++;</span>
-<span class="lineNum">     391 </span>                :            :                 }
-<span class="lineNum">     392 </span>                :            :             }
-<span class="lineNum">     393 </span>                :            :         }
-<span class="lineNum">     394 </span>                :<span class="lineCov">          2 :         nIdCount = nNew;</span>
-<span class="lineNum">     395 </span>                :            : 
-<span class="lineNum">     396 </span>                :            :         // Deserialize entries from the tried table.
-<span class="lineNum">     397 </span>                :<span class="lineCov">          2 :         int nLost = 0;</span>
-<span class="lineNum">     398 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">          2 :         for (int n = 0; n &lt; nTried; n++) {</span>
-<span class="lineNum">     399 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             CAddrInfo info;</span>
-<span class="lineNum">     400 </span>                :<span class="lineNoCov">          0 :             s &gt;&gt; info;</span>
-<span class="lineNum">     401 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             int nKBucket = info.GetTriedBucket(nKey);</span>
-<span class="lineNum">     402 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             int nKBucketPos = info.GetBucketPosition(nKey, false, nKBucket);</span>
-<span class="lineNum">     403 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (vvTried[nKBucket][nKBucketPos] == -1) {</span>
-<span class="lineNum">     404 </span>                :<span class="lineNoCov">          0 :                 info.nRandomPos = vRandom.size();</span>
-<span class="lineNum">     405 </span>                :<span class="lineNoCov">          0 :                 info.fInTried = true;</span>
-<span class="lineNum">     406 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 vRandom.push_back(nIdCount);</span>
-<span class="lineNum">     407 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 mapInfo[nIdCount] = info;</span>
-<span class="lineNum">     408 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 mapAddr[info] = nIdCount;</span>
-<span class="lineNum">     409 </span>                :<span class="lineNoCov">          0 :                 vvTried[nKBucket][nKBucketPos] = nIdCount;</span>
-<span class="lineNum">     410 </span>                :<span class="lineNoCov">          0 :                 nIdCount++;</span>
-<span class="lineNum">     411 </span>                :            :             } else {
-<span class="lineNum">     412 </span>                :<span class="lineNoCov">          0 :                 nLost++;</span>
-<span class="lineNum">     413 </span>                :            :             }
-<span class="lineNum">     414 </span>                :            :         }
-<span class="lineNum">     415 </span>                :<span class="lineCov">          2 :         nTried -= nLost;</span>
-<span class="lineNum">     416 </span>                :            : 
-<span class="lineNum">     417 </span>                :            :         // Deserialize positions in the new table (if possible).
-<span class="lineNum">     418 </span>[<span class="branchCov" title="Branch 0 was taken 1024 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 1024 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">       2050 :         for (int bucket = 0; bucket &lt; nUBuckets; bucket++) {</span>
-<span class="lineNum">     419 </span>                :<span class="lineCov">       2048 :             int nSize = 0;</span>
-<span class="lineNum">     420 </span>                :<span class="lineCov">       2048 :             s &gt;&gt; nSize;</span>
-<span class="lineNum">     421 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 1024 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchCov" title="Branch 3 was taken 1024 times"> + </span>]:<span class="lineCov">       2054 :             for (int n = 0; n &lt; nSize; n++) {</span>
-<span class="lineNum">     422 </span>                :<span class="lineCov">          6 :                 int nIndex = 0;</span>
-<span class="lineNum">     423 </span>                :<span class="lineCov">          6 :                 s &gt;&gt; nIndex;</span>
-<span class="lineNum">     424 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          6 :                 if (nIndex &gt;= 0 &amp;&amp; nIndex &lt; nNew) {</span>
+<span class="lineNum">     387 </span>                :            :                 // In case the new table data cannot be used (nVersion unknown, or bucket count wrong),
+<span class="lineNum">     388 </span>                :            :                 // immediately try to give them a reference based on their primary source address.
+<span class="lineNum">     389 </span>                :<span class="lineNoCov">          0 :                 int nUBucket = info.GetNewBucket(nKey);</span>
+<span class="lineNum">     390 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 int nUBucketPos = info.GetBucketPosition(nKey, true, nUBucket);</span>
+<span class="lineNum">     391 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 if (vvNew[nUBucket][nUBucketPos] == -1) {</span>
+<span class="lineNum">     392 </span>                :<span class="lineNoCov">          0 :                     vvNew[nUBucket][nUBucketPos] = n;</span>
+<span class="lineNum">     393 </span>                :<span class="lineNoCov">          0 :                     info.nRefCount++;</span>
+<span class="lineNum">     394 </span>                :            :                 }
+<span class="lineNum">     395 </span>                :            :             }
+<span class="lineNum">     396 </span>                :            :         }
+<span class="lineNum">     397 </span>                :<span class="lineCov">          2 :         nIdCount = nNew;</span>
+<span class="lineNum">     398 </span>                :            : 
+<span class="lineNum">     399 </span>                :            :         // Deserialize entries from the tried table.
+<span class="lineNum">     400 </span>                :<span class="lineCov">          2 :         int nLost = 0;</span>
+<span class="lineNum">     401 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">          2 :         for (int n = 0; n &lt; nTried; n++) {</span>
+<span class="lineNum">     402 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             CAddrInfo info;</span>
+<span class="lineNum">     403 </span>                :<span class="lineNoCov">          0 :             s &gt;&gt; info;</span>
+<span class="lineNum">     404 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             int nKBucket = info.GetTriedBucket(nKey);</span>
+<span class="lineNum">     405 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             int nKBucketPos = info.GetBucketPosition(nKey, false, nKBucket);</span>
+<span class="lineNum">     406 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (vvTried[nKBucket][nKBucketPos] == -1) {</span>
+<span class="lineNum">     407 </span>                :<span class="lineNoCov">          0 :                 info.nRandomPos = vRandom.size();</span>
+<span class="lineNum">     408 </span>                :<span class="lineNoCov">          0 :                 info.fInTried = true;</span>
+<span class="lineNum">     409 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 vRandom.push_back(nIdCount);</span>
+<span class="lineNum">     410 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 mapInfo[nIdCount] = info;</span>
+<span class="lineNum">     411 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 mapAddr[info] = nIdCount;</span>
+<span class="lineNum">     412 </span>                :<span class="lineNoCov">          0 :                 vvTried[nKBucket][nKBucketPos] = nIdCount;</span>
+<span class="lineNum">     413 </span>                :<span class="lineNoCov">          0 :                 nIdCount++;</span>
+<span class="lineNum">     414 </span>                :            :             } else {
+<span class="lineNum">     415 </span>                :<span class="lineNoCov">          0 :                 nLost++;</span>
+<span class="lineNum">     416 </span>                :            :             }
+<span class="lineNum">     417 </span>                :            :         }
+<span class="lineNum">     418 </span>                :<span class="lineCov">          2 :         nTried -= nLost;</span>
+<span class="lineNum">     419 </span>                :            : 
+<span class="lineNum">     420 </span>                :            :         // Deserialize positions in the new table (if possible).
+<span class="lineNum">     421 </span>[<span class="branchCov" title="Branch 0 was taken 1024 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 1024 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">       2050 :         for (int bucket = 0; bucket &lt; nUBuckets; bucket++) {</span>
+<span class="lineNum">     422 </span>                :<span class="lineCov">       2048 :             int nSize = 0;</span>
+<span class="lineNum">     423 </span>                :<span class="lineCov">       2048 :             s &gt;&gt; nSize;</span>
+<span class="lineNum">     424 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 1024 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchCov" title="Branch 3 was taken 1024 times"> + </span>]:<span class="lineCov">       2054 :             for (int n = 0; n &lt; nSize; n++) {</span>
+<span class="lineNum">     425 </span>                :<span class="lineCov">          6 :                 int nIndex = 0;</span>
+<span class="lineNum">     426 </span>                :<span class="lineCov">          6 :                 s &gt;&gt; nIndex;</span>
+<span class="lineNum">     427 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          6 :                 if (nIndex &gt;= 0 &amp;&amp; nIndex &lt; nNew) {</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchCov" title="Branch 6 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
-<span class="lineNum">     425 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :                     CAddrInfo &amp;info = mapInfo[nIndex];</span>
-<span class="lineNum">     426 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :                     int nUBucketPos = info.GetBucketPosition(nKey, true, bucket);</span>
-<span class="lineNum">     427 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          6 :                     if (nVersion == 1 &amp;&amp; nUBuckets == ADDRMAN_NEW_BUCKET_COUNT &amp;&amp; vvNew[bucket][nUBucketPos] == -1 &amp;&amp; info.nRefCount &lt; ADDRMAN_NEW_BUCKETS_PER_ADDRESS) {</span>
+<span class="lineNum">     428 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :                     CAddrInfo &amp;info = mapInfo[nIndex];</span>
+<span class="lineNum">     429 </span>[<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          6 :                     int nUBucketPos = info.GetBucketPosition(nKey, true, bucket);</span>
+<span class="lineNum">     430 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          6 :                     if (nVersion == 1 &amp;&amp; nUBuckets == ADDRMAN_NEW_BUCKET_COUNT &amp;&amp; vvNew[bucket][nUBucketPos] == -1 &amp;&amp; info.nRefCount &lt; ADDRMAN_NEW_BUCKETS_PER_ADDRESS) {</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchCov" title="Branch 6 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 12 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>][<span class="branchCov" title="Branch 14 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>]
-<span class="lineNum">     428 </span>                :<span class="lineCov">          6 :                         info.nRefCount++;</span>
-<span class="lineNum">     429 </span>                :<span class="lineCov">          6 :                         vvNew[bucket][nUBucketPos] = nIndex;</span>
-<span class="lineNum">     430 </span>                :            :                     }
-<span class="lineNum">     431 </span>                :            :                 }
-<span class="lineNum">     432 </span>                :            :             }
-<span class="lineNum">     433 </span>                :            :         }
-<span class="lineNum">     434 </span>                :            : 
-<span class="lineNum">     435 </span>                :            :         // Prune new entries with refcount 0 (as a result of collisions).
-<span class="lineNum">     436 </span>                :<span class="lineCov">          2 :         int nLostUnk = 0;</span>
-<span class="lineNum">     437 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">          8 :         for (std::map&lt;int, CAddrInfo&gt;::const_iterator it = mapInfo.begin(); it != mapInfo.end(); ) {</span>
-<span class="lineNum">     438 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">          6 :             if (it-&gt;second.fInTried == false &amp;&amp; it-&gt;second.nRefCount == 0) {</span>
+<span class="lineNum">     431 </span>                :<span class="lineCov">          6 :                         info.nRefCount++;</span>
+<span class="lineNum">     432 </span>                :<span class="lineCov">          6 :                         vvNew[bucket][nUBucketPos] = nIndex;</span>
+<span class="lineNum">     433 </span>                :            :                     }
+<span class="lineNum">     434 </span>                :            :                 }
+<span class="lineNum">     435 </span>                :            :             }
+<span class="lineNum">     436 </span>                :            :         }
+<span class="lineNum">     437 </span>                :            : 
+<span class="lineNum">     438 </span>                :            :         // Prune new entries with refcount 0 (as a result of collisions).
+<span class="lineNum">     439 </span>                :<span class="lineCov">          2 :         int nLostUnk = 0;</span>
+<span class="lineNum">     440 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">          8 :         for (std::map&lt;int, CAddrInfo&gt;::const_iterator it = mapInfo.begin(); it != mapInfo.end(); ) {</span>
+<span class="lineNum">     441 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">          6 :             if (it-&gt;second.fInTried == false &amp;&amp; it-&gt;second.nRefCount == 0) {</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchNoCov" title="Branch 6 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 3 times"> + </span>]
-<span class="lineNum">     439 </span>                :<span class="lineNoCov">          0 :                 std::map&lt;int, CAddrInfo&gt;::const_iterator itCopy = it++;</span>
-<span class="lineNum">     440 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 Delete(itCopy-&gt;first);</span>
-<span class="lineNum">     441 </span>                :<span class="lineNoCov">          0 :                 nLostUnk++;</span>
-<span class="lineNum">     442 </span>                :            :             } else {
-<span class="lineNum">     443 </span>                :            :                 it++;
-<span class="lineNum">     444 </span>                :            :             }
-<span class="lineNum">     445 </span>                :            :         }
-<span class="lineNum">     446 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">          2 :         if (nLost + nLostUnk &gt; 0) {</span>
-<span class="lineNum">     447 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             LogPrint(BCLog::ADDRMAN, &quot;addrman lost %i new and %i tried addresses due to collisions\n&quot;, nLostUnk, nLost);</span>
+<span class="lineNum">     442 </span>                :<span class="lineNoCov">          0 :                 std::map&lt;int, CAddrInfo&gt;::const_iterator itCopy = it++;</span>
+<span class="lineNum">     443 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 Delete(itCopy-&gt;first);</span>
+<span class="lineNum">     444 </span>                :<span class="lineNoCov">          0 :                 nLostUnk++;</span>
+<span class="lineNum">     445 </span>                :            :             } else {
+<span class="lineNum">     446 </span>                :            :                 it++;
+<span class="lineNum">     447 </span>                :            :             }
 <span class="lineNum">     448 </span>                :            :         }
-<span class="lineNum">     449 </span>                :            : 
-<span class="lineNum">     450 </span>                :<span class="lineCov">          2 :         Check();</span>
-<a name="451"><span class="lineNum">     451 </span>                :<span class="lineCov">          2 :     }</span></a>
+<span class="lineNum">     449 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">          2 :         if (nLost + nLostUnk &gt; 0) {</span>
+<span class="lineNum">     450 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             LogPrint(BCLog::ADDRMAN, &quot;addrman lost %i new and %i tried addresses due to collisions\n&quot;, nLostUnk, nLost);</span>
+<span class="lineNum">     451 </span>                :            :         }
 <span class="lineNum">     452 </span>                :            : 
-<span class="lineNum">     453 </span>                :<span class="lineCov">         97 :     void Clear()</span>
-<span class="lineNum">     454 </span>                :            :     {
-<span class="lineNum">     455 </span>                :<span class="lineCov">         97 :         LOCK(cs);</span>
-<span class="lineNum">     456 </span>                :<span class="lineCov">        291 :         std::vector&lt;int&gt;().swap(vRandom);</span>
-<span class="lineNum">     457 </span>                :<span class="lineCov">         97 :         nKey = insecure_rand.rand256();</span>
-<span class="lineNum">     458 </span>        [<span class="branchCov" title="Branch 1 was taken 99328 times"> + </span><span class="branchCov" title="Branch 2 was taken 97 times"> + </span>]:<span class="lineCov">      99425 :         for (size_t bucket = 0; bucket &lt; ADDRMAN_NEW_BUCKET_COUNT; bucket++) {</span>
-<span class="lineNum">     459 </span>        [<span class="branchCov" title="Branch 0 was taken 6356992 times"> + </span><span class="branchCov" title="Branch 1 was taken 99328 times"> + </span>]:<span class="lineCov">    6456320 :             for (size_t entry = 0; entry &lt; ADDRMAN_BUCKET_SIZE; entry++) {</span>
-<span class="lineNum">     460 </span>                :<span class="lineCov">    6356992 :                 vvNew[bucket][entry] = -1;</span>
-<span class="lineNum">     461 </span>                :            :             }
-<span class="lineNum">     462 </span>                :            :         }
-<span class="lineNum">     463 </span>        [<span class="branchCov" title="Branch 0 was taken 24832 times"> + </span><span class="branchCov" title="Branch 1 was taken 97 times"> + </span>]:<span class="lineCov">      24929 :         for (size_t bucket = 0; bucket &lt; ADDRMAN_TRIED_BUCKET_COUNT; bucket++) {</span>
-<span class="lineNum">     464 </span>        [<span class="branchCov" title="Branch 0 was taken 1589248 times"> + </span><span class="branchCov" title="Branch 1 was taken 24832 times"> + </span>]:<span class="lineCov">    1614080 :             for (size_t entry = 0; entry &lt; ADDRMAN_BUCKET_SIZE; entry++) {</span>
-<span class="lineNum">     465 </span>                :<span class="lineCov">    1589248 :                 vvTried[bucket][entry] = -1;</span>
-<span class="lineNum">     466 </span>                :            :             }
-<span class="lineNum">     467 </span>                :            :         }
-<span class="lineNum">     468 </span>                :            : 
-<span class="lineNum">     469 </span>                :<span class="lineCov">         97 :         nIdCount = 0;</span>
-<span class="lineNum">     470 </span>                :<span class="lineCov">         97 :         nTried = 0;</span>
-<span class="lineNum">     471 </span>                :<span class="lineCov">         97 :         nNew = 0;</span>
-<span class="lineNum">     472 </span>                :<span class="lineCov">         97 :         nLastGood = 1; //Initially at 1 so that &quot;never&quot; is strictly worse.</span>
-<span class="lineNum">     473 </span>                :<span class="lineCov">        194 :         mapInfo.clear();</span>
-<span class="lineNum">     474 </span>                :<span class="lineCov">        194 :         mapAddr.clear();</span>
-<a name="475"><span class="lineNum">     475 </span>                :<span class="lineCov">         97 :     }</span></a>
-<span class="lineNum">     476 </span>                :            : 
-<span class="lineNum">     477 </span>                :<span class="lineCov">         91 :     CAddrMan()</span>
-<span class="lineNum">     478 </span>                :<span class="lineCov">         91 :     {</span>
-<span class="lineNum">     479 </span>        [<span class="branchCov" title="Branch 1 was taken 91 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         91 :         Clear();</span>
-<a name="480"><span class="lineNum">     480 </span>                :<span class="lineCov">         91 :     }</span></a>
-<span class="lineNum">     481 </span>                :            : 
-<span class="lineNum">     482 </span>                :<span class="lineCov">         91 :     ~CAddrMan()</span>
-<span class="lineNum">     483 </span>                :<span class="lineCov">        546 :     {</span>
-<span class="lineNum">     484 </span>                :<span class="lineCov">        182 :         nKey.SetNull();</span>
-<span class="lineNum">     485 </span>                :<span class="lineCov">         91 :     }</span>
-<a name="486"><span class="lineNum">     486 </span>                :            : </a>
-<span class="lineNum">     487 </span>                :            :     //! Return the number of (unique) addresses in all tables.
-<span class="lineNum">     488 </span>                :<span class="lineCov">        263 :     size_t size() const</span>
-<span class="lineNum">     489 </span>                :            :     {
-<span class="lineNum">     490 </span>                :<span class="lineCov">        263 :         LOCK(cs); // TODO: Cache this in an atomic to avoid this overhead</span>
-<span class="lineNum">     491 </span>                :<span class="lineCov">        789 :         return vRandom.size();</span>
-<span class="lineNum">     492 </span>                :            :     }
-<span class="lineNum">     493 </span>                :            : 
-<span class="lineNum">     494 </span>                :            :     //! Consistency check
-<span class="lineNum">     495 </span>                :            :     void Check()
-<span class="lineNum">     496 </span>                :            :     {
-<span class="lineNum">     497 </span>                :            : #ifdef DEBUG_ADDRMAN
-<span class="lineNum">     498 </span>                :            :         {
-<span class="lineNum">     499 </span>                :            :             LOCK(cs);
-<span class="lineNum">     500 </span>                :            :             int err;
-<span class="lineNum">     501 </span>                :            :             if ((err=Check_()))
-<span class="lineNum">     502 </span>                :            :                 LogPrintf(&quot;ADDRMAN CONSISTENCY CHECK FAILED!!! err=%i\n&quot;, err);
-<span class="lineNum">     503 </span>                :            :         }
-<span class="lineNum">     504 </span>                :            : #endif
-<span class="lineNum">     505 </span>                :            :     }
-<span class="lineNum">     506 </span>                :            : 
-<span class="lineNum">     507 </span>                :            :     //! Add a single address.
-<span class="lineNum">     508 </span>                :<span class="lineCov">       2251 :     bool Add(const CAddress &amp;addr, const CNetAddr&amp; source, int64_t nTimePenalty = 0)</span>
-<span class="lineNum">     509 </span>                :            :     {
-<span class="lineNum">     510 </span>                :<span class="lineCov">       2251 :         LOCK(cs);</span>
-<span class="lineNum">     511 </span>                :<span class="lineCov">       2251 :         bool fRet = false;</span>
-<span class="lineNum">     512 </span>                :<span class="lineCov">       2251 :         Check();</span>
-<span class="lineNum">     513 </span>        [<span class="branchCov" title="Branch 1 was taken 2251 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2251 :         fRet |= Add_(addr, source, nTimePenalty);</span>
-<span class="lineNum">     514 </span>                :<span class="lineCov">       2251 :         Check();</span>
-<span class="lineNum">     515 </span>        [<span class="branchCov" title="Branch 0 was taken 2222 times"> + </span><span class="branchCov" title="Branch 1 was taken 29 times"> + </span>]:<span class="lineCov">       2251 :         if (fRet) {</span>
-<span class="lineNum">     516 </span>[<span class="branchCov" title="Branch 1 was taken 2222 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2222 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       4444 :             LogPrint(BCLog::ADDRMAN, &quot;Added %s from %s: %i tried, %i new\n&quot;, addr.ToStringIPPort(), source.ToString(), nTried, nNew);</span>
+<span class="lineNum">     453 </span>                :<span class="lineCov">          2 :         Check();</span>
+<a name="454"><span class="lineNum">     454 </span>                :<span class="lineCov">          2 :     }</span></a>
+<span class="lineNum">     455 </span>                :            : 
+<span class="lineNum">     456 </span>                :<span class="lineCov">         97 :     void Clear()</span>
+<span class="lineNum">     457 </span>                :            :     {
+<span class="lineNum">     458 </span>                :<span class="lineCov">         97 :         LOCK(cs);</span>
+<span class="lineNum">     459 </span>                :<span class="lineCov">        291 :         std::vector&lt;int&gt;().swap(vRandom);</span>
+<span class="lineNum">     460 </span>                :<span class="lineCov">         97 :         nKey = insecure_rand.rand256();</span>
+<span class="lineNum">     461 </span>        [<span class="branchCov" title="Branch 1 was taken 99328 times"> + </span><span class="branchCov" title="Branch 2 was taken 97 times"> + </span>]:<span class="lineCov">      99425 :         for (size_t bucket = 0; bucket &lt; ADDRMAN_NEW_BUCKET_COUNT; bucket++) {</span>
+<span class="lineNum">     462 </span>        [<span class="branchCov" title="Branch 0 was taken 6356992 times"> + </span><span class="branchCov" title="Branch 1 was taken 99328 times"> + </span>]:<span class="lineCov">    6456320 :             for (size_t entry = 0; entry &lt; ADDRMAN_BUCKET_SIZE; entry++) {</span>
+<span class="lineNum">     463 </span>                :<span class="lineCov">    6356992 :                 vvNew[bucket][entry] = -1;</span>
+<span class="lineNum">     464 </span>                :            :             }
+<span class="lineNum">     465 </span>                :            :         }
+<span class="lineNum">     466 </span>        [<span class="branchCov" title="Branch 0 was taken 24832 times"> + </span><span class="branchCov" title="Branch 1 was taken 97 times"> + </span>]:<span class="lineCov">      24929 :         for (size_t bucket = 0; bucket &lt; ADDRMAN_TRIED_BUCKET_COUNT; bucket++) {</span>
+<span class="lineNum">     467 </span>        [<span class="branchCov" title="Branch 0 was taken 1589248 times"> + </span><span class="branchCov" title="Branch 1 was taken 24832 times"> + </span>]:<span class="lineCov">    1614080 :             for (size_t entry = 0; entry &lt; ADDRMAN_BUCKET_SIZE; entry++) {</span>
+<span class="lineNum">     468 </span>                :<span class="lineCov">    1589248 :                 vvTried[bucket][entry] = -1;</span>
+<span class="lineNum">     469 </span>                :            :             }
+<span class="lineNum">     470 </span>                :            :         }
+<span class="lineNum">     471 </span>                :            : 
+<span class="lineNum">     472 </span>                :<span class="lineCov">         97 :         nIdCount = 0;</span>
+<span class="lineNum">     473 </span>                :<span class="lineCov">         97 :         nTried = 0;</span>
+<span class="lineNum">     474 </span>                :<span class="lineCov">         97 :         nNew = 0;</span>
+<span class="lineNum">     475 </span>                :<span class="lineCov">         97 :         nLastGood = 1; //Initially at 1 so that &quot;never&quot; is strictly worse.</span>
+<span class="lineNum">     476 </span>                :<span class="lineCov">        194 :         mapInfo.clear();</span>
+<span class="lineNum">     477 </span>                :<span class="lineCov">        194 :         mapAddr.clear();</span>
+<a name="478"><span class="lineNum">     478 </span>                :<span class="lineCov">         97 :     }</span></a>
+<span class="lineNum">     479 </span>                :            : 
+<span class="lineNum">     480 </span>                :<span class="lineCov">         91 :     CAddrMan()</span>
+<span class="lineNum">     481 </span>                :<span class="lineCov">         91 :     {</span>
+<span class="lineNum">     482 </span>        [<span class="branchCov" title="Branch 1 was taken 91 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         91 :         Clear();</span>
+<a name="483"><span class="lineNum">     483 </span>                :<span class="lineCov">         91 :     }</span></a>
+<span class="lineNum">     484 </span>                :            : 
+<span class="lineNum">     485 </span>                :<span class="lineCov">         91 :     ~CAddrMan()</span>
+<span class="lineNum">     486 </span>                :<span class="lineCov">        546 :     {</span>
+<span class="lineNum">     487 </span>                :<span class="lineCov">        182 :         nKey.SetNull();</span>
+<span class="lineNum">     488 </span>                :<span class="lineCov">         91 :     }</span>
+<a name="489"><span class="lineNum">     489 </span>                :            : </a>
+<span class="lineNum">     490 </span>                :            :     //! Return the number of (unique) addresses in all tables.
+<span class="lineNum">     491 </span>                :<span class="lineCov">        263 :     size_t size() const</span>
+<span class="lineNum">     492 </span>                :            :     {
+<span class="lineNum">     493 </span>                :<span class="lineCov">        263 :         LOCK(cs); // TODO: Cache this in an atomic to avoid this overhead</span>
+<span class="lineNum">     494 </span>                :<span class="lineCov">        789 :         return vRandom.size();</span>
+<span class="lineNum">     495 </span>                :            :     }
+<span class="lineNum">     496 </span>                :            : 
+<span class="lineNum">     497 </span>                :            :     //! Consistency check
+<span class="lineNum">     498 </span>                :            :     void Check()
+<span class="lineNum">     499 </span>                :            :     {
+<span class="lineNum">     500 </span>                :            : #ifdef DEBUG_ADDRMAN
+<span class="lineNum">     501 </span>                :            :         {
+<span class="lineNum">     502 </span>                :            :             LOCK(cs);
+<span class="lineNum">     503 </span>                :            :             int err;
+<span class="lineNum">     504 </span>                :            :             if ((err=Check_()))
+<span class="lineNum">     505 </span>                :            :                 LogPrintf(&quot;ADDRMAN CONSISTENCY CHECK FAILED!!! err=%i\n&quot;, err);
+<span class="lineNum">     506 </span>                :            :         }
+<span class="lineNum">     507 </span>                :            : #endif
+<span class="lineNum">     508 </span>                :            :     }
+<span class="lineNum">     509 </span>                :            : 
+<span class="lineNum">     510 </span>                :            :     //! Add a single address.
+<span class="lineNum">     511 </span>                :<span class="lineCov">       2251 :     bool Add(const CAddress &amp;addr, const CNetAddr&amp; source, int64_t nTimePenalty = 0)</span>
+<span class="lineNum">     512 </span>                :            :     {
+<span class="lineNum">     513 </span>                :<span class="lineCov">       2251 :         LOCK(cs);</span>
+<span class="lineNum">     514 </span>                :<span class="lineCov">       2251 :         bool fRet = false;</span>
+<span class="lineNum">     515 </span>                :<span class="lineCov">       2251 :         Check();</span>
+<span class="lineNum">     516 </span>        [<span class="branchCov" title="Branch 1 was taken 2251 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2251 :         fRet |= Add_(addr, source, nTimePenalty);</span>
+<span class="lineNum">     517 </span>                :<span class="lineCov">       2251 :         Check();</span>
+<span class="lineNum">     518 </span>        [<span class="branchCov" title="Branch 0 was taken 2222 times"> + </span><span class="branchCov" title="Branch 1 was taken 29 times"> + </span>]:<span class="lineCov">       2251 :         if (fRet) {</span>
+<span class="lineNum">     519 </span>[<span class="branchCov" title="Branch 1 was taken 2222 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2222 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       4444 :             LogPrint(BCLog::ADDRMAN, &quot;Added %s from %s: %i tried, %i new\n&quot;, addr.ToStringIPPort(), source.ToString(), nTried, nNew);</span>
 <span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 2222 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
-<span class="lineNum">     517 </span>                :            :         }
-<span class="lineNum">     518 </span>                :<span class="lineCov">       2251 :         return fRet;</span>
-<span class="lineNum">     519 </span>                :            :     }
-<span class="lineNum">     520 </span>                :            : 
-<span class="lineNum">     521 </span>                :            :     //! Add multiple addresses.
-<span class="lineNum">     522 </span>                :<span class="lineCov">          1 :     bool Add(const std::vector&lt;CAddress&gt; &amp;vAddr, const CNetAddr&amp; source, int64_t nTimePenalty = 0)</span>
-<span class="lineNum">     523 </span>                :            :     {
-<span class="lineNum">     524 </span>                :<span class="lineCov">          1 :         LOCK(cs);</span>
-<span class="lineNum">     525 </span>                :<span class="lineCov">          1 :         int nAdd = 0;</span>
-<span class="lineNum">     526 </span>                :<span class="lineCov">          1 :         Check();</span>
-<span class="lineNum">     527 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          3 :         for (std::vector&lt;CAddress&gt;::const_iterator it = vAddr.begin(); it != vAddr.end(); it++)</span>
-<span class="lineNum">     528 </span>[<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 2 times"> + </span>]:<span class="lineCov">          2 :             nAdd += Add_(*it, source, nTimePenalty) ? 1 : 0;</span>
+<span class="lineNum">     520 </span>                :            :         }
+<span class="lineNum">     521 </span>                :<span class="lineCov">       2251 :         return fRet;</span>
+<span class="lineNum">     522 </span>                :            :     }
+<span class="lineNum">     523 </span>                :            : 
+<span class="lineNum">     524 </span>                :            :     //! Add multiple addresses.
+<span class="lineNum">     525 </span>                :<span class="lineCov">          1 :     bool Add(const std::vector&lt;CAddress&gt; &amp;vAddr, const CNetAddr&amp; source, int64_t nTimePenalty = 0)</span>
+<span class="lineNum">     526 </span>                :            :     {
+<span class="lineNum">     527 </span>                :<span class="lineCov">          1 :         LOCK(cs);</span>
+<span class="lineNum">     528 </span>                :<span class="lineCov">          1 :         int nAdd = 0;</span>
 <span class="lineNum">     529 </span>                :<span class="lineCov">          1 :         Check();</span>
-<span class="lineNum">     530 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          1 :         if (nAdd) {</span>
-<span class="lineNum">     531 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          2 :             LogPrint(BCLog::ADDRMAN, &quot;Added %i addresses from %s: %i tried, %i new\n&quot;, nAdd, source.ToString(), nTried, nNew);</span>
-<span class="lineNum">     532 </span>                :            :         }
-<span class="lineNum">     533 </span>                :<span class="lineCov">          1 :         return nAdd &gt; 0;</span>
-<span class="lineNum">     534 </span>                :            :     }
-<a name="535"><span class="lineNum">     535 </span>                :            : </a>
-<span class="lineNum">     536 </span>                :            :     //! Mark an entry as accessible.
-<span class="lineNum">     537 </span>                :<span class="lineCov">        444 :     void Good(const CService &amp;addr, bool test_before_evict = true, int64_t nTime = GetAdjustedTime())</span>
-<span class="lineNum">     538 </span>                :            :     {
-<span class="lineNum">     539 </span>                :<span class="lineCov">        444 :         LOCK(cs);</span>
-<span class="lineNum">     540 </span>                :<span class="lineCov">        444 :         Check();</span>
-<span class="lineNum">     541 </span>        [<span class="branchCov" title="Branch 1 was taken 444 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        444 :         Good_(addr, test_before_evict, nTime);</span>
-<span class="lineNum">     542 </span>                :<span class="lineCov">        444 :         Check();</span>
-<span class="lineNum">     543 </span>                :<span class="lineCov">        444 :     }</span>
-<a name="544"><span class="lineNum">     544 </span>                :            : </a>
-<span class="lineNum">     545 </span>                :            :     //! Mark an entry as connection attempted to.
-<span class="lineNum">     546 </span>                :<span class="lineCov">          1 :     void Attempt(const CService &amp;addr, bool fCountFailure, int64_t nTime = GetAdjustedTime())</span>
-<span class="lineNum">     547 </span>                :            :     {
-<span class="lineNum">     548 </span>                :<span class="lineCov">          1 :         LOCK(cs);</span>
-<span class="lineNum">     549 </span>                :<span class="lineCov">          1 :         Check();</span>
-<span class="lineNum">     550 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :         Attempt_(addr, fCountFailure, nTime);</span>
-<span class="lineNum">     551 </span>                :<span class="lineCov">          1 :         Check();</span>
-<span class="lineNum">     552 </span>                :<span class="lineCov">          1 :     }</span>
-<a name="553"><span class="lineNum">     553 </span>                :            : </a>
-<span class="lineNum">     554 </span>                :            :     //! See if any to-be-evicted tried table entries have been tested and if so resolve the collisions.
-<span class="lineNum">     555 </span>                :<span class="lineCov">          4 :     void ResolveCollisions()</span>
-<span class="lineNum">     556 </span>                :            :     {
-<span class="lineNum">     557 </span>                :<span class="lineCov">          4 :         LOCK(cs);</span>
-<span class="lineNum">     558 </span>                :<span class="lineCov">          4 :         Check();</span>
-<span class="lineNum">     559 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :         ResolveCollisions_();</span>
-<span class="lineNum">     560 </span>                :<span class="lineCov">          4 :         Check();</span>
-<span class="lineNum">     561 </span>                :<span class="lineCov">          4 :     }</span>
-<a name="562"><span class="lineNum">     562 </span>                :            : </a>
-<span class="lineNum">     563 </span>                :            :     //! Randomly select an address in tried that another address is attempting to evict.
-<span class="lineNum">     564 </span>                :<span class="lineCov">        109 :     CAddrInfo SelectTriedCollision()</span>
-<span class="lineNum">     565 </span>                :            :     {
-<span class="lineNum">     566 </span>                :<span class="lineCov">        109 :         CAddrInfo ret;</span>
-<span class="lineNum">     567 </span>                :            :         {
-<span class="lineNum">     568 </span>                :<span class="lineCov">        109 :             LOCK(cs);</span>
-<span class="lineNum">     569 </span>                :<span class="lineCov">        109 :             Check();</span>
-<span class="lineNum">     570 </span>        [<span class="branchCov" title="Branch 1 was taken 109 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        109 :             ret = SelectTriedCollision_();</span>
-<span class="lineNum">     571 </span>                :<span class="lineCov">        109 :             Check();</span>
-<span class="lineNum">     572 </span>                :            :         }
-<span class="lineNum">     573 </span>                :<span class="lineCov">        109 :         return ret;</span>
-<span class="lineNum">     574 </span>                :            :     }
-<span class="lineNum">     575 </span>                :            : 
-<span class="lineNum">     576 </span>                :            :     /**
-<a name="577"><span class="lineNum">     577 </span>                :            :      * Choose an address to connect to.</a>
-<span class="lineNum">     578 </span>                :            :      */
-<span class="lineNum">     579 </span>                :<span class="lineCov">         28 :     CAddrInfo Select(bool newOnly = false)</span>
-<span class="lineNum">     580 </span>                :            :     {
-<span class="lineNum">     581 </span>                :<span class="lineCov">         28 :         CAddrInfo addrRet;</span>
-<span class="lineNum">     582 </span>                :            :         {
-<span class="lineNum">     583 </span>                :<span class="lineCov">         28 :             LOCK(cs);</span>
-<span class="lineNum">     584 </span>                :<span class="lineCov">         28 :             Check();</span>
-<span class="lineNum">     585 </span>        [<span class="branchCov" title="Branch 1 was taken 28 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         28 :             addrRet = Select_(newOnly);</span>
-<span class="lineNum">     586 </span>                :<span class="lineCov">         28 :             Check();</span>
-<span class="lineNum">     587 </span>                :            :         }
-<span class="lineNum">     588 </span>                :<span class="lineCov">         28 :         return addrRet;</span>
-<span class="lineNum">     589 </span>                :            :     }
-<a name="590"><span class="lineNum">     590 </span>                :            : </a>
-<span class="lineNum">     591 </span>                :            :     //! Return a bunch of addresses, selected at random.
-<span class="lineNum">     592 </span>                :<span class="lineCov">          4 :     std::vector&lt;CAddress&gt; GetAddr()</span>
-<span class="lineNum">     593 </span>                :            :     {
-<span class="lineNum">     594 </span>                :<span class="lineCov">          4 :         Check();</span>
-<span class="lineNum">     595 </span>                :<span class="lineCov">          4 :         std::vector&lt;CAddress&gt; vAddr;</span>
-<span class="lineNum">     596 </span>                :            :         {
-<span class="lineNum">     597 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :             LOCK(cs);</span>
-<span class="lineNum">     598 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :             GetAddr_(vAddr);</span>
-<span class="lineNum">     599 </span>                :            :         }
-<span class="lineNum">     600 </span>                :<span class="lineCov">          4 :         Check();</span>
-<span class="lineNum">     601 </span>                :<span class="lineCov">          4 :         return vAddr;</span>
-<span class="lineNum">     602 </span>                :            :     }
-<a name="603"><span class="lineNum">     603 </span>                :            : </a>
-<span class="lineNum">     604 </span>                :            :     //! Mark an entry as currently-connected-to.
-<span class="lineNum">     605 </span>                :<span class="lineNoCov">          0 :     void Connected(const CService &amp;addr, int64_t nTime = GetAdjustedTime())</span>
-<span class="lineNum">     606 </span>                :            :     {
-<span class="lineNum">     607 </span>                :<span class="lineNoCov">          0 :         LOCK(cs);</span>
-<span class="lineNum">     608 </span>                :<span class="lineNoCov">          0 :         Check();</span>
-<span class="lineNum">     609 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         Connected_(addr, nTime);</span>
-<span class="lineNum">     610 </span>                :<span class="lineNoCov">          0 :         Check();</span>
-<a name="611"><span class="lineNum">     611 </span>                :<span class="lineNoCov">          0 :     }</span></a>
-<span class="lineNum">     612 </span>                :            : 
-<span class="lineNum">     613 </span>                :<span class="lineNoCov">          0 :     void SetServices(const CService &amp;addr, ServiceFlags nServices)</span>
-<span class="lineNum">     614 </span>                :            :     {
-<span class="lineNum">     615 </span>                :<span class="lineNoCov">          0 :         LOCK(cs);</span>
-<span class="lineNum">     616 </span>                :<span class="lineNoCov">          0 :         Check();</span>
-<span class="lineNum">     617 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         SetServices_(addr, nServices);</span>
-<span class="lineNum">     618 </span>                :<span class="lineNoCov">          0 :         Check();</span>
-<span class="lineNum">     619 </span>                :<span class="lineNoCov">          0 :     }</span>
-<span class="lineNum">     620 </span>                :            : 
-<span class="lineNum">     621 </span>                :            : };
-<span class="lineNum">     622 </span>                :            : 
-<span class="lineNum">     623 </span>                :            : #endif // BITCOIN_ADDRMAN_H
+<span class="lineNum">     530 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          3 :         for (std::vector&lt;CAddress&gt;::const_iterator it = vAddr.begin(); it != vAddr.end(); it++)</span>
+<span class="lineNum">     531 </span>[<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 2 times"> + </span>]:<span class="lineCov">          2 :             nAdd += Add_(*it, source, nTimePenalty) ? 1 : 0;</span>
+<span class="lineNum">     532 </span>                :<span class="lineCov">          1 :         Check();</span>
+<span class="lineNum">     533 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          1 :         if (nAdd) {</span>
+<span class="lineNum">     534 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          2 :             LogPrint(BCLog::ADDRMAN, &quot;Added %i addresses from %s: %i tried, %i new\n&quot;, nAdd, source.ToString(), nTried, nNew);</span>
+<span class="lineNum">     535 </span>                :            :         }
+<span class="lineNum">     536 </span>                :<span class="lineCov">          1 :         return nAdd &gt; 0;</span>
+<span class="lineNum">     537 </span>                :            :     }
+<a name="538"><span class="lineNum">     538 </span>                :            : </a>
+<span class="lineNum">     539 </span>                :            :     //! Mark an entry as accessible.
+<span class="lineNum">     540 </span>                :<span class="lineCov">        444 :     void Good(const CService &amp;addr, bool test_before_evict = true, int64_t nTime = GetAdjustedTime())</span>
+<span class="lineNum">     541 </span>                :            :     {
+<span class="lineNum">     542 </span>                :<span class="lineCov">        444 :         LOCK(cs);</span>
+<span class="lineNum">     543 </span>                :<span class="lineCov">        444 :         Check();</span>
+<span class="lineNum">     544 </span>        [<span class="branchCov" title="Branch 1 was taken 444 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        444 :         Good_(addr, test_before_evict, nTime);</span>
+<span class="lineNum">     545 </span>                :<span class="lineCov">        444 :         Check();</span>
+<span class="lineNum">     546 </span>                :<span class="lineCov">        444 :     }</span>
+<a name="547"><span class="lineNum">     547 </span>                :            : </a>
+<span class="lineNum">     548 </span>                :            :     //! Mark an entry as connection attempted to.
+<span class="lineNum">     549 </span>                :<span class="lineCov">          1 :     void Attempt(const CService &amp;addr, bool fCountFailure, int64_t nTime = GetAdjustedTime())</span>
+<span class="lineNum">     550 </span>                :            :     {
+<span class="lineNum">     551 </span>                :<span class="lineCov">          1 :         LOCK(cs);</span>
+<span class="lineNum">     552 </span>                :<span class="lineCov">          1 :         Check();</span>
+<span class="lineNum">     553 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :         Attempt_(addr, fCountFailure, nTime);</span>
+<span class="lineNum">     554 </span>                :<span class="lineCov">          1 :         Check();</span>
+<span class="lineNum">     555 </span>                :<span class="lineCov">          1 :     }</span>
+<a name="556"><span class="lineNum">     556 </span>                :            : </a>
+<span class="lineNum">     557 </span>                :            :     //! See if any to-be-evicted tried table entries have been tested and if so resolve the collisions.
+<span class="lineNum">     558 </span>                :<span class="lineCov">          4 :     void ResolveCollisions()</span>
+<span class="lineNum">     559 </span>                :            :     {
+<span class="lineNum">     560 </span>                :<span class="lineCov">          4 :         LOCK(cs);</span>
+<span class="lineNum">     561 </span>                :<span class="lineCov">          4 :         Check();</span>
+<span class="lineNum">     562 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :         ResolveCollisions_();</span>
+<span class="lineNum">     563 </span>                :<span class="lineCov">          4 :         Check();</span>
+<span class="lineNum">     564 </span>                :<span class="lineCov">          4 :     }</span>
+<a name="565"><span class="lineNum">     565 </span>                :            : </a>
+<span class="lineNum">     566 </span>                :            :     //! Randomly select an address in tried that another address is attempting to evict.
+<span class="lineNum">     567 </span>                :<span class="lineCov">        109 :     CAddrInfo SelectTriedCollision()</span>
+<span class="lineNum">     568 </span>                :            :     {
+<span class="lineNum">     569 </span>                :<span class="lineCov">        109 :         CAddrInfo ret;</span>
+<span class="lineNum">     570 </span>                :            :         {
+<span class="lineNum">     571 </span>                :<span class="lineCov">        109 :             LOCK(cs);</span>
+<span class="lineNum">     572 </span>                :<span class="lineCov">        109 :             Check();</span>
+<span class="lineNum">     573 </span>        [<span class="branchCov" title="Branch 1 was taken 109 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        109 :             ret = SelectTriedCollision_();</span>
+<span class="lineNum">     574 </span>                :<span class="lineCov">        109 :             Check();</span>
+<span class="lineNum">     575 </span>                :            :         }
+<span class="lineNum">     576 </span>                :<span class="lineCov">        109 :         return ret;</span>
+<span class="lineNum">     577 </span>                :            :     }
+<span class="lineNum">     578 </span>                :            : 
+<span class="lineNum">     579 </span>                :            :     /**
+<a name="580"><span class="lineNum">     580 </span>                :            :      * Choose an address to connect to.</a>
+<span class="lineNum">     581 </span>                :            :      */
+<span class="lineNum">     582 </span>                :<span class="lineCov">         28 :     CAddrInfo Select(bool newOnly = false)</span>
+<span class="lineNum">     583 </span>                :            :     {
+<span class="lineNum">     584 </span>                :<span class="lineCov">         28 :         CAddrInfo addrRet;</span>
+<span class="lineNum">     585 </span>                :            :         {
+<span class="lineNum">     586 </span>                :<span class="lineCov">         28 :             LOCK(cs);</span>
+<span class="lineNum">     587 </span>                :<span class="lineCov">         28 :             Check();</span>
+<span class="lineNum">     588 </span>        [<span class="branchCov" title="Branch 1 was taken 28 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         28 :             addrRet = Select_(newOnly);</span>
+<span class="lineNum">     589 </span>                :<span class="lineCov">         28 :             Check();</span>
+<span class="lineNum">     590 </span>                :            :         }
+<span class="lineNum">     591 </span>                :<span class="lineCov">         28 :         return addrRet;</span>
+<span class="lineNum">     592 </span>                :            :     }
+<a name="593"><span class="lineNum">     593 </span>                :            : </a>
+<span class="lineNum">     594 </span>                :            :     //! Return a bunch of addresses, selected at random.
+<span class="lineNum">     595 </span>                :<span class="lineCov">          4 :     std::vector&lt;CAddress&gt; GetAddr()</span>
+<span class="lineNum">     596 </span>                :            :     {
+<span class="lineNum">     597 </span>                :<span class="lineCov">          4 :         Check();</span>
+<span class="lineNum">     598 </span>                :<span class="lineCov">          4 :         std::vector&lt;CAddress&gt; vAddr;</span>
+<span class="lineNum">     599 </span>                :            :         {
+<span class="lineNum">     600 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :             LOCK(cs);</span>
+<span class="lineNum">     601 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :             GetAddr_(vAddr);</span>
+<span class="lineNum">     602 </span>                :            :         }
+<span class="lineNum">     603 </span>                :<span class="lineCov">          4 :         Check();</span>
+<span class="lineNum">     604 </span>                :<span class="lineCov">          4 :         return vAddr;</span>
+<span class="lineNum">     605 </span>                :            :     }
+<a name="606"><span class="lineNum">     606 </span>                :            : </a>
+<span class="lineNum">     607 </span>                :            :     //! Mark an entry as currently-connected-to.
+<span class="lineNum">     608 </span>                :<span class="lineNoCov">          0 :     void Connected(const CService &amp;addr, int64_t nTime = GetAdjustedTime())</span>
+<span class="lineNum">     609 </span>                :            :     {
+<span class="lineNum">     610 </span>                :<span class="lineNoCov">          0 :         LOCK(cs);</span>
+<span class="lineNum">     611 </span>                :<span class="lineNoCov">          0 :         Check();</span>
+<span class="lineNum">     612 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         Connected_(addr, nTime);</span>
+<span class="lineNum">     613 </span>                :<span class="lineNoCov">          0 :         Check();</span>
+<a name="614"><span class="lineNum">     614 </span>                :<span class="lineNoCov">          0 :     }</span></a>
+<span class="lineNum">     615 </span>                :            : 
+<span class="lineNum">     616 </span>                :<span class="lineNoCov">          0 :     void SetServices(const CService &amp;addr, ServiceFlags nServices)</span>
+<span class="lineNum">     617 </span>                :            :     {
+<span class="lineNum">     618 </span>                :<span class="lineNoCov">          0 :         LOCK(cs);</span>
+<span class="lineNum">     619 </span>                :<span class="lineNoCov">          0 :         Check();</span>
+<span class="lineNum">     620 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         SetServices_(addr, nServices);</span>
+<span class="lineNum">     621 </span>                :<span class="lineNoCov">          0 :         Check();</span>
+<span class="lineNum">     622 </span>                :<span class="lineNoCov">          0 :     }</span>
+<span class="lineNum">     623 </span>                :            : 
+<span class="lineNum">     624 </span>                :            : };
+<span class="lineNum">     625 </span>                :            : 
+<span class="lineNum">     626 </span>                :            : #endif // BITCOIN_ADDRMAN_H
 </pre>
       </td>
     </tr>

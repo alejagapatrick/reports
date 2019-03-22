@@ -31,9 +31,9 @@
             <td class="headerValue">test_bitcoin_coverage.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">21</td>
+            <td class="headerCovTableEntry">22</td>
             <td class="headerCovTableEntry">23</td>
-            <td class="headerCovTableEntryHi">91.3 %</td>
+            <td class="headerCovTableEntryHi">95.7 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
@@ -90,7 +90,7 @@
 <span class="lineNum">      19 </span>                :            :  * This implements a Golomb-coded set as defined in BIP 158. It is a
 <span class="lineNum">      20 </span>                :            :  * compact, probabilistic data structure for testing set membership.
 <span class="lineNum">      21 </span>                :            :  */
-<span class="lineNum">      22 </span>                :<span class="lineCov">         64 : class GCSFilter</span>
+<span class="lineNum">      22 </span>                :<span class="lineCov">         68 : class GCSFilter</span>
 <span class="lineNum">      23 </span>                :            : {
 <span class="lineNum">      24 </span>                :            : public:
 <span class="lineNum">      25 </span>                :            :     typedef std::vector&lt;unsigned char&gt; Element;
@@ -104,7 +104,7 @@
 <span class="lineNum">      33 </span>                :            :         uint32_t m_M;  //!&lt; Inverse false positive rate
 <span class="lineNum">      34 </span>                :            : 
 <span class="lineNum">      35 </span>                :            :         Params(uint64_t siphash_k0 = 0, uint64_t siphash_k1 = 0, uint8_t P = 0, uint32_t M = 1)
-<span class="lineNum">      36 </span>                :<span class="lineCov">         22 :             : m_siphash_k0(siphash_k0), m_siphash_k1(siphash_k1), m_P(P), m_M(M)</span>
+<span class="lineNum">      36 </span>                :<span class="lineCov">         24 :             : m_siphash_k0(siphash_k0), m_siphash_k1(siphash_k1), m_P(P), m_M(M)</span>
 <span class="lineNum">      37 </span>                :            :         {}
 <span class="lineNum">      38 </span>                :            :     };
 <span class="lineNum">      39 </span>                :            : 
@@ -154,77 +154,78 @@
 <span class="lineNum">      83 </span>                :            : constexpr uint8_t BASIC_FILTER_P = 19;
 <span class="lineNum">      84 </span>                :            : constexpr uint32_t BASIC_FILTER_M = 784931;
 <span class="lineNum">      85 </span>                :            : 
-<span class="lineNum">      86 </span>                :            : enum BlockFilterType : uint8_t
+<span class="lineNum">      86 </span>                :            : enum class BlockFilterType : uint8_t
 <span class="lineNum">      87 </span>                :            : {
 <span class="lineNum">      88 </span>                :            :     BASIC = 0,
-<span class="lineNum">      89 </span>                :            : };
-<span class="lineNum">      90 </span>                :            : 
-<span class="lineNum">      91 </span>                :            : /**
-<span class="lineNum">      92 </span>                :            :  * Complete block filter struct as defined in BIP 157. Serialization matches
-<span class="lineNum">      93 </span>                :            :  * payload of &quot;cfilter&quot; messages.
-<span class="lineNum">      94 </span>                :            :  */
-<span class="lineNum">      95 </span>                :<span class="lineNoCov">          0 : class BlockFilter</span>
-<span class="lineNum">      96 </span>                :            : {
-<span class="lineNum">      97 </span>                :            : private:
-<span class="lineNum">      98 </span>                :            :     BlockFilterType m_filter_type;
-<span class="lineNum">      99 </span>                :            :     uint256 m_block_hash;
-<span class="lineNum">     100 </span>                :            :     GCSFilter m_filter;
-<span class="lineNum">     101 </span>                :            : 
-<span class="lineNum">     102 </span>                :            :     bool BuildParams(GCSFilter::Params&amp; params) const;
-<span class="lineNum">     103 </span>                :            : 
-<a name="104"><span class="lineNum">     104 </span>                :            : public:</a>
-<span class="lineNum">     105 </span>                :            : 
-<span class="lineNum">     106 </span>                :<span class="lineCov">          2 :     BlockFilter() = default;</span>
-<span class="lineNum">     107 </span>                :            : 
-<span class="lineNum">     108 </span>                :            :     //! Reconstruct a BlockFilter from parts.
-<span class="lineNum">     109 </span>                :            :     BlockFilter(BlockFilterType filter_type, const uint256&amp; block_hash,
-<span class="lineNum">     110 </span>                :            :                 std::vector&lt;unsigned char&gt; filter);
-<span class="lineNum">     111 </span>                :            : 
-<span class="lineNum">     112 </span>                :            :     //! Construct a new BlockFilter of the specified type from a block.
-<span class="lineNum">     113 </span>                :            :     BlockFilter(BlockFilterType filter_type, const CBlock&amp; block, const CBlockUndo&amp; block_undo);
-<span class="lineNum">     114 </span>                :            : 
-<span class="lineNum">     115 </span>                :<span class="lineCov">          2 :     BlockFilterType GetFilterType() const { return m_filter_type; }</span>
-<span class="lineNum">     116 </span>                :            :     const uint256&amp; GetBlockHash() const { return m_block_hash; }
-<span class="lineNum">     117 </span>                :            :     const GCSFilter&amp; GetFilter() const { return m_filter; }
-<span class="lineNum">     118 </span>                :            : 
-<span class="lineNum">     119 </span>                :            :     const std::vector&lt;unsigned char&gt;&amp; GetEncodedFilter() const
-<span class="lineNum">     120 </span>                :            :     {
-<span class="lineNum">     121 </span>                :<span class="lineCov">         10 :         return m_filter.GetEncoded();</span>
-<span class="lineNum">     122 </span>                :            :     }
-<span class="lineNum">     123 </span>                :            : 
-<span class="lineNum">     124 </span>                :            :     //! Compute the filter hash.
-<span class="lineNum">     125 </span>                :            :     uint256 GetHash() const;
-<span class="lineNum">     126 </span>                :            : 
-<span class="lineNum">     127 </span>                :            :     //! Compute the filter header given the previous one.
-<span class="lineNum">     128 </span>                :            :     uint256 ComputeHeader(const uint256&amp; prev_header) const;
-<a name="129"><span class="lineNum">     129 </span>                :            : </a>
-<span class="lineNum">     130 </span>                :            :     template &lt;typename Stream&gt;
-<span class="lineNum">     131 </span>                :<span class="lineCov">          1 :     void Serialize(Stream&amp; s) const {</span>
-<span class="lineNum">     132 </span>                :<span class="lineCov">          3 :         s &lt;&lt; m_block_hash</span>
-<span class="lineNum">     133 </span>                :<span class="lineCov">          2 :           &lt;&lt; static_cast&lt;uint8_t&gt;(m_filter_type)</span>
-<span class="lineNum">     134 </span>                :<span class="lineCov">          2 :           &lt;&lt; m_filter.GetEncoded();</span>
-<span class="lineNum">     135 </span>                :<span class="lineCov">          1 :     }</span>
-<span class="lineNum">     136 </span>                :            : 
-<span class="lineNum">     137 </span>                :            :     template &lt;typename Stream&gt;
-<span class="lineNum">     138 </span>                :<span class="lineCov">          1 :     void Unserialize(Stream&amp; s) {</span>
-<span class="lineNum">     139 </span>                :<span class="lineCov">          2 :         std::vector&lt;unsigned char&gt; encoded_filter;</span>
-<span class="lineNum">     140 </span>                :            :         uint8_t filter_type;
-<span class="lineNum">     141 </span>                :            : 
-<span class="lineNum">     142 </span>                :<span class="lineCov">          3 :         s &gt;&gt; m_block_hash</span>
-<span class="lineNum">     143 </span>                :<span class="lineCov">          1 :           &gt;&gt; filter_type</span>
-<span class="lineNum">     144 </span>                :            :           &gt;&gt; encoded_filter;
-<span class="lineNum">     145 </span>                :            : 
-<span class="lineNum">     146 </span>                :<span class="lineCov">          1 :         m_filter_type = static_cast&lt;BlockFilterType&gt;(filter_type);</span>
-<span class="lineNum">     147 </span>                :            : 
-<span class="lineNum">     148 </span>                :<span class="lineCov">          1 :         GCSFilter::Params params;</span>
-<span class="lineNum">     149 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 1 time"> + </span>]:<span class="lineCov">          1 :         if (!BuildParams(params)) {</span>
-<span class="lineNum">     150 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;unknown filter_type&quot;);</span>
-<span class="lineNum">     151 </span>                :            :         }
-<span class="lineNum">     152 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :         m_filter = GCSFilter(params, std::move(encoded_filter));</span>
-<span class="lineNum">     153 </span>                :<span class="lineCov">          1 :     }</span>
-<span class="lineNum">     154 </span>                :            : };
-<span class="lineNum">     155 </span>                :            : 
-<span class="lineNum">     156 </span>                :            : #endif // BITCOIN_BLOCKFILTER_H
+<span class="lineNum">      89 </span>                :            :     INVALID = 255,
+<span class="lineNum">      90 </span>                :            : };
+<span class="lineNum">      91 </span>                :            : 
+<span class="lineNum">      92 </span>                :            : /**
+<span class="lineNum">      93 </span>                :            :  * Complete block filter struct as defined in BIP 157. Serialization matches
+<span class="lineNum">      94 </span>                :            :  * payload of &quot;cfilter&quot; messages.
+<span class="lineNum">      95 </span>                :            :  */
+<span class="lineNum">      96 </span>                :<span class="lineCov">         24 : class BlockFilter</span>
+<span class="lineNum">      97 </span>                :            : {
+<span class="lineNum">      98 </span>                :            : private:
+<span class="lineNum">      99 </span>                :            :     BlockFilterType m_filter_type = BlockFilterType::INVALID;
+<span class="lineNum">     100 </span>                :            :     uint256 m_block_hash;
+<span class="lineNum">     101 </span>                :            :     GCSFilter m_filter;
+<span class="lineNum">     102 </span>                :            : 
+<span class="lineNum">     103 </span>                :            :     bool BuildParams(GCSFilter::Params&amp; params) const;
+<span class="lineNum">     104 </span>                :            : 
+<a name="105"><span class="lineNum">     105 </span>                :            : public:</a>
+<span class="lineNum">     106 </span>                :            : 
+<span class="lineNum">     107 </span>                :<span class="lineCov">          6 :     BlockFilter() = default;</span>
+<span class="lineNum">     108 </span>                :            : 
+<span class="lineNum">     109 </span>                :            :     //! Reconstruct a BlockFilter from parts.
+<span class="lineNum">     110 </span>                :            :     BlockFilter(BlockFilterType filter_type, const uint256&amp; block_hash,
+<span class="lineNum">     111 </span>                :            :                 std::vector&lt;unsigned char&gt; filter);
+<span class="lineNum">     112 </span>                :            : 
+<span class="lineNum">     113 </span>                :            :     //! Construct a new BlockFilter of the specified type from a block.
+<span class="lineNum">     114 </span>                :            :     BlockFilter(BlockFilterType filter_type, const CBlock&amp; block, const CBlockUndo&amp; block_undo);
+<span class="lineNum">     115 </span>                :            : 
+<span class="lineNum">     116 </span>                :<span class="lineCov">          4 :     BlockFilterType GetFilterType() const { return m_filter_type; }</span>
+<span class="lineNum">     117 </span>                :            :     const uint256&amp; GetBlockHash() const { return m_block_hash; }
+<span class="lineNum">     118 </span>                :            :     const GCSFilter&amp; GetFilter() const { return m_filter; }
+<span class="lineNum">     119 </span>                :            : 
+<span class="lineNum">     120 </span>                :            :     const std::vector&lt;unsigned char&gt;&amp; GetEncodedFilter() const
+<span class="lineNum">     121 </span>                :            :     {
+<span class="lineNum">     122 </span>                :<span class="lineCov">         12 :         return m_filter.GetEncoded();</span>
+<span class="lineNum">     123 </span>                :            :     }
+<span class="lineNum">     124 </span>                :            : 
+<span class="lineNum">     125 </span>                :            :     //! Compute the filter hash.
+<span class="lineNum">     126 </span>                :            :     uint256 GetHash() const;
+<span class="lineNum">     127 </span>                :            : 
+<span class="lineNum">     128 </span>                :            :     //! Compute the filter header given the previous one.
+<span class="lineNum">     129 </span>                :            :     uint256 ComputeHeader(const uint256&amp; prev_header) const;
+<a name="130"><span class="lineNum">     130 </span>                :            : </a>
+<span class="lineNum">     131 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">     132 </span>                :<span class="lineCov">          1 :     void Serialize(Stream&amp; s) const {</span>
+<span class="lineNum">     133 </span>                :<span class="lineCov">          3 :         s &lt;&lt; m_block_hash</span>
+<span class="lineNum">     134 </span>                :<span class="lineCov">          2 :           &lt;&lt; static_cast&lt;uint8_t&gt;(m_filter_type)</span>
+<span class="lineNum">     135 </span>                :<span class="lineCov">          2 :           &lt;&lt; m_filter.GetEncoded();</span>
+<span class="lineNum">     136 </span>                :<span class="lineCov">          1 :     }</span>
+<span class="lineNum">     137 </span>                :            : 
+<span class="lineNum">     138 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">     139 </span>                :<span class="lineCov">          1 :     void Unserialize(Stream&amp; s) {</span>
+<span class="lineNum">     140 </span>                :<span class="lineCov">          2 :         std::vector&lt;unsigned char&gt; encoded_filter;</span>
+<span class="lineNum">     141 </span>                :            :         uint8_t filter_type;
+<span class="lineNum">     142 </span>                :            : 
+<span class="lineNum">     143 </span>                :<span class="lineCov">          3 :         s &gt;&gt; m_block_hash</span>
+<span class="lineNum">     144 </span>                :<span class="lineCov">          1 :           &gt;&gt; filter_type</span>
+<span class="lineNum">     145 </span>                :            :           &gt;&gt; encoded_filter;
+<span class="lineNum">     146 </span>                :            : 
+<span class="lineNum">     147 </span>                :<span class="lineCov">          1 :         m_filter_type = static_cast&lt;BlockFilterType&gt;(filter_type);</span>
+<span class="lineNum">     148 </span>                :            : 
+<span class="lineNum">     149 </span>                :<span class="lineCov">          1 :         GCSFilter::Params params;</span>
+<span class="lineNum">     150 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 1 time"> + </span>]:<span class="lineCov">          1 :         if (!BuildParams(params)) {</span>
+<span class="lineNum">     151 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;unknown filter_type&quot;);</span>
+<span class="lineNum">     152 </span>                :            :         }
+<span class="lineNum">     153 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :         m_filter = GCSFilter(params, std::move(encoded_filter));</span>
+<span class="lineNum">     154 </span>                :<span class="lineCov">          1 :     }</span>
+<span class="lineNum">     155 </span>                :            : };
+<span class="lineNum">     156 </span>                :            : 
+<span class="lineNum">     157 </span>                :            : #endif // BITCOIN_BLOCKFILTER_H
 </pre>
       </td>
     </tr>

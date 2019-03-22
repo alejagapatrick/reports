@@ -93,7 +93,7 @@
 <span class="lineNum">      22 </span>                :            : 
 <span class="lineNum">      23 </span>                :            : // BasicTestingSetup not sufficient because nScriptCheckThreads is not set
 <span class="lineNum">      24 </span>                :            : // otherwise.
-<span class="lineNum">      25 </span>                :<span class="lineCov">        146 : BOOST_FIXTURE_TEST_SUITE(checkqueue_tests, TestingSetup)</span>
+<span class="lineNum">      25 </span>                :<span class="lineCov">        148 : BOOST_FIXTURE_TEST_SUITE(checkqueue_tests, TestingSetup)</span>
 <span class="lineNum">      26 </span>                :            : 
 <span class="lineNum">      27 </span>                :            : static const unsigned int QUEUE_BATCH_SIZE = 128;
 <span class="lineNum">      28 </span>                :            : 
@@ -109,7 +109,7 @@
 <span class="lineNum">      38 </span>                :            :     static std::atomic&lt;size_t&gt; n_calls;
 <span class="lineNum">      39 </span>                :            :     bool operator()()
 <span class="lineNum">      40 </span>                :            :     {
-<span class="lineNum">      41 </span>                :<span class="lineCov">   10983507 :         n_calls.fetch_add(1, std::memory_order_relaxed);</span>
+<span class="lineNum">      41 </span>                :<span class="lineCov">   10549410 :         n_calls.fetch_add(1, std::memory_order_relaxed);</span>
 <span class="lineNum">      42 </span>                :            :         return true;
 <span class="lineNum">      43 </span>                :            :     }
 <span class="lineNum">      44 </span>                :            :     void swap(FakeCheckCheckCompletion&amp; x){};
@@ -121,7 +121,7 @@
 <span class="lineNum">      50 </span>                :<span class="lineCov">     502500 :     FailingCheck() : fails(true){};</span>
 <span class="lineNum">      51 </span>                :            :     bool operator()()
 <span class="lineNum">      52 </span>                :            :     {
-<span class="lineNum">      53 </span>                :<span class="lineCov">     496361 :         return !fails;</span>
+<span class="lineNum">      53 </span>                :<span class="lineCov">     496057 :         return !fails;</span>
 <span class="lineNum">      54 </span>                :            :     }
 <span class="lineNum">      55 </span>                :            :     void swap(FailingCheck&amp; x)
 <span class="lineNum">      56 </span>                :            :     {
@@ -154,20 +154,20 @@
 <span class="lineNum">      83 </span>                :            :     }
 <span class="lineNum">      84 </span>                :<span class="lineCov">     499500 :     MemoryCheck(){};</span>
 <span class="lineNum">      85 </span>                :            :     MemoryCheck(const MemoryCheck&amp; x)
-<span class="lineNum">      86 </span>                :<span class="lineCov">    1053805 :     {</span>
+<span class="lineNum">      86 </span>                :<span class="lineCov">    1053366 :     {</span>
 <span class="lineNum">      87 </span>                :            :         // We have to do this to make sure that destructor calls are paired
 <span class="lineNum">      88 </span>                :            :         //
 <span class="lineNum">      89 </span>                :            :         // Really, copy constructor should be deletable, but CCheckQueue breaks
 <span class="lineNum">      90 </span>                :            :         // if it is deleted because of internal push_back.
-<span class="lineNum">      91 </span>                :<span class="lineCov">    2107610 :         fake_allocated_memory.fetch_add(b, std::memory_order_relaxed);</span>
+<span class="lineNum">      91 </span>                :<span class="lineCov">    2106732 :         fake_allocated_memory.fetch_add(b, std::memory_order_relaxed);</span>
 <span class="lineNum">      92 </span>                :            :     };
 <span class="lineNum">      93 </span>                :<span class="lineCov">     499500 :     MemoryCheck(bool b_) : b(b_)</span>
 <span class="lineNum">      94 </span>                :            :     {
 <span class="lineNum">      95 </span>                :<span class="lineCov">     999000 :         fake_allocated_memory.fetch_add(b, std::memory_order_relaxed);</span>
 <span class="lineNum">      96 </span>                :            :     };
 <span class="lineNum">      97 </span>                :            :     ~MemoryCheck()
-<span class="lineNum">      98 </span>                :<span class="lineCov">    2052805 :     {</span>
-<span class="lineNum">      99 </span>                :<span class="lineCov">    5104610 :         fake_allocated_memory.fetch_sub(b, std::memory_order_relaxed);</span>
+<span class="lineNum">      98 </span>                :<span class="lineCov">    2052366 :     {</span>
+<span class="lineNum">      99 </span>                :<span class="lineCov">    5103732 :         fake_allocated_memory.fetch_sub(b, std::memory_order_relaxed);</span>
 <span class="lineNum">     100 </span>                :            :     };
 <span class="lineNum">     101 </span>                :<span class="lineCov">    1998000 :     void swap(MemoryCheck&amp; x) { std::swap(b, x.b); };</span>
 <span class="lineNum">     102 </span>                :            : };
@@ -199,9 +199,9 @@
 <span class="lineNum">     128 </span>                :            : // Static Allocations
 <span class="lineNum">     129 </span>                :            : std::mutex FrozenCleanupCheck::m{};
 <span class="lineNum">     130 </span>                :            : std::atomic&lt;uint64_t&gt; FrozenCleanupCheck::nFrozen{0};
-<span class="lineNum">     131 </span>                :<span class="lineCov">         73 : std::condition_variable FrozenCleanupCheck::cv{};</span>
+<span class="lineNum">     131 </span>                :<span class="lineCov">         74 : std::condition_variable FrozenCleanupCheck::cv{};</span>
 <span class="lineNum">     132 </span>                :            : std::mutex UniqueCheck::m;
-<span class="lineNum">     133 </span>                :<span class="lineCov">         73 : std::unordered_multiset&lt;size_t&gt; UniqueCheck::results;</span>
+<span class="lineNum">     133 </span>                :<span class="lineCov">         74 : std::unordered_multiset&lt;size_t&gt; UniqueCheck::results;</span>
 <span class="lineNum">     134 </span>                :            : std::atomic&lt;size_t&gt; FakeCheckCheckCompletion::n_calls{0};
 <span class="lineNum">     135 </span>                :            : std::atomic&lt;size_t&gt; MemoryCheck::fake_allocated_memory{0};
 <span class="lineNum">     136 </span>                :            : 
@@ -226,17 +226,17 @@
 <span class="lineNum">     155 </span>                :            :     }
 <span class="lineNum">     156 </span>                :            :     // Make vChecks here to save on malloc (this test can be slow...)
 <span class="lineNum">     157 </span>                :<span class="lineNoCov">          0 :     std::vector&lt;FakeCheckCheckCompletion&gt; vChecks;</span>
-<span class="lineNum">     158 </span>        [<span class="branchCov" title="Branch 0 was taken 220 times"> + </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">        224 :     for (const size_t i : range) {</span>
-<span class="lineNum">     159 </span>                :<span class="lineCov">        220 :         size_t total = i;</span>
-<span class="lineNum">     160 </span>                :<span class="lineCov">        220 :         FakeCheckCheckCompletion::n_calls = 0;</span>
-<span class="lineNum">     161 </span>                :<span class="lineCov">        220 :         CCheckQueueControl&lt;FakeCheckCheckCompletion&gt; control(small_queue.get());</span>
-<span class="lineNum">     162 </span>        [<span class="branchCov" title="Branch 0 was taken 2441332 times"> + </span><span class="branchCov" title="Branch 1 was taken 220 times"> + </span>]:<span class="lineCov">    2441552 :         while (total) {</span>
-<span class="lineNum">     163 </span>        [<span class="branchCov" title="Branch 1 was taken 2441332 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    2441332 :             vChecks.resize(std::min(total, (size_t) InsecureRandRange(10)));</span>
-<span class="lineNum">     164 </span>                :<span class="lineCov">    2441332 :             total -= vChecks.size();</span>
+<span class="lineNum">     158 </span>        [<span class="branchCov" title="Branch 0 was taken 212 times"> + </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">        216 :     for (const size_t i : range) {</span>
+<span class="lineNum">     159 </span>                :<span class="lineCov">        212 :         size_t total = i;</span>
+<span class="lineNum">     160 </span>                :<span class="lineCov">        212 :         FakeCheckCheckCompletion::n_calls = 0;</span>
+<span class="lineNum">     161 </span>                :<span class="lineCov">        212 :         CCheckQueueControl&lt;FakeCheckCheckCompletion&gt; control(small_queue.get());</span>
+<span class="lineNum">     162 </span>        [<span class="branchCov" title="Branch 0 was taken 2344200 times"> + </span><span class="branchCov" title="Branch 1 was taken 212 times"> + </span>]:<span class="lineCov">    2344412 :         while (total) {</span>
+<span class="lineNum">     163 </span>        [<span class="branchCov" title="Branch 1 was taken 2344200 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">    2344200 :             vChecks.resize(std::min(total, (size_t) InsecureRandRange(10)));</span>
+<span class="lineNum">     164 </span>                :<span class="lineCov">    2344200 :             total -= vChecks.size();</span>
 <span class="lineNum">     165 </span>                :            :             control.Add(vChecks);
 <span class="lineNum">     166 </span>                :            :         }
-<span class="lineNum">     167 </span>[<span class="branchCov" title="Branch 1 was taken 220 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 220 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        440 :         BOOST_REQUIRE(control.Wait());</span>
-<span class="lineNum">     168 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 220 times"> + </span>]:<span class="lineCov">        220 :         if (FakeCheckCheckCompletion::n_calls != i) {</span>
+<span class="lineNum">     167 </span>[<span class="branchCov" title="Branch 1 was taken 212 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 212 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        424 :         BOOST_REQUIRE(control.Wait());</span>
+<span class="lineNum">     168 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 212 times"> + </span>]:<span class="lineCov">        212 :         if (FakeCheckCheckCompletion::n_calls != i) {</span>
 <span class="lineNum">     169 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :             BOOST_REQUIRE_EQUAL(FakeCheckCheckCompletion::n_calls, i);</span>
 <span class="lineNum">     170 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             BOOST_TEST_MESSAGE(&quot;Failure on trial &quot; &lt;&lt; i &lt;&lt; &quot; expected, got &quot; &lt;&lt; FakeCheckCheckCompletion::n_calls);</span>
 <span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]
@@ -248,7 +248,7 @@
 <span class="lineNum">     176 </span>                :            : 
 <a name="177"><span class="lineNum">     177 </span>                :            : /** Test that 0 checks is correct</a>
 <span class="lineNum">     178 </span>                :            :  */
-<span class="lineNum">     179 </span>[<span class="branchCov" title="Branch 2 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        152 : BOOST_AUTO_TEST_CASE(test_CheckQueue_Correct_Zero)</span>
+<span class="lineNum">     179 </span>[<span class="branchCov" title="Branch 2 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        154 : BOOST_AUTO_TEST_CASE(test_CheckQueue_Correct_Zero)</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 17 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 27 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 28 was not taken"> - </span>]
@@ -262,7 +262,7 @@
 <span class="lineNum">     184 </span>                :<span class="lineCov">          1 : }</span>
 <a name="185"><span class="lineNum">     185 </span>                :            : /** Test that 1 check is correct</a>
 <span class="lineNum">     186 </span>                :            :  */
-<span class="lineNum">     187 </span>[<span class="branchCov" title="Branch 2 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        152 : BOOST_AUTO_TEST_CASE(test_CheckQueue_Correct_One)</span>
+<span class="lineNum">     187 </span>[<span class="branchCov" title="Branch 2 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        154 : BOOST_AUTO_TEST_CASE(test_CheckQueue_Correct_One)</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 17 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 27 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 28 was not taken"> - </span>]
@@ -276,7 +276,7 @@
 <span class="lineNum">     192 </span>                :<span class="lineCov">          1 : }</span>
 <a name="193"><span class="lineNum">     193 </span>                :            : /** Test that MAX check is correct</a>
 <span class="lineNum">     194 </span>                :            :  */
-<span class="lineNum">     195 </span>[<span class="branchCov" title="Branch 2 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        152 : BOOST_AUTO_TEST_CASE(test_CheckQueue_Correct_Max)</span>
+<span class="lineNum">     195 </span>[<span class="branchCov" title="Branch 2 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        154 : BOOST_AUTO_TEST_CASE(test_CheckQueue_Correct_Max)</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 17 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 27 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 28 was not taken"> - </span>]
@@ -290,7 +290,7 @@
 <span class="lineNum">     200 </span>                :<span class="lineCov">          1 : }</span>
 <a name="201"><span class="lineNum">     201 </span>                :            : /** Test that random numbers of checks are correct</a>
 <span class="lineNum">     202 </span>                :            :  */
-<span class="lineNum">     203 </span>[<span class="branchCov" title="Branch 2 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        152 : BOOST_AUTO_TEST_CASE(test_CheckQueue_Correct_Random)</span>
+<span class="lineNum">     203 </span>[<span class="branchCov" title="Branch 2 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        154 : BOOST_AUTO_TEST_CASE(test_CheckQueue_Correct_Random)</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 17 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 27 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 28 was not taken"> - </span>]
@@ -300,14 +300,14 @@
 <span class="lineNum">     204 </span>                :            : {
 <span class="lineNum">     205 </span>                :<span class="lineCov">          2 :     std::vector&lt;size_t&gt; range;</span>
 <span class="lineNum">     206 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     range.reserve(100000/1000);</span>
-<span class="lineNum">     207 </span>        [<span class="branchCov" title="Branch 0 was taken 217 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">        435 :     for (size_t i = 2; i &lt; 100000; i += std::max((size_t)1, (size_t)InsecureRandRange(std::min((size_t)1000, ((size_t)100000) - i))))</span>
-<span class="lineNum">     208 </span>        [<span class="branchCov" title="Branch 1 was taken 217 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        217 :         range.push_back(i);</span>
+<span class="lineNum">     207 </span>        [<span class="branchCov" title="Branch 0 was taken 209 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">        419 :     for (size_t i = 2; i &lt; 100000; i += std::max((size_t)1, (size_t)InsecureRandRange(std::min((size_t)1000, ((size_t)100000) - i))))</span>
+<span class="lineNum">     208 </span>        [<span class="branchCov" title="Branch 1 was taken 209 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        209 :         range.push_back(i);</span>
 <span class="lineNum">     209 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     Correct_Queue_range(range);</span>
 <span class="lineNum">     210 </span>                :<span class="lineCov">          1 : }</span>
 <span class="lineNum">     211 </span>                :            : 
 <a name="212"><span class="lineNum">     212 </span>                :            : </a>
 <span class="lineNum">     213 </span>                :            : /** Test that failing checks are caught */
-<span class="lineNum">     214 </span>[<span class="branchCov" title="Branch 2 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        152 : BOOST_AUTO_TEST_CASE(test_CheckQueue_Catches_Failure)</span>
+<span class="lineNum">     214 </span>[<span class="branchCov" title="Branch 2 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        154 : BOOST_AUTO_TEST_CASE(test_CheckQueue_Catches_Failure)</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 17 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 27 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 28 was not taken"> - </span>]
@@ -325,14 +325,14 @@
 <span class="lineNum">     223 </span>        [<span class="branchCov" title="Branch 0 was taken 1001 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">       1002 :     for (size_t i = 0; i &lt; 1001; ++i) {</span>
 <span class="lineNum">     224 </span>                :<span class="lineCov">       1001 :         CCheckQueueControl&lt;FailingCheck&gt; control(fail_queue.get());</span>
 <span class="lineNum">     225 </span>                :            :         size_t remaining = i;
-<span class="lineNum">     226 </span>        [<span class="branchCov" title="Branch 0 was taken 111787 times"> + </span><span class="branchCov" title="Branch 1 was taken 1001 times"> + </span>]:<span class="lineCov">     112788 :         while (remaining) {</span>
-<span class="lineNum">     227 </span>                :<span class="lineCov">     111787 :             size_t r = InsecureRandRange(10);</span>
+<span class="lineNum">     226 </span>        [<span class="branchCov" title="Branch 0 was taken 112137 times"> + </span><span class="branchCov" title="Branch 1 was taken 1001 times"> + </span>]:<span class="lineCov">     113138 :         while (remaining) {</span>
+<span class="lineNum">     227 </span>                :<span class="lineCov">     112137 :             size_t r = InsecureRandRange(10);</span>
 <span class="lineNum">     228 </span>                :            : 
 <span class="lineNum">     229 </span>                :<span class="lineNoCov">          0 :             std::vector&lt;FailingCheck&gt; vChecks;</span>
-<span class="lineNum">     230 </span>        [<span class="branchCov" title="Branch 1 was taken 111787 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     111787 :             vChecks.reserve(r);</span>
-<span class="lineNum">     231 </span>        [<span class="branchCov" title="Branch 0 was taken 500500 times"> + </span><span class="branchCov" title="Branch 1 was taken 111787 times"> + </span>]:<span class="lineCov">     612287 :             for (size_t k = 0; k &lt; r &amp;&amp; remaining; k++, remaining--)</span>
+<span class="lineNum">     230 </span>        [<span class="branchCov" title="Branch 1 was taken 112137 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     112137 :             vChecks.reserve(r);</span>
+<span class="lineNum">     231 </span>        [<span class="branchCov" title="Branch 0 was taken 500500 times"> + </span><span class="branchCov" title="Branch 1 was taken 112137 times"> + </span>]:<span class="lineCov">     612637 :             for (size_t k = 0; k &lt; r &amp;&amp; remaining; k++, remaining--)</span>
 <span class="lineNum">     232 </span>        [<span class="branchCov" title="Branch 1 was taken 500500 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     500500 :                 vChecks.emplace_back(remaining == 1);</span>
-<span class="lineNum">     233 </span>                :<span class="lineCov">     111787 :             control.Add(vChecks);</span>
+<span class="lineNum">     233 </span>                :<span class="lineCov">     112137 :             control.Add(vChecks);</span>
 <span class="lineNum">     234 </span>                :            :         }
 <span class="lineNum">     235 </span>                :<span class="lineCov">       1001 :         bool success = control.Wait();</span>
 <span class="lineNum">     236 </span>        [<span class="branchCov" title="Branch 0 was taken 1000 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">       1001 :         if (i &gt; 0) {</span>
@@ -346,7 +346,7 @@
 <span class="lineNum">     244 </span>                :<span class="lineCov">          1 : }</span>
 <a name="245"><span class="lineNum">     245 </span>                :            : // Test that a block validation which fails does not interfere with</a>
 <span class="lineNum">     246 </span>                :            : // future blocks, ie, the bad state is cleared.
-<span class="lineNum">     247 </span>[<span class="branchCov" title="Branch 2 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        152 : BOOST_AUTO_TEST_CASE(test_CheckQueue_Recovers_From_Failure)</span>
+<span class="lineNum">     247 </span>[<span class="branchCov" title="Branch 2 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        154 : BOOST_AUTO_TEST_CASE(test_CheckQueue_Recovers_From_Failure)</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 17 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 27 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 28 was not taken"> - </span>]
@@ -380,7 +380,7 @@
 <span class="lineNum">     272 </span>                :            : // Test that unique checks are actually all called individually, rather than
 <a name="273"><span class="lineNum">     273 </span>                :            : // just one check being called repeatedly. Test that checks are not called</a>
 <span class="lineNum">     274 </span>                :            : // more than once as well
-<span class="lineNum">     275 </span>[<span class="branchCov" title="Branch 2 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        152 : BOOST_AUTO_TEST_CASE(test_CheckQueue_UniqueCheck)</span>
+<span class="lineNum">     275 </span>[<span class="branchCov" title="Branch 2 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        154 : BOOST_AUTO_TEST_CASE(test_CheckQueue_UniqueCheck)</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 17 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 27 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 28 was not taken"> - </span>]
@@ -399,12 +399,12 @@
 <span class="lineNum">     285 </span>                :<span class="lineCov">          1 :     size_t total = COUNT;</span>
 <span class="lineNum">     286 </span>                :            :     {
 <span class="lineNum">     287 </span>                :<span class="lineCov">          1 :         CCheckQueueControl&lt;UniqueCheck&gt; control(queue.get());</span>
-<span class="lineNum">     288 </span>        [<span class="branchCov" title="Branch 0 was taken 22194 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">      22195 :         while (total) {</span>
-<span class="lineNum">     289 </span>                :<span class="lineCov">      22194 :             size_t r = InsecureRandRange(10);</span>
+<span class="lineNum">     288 </span>        [<span class="branchCov" title="Branch 0 was taken 22290 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">      22291 :         while (total) {</span>
+<span class="lineNum">     289 </span>                :<span class="lineCov">      22290 :             size_t r = InsecureRandRange(10);</span>
 <span class="lineNum">     290 </span>                :<span class="lineNoCov">          0 :             std::vector&lt;UniqueCheck&gt; vChecks;</span>
-<span class="lineNum">     291 </span>[<span class="branchCov" title="Branch 0 was taken 100001 times"> + </span><span class="branchCov" title="Branch 1 was taken 22193 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 100000 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">     122194 :             for (size_t k = 0; k &lt; r &amp;&amp; total; k++)</span>
+<span class="lineNum">     291 </span>[<span class="branchCov" title="Branch 0 was taken 100001 times"> + </span><span class="branchCov" title="Branch 1 was taken 22289 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 100000 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">     122290 :             for (size_t k = 0; k &lt; r &amp;&amp; total; k++)</span>
 <span class="lineNum">     292 </span>        [<span class="branchCov" title="Branch 1 was taken 100000 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     100000 :                 vChecks.emplace_back(--total);</span>
-<span class="lineNum">     293 </span>                :<span class="lineCov">      22194 :             control.Add(vChecks);</span>
+<span class="lineNum">     293 </span>                :<span class="lineCov">      22290 :             control.Add(vChecks);</span>
 <span class="lineNum">     294 </span>                :            :         }
 <span class="lineNum">     295 </span>                :            :     }
 <span class="lineNum">     296 </span>                :<span class="lineCov">          1 :     bool r = true;</span>
@@ -422,7 +422,7 @@
 <span class="lineNum">     308 </span>                :            : // This test attempts to catch a pathological case where by lazily freeing
 <a name="309"><span class="lineNum">     309 </span>                :            : // checks might mean leaving a check un-swapped out, and decreasing by 1 each</a>
 <span class="lineNum">     310 </span>                :            : // time could leave the data hanging across a sequence of blocks.
-<span class="lineNum">     311 </span>[<span class="branchCov" title="Branch 2 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        152 : BOOST_AUTO_TEST_CASE(test_CheckQueue_Memory)</span>
+<span class="lineNum">     311 </span>[<span class="branchCov" title="Branch 2 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        154 : BOOST_AUTO_TEST_CASE(test_CheckQueue_Memory)</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 17 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 27 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 28 was not taken"> - </span>]
@@ -439,17 +439,17 @@
 <span class="lineNum">     319 </span>                :<span class="lineCov">       1000 :         size_t total = i;</span>
 <span class="lineNum">     320 </span>                :            :         {
 <span class="lineNum">     321 </span>                :<span class="lineCov">       1000 :             CCheckQueueControl&lt;MemoryCheck&gt; control(queue.get());</span>
-<span class="lineNum">     322 </span>        [<span class="branchCov" title="Branch 0 was taken 111528 times"> + </span><span class="branchCov" title="Branch 1 was taken 1000 times"> + </span>]:<span class="lineCov">     112528 :             while (total) {</span>
-<span class="lineNum">     323 </span>                :<span class="lineCov">     111528 :                 size_t r = InsecureRandRange(10);</span>
-<span class="lineNum">     324 </span>                :<span class="lineCov">     111528 :                 std::vector&lt;MemoryCheck&gt; vChecks;</span>
-<span class="lineNum">     325 </span>        [<span class="branchCov" title="Branch 0 was taken 499500 times"> + </span><span class="branchCov" title="Branch 1 was taken 111528 times"> + </span>]:<span class="lineCov">     611028 :                 for (size_t k = 0; k &lt; r &amp;&amp; total; k++) {</span>
+<span class="lineNum">     322 </span>        [<span class="branchCov" title="Branch 0 was taken 111510 times"> + </span><span class="branchCov" title="Branch 1 was taken 1000 times"> + </span>]:<span class="lineCov">     112510 :             while (total) {</span>
+<span class="lineNum">     323 </span>                :<span class="lineCov">     111510 :                 size_t r = InsecureRandRange(10);</span>
+<span class="lineNum">     324 </span>                :<span class="lineCov">     111510 :                 std::vector&lt;MemoryCheck&gt; vChecks;</span>
+<span class="lineNum">     325 </span>        [<span class="branchCov" title="Branch 0 was taken 499500 times"> + </span><span class="branchCov" title="Branch 1 was taken 111510 times"> + </span>]:<span class="lineCov">     611010 :                 for (size_t k = 0; k &lt; r &amp;&amp; total; k++) {</span>
 <span class="lineNum">     326 </span>                :<span class="lineCov">     499500 :                     total--;</span>
 <span class="lineNum">     327 </span>                :            :                     // Each iteration leaves data at the front, back, and middle
 <span class="lineNum">     328 </span>                :            :                     // to catch any sort of deallocation failure
 <span class="lineNum">     329 </span>[<span class="branchCov" title="Branch 0 was taken 498501 times"> + </span><span class="branchCov" title="Branch 1 was taken 999 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 497503 times"> + </span><span class="branchCov" title="Branch 3 was taken 998 times"> + </span>]:<span class="lineCov">     499500 :                     vChecks.emplace_back(total == 0 || total == i || total == i/2);</span>
 <span class="lineNum">         </span>        [<span class="branchCov" title="Branch 5 was taken 499500 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]
 <span class="lineNum">     330 </span>                :            :                 }
-<span class="lineNum">     331 </span>                :<span class="lineCov">     111528 :                 control.Add(vChecks);</span>
+<span class="lineNum">     331 </span>                :<span class="lineCov">     111510 :                 control.Add(vChecks);</span>
 <span class="lineNum">     332 </span>                :            :             }
 <span class="lineNum">     333 </span>                :            :         }
 <span class="lineNum">     334 </span>[<span class="branchCov" title="Branch 1 was taken 1000 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1000 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">       1000 :         BOOST_REQUIRE_EQUAL(MemoryCheck::fake_allocated_memory, 0U);</span>
@@ -460,7 +460,7 @@
 <span class="lineNum">     339 </span>                :            : 
 <a name="340"><span class="lineNum">     340 </span>                :            : // Test that a new verification cannot occur until all checks</a>
 <span class="lineNum">     341 </span>                :            : // have been destructed
-<span class="lineNum">     342 </span>[<span class="branchCov" title="Branch 2 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        152 : BOOST_AUTO_TEST_CASE(test_CheckQueue_FrozenCleanup)</span>
+<span class="lineNum">     342 </span>[<span class="branchCov" title="Branch 2 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        154 : BOOST_AUTO_TEST_CASE(test_CheckQueue_FrozenCleanup)</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 17 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 27 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 28 was not taken"> - </span>]
@@ -510,7 +510,7 @@
 <span class="lineNum">     383 </span>                :            : 
 <a name="384"><span class="lineNum">     384 </span>                :            : </a>
 <span class="lineNum">     385 </span>                :            : /** Test that CCheckQueueControl is threadsafe */
-<span class="lineNum">     386 </span>[<span class="branchCov" title="Branch 2 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        152 : BOOST_AUTO_TEST_CASE(test_CheckQueueControl_Locks)</span>
+<span class="lineNum">     386 </span>[<span class="branchCov" title="Branch 2 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        154 : BOOST_AUTO_TEST_CASE(test_CheckQueueControl_Locks)</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>][<span class="branchCov" title="Branch 19 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 23 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 24 was not taken"> - </span>][<span class="branchCov" title="Branch 26 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 27 was not taken"> - </span>]
@@ -575,7 +575,7 @@
 <span class="lineNum">     442 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :         tg.join_all();</span>
 <a name="443"><span class="lineNum">     443 </span>                :            :     }</a>
 <span class="lineNum">     444 </span>                :<span class="lineCov">          1 : }</span>
-<span class="lineNum">     445 </span>[<span class="branchCov" title="Branch 1 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        292 : BOOST_AUTO_TEST_SUITE_END()</span>
+<span class="lineNum">     445 </span>[<span class="branchCov" title="Branch 1 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 74 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        296 : BOOST_AUTO_TEST_SUITE_END()</span>
 <span class="lineNum">     446 </span>                :            : 
 </pre>
       </td>
