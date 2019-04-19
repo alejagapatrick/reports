@@ -78,582 +78,598 @@
 <span class="lineNum">       7 </span>                :            : 
 <span class="lineNum">       8 </span>                :            : #include &lt;attributes.h&gt;
 <span class="lineNum">       9 </span>                :            : #include &lt;node/transaction.h&gt;
-<span class="lineNum">      10 </span>                :            : #include &lt;primitives/transaction.h&gt;
-<span class="lineNum">      11 </span>                :            : #include &lt;pubkey.h&gt;
-<span class="lineNum">      12 </span>                :            : #include &lt;script/sign.h&gt;
-<span class="lineNum">      13 </span>                :            : 
-<span class="lineNum">      14 </span>                :            : // Magic bytes
-<span class="lineNum">      15 </span>                :            : static constexpr uint8_t PSBT_MAGIC_BYTES[5] = {'p', 's', 'b', 't', 0xff};
-<span class="lineNum">      16 </span>                :            : 
-<span class="lineNum">      17 </span>                :            : // Global types
-<span class="lineNum">      18 </span>                :            : static constexpr uint8_t PSBT_GLOBAL_UNSIGNED_TX = 0x00;
-<span class="lineNum">      19 </span>                :            : 
-<span class="lineNum">      20 </span>                :            : // Input types
-<span class="lineNum">      21 </span>                :            : static constexpr uint8_t PSBT_IN_NON_WITNESS_UTXO = 0x00;
-<span class="lineNum">      22 </span>                :            : static constexpr uint8_t PSBT_IN_WITNESS_UTXO = 0x01;
-<span class="lineNum">      23 </span>                :            : static constexpr uint8_t PSBT_IN_PARTIAL_SIG = 0x02;
-<span class="lineNum">      24 </span>                :            : static constexpr uint8_t PSBT_IN_SIGHASH = 0x03;
-<span class="lineNum">      25 </span>                :            : static constexpr uint8_t PSBT_IN_REDEEMSCRIPT = 0x04;
-<span class="lineNum">      26 </span>                :            : static constexpr uint8_t PSBT_IN_WITNESSSCRIPT = 0x05;
-<span class="lineNum">      27 </span>                :            : static constexpr uint8_t PSBT_IN_BIP32_DERIVATION = 0x06;
-<span class="lineNum">      28 </span>                :            : static constexpr uint8_t PSBT_IN_SCRIPTSIG = 0x07;
-<span class="lineNum">      29 </span>                :            : static constexpr uint8_t PSBT_IN_SCRIPTWITNESS = 0x08;
-<span class="lineNum">      30 </span>                :            : 
-<span class="lineNum">      31 </span>                :            : // Output types
-<span class="lineNum">      32 </span>                :            : static constexpr uint8_t PSBT_OUT_REDEEMSCRIPT = 0x00;
-<span class="lineNum">      33 </span>                :            : static constexpr uint8_t PSBT_OUT_WITNESSSCRIPT = 0x01;
-<span class="lineNum">      34 </span>                :            : static constexpr uint8_t PSBT_OUT_BIP32_DERIVATION = 0x02;
-<span class="lineNum">      35 </span>                :            : 
-<span class="lineNum">      36 </span>                :            : // The separator is 0x00. Reading this in means that the unserializer can interpret it
-<span class="lineNum">      37 </span>                :            : // as a 0 length key which indicates that this is the separator. The separator has no value.
-<span class="lineNum">      38 </span>                :            : static constexpr uint8_t PSBT_SEPARATOR = 0x00;
-<a name="39"><span class="lineNum">      39 </span>                :            : </a>
-<span class="lineNum">      40 </span>                :            : /** A structure for PSBTs which contain per-input information */
-<span class="lineNum">      41 </span>                :<span class="lineCov">         12 : struct PSBTInput</span>
-<span class="lineNum">      42 </span>                :            : {
-<span class="lineNum">      43 </span>                :            :     CTransactionRef non_witness_utxo;
-<span class="lineNum">      44 </span>                :            :     CTxOut witness_utxo;
-<span class="lineNum">      45 </span>                :            :     CScript redeem_script;
-<span class="lineNum">      46 </span>                :            :     CScript witness_script;
-<span class="lineNum">      47 </span>                :            :     CScript final_script_sig;
-<span class="lineNum">      48 </span>                :            :     CScriptWitness final_script_witness;
-<span class="lineNum">      49 </span>                :            :     std::map&lt;CPubKey, KeyOriginInfo&gt; hd_keypaths;
-<span class="lineNum">      50 </span>                :            :     std::map&lt;CKeyID, SigPair&gt; partial_sigs;
-<span class="lineNum">      51 </span>                :            :     std::map&lt;std::vector&lt;unsigned char&gt;, std::vector&lt;unsigned char&gt;&gt; unknown;
-<span class="lineNum">      52 </span>                :            :     int sighash_type = 0;
-<span class="lineNum">      53 </span>                :            : 
-<span class="lineNum">      54 </span>                :            :     bool IsNull() const;
-<span class="lineNum">      55 </span>                :            :     void FillSignatureData(SignatureData&amp; sigdata) const;
-<span class="lineNum">      56 </span>                :            :     void FromSignatureData(const SignatureData&amp; sigdata);
-<a name="57"><span class="lineNum">      57 </span>                :            :     void Merge(const PSBTInput&amp; input);</a>
-<span class="lineNum">      58 </span>                :            :     bool IsSane() const;
-<span class="lineNum">      59 </span>                :<span class="lineCov">          2 :     PSBTInput() {}</span>
-<span class="lineNum">      60 </span>                :            : 
-<span class="lineNum">      61 </span>                :            :     template &lt;typename Stream&gt;
-<span class="lineNum">      62 </span>                :<span class="lineCov">          2 :     inline void Serialize(Stream&amp; s) const {</span>
-<span class="lineNum">      63 </span>                :            :         // Write the utxo
-<span class="lineNum">      64 </span>                :            :         // If there is a non-witness utxo, then don't add the witness one.
-<span class="lineNum">      65 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          2 :         if (non_witness_utxo) {</span>
-<span class="lineNum">      66 </span>                :<span class="lineCov">          1 :             SerializeToVector(s, PSBT_IN_NON_WITNESS_UTXO);</span>
-<span class="lineNum">      67 </span>                :<span class="lineCov">          3 :             OverrideStream&lt;Stream&gt; os(&amp;s, s.GetType(), s.GetVersion() | SERIALIZE_TRANSACTION_NO_WITNESS);</span>
-<span class="lineNum">      68 </span>                :<span class="lineCov">          1 :             SerializeToVector(os, non_witness_utxo);</span>
-<span class="lineNum">      69 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          1 :         } else if (!witness_utxo.IsNull()) {</span>
-<span class="lineNum">      70 </span>                :<span class="lineCov">          1 :             SerializeToVector(s, PSBT_IN_WITNESS_UTXO);</span>
-<span class="lineNum">      71 </span>                :<span class="lineCov">          1 :             SerializeToVector(s, witness_utxo);</span>
-<span class="lineNum">      72 </span>                :            :         }
-<span class="lineNum">      73 </span>                :            : 
-<span class="lineNum">      74 </span>[<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          2 :         if (final_script_sig.empty() &amp;&amp; final_script_witness.IsNull()) {</span>
-<span class="lineNum">      75 </span>                :            :             // Write any partial signatures
-<span class="lineNum">      76 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :             for (auto sig_pair : partial_sigs) {</span>
-<span class="lineNum">      77 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 SerializeToVector(s, PSBT_IN_PARTIAL_SIG, MakeSpan(sig_pair.second.first));</span>
-<span class="lineNum">      78 </span>                :<span class="lineNoCov">          0 :                 s &lt;&lt; sig_pair.second.second;</span>
-<span class="lineNum">      79 </span>                :            :             }
-<span class="lineNum">      80 </span>                :            : 
-<span class="lineNum">      81 </span>                :            :             // Write the sighash type
-<span class="lineNum">      82 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :             if (sighash_type &gt; 0) {</span>
-<span class="lineNum">      83 </span>                :<span class="lineNoCov">          0 :                 SerializeToVector(s, PSBT_IN_SIGHASH);</span>
-<span class="lineNum">      84 </span>                :<span class="lineNoCov">          0 :                 SerializeToVector(s, sighash_type);</span>
-<span class="lineNum">      85 </span>                :            :             }
-<span class="lineNum">      86 </span>                :            : 
-<span class="lineNum">      87 </span>                :            :             // Write the redeem script
-<span class="lineNum">      88 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :             if (!redeem_script.empty()) {</span>
-<span class="lineNum">      89 </span>                :<span class="lineCov">          2 :                 SerializeToVector(s, PSBT_IN_REDEEMSCRIPT);</span>
-<span class="lineNum">      90 </span>                :<span class="lineCov">          2 :                 s &lt;&lt; redeem_script;</span>
-<span class="lineNum">      91 </span>                :            :             }
-<span class="lineNum">      92 </span>                :            : 
-<span class="lineNum">      93 </span>                :            :             // Write the witness script
-<span class="lineNum">      94 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          2 :             if (!witness_script.empty()) {</span>
-<span class="lineNum">      95 </span>                :<span class="lineCov">          1 :                 SerializeToVector(s, PSBT_IN_WITNESSSCRIPT);</span>
-<span class="lineNum">      96 </span>                :<span class="lineCov">          1 :                 s &lt;&lt; witness_script;</span>
-<span class="lineNum">      97 </span>                :            :             }
-<span class="lineNum">      98 </span>                :            : 
-<span class="lineNum">      99 </span>                :            :             // Write any hd keypaths
-<span class="lineNum">     100 </span>                :<span class="lineCov">          2 :             SerializeHDKeypaths(s, hd_keypaths, PSBT_IN_BIP32_DERIVATION);</span>
-<span class="lineNum">     101 </span>                :            :         }
-<span class="lineNum">     102 </span>                :            : 
-<span class="lineNum">     103 </span>                :            :         // Write script sig
-<span class="lineNum">     104 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :         if (!final_script_sig.empty()) {</span>
-<span class="lineNum">     105 </span>                :<span class="lineNoCov">          0 :             SerializeToVector(s, PSBT_IN_SCRIPTSIG);</span>
-<span class="lineNum">     106 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; final_script_sig;</span>
-<span class="lineNum">     107 </span>                :            :         }
-<span class="lineNum">     108 </span>                :            :         // write script witness
-<span class="lineNum">     109 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :         if (!final_script_witness.IsNull()) {</span>
-<span class="lineNum">     110 </span>                :<span class="lineNoCov">          0 :             SerializeToVector(s, PSBT_IN_SCRIPTWITNESS);</span>
-<span class="lineNum">     111 </span>                :<span class="lineNoCov">          0 :             SerializeToVector(s, final_script_witness.stack);</span>
-<span class="lineNum">     112 </span>                :            :         }
-<span class="lineNum">     113 </span>                :            : 
-<span class="lineNum">     114 </span>                :            :         // Write unknown things
-<span class="lineNum">     115 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :         for (auto&amp; entry : unknown) {</span>
-<span class="lineNum">     116 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; entry.first;</span>
-<span class="lineNum">     117 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; entry.second;</span>
-<span class="lineNum">     118 </span>                :            :         }
-<span class="lineNum">     119 </span>                :            : 
-<span class="lineNum">     120 </span>                :<span class="lineCov">          2 :         s &lt;&lt; PSBT_SEPARATOR;</span>
-<span class="lineNum">     121 </span>                :<span class="lineCov">          2 :     }</span>
-<span class="lineNum">     122 </span>                :            : 
-<span class="lineNum">     123 </span>                :            : 
-<span class="lineNum">     124 </span>                :            :     template &lt;typename Stream&gt;
-<span class="lineNum">     125 </span>                :<span class="lineCov">          2 :     inline void Unserialize(Stream&amp; s) {</span>
-<span class="lineNum">     126 </span>                :            :         // Read loop
-<span class="lineNum">     127 </span>                :<span class="lineCov">          2 :         bool found_sep = false;</span>
-<span class="lineNum">     128 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :         while(!s.empty()) {</span>
-<span class="lineNum">     129 </span>                :            :             // Read
-<span class="lineNum">     130 </span>                :<span class="lineNoCov">          0 :             std::vector&lt;unsigned char&gt; key;</span>
-<span class="lineNum">     131 </span>                :<span class="lineCov">          2 :             s &gt;&gt; key;</span>
-<span class="lineNum">     132 </span>                :            : 
-<span class="lineNum">     133 </span>                :            :             // the key is empty if that was actually a separator byte
-<span class="lineNum">     134 </span>                :            :             // This is a special case for key lengths 0 as those are not allowed (except for separator)
-<span class="lineNum">     135 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :             if (key.empty()) {</span>
-<span class="lineNum">     136 </span>                :<span class="lineCov">          2 :                 found_sep = true;</span>
-<span class="lineNum">     137 </span>                :<span class="lineCov">          2 :                 break;</span>
-<span class="lineNum">     138 </span>                :            :             }
-<span class="lineNum">     139 </span>                :            : 
-<span class="lineNum">     140 </span>                :            :             // First byte of key is the type
-<span class="lineNum">     141 </span>                :<span class="lineNoCov">          0 :             unsigned char type = key[0];</span>
-<span class="lineNum">     142 </span>                :            : 
-<span class="lineNum">     143 </span>                :            :             // Do stuff based on type
-<span class="lineNum">     144 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :             switch(type) {</span>
+<span class="lineNum">      10 </span>                :            : #include &lt;optional.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;policy/feerate.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;primitives/transaction.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;pubkey.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;script/sign.h&gt;
+<span class="lineNum">      15 </span>                :            : 
+<span class="lineNum">      16 </span>                :            : // Magic bytes
+<span class="lineNum">      17 </span>                :            : static constexpr uint8_t PSBT_MAGIC_BYTES[5] = {'p', 's', 'b', 't', 0xff};
+<span class="lineNum">      18 </span>                :            : 
+<span class="lineNum">      19 </span>                :            : // Global types
+<span class="lineNum">      20 </span>                :            : static constexpr uint8_t PSBT_GLOBAL_UNSIGNED_TX = 0x00;
+<span class="lineNum">      21 </span>                :            : 
+<span class="lineNum">      22 </span>                :            : // Input types
+<span class="lineNum">      23 </span>                :            : static constexpr uint8_t PSBT_IN_NON_WITNESS_UTXO = 0x00;
+<span class="lineNum">      24 </span>                :            : static constexpr uint8_t PSBT_IN_WITNESS_UTXO = 0x01;
+<span class="lineNum">      25 </span>                :            : static constexpr uint8_t PSBT_IN_PARTIAL_SIG = 0x02;
+<span class="lineNum">      26 </span>                :            : static constexpr uint8_t PSBT_IN_SIGHASH = 0x03;
+<span class="lineNum">      27 </span>                :            : static constexpr uint8_t PSBT_IN_REDEEMSCRIPT = 0x04;
+<span class="lineNum">      28 </span>                :            : static constexpr uint8_t PSBT_IN_WITNESSSCRIPT = 0x05;
+<span class="lineNum">      29 </span>                :            : static constexpr uint8_t PSBT_IN_BIP32_DERIVATION = 0x06;
+<span class="lineNum">      30 </span>                :            : static constexpr uint8_t PSBT_IN_SCRIPTSIG = 0x07;
+<span class="lineNum">      31 </span>                :            : static constexpr uint8_t PSBT_IN_SCRIPTWITNESS = 0x08;
+<span class="lineNum">      32 </span>                :            : 
+<span class="lineNum">      33 </span>                :            : // Output types
+<span class="lineNum">      34 </span>                :            : static constexpr uint8_t PSBT_OUT_REDEEMSCRIPT = 0x00;
+<span class="lineNum">      35 </span>                :            : static constexpr uint8_t PSBT_OUT_WITNESSSCRIPT = 0x01;
+<span class="lineNum">      36 </span>                :            : static constexpr uint8_t PSBT_OUT_BIP32_DERIVATION = 0x02;
+<span class="lineNum">      37 </span>                :            : 
+<span class="lineNum">      38 </span>                :            : // The separator is 0x00. Reading this in means that the unserializer can interpret it
+<span class="lineNum">      39 </span>                :            : // as a 0 length key which indicates that this is the separator. The separator has no value.
+<span class="lineNum">      40 </span>                :            : static constexpr uint8_t PSBT_SEPARATOR = 0x00;
+<a name="41"><span class="lineNum">      41 </span>                :            : </a>
+<span class="lineNum">      42 </span>                :            : /** A structure for PSBTs which contain per-input information */
+<span class="lineNum">      43 </span>                :<span class="lineCov">         12 : struct PSBTInput</span>
+<span class="lineNum">      44 </span>                :            : {
+<span class="lineNum">      45 </span>                :            :     CTransactionRef non_witness_utxo;
+<span class="lineNum">      46 </span>                :            :     CTxOut witness_utxo;
+<span class="lineNum">      47 </span>                :            :     CScript redeem_script;
+<span class="lineNum">      48 </span>                :            :     CScript witness_script;
+<span class="lineNum">      49 </span>                :            :     CScript final_script_sig;
+<span class="lineNum">      50 </span>                :            :     CScriptWitness final_script_witness;
+<span class="lineNum">      51 </span>                :            :     std::map&lt;CPubKey, KeyOriginInfo&gt; hd_keypaths;
+<span class="lineNum">      52 </span>                :            :     std::map&lt;CKeyID, SigPair&gt; partial_sigs;
+<span class="lineNum">      53 </span>                :            :     std::map&lt;std::vector&lt;unsigned char&gt;, std::vector&lt;unsigned char&gt;&gt; unknown;
+<span class="lineNum">      54 </span>                :            :     int sighash_type = 0;
+<span class="lineNum">      55 </span>                :            : 
+<span class="lineNum">      56 </span>                :            :     bool IsNull() const;
+<span class="lineNum">      57 </span>                :            :     void FillSignatureData(SignatureData&amp; sigdata) const;
+<span class="lineNum">      58 </span>                :            :     void FromSignatureData(const SignatureData&amp; sigdata);
+<a name="59"><span class="lineNum">      59 </span>                :            :     void Merge(const PSBTInput&amp; input);</a>
+<span class="lineNum">      60 </span>                :            :     bool IsSane() const;
+<span class="lineNum">      61 </span>                :<span class="lineCov">          2 :     PSBTInput() {}</span>
+<span class="lineNum">      62 </span>                :            : 
+<span class="lineNum">      63 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">      64 </span>                :<span class="lineCov">          2 :     inline void Serialize(Stream&amp; s) const {</span>
+<span class="lineNum">      65 </span>                :            :         // Write the utxo
+<span class="lineNum">      66 </span>                :            :         // If there is a non-witness utxo, then don't add the witness one.
+<span class="lineNum">      67 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          2 :         if (non_witness_utxo) {</span>
+<span class="lineNum">      68 </span>                :<span class="lineCov">          1 :             SerializeToVector(s, PSBT_IN_NON_WITNESS_UTXO);</span>
+<span class="lineNum">      69 </span>                :<span class="lineCov">          3 :             OverrideStream&lt;Stream&gt; os(&amp;s, s.GetType(), s.GetVersion() | SERIALIZE_TRANSACTION_NO_WITNESS);</span>
+<span class="lineNum">      70 </span>                :<span class="lineCov">          1 :             SerializeToVector(os, non_witness_utxo);</span>
+<span class="lineNum">      71 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          1 :         } else if (!witness_utxo.IsNull()) {</span>
+<span class="lineNum">      72 </span>                :<span class="lineCov">          1 :             SerializeToVector(s, PSBT_IN_WITNESS_UTXO);</span>
+<span class="lineNum">      73 </span>                :<span class="lineCov">          1 :             SerializeToVector(s, witness_utxo);</span>
+<span class="lineNum">      74 </span>                :            :         }
+<span class="lineNum">      75 </span>                :            : 
+<span class="lineNum">      76 </span>[<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          2 :         if (final_script_sig.empty() &amp;&amp; final_script_witness.IsNull()) {</span>
+<span class="lineNum">      77 </span>                :            :             // Write any partial signatures
+<span class="lineNum">      78 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :             for (auto sig_pair : partial_sigs) {</span>
+<span class="lineNum">      79 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 SerializeToVector(s, PSBT_IN_PARTIAL_SIG, MakeSpan(sig_pair.second.first));</span>
+<span class="lineNum">      80 </span>                :<span class="lineNoCov">          0 :                 s &lt;&lt; sig_pair.second.second;</span>
+<span class="lineNum">      81 </span>                :            :             }
+<span class="lineNum">      82 </span>                :            : 
+<span class="lineNum">      83 </span>                :            :             // Write the sighash type
+<span class="lineNum">      84 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :             if (sighash_type &gt; 0) {</span>
+<span class="lineNum">      85 </span>                :<span class="lineNoCov">          0 :                 SerializeToVector(s, PSBT_IN_SIGHASH);</span>
+<span class="lineNum">      86 </span>                :<span class="lineNoCov">          0 :                 SerializeToVector(s, sighash_type);</span>
+<span class="lineNum">      87 </span>                :            :             }
+<span class="lineNum">      88 </span>                :            : 
+<span class="lineNum">      89 </span>                :            :             // Write the redeem script
+<span class="lineNum">      90 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :             if (!redeem_script.empty()) {</span>
+<span class="lineNum">      91 </span>                :<span class="lineCov">          2 :                 SerializeToVector(s, PSBT_IN_REDEEMSCRIPT);</span>
+<span class="lineNum">      92 </span>                :<span class="lineCov">          2 :                 s &lt;&lt; redeem_script;</span>
+<span class="lineNum">      93 </span>                :            :             }
+<span class="lineNum">      94 </span>                :            : 
+<span class="lineNum">      95 </span>                :            :             // Write the witness script
+<span class="lineNum">      96 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          2 :             if (!witness_script.empty()) {</span>
+<span class="lineNum">      97 </span>                :<span class="lineCov">          1 :                 SerializeToVector(s, PSBT_IN_WITNESSSCRIPT);</span>
+<span class="lineNum">      98 </span>                :<span class="lineCov">          1 :                 s &lt;&lt; witness_script;</span>
+<span class="lineNum">      99 </span>                :            :             }
+<span class="lineNum">     100 </span>                :            : 
+<span class="lineNum">     101 </span>                :            :             // Write any hd keypaths
+<span class="lineNum">     102 </span>                :<span class="lineCov">          2 :             SerializeHDKeypaths(s, hd_keypaths, PSBT_IN_BIP32_DERIVATION);</span>
+<span class="lineNum">     103 </span>                :            :         }
+<span class="lineNum">     104 </span>                :            : 
+<span class="lineNum">     105 </span>                :            :         // Write script sig
+<span class="lineNum">     106 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :         if (!final_script_sig.empty()) {</span>
+<span class="lineNum">     107 </span>                :<span class="lineNoCov">          0 :             SerializeToVector(s, PSBT_IN_SCRIPTSIG);</span>
+<span class="lineNum">     108 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; final_script_sig;</span>
+<span class="lineNum">     109 </span>                :            :         }
+<span class="lineNum">     110 </span>                :            :         // write script witness
+<span class="lineNum">     111 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :         if (!final_script_witness.IsNull()) {</span>
+<span class="lineNum">     112 </span>                :<span class="lineNoCov">          0 :             SerializeToVector(s, PSBT_IN_SCRIPTWITNESS);</span>
+<span class="lineNum">     113 </span>                :<span class="lineNoCov">          0 :             SerializeToVector(s, final_script_witness.stack);</span>
+<span class="lineNum">     114 </span>                :            :         }
+<span class="lineNum">     115 </span>                :            : 
+<span class="lineNum">     116 </span>                :            :         // Write unknown things
+<span class="lineNum">     117 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :         for (auto&amp; entry : unknown) {</span>
+<span class="lineNum">     118 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; entry.first;</span>
+<span class="lineNum">     119 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; entry.second;</span>
+<span class="lineNum">     120 </span>                :            :         }
+<span class="lineNum">     121 </span>                :            : 
+<span class="lineNum">     122 </span>                :<span class="lineCov">          2 :         s &lt;&lt; PSBT_SEPARATOR;</span>
+<span class="lineNum">     123 </span>                :<span class="lineCov">          2 :     }</span>
+<span class="lineNum">     124 </span>                :            : 
+<span class="lineNum">     125 </span>                :            : 
+<span class="lineNum">     126 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">     127 </span>                :<span class="lineCov">          2 :     inline void Unserialize(Stream&amp; s) {</span>
+<span class="lineNum">     128 </span>                :            :         // Read loop
+<span class="lineNum">     129 </span>                :<span class="lineCov">          2 :         bool found_sep = false;</span>
+<span class="lineNum">     130 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :         while(!s.empty()) {</span>
+<span class="lineNum">     131 </span>                :            :             // Read
+<span class="lineNum">     132 </span>                :<span class="lineNoCov">          0 :             std::vector&lt;unsigned char&gt; key;</span>
+<span class="lineNum">     133 </span>                :<span class="lineCov">          2 :             s &gt;&gt; key;</span>
+<span class="lineNum">     134 </span>                :            : 
+<span class="lineNum">     135 </span>                :            :             // the key is empty if that was actually a separator byte
+<span class="lineNum">     136 </span>                :            :             // This is a special case for key lengths 0 as those are not allowed (except for separator)
+<span class="lineNum">     137 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :             if (key.empty()) {</span>
+<span class="lineNum">     138 </span>                :<span class="lineCov">          2 :                 found_sep = true;</span>
+<span class="lineNum">     139 </span>                :<span class="lineCov">          2 :                 break;</span>
+<span class="lineNum">     140 </span>                :            :             }
+<span class="lineNum">     141 </span>                :            : 
+<span class="lineNum">     142 </span>                :            :             // First byte of key is the type
+<span class="lineNum">     143 </span>                :<span class="lineNoCov">          0 :             unsigned char type = key[0];</span>
+<span class="lineNum">     144 </span>                :            : 
+<span class="lineNum">     145 </span>                :            :             // Do stuff based on type
+<span class="lineNum">     146 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :             switch(type) {</span>
 <span class="lineNum">         </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span> 
 <span class="lineNum">         </span>            <span class="branchNoExec" title="Branch 9 was not executed"> # </span>]
-<span class="lineNum">     145 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_NON_WITNESS_UTXO:</span>
-<span class="lineNum">     146 </span>                :            :                 {
-<span class="lineNum">     147 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (non_witness_utxo) {</span>
-<span class="lineNum">     148 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input non-witness utxo already provided&quot;);</span>
-<span class="lineNum">     149 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
-<span class="lineNum">     150 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Non-witness utxo key is more than one byte type&quot;);</span>
-<span class="lineNum">     151 </span>                :            :                     }
-<span class="lineNum">     152 </span>                :            :                     // Set the stream to unserialize with witness since this is always a valid network transaction
-<span class="lineNum">     153 </span>                :<span class="lineNoCov">          0 :                     OverrideStream&lt;Stream&gt; os(&amp;s, s.GetType(), s.GetVersion() &amp; ~SERIALIZE_TRANSACTION_NO_WITNESS);</span>
-<span class="lineNum">     154 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     UnserializeFromVector(os, non_witness_utxo);</span>
-<span class="lineNum">     155 </span>                :            :                     break;
-<span class="lineNum">     156 </span>                :            :                 }
-<span class="lineNum">     157 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_WITNESS_UTXO:</span>
-<span class="lineNum">     158 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!witness_utxo.IsNull()) {</span>
-<span class="lineNum">     159 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input witness utxo already provided&quot;);</span>
-<span class="lineNum">     160 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
-<span class="lineNum">     161 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Witness utxo key is more than one byte type&quot;);</span>
-<span class="lineNum">     162 </span>                :            :                     }
-<span class="lineNum">     163 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     UnserializeFromVector(s, witness_utxo);</span>
-<span class="lineNum">     164 </span>                :            :                     break;
-<span class="lineNum">     165 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_PARTIAL_SIG:</span>
-<span class="lineNum">     166 </span>                :            :                 {
-<span class="lineNum">     167 </span>                :            :                     // Make sure that the key is the size of pubkey + 1
-<span class="lineNum">     168 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (key.size() != CPubKey::PUBLIC_KEY_SIZE + 1 &amp;&amp; key.size() != CPubKey::COMPRESSED_PUBLIC_KEY_SIZE + 1) {</span>
-<span class="lineNum">     169 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Size of key was not the expected size for the type partial signature pubkey&quot;);</span>
-<span class="lineNum">     170 </span>                :            :                     }
-<span class="lineNum">     171 </span>                :            :                     // Read in the pubkey from key
-<span class="lineNum">     172 </span>                :<span class="lineNoCov">          0 :                     CPubKey pubkey(key.begin() + 1, key.end());</span>
-<span class="lineNum">     173 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!pubkey.IsFullyValid()) {</span>
-<span class="lineNum">     174 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                        throw std::ios_base::failure(&quot;Invalid pubkey&quot;);</span>
-<span class="lineNum">     175 </span>                :            :                     }
-<span class="lineNum">     176 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (partial_sigs.count(pubkey.GetID()) &gt; 0) {</span>
-<span class="lineNum">     177 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input partial signature for pubkey already provided&quot;);</span>
-<span class="lineNum">     178 </span>                :            :                     }
-<span class="lineNum">     179 </span>                :            : 
-<span class="lineNum">     180 </span>                :            :                     // Read in the signature from value
-<span class="lineNum">     181 </span>                :<span class="lineNoCov">          0 :                     std::vector&lt;unsigned char&gt; sig;</span>
-<span class="lineNum">     182 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; sig;</span>
-<span class="lineNum">     183 </span>                :            : 
-<span class="lineNum">     184 </span>                :            :                     // Add to list
-<span class="lineNum">     185 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     partial_sigs.emplace(pubkey.GetID(), SigPair(pubkey, std::move(sig)));</span>
-<span class="lineNum">     186 </span>                :            :                     break;
-<span class="lineNum">     187 </span>                :            :                 }
-<span class="lineNum">     188 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_SIGHASH:</span>
-<span class="lineNum">     189 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (sighash_type &gt; 0) {</span>
-<span class="lineNum">     190 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input sighash type already provided&quot;);</span>
-<span class="lineNum">     191 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
-<span class="lineNum">     192 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Sighash type key is more than one byte type&quot;);</span>
-<span class="lineNum">     193 </span>                :            :                     }
-<span class="lineNum">     194 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     UnserializeFromVector(s, sighash_type);</span>
-<span class="lineNum">     195 </span>                :            :                     break;
-<span class="lineNum">     196 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_REDEEMSCRIPT:</span>
-<span class="lineNum">     197 </span>                :            :                 {
-<span class="lineNum">     198 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!redeem_script.empty()) {</span>
-<span class="lineNum">     199 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input redeemScript already provided&quot;);</span>
-<span class="lineNum">     200 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
-<span class="lineNum">     201 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Input redeemScript key is more than one byte type&quot;);</span>
-<span class="lineNum">     202 </span>                :            :                     }
-<span class="lineNum">     203 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; redeem_script;</span>
-<span class="lineNum">     204 </span>                :            :                     break;
-<span class="lineNum">     205 </span>                :            :                 }
-<span class="lineNum">     206 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_WITNESSSCRIPT:</span>
-<span class="lineNum">     207 </span>                :            :                 {
-<span class="lineNum">     208 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!witness_script.empty()) {</span>
-<span class="lineNum">     209 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input witnessScript already provided&quot;);</span>
-<span class="lineNum">     210 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
-<span class="lineNum">     211 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Input witnessScript key is more than one byte type&quot;);</span>
-<span class="lineNum">     212 </span>                :            :                     }
-<span class="lineNum">     213 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; witness_script;</span>
-<span class="lineNum">     214 </span>                :            :                     break;
-<span class="lineNum">     215 </span>                :            :                 }
-<span class="lineNum">     216 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_BIP32_DERIVATION:</span>
-<span class="lineNum">     217 </span>                :            :                 {
-<span class="lineNum">     218 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     DeserializeHDKeypaths(s, key, hd_keypaths);</span>
-<span class="lineNum">     219 </span>                :            :                     break;
-<span class="lineNum">     220 </span>                :            :                 }
-<span class="lineNum">     221 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_SCRIPTSIG:</span>
-<span class="lineNum">     222 </span>                :            :                 {
-<span class="lineNum">     223 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!final_script_sig.empty()) {</span>
-<span class="lineNum">     224 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input final scriptSig already provided&quot;);</span>
-<span class="lineNum">     225 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
-<span class="lineNum">     226 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Final scriptSig key is more than one byte type&quot;);</span>
-<span class="lineNum">     227 </span>                :            :                     }
-<span class="lineNum">     228 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; final_script_sig;</span>
-<span class="lineNum">     229 </span>                :            :                     break;
-<span class="lineNum">     230 </span>                :            :                 }
-<span class="lineNum">     231 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_SCRIPTWITNESS:</span>
-<span class="lineNum">     232 </span>                :            :                 {
-<span class="lineNum">     233 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!final_script_witness.IsNull()) {</span>
-<span class="lineNum">     234 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input final scriptWitness already provided&quot;);</span>
-<span class="lineNum">     235 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
-<span class="lineNum">     236 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Final scriptWitness key is more than one byte type&quot;);</span>
-<span class="lineNum">     237 </span>                :            :                     }
-<span class="lineNum">     238 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     UnserializeFromVector(s, final_script_witness.stack);</span>
-<span class="lineNum">     239 </span>                :            :                     break;
-<span class="lineNum">     240 </span>                :            :                 }
-<span class="lineNum">     241 </span>                :            :                 // Unknown stuff
-<span class="lineNum">     242 </span>                :<span class="lineNoCov">          0 :                 default:</span>
-<span class="lineNum">     243 </span>                :<span class="lineNoCov">          0 :                     if (unknown.count(key) &gt; 0) {</span>
-<span class="lineNum">     244 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, key for unknown value already provided&quot;);</span>
-<span class="lineNum">     245 </span>                :            :                     }
-<span class="lineNum">     246 </span>                :            :                     // Read in the value
-<span class="lineNum">     247 </span>                :<span class="lineNoCov">          0 :                     std::vector&lt;unsigned char&gt; val_bytes;</span>
-<span class="lineNum">     248 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; val_bytes;</span>
-<span class="lineNum">     249 </span>                :<span class="lineNoCov">          0 :                     unknown.emplace(std::move(key), std::move(val_bytes));</span>
-<span class="lineNum">     250 </span>                :            :                     break;
-<span class="lineNum">     251 </span>                :            :             }
-<span class="lineNum">     252 </span>                :            :         }
-<span class="lineNum">     253 </span>                :            : 
-<span class="lineNum">     254 </span>                :            :         if (!found_sep) {
-<span class="lineNum">     255 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Separator is missing at the end of an input map&quot;);</span>
-<span class="lineNum">     256 </span>                :            :         }
-<span class="lineNum">     257 </span>                :<span class="lineCov">          2 :     }</span>
-<span class="lineNum">     258 </span>                :            : 
-<span class="lineNum">     259 </span>                :            :     template &lt;typename Stream&gt;
-<span class="lineNum">     260 </span>                :            :     PSBTInput(deserialize_type, Stream&amp; s) {
-<span class="lineNum">     261 </span>                :            :         Unserialize(s);
-<span class="lineNum">     262 </span>                :            :     }
-<span class="lineNum">     263 </span>                :            : };
-<a name="264"><span class="lineNum">     264 </span>                :            : </a>
-<span class="lineNum">     265 </span>                :            : /** A structure for PSBTs which contains per output information */
-<span class="lineNum">     266 </span>                :<span class="lineCov">          8 : struct PSBTOutput</span>
-<span class="lineNum">     267 </span>                :            : {
-<span class="lineNum">     268 </span>                :            :     CScript redeem_script;
-<span class="lineNum">     269 </span>                :            :     CScript witness_script;
-<span class="lineNum">     270 </span>                :            :     std::map&lt;CPubKey, KeyOriginInfo&gt; hd_keypaths;
-<span class="lineNum">     271 </span>                :            :     std::map&lt;std::vector&lt;unsigned char&gt;, std::vector&lt;unsigned char&gt;&gt; unknown;
-<span class="lineNum">     272 </span>                :            : 
-<span class="lineNum">     273 </span>                :            :     bool IsNull() const;
-<span class="lineNum">     274 </span>                :            :     void FillSignatureData(SignatureData&amp; sigdata) const;
-<span class="lineNum">     275 </span>                :            :     void FromSignatureData(const SignatureData&amp; sigdata);
-<span class="lineNum">     276 </span>                :            :     void Merge(const PSBTOutput&amp; output);
-<span class="lineNum">     277 </span>                :            :     bool IsSane() const;
-<span class="lineNum">     278 </span>                :<span class="lineCov">         10 :     PSBTOutput() {}</span>
-<a name="279"><span class="lineNum">     279 </span>                :            : </a>
-<span class="lineNum">     280 </span>                :            :     template &lt;typename Stream&gt;
-<span class="lineNum">     281 </span>                :<span class="lineCov">          2 :     inline void Serialize(Stream&amp; s) const {</span>
-<span class="lineNum">     282 </span>                :            :         // Write the redeem script
-<span class="lineNum">     283 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :         if (!redeem_script.empty()) {</span>
-<span class="lineNum">     284 </span>                :<span class="lineNoCov">          0 :             SerializeToVector(s, PSBT_OUT_REDEEMSCRIPT);</span>
-<span class="lineNum">     285 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; redeem_script;</span>
-<span class="lineNum">     286 </span>                :            :         }
-<span class="lineNum">     287 </span>                :            : 
-<span class="lineNum">     288 </span>                :            :         // Write the witness script
-<span class="lineNum">     289 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :         if (!witness_script.empty()) {</span>
-<span class="lineNum">     290 </span>                :<span class="lineNoCov">          0 :             SerializeToVector(s, PSBT_OUT_WITNESSSCRIPT);</span>
-<span class="lineNum">     291 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; witness_script;</span>
-<span class="lineNum">     292 </span>                :            :         }
-<span class="lineNum">     293 </span>                :            : 
-<span class="lineNum">     294 </span>                :            :         // Write any hd keypaths
-<span class="lineNum">     295 </span>                :<span class="lineCov">          2 :         SerializeHDKeypaths(s, hd_keypaths, PSBT_OUT_BIP32_DERIVATION);</span>
-<span class="lineNum">     296 </span>                :            : 
-<span class="lineNum">     297 </span>                :            :         // Write unknown things
-<span class="lineNum">     298 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :         for (auto&amp; entry : unknown) {</span>
-<span class="lineNum">     299 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; entry.first;</span>
-<span class="lineNum">     300 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; entry.second;</span>
-<span class="lineNum">     301 </span>                :            :         }
-<span class="lineNum">     302 </span>                :            : 
-<span class="lineNum">     303 </span>                :<span class="lineCov">          2 :         s &lt;&lt; PSBT_SEPARATOR;</span>
-<span class="lineNum">     304 </span>                :<span class="lineCov">          2 :     }</span>
-<span class="lineNum">     305 </span>                :            : 
-<span class="lineNum">     306 </span>                :            : 
-<span class="lineNum">     307 </span>                :            :     template &lt;typename Stream&gt;
-<span class="lineNum">     308 </span>                :<span class="lineCov">          2 :     inline void Unserialize(Stream&amp; s) {</span>
-<span class="lineNum">     309 </span>                :            :         // Read loop
-<span class="lineNum">     310 </span>                :<span class="lineCov">          2 :         bool found_sep = false;</span>
-<span class="lineNum">     311 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :         while(!s.empty()) {</span>
-<span class="lineNum">     312 </span>                :            :             // Read
-<span class="lineNum">     313 </span>                :<span class="lineNoCov">          0 :             std::vector&lt;unsigned char&gt; key;</span>
-<span class="lineNum">     314 </span>                :<span class="lineCov">          2 :             s &gt;&gt; key;</span>
-<span class="lineNum">     315 </span>                :            : 
-<span class="lineNum">     316 </span>                :            :             // the key is empty if that was actually a separator byte
-<span class="lineNum">     317 </span>                :            :             // This is a special case for key lengths 0 as those are not allowed (except for separator)
-<span class="lineNum">     318 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :             if (key.empty()) {</span>
-<span class="lineNum">     319 </span>                :<span class="lineCov">          2 :                 found_sep = true;</span>
-<span class="lineNum">     320 </span>                :<span class="lineCov">          2 :                 break;</span>
-<span class="lineNum">     321 </span>                :            :             }
-<span class="lineNum">     322 </span>                :            : 
-<span class="lineNum">     323 </span>                :            :             // First byte of key is the type
-<span class="lineNum">     324 </span>                :<span class="lineNoCov">          0 :             unsigned char type = key[0];</span>
-<span class="lineNum">     325 </span>                :            : 
-<span class="lineNum">     326 </span>                :            :             // Do stuff based on type
-<span class="lineNum">     327 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             switch(type) {</span>
-<span class="lineNum">     328 </span>                :<span class="lineNoCov">          0 :                 case PSBT_OUT_REDEEMSCRIPT:</span>
-<span class="lineNum">     329 </span>                :            :                 {
-<span class="lineNum">     330 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!redeem_script.empty()) {</span>
-<span class="lineNum">     331 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, output redeemScript already provided&quot;);</span>
-<span class="lineNum">     332 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
-<span class="lineNum">     333 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Output redeemScript key is more than one byte type&quot;);</span>
-<span class="lineNum">     334 </span>                :            :                     }
-<span class="lineNum">     335 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; redeem_script;</span>
-<span class="lineNum">     336 </span>                :            :                     break;
-<span class="lineNum">     337 </span>                :            :                 }
-<span class="lineNum">     338 </span>                :<span class="lineNoCov">          0 :                 case PSBT_OUT_WITNESSSCRIPT:</span>
-<span class="lineNum">     339 </span>                :            :                 {
-<span class="lineNum">     340 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!witness_script.empty()) {</span>
-<span class="lineNum">     341 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, output witnessScript already provided&quot;);</span>
-<span class="lineNum">     342 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
-<span class="lineNum">     343 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Output witnessScript key is more than one byte type&quot;);</span>
-<span class="lineNum">     344 </span>                :            :                     }
-<span class="lineNum">     345 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; witness_script;</span>
-<span class="lineNum">     346 </span>                :            :                     break;
-<span class="lineNum">     347 </span>                :            :                 }
-<span class="lineNum">     348 </span>                :<span class="lineNoCov">          0 :                 case PSBT_OUT_BIP32_DERIVATION:</span>
-<span class="lineNum">     349 </span>                :            :                 {
-<span class="lineNum">     350 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     DeserializeHDKeypaths(s, key, hd_keypaths);</span>
-<span class="lineNum">     351 </span>                :            :                     break;
-<span class="lineNum">     352 </span>                :            :                 }
-<span class="lineNum">     353 </span>                :            :                 // Unknown stuff
-<span class="lineNum">     354 </span>                :<span class="lineNoCov">          0 :                 default: {</span>
-<span class="lineNum">     355 </span>                :<span class="lineNoCov">          0 :                     if (unknown.count(key) &gt; 0) {</span>
-<span class="lineNum">     356 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, key for unknown value already provided&quot;);</span>
-<span class="lineNum">     357 </span>                :            :                     }
-<span class="lineNum">     358 </span>                :            :                     // Read in the value
-<span class="lineNum">     359 </span>                :<span class="lineNoCov">          0 :                     std::vector&lt;unsigned char&gt; val_bytes;</span>
-<span class="lineNum">     360 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; val_bytes;</span>
-<span class="lineNum">     361 </span>                :<span class="lineNoCov">          0 :                     unknown.emplace(std::move(key), std::move(val_bytes));</span>
-<span class="lineNum">     362 </span>                :            :                     break;
-<span class="lineNum">     363 </span>                :            :                 }
-<span class="lineNum">     364 </span>                :            :             }
-<span class="lineNum">     365 </span>                :            :         }
-<span class="lineNum">     366 </span>                :            : 
-<span class="lineNum">     367 </span>                :            :         if (!found_sep) {
-<span class="lineNum">     368 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Separator is missing at the end of an output map&quot;);</span>
-<span class="lineNum">     369 </span>                :            :         }
-<span class="lineNum">     370 </span>                :<span class="lineCov">          2 :     }</span>
-<span class="lineNum">     371 </span>                :            : 
-<span class="lineNum">     372 </span>                :            :     template &lt;typename Stream&gt;
-<span class="lineNum">     373 </span>                :            :     PSBTOutput(deserialize_type, Stream&amp; s) {
-<span class="lineNum">     374 </span>                :            :         Unserialize(s);
-<span class="lineNum">     375 </span>                :            :     }
-<span class="lineNum">     376 </span>                :            : };
-<a name="377"><span class="lineNum">     377 </span>                :            : </a>
-<span class="lineNum">     378 </span>                :            : /** A version of CTransaction with the PSBT format*/
-<span class="lineNum">     379 </span>                :<span class="lineCov">          2 : struct PartiallySignedTransaction</span>
-<span class="lineNum">     380 </span>                :            : {
-<span class="lineNum">     381 </span>                :            :     boost::optional&lt;CMutableTransaction&gt; tx;
-<span class="lineNum">     382 </span>                :            :     std::vector&lt;PSBTInput&gt; inputs;
-<span class="lineNum">     383 </span>                :            :     std::vector&lt;PSBTOutput&gt; outputs;
-<span class="lineNum">     384 </span>                :            :     std::map&lt;std::vector&lt;unsigned char&gt;, std::vector&lt;unsigned char&gt;&gt; unknown;
-<span class="lineNum">     385 </span>                :            : 
-<span class="lineNum">     386 </span>                :            :     bool IsNull() const;
+<span class="lineNum">     147 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_NON_WITNESS_UTXO:</span>
+<span class="lineNum">     148 </span>                :            :                 {
+<span class="lineNum">     149 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (non_witness_utxo) {</span>
+<span class="lineNum">     150 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input non-witness utxo already provided&quot;);</span>
+<span class="lineNum">     151 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
+<span class="lineNum">     152 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Non-witness utxo key is more than one byte type&quot;);</span>
+<span class="lineNum">     153 </span>                :            :                     }
+<span class="lineNum">     154 </span>                :            :                     // Set the stream to unserialize with witness since this is always a valid network transaction
+<span class="lineNum">     155 </span>                :<span class="lineNoCov">          0 :                     OverrideStream&lt;Stream&gt; os(&amp;s, s.GetType(), s.GetVersion() &amp; ~SERIALIZE_TRANSACTION_NO_WITNESS);</span>
+<span class="lineNum">     156 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     UnserializeFromVector(os, non_witness_utxo);</span>
+<span class="lineNum">     157 </span>                :            :                     break;
+<span class="lineNum">     158 </span>                :            :                 }
+<span class="lineNum">     159 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_WITNESS_UTXO:</span>
+<span class="lineNum">     160 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!witness_utxo.IsNull()) {</span>
+<span class="lineNum">     161 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input witness utxo already provided&quot;);</span>
+<span class="lineNum">     162 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
+<span class="lineNum">     163 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Witness utxo key is more than one byte type&quot;);</span>
+<span class="lineNum">     164 </span>                :            :                     }
+<span class="lineNum">     165 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     UnserializeFromVector(s, witness_utxo);</span>
+<span class="lineNum">     166 </span>                :            :                     break;
+<span class="lineNum">     167 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_PARTIAL_SIG:</span>
+<span class="lineNum">     168 </span>                :            :                 {
+<span class="lineNum">     169 </span>                :            :                     // Make sure that the key is the size of pubkey + 1
+<span class="lineNum">     170 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (key.size() != CPubKey::PUBLIC_KEY_SIZE + 1 &amp;&amp; key.size() != CPubKey::COMPRESSED_PUBLIC_KEY_SIZE + 1) {</span>
+<span class="lineNum">     171 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Size of key was not the expected size for the type partial signature pubkey&quot;);</span>
+<span class="lineNum">     172 </span>                :            :                     }
+<span class="lineNum">     173 </span>                :            :                     // Read in the pubkey from key
+<span class="lineNum">     174 </span>                :<span class="lineNoCov">          0 :                     CPubKey pubkey(key.begin() + 1, key.end());</span>
+<span class="lineNum">     175 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!pubkey.IsFullyValid()) {</span>
+<span class="lineNum">     176 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                        throw std::ios_base::failure(&quot;Invalid pubkey&quot;);</span>
+<span class="lineNum">     177 </span>                :            :                     }
+<span class="lineNum">     178 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (partial_sigs.count(pubkey.GetID()) &gt; 0) {</span>
+<span class="lineNum">     179 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input partial signature for pubkey already provided&quot;);</span>
+<span class="lineNum">     180 </span>                :            :                     }
+<span class="lineNum">     181 </span>                :            : 
+<span class="lineNum">     182 </span>                :            :                     // Read in the signature from value
+<span class="lineNum">     183 </span>                :<span class="lineNoCov">          0 :                     std::vector&lt;unsigned char&gt; sig;</span>
+<span class="lineNum">     184 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; sig;</span>
+<span class="lineNum">     185 </span>                :            : 
+<span class="lineNum">     186 </span>                :            :                     // Add to list
+<span class="lineNum">     187 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     partial_sigs.emplace(pubkey.GetID(), SigPair(pubkey, std::move(sig)));</span>
+<span class="lineNum">     188 </span>                :            :                     break;
+<span class="lineNum">     189 </span>                :            :                 }
+<span class="lineNum">     190 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_SIGHASH:</span>
+<span class="lineNum">     191 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (sighash_type &gt; 0) {</span>
+<span class="lineNum">     192 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input sighash type already provided&quot;);</span>
+<span class="lineNum">     193 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
+<span class="lineNum">     194 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Sighash type key is more than one byte type&quot;);</span>
+<span class="lineNum">     195 </span>                :            :                     }
+<span class="lineNum">     196 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     UnserializeFromVector(s, sighash_type);</span>
+<span class="lineNum">     197 </span>                :            :                     break;
+<span class="lineNum">     198 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_REDEEMSCRIPT:</span>
+<span class="lineNum">     199 </span>                :            :                 {
+<span class="lineNum">     200 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!redeem_script.empty()) {</span>
+<span class="lineNum">     201 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input redeemScript already provided&quot;);</span>
+<span class="lineNum">     202 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
+<span class="lineNum">     203 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Input redeemScript key is more than one byte type&quot;);</span>
+<span class="lineNum">     204 </span>                :            :                     }
+<span class="lineNum">     205 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; redeem_script;</span>
+<span class="lineNum">     206 </span>                :            :                     break;
+<span class="lineNum">     207 </span>                :            :                 }
+<span class="lineNum">     208 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_WITNESSSCRIPT:</span>
+<span class="lineNum">     209 </span>                :            :                 {
+<span class="lineNum">     210 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!witness_script.empty()) {</span>
+<span class="lineNum">     211 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input witnessScript already provided&quot;);</span>
+<span class="lineNum">     212 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
+<span class="lineNum">     213 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Input witnessScript key is more than one byte type&quot;);</span>
+<span class="lineNum">     214 </span>                :            :                     }
+<span class="lineNum">     215 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; witness_script;</span>
+<span class="lineNum">     216 </span>                :            :                     break;
+<span class="lineNum">     217 </span>                :            :                 }
+<span class="lineNum">     218 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_BIP32_DERIVATION:</span>
+<span class="lineNum">     219 </span>                :            :                 {
+<span class="lineNum">     220 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     DeserializeHDKeypaths(s, key, hd_keypaths);</span>
+<span class="lineNum">     221 </span>                :            :                     break;
+<span class="lineNum">     222 </span>                :            :                 }
+<span class="lineNum">     223 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_SCRIPTSIG:</span>
+<span class="lineNum">     224 </span>                :            :                 {
+<span class="lineNum">     225 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!final_script_sig.empty()) {</span>
+<span class="lineNum">     226 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input final scriptSig already provided&quot;);</span>
+<span class="lineNum">     227 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
+<span class="lineNum">     228 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Final scriptSig key is more than one byte type&quot;);</span>
+<span class="lineNum">     229 </span>                :            :                     }
+<span class="lineNum">     230 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; final_script_sig;</span>
+<span class="lineNum">     231 </span>                :            :                     break;
+<span class="lineNum">     232 </span>                :            :                 }
+<span class="lineNum">     233 </span>                :<span class="lineNoCov">          0 :                 case PSBT_IN_SCRIPTWITNESS:</span>
+<span class="lineNum">     234 </span>                :            :                 {
+<span class="lineNum">     235 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!final_script_witness.IsNull()) {</span>
+<span class="lineNum">     236 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, input final scriptWitness already provided&quot;);</span>
+<span class="lineNum">     237 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
+<span class="lineNum">     238 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Final scriptWitness key is more than one byte type&quot;);</span>
+<span class="lineNum">     239 </span>                :            :                     }
+<span class="lineNum">     240 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     UnserializeFromVector(s, final_script_witness.stack);</span>
+<span class="lineNum">     241 </span>                :            :                     break;
+<span class="lineNum">     242 </span>                :            :                 }
+<span class="lineNum">     243 </span>                :            :                 // Unknown stuff
+<span class="lineNum">     244 </span>                :<span class="lineNoCov">          0 :                 default:</span>
+<span class="lineNum">     245 </span>                :<span class="lineNoCov">          0 :                     if (unknown.count(key) &gt; 0) {</span>
+<span class="lineNum">     246 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, key for unknown value already provided&quot;);</span>
+<span class="lineNum">     247 </span>                :            :                     }
+<span class="lineNum">     248 </span>                :            :                     // Read in the value
+<span class="lineNum">     249 </span>                :<span class="lineNoCov">          0 :                     std::vector&lt;unsigned char&gt; val_bytes;</span>
+<span class="lineNum">     250 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; val_bytes;</span>
+<span class="lineNum">     251 </span>                :<span class="lineNoCov">          0 :                     unknown.emplace(std::move(key), std::move(val_bytes));</span>
+<span class="lineNum">     252 </span>                :            :                     break;
+<span class="lineNum">     253 </span>                :            :             }
+<span class="lineNum">     254 </span>                :            :         }
+<span class="lineNum">     255 </span>                :            : 
+<span class="lineNum">     256 </span>                :            :         if (!found_sep) {
+<span class="lineNum">     257 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Separator is missing at the end of an input map&quot;);</span>
+<span class="lineNum">     258 </span>                :            :         }
+<span class="lineNum">     259 </span>                :<span class="lineCov">          2 :     }</span>
+<span class="lineNum">     260 </span>                :            : 
+<span class="lineNum">     261 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">     262 </span>                :            :     PSBTInput(deserialize_type, Stream&amp; s) {
+<span class="lineNum">     263 </span>                :            :         Unserialize(s);
+<span class="lineNum">     264 </span>                :            :     }
+<span class="lineNum">     265 </span>                :            : };
+<a name="266"><span class="lineNum">     266 </span>                :            : </a>
+<span class="lineNum">     267 </span>                :            : /** A structure for PSBTs which contains per output information */
+<span class="lineNum">     268 </span>                :<span class="lineCov">          8 : struct PSBTOutput</span>
+<span class="lineNum">     269 </span>                :            : {
+<span class="lineNum">     270 </span>                :            :     CScript redeem_script;
+<span class="lineNum">     271 </span>                :            :     CScript witness_script;
+<span class="lineNum">     272 </span>                :            :     std::map&lt;CPubKey, KeyOriginInfo&gt; hd_keypaths;
+<span class="lineNum">     273 </span>                :            :     std::map&lt;std::vector&lt;unsigned char&gt;, std::vector&lt;unsigned char&gt;&gt; unknown;
+<span class="lineNum">     274 </span>                :            : 
+<span class="lineNum">     275 </span>                :            :     bool IsNull() const;
+<span class="lineNum">     276 </span>                :            :     void FillSignatureData(SignatureData&amp; sigdata) const;
+<span class="lineNum">     277 </span>                :            :     void FromSignatureData(const SignatureData&amp; sigdata);
+<span class="lineNum">     278 </span>                :            :     void Merge(const PSBTOutput&amp; output);
+<span class="lineNum">     279 </span>                :            :     bool IsSane() const;
+<span class="lineNum">     280 </span>                :<span class="lineCov">         10 :     PSBTOutput() {}</span>
+<a name="281"><span class="lineNum">     281 </span>                :            : </a>
+<span class="lineNum">     282 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">     283 </span>                :<span class="lineCov">          2 :     inline void Serialize(Stream&amp; s) const {</span>
+<span class="lineNum">     284 </span>                :            :         // Write the redeem script
+<span class="lineNum">     285 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :         if (!redeem_script.empty()) {</span>
+<span class="lineNum">     286 </span>                :<span class="lineNoCov">          0 :             SerializeToVector(s, PSBT_OUT_REDEEMSCRIPT);</span>
+<span class="lineNum">     287 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; redeem_script;</span>
+<span class="lineNum">     288 </span>                :            :         }
+<span class="lineNum">     289 </span>                :            : 
+<span class="lineNum">     290 </span>                :            :         // Write the witness script
+<span class="lineNum">     291 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :         if (!witness_script.empty()) {</span>
+<span class="lineNum">     292 </span>                :<span class="lineNoCov">          0 :             SerializeToVector(s, PSBT_OUT_WITNESSSCRIPT);</span>
+<span class="lineNum">     293 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; witness_script;</span>
+<span class="lineNum">     294 </span>                :            :         }
+<span class="lineNum">     295 </span>                :            : 
+<span class="lineNum">     296 </span>                :            :         // Write any hd keypaths
+<span class="lineNum">     297 </span>                :<span class="lineCov">          2 :         SerializeHDKeypaths(s, hd_keypaths, PSBT_OUT_BIP32_DERIVATION);</span>
+<span class="lineNum">     298 </span>                :            : 
+<span class="lineNum">     299 </span>                :            :         // Write unknown things
+<span class="lineNum">     300 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          2 :         for (auto&amp; entry : unknown) {</span>
+<span class="lineNum">     301 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; entry.first;</span>
+<span class="lineNum">     302 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; entry.second;</span>
+<span class="lineNum">     303 </span>                :            :         }
+<span class="lineNum">     304 </span>                :            : 
+<span class="lineNum">     305 </span>                :<span class="lineCov">          2 :         s &lt;&lt; PSBT_SEPARATOR;</span>
+<span class="lineNum">     306 </span>                :<span class="lineCov">          2 :     }</span>
+<span class="lineNum">     307 </span>                :            : 
+<span class="lineNum">     308 </span>                :            : 
+<span class="lineNum">     309 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">     310 </span>                :<span class="lineCov">          2 :     inline void Unserialize(Stream&amp; s) {</span>
+<span class="lineNum">     311 </span>                :            :         // Read loop
+<span class="lineNum">     312 </span>                :<span class="lineCov">          2 :         bool found_sep = false;</span>
+<span class="lineNum">     313 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :         while(!s.empty()) {</span>
+<span class="lineNum">     314 </span>                :            :             // Read
+<span class="lineNum">     315 </span>                :<span class="lineNoCov">          0 :             std::vector&lt;unsigned char&gt; key;</span>
+<span class="lineNum">     316 </span>                :<span class="lineCov">          2 :             s &gt;&gt; key;</span>
+<span class="lineNum">     317 </span>                :            : 
+<span class="lineNum">     318 </span>                :            :             // the key is empty if that was actually a separator byte
+<span class="lineNum">     319 </span>                :            :             // This is a special case for key lengths 0 as those are not allowed (except for separator)
+<span class="lineNum">     320 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :             if (key.empty()) {</span>
+<span class="lineNum">     321 </span>                :<span class="lineCov">          2 :                 found_sep = true;</span>
+<span class="lineNum">     322 </span>                :<span class="lineCov">          2 :                 break;</span>
+<span class="lineNum">     323 </span>                :            :             }
+<span class="lineNum">     324 </span>                :            : 
+<span class="lineNum">     325 </span>                :            :             // First byte of key is the type
+<span class="lineNum">     326 </span>                :<span class="lineNoCov">          0 :             unsigned char type = key[0];</span>
+<span class="lineNum">     327 </span>                :            : 
+<span class="lineNum">     328 </span>                :            :             // Do stuff based on type
+<span class="lineNum">     329 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             switch(type) {</span>
+<span class="lineNum">     330 </span>                :<span class="lineNoCov">          0 :                 case PSBT_OUT_REDEEMSCRIPT:</span>
+<span class="lineNum">     331 </span>                :            :                 {
+<span class="lineNum">     332 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!redeem_script.empty()) {</span>
+<span class="lineNum">     333 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, output redeemScript already provided&quot;);</span>
+<span class="lineNum">     334 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
+<span class="lineNum">     335 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Output redeemScript key is more than one byte type&quot;);</span>
+<span class="lineNum">     336 </span>                :            :                     }
+<span class="lineNum">     337 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; redeem_script;</span>
+<span class="lineNum">     338 </span>                :            :                     break;
+<span class="lineNum">     339 </span>                :            :                 }
+<span class="lineNum">     340 </span>                :<span class="lineNoCov">          0 :                 case PSBT_OUT_WITNESSSCRIPT:</span>
+<span class="lineNum">     341 </span>                :            :                 {
+<span class="lineNum">     342 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     if (!witness_script.empty()) {</span>
+<span class="lineNum">     343 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, output witnessScript already provided&quot;);</span>
+<span class="lineNum">     344 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     } else if (key.size() != 1) {</span>
+<span class="lineNum">     345 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Output witnessScript key is more than one byte type&quot;);</span>
+<span class="lineNum">     346 </span>                :            :                     }
+<span class="lineNum">     347 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; witness_script;</span>
+<span class="lineNum">     348 </span>                :            :                     break;
+<span class="lineNum">     349 </span>                :            :                 }
+<span class="lineNum">     350 </span>                :<span class="lineNoCov">          0 :                 case PSBT_OUT_BIP32_DERIVATION:</span>
+<span class="lineNum">     351 </span>                :            :                 {
+<span class="lineNum">     352 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                     DeserializeHDKeypaths(s, key, hd_keypaths);</span>
+<span class="lineNum">     353 </span>                :            :                     break;
+<span class="lineNum">     354 </span>                :            :                 }
+<span class="lineNum">     355 </span>                :            :                 // Unknown stuff
+<span class="lineNum">     356 </span>                :<span class="lineNoCov">          0 :                 default: {</span>
+<span class="lineNum">     357 </span>                :<span class="lineNoCov">          0 :                     if (unknown.count(key) &gt; 0) {</span>
+<span class="lineNum">     358 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, key for unknown value already provided&quot;);</span>
+<span class="lineNum">     359 </span>                :            :                     }
+<span class="lineNum">     360 </span>                :            :                     // Read in the value
+<span class="lineNum">     361 </span>                :<span class="lineNoCov">          0 :                     std::vector&lt;unsigned char&gt; val_bytes;</span>
+<span class="lineNum">     362 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; val_bytes;</span>
+<span class="lineNum">     363 </span>                :<span class="lineNoCov">          0 :                     unknown.emplace(std::move(key), std::move(val_bytes));</span>
+<span class="lineNum">     364 </span>                :            :                     break;
+<span class="lineNum">     365 </span>                :            :                 }
+<span class="lineNum">     366 </span>                :            :             }
+<span class="lineNum">     367 </span>                :            :         }
+<span class="lineNum">     368 </span>                :            : 
+<span class="lineNum">     369 </span>                :            :         if (!found_sep) {
+<span class="lineNum">     370 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Separator is missing at the end of an output map&quot;);</span>
+<span class="lineNum">     371 </span>                :            :         }
+<span class="lineNum">     372 </span>                :<span class="lineCov">          2 :     }</span>
+<span class="lineNum">     373 </span>                :            : 
+<span class="lineNum">     374 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">     375 </span>                :            :     PSBTOutput(deserialize_type, Stream&amp; s) {
+<span class="lineNum">     376 </span>                :            :         Unserialize(s);
+<span class="lineNum">     377 </span>                :            :     }
+<span class="lineNum">     378 </span>                :            : };
+<a name="379"><span class="lineNum">     379 </span>                :            : </a>
+<span class="lineNum">     380 </span>                :            : /** A version of CTransaction with the PSBT format*/
+<span class="lineNum">     381 </span>                :<span class="lineCov">          2 : struct PartiallySignedTransaction</span>
+<span class="lineNum">     382 </span>                :            : {
+<span class="lineNum">     383 </span>                :            :     boost::optional&lt;CMutableTransaction&gt; tx;
+<span class="lineNum">     384 </span>                :            :     std::vector&lt;PSBTInput&gt; inputs;
+<span class="lineNum">     385 </span>                :            :     std::vector&lt;PSBTOutput&gt; outputs;
+<span class="lineNum">     386 </span>                :            :     std::map&lt;std::vector&lt;unsigned char&gt;, std::vector&lt;unsigned char&gt;&gt; unknown;
 <span class="lineNum">     387 </span>                :            : 
-<span class="lineNum">     388 </span>                :            :     /** Merge psbt into this. The two psbts must have the same underlying CTransaction (i.e. the
-<span class="lineNum">     389 </span>                :            :       * same actual Bitcoin transaction.) Returns true if the merge succeeded, false otherwise. */
-<span class="lineNum">     390 </span>                :            :     NODISCARD bool Merge(const PartiallySignedTransaction&amp; psbt);
-<span class="lineNum">     391 </span>                :            :     bool IsSane() const;
-<span class="lineNum">     392 </span>                :            :     bool AddInput(const CTxIn&amp; txin, PSBTInput&amp; psbtin);
-<a name="393"><span class="lineNum">     393 </span>                :            :     bool AddOutput(const CTxOut&amp; txout, const PSBTOutput&amp; psbtout);</a>
-<span class="lineNum">     394 </span>                :<span class="lineCov">          5 :     PartiallySignedTransaction() {}</span>
-<span class="lineNum">     395 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :     PartiallySignedTransaction(const PartiallySignedTransaction&amp; psbt_in) : tx(psbt_in.tx), inputs(psbt_in.inputs), outputs(psbt_in.outputs), unknown(psbt_in.unknown) {}</span>
-<span class="lineNum">     396 </span>                :            :     explicit PartiallySignedTransaction(const CMutableTransaction&amp; tx);
-<span class="lineNum">     397 </span>                :            :     /**
-<span class="lineNum">     398 </span>                :            :      * Finds the UTXO for a given input index
-<span class="lineNum">     399 </span>                :            :      *
-<span class="lineNum">     400 </span>                :            :      * @param[out] utxo The UTXO of the input if found
-<span class="lineNum">     401 </span>                :            :      * @param[in] input_index Index of the input to retrieve the UTXO of
-<span class="lineNum">     402 </span>                :            :      * @return Whether the UTXO for the specified input was found
-<span class="lineNum">     403 </span>                :            :      */
-<span class="lineNum">     404 </span>                :            :     bool GetInputUTXO(CTxOut&amp; utxo, int input_index) const;
-<a name="405"><span class="lineNum">     405 </span>                :            : </a>
-<span class="lineNum">     406 </span>                :            :     template &lt;typename Stream&gt;
-<span class="lineNum">     407 </span>                :<span class="lineCov">          1 :     inline void Serialize(Stream&amp; s) const {</span>
-<span class="lineNum">     408 </span>                :            : 
-<span class="lineNum">     409 </span>                :            :         // magic bytes
-<span class="lineNum">     410 </span>                :<span class="lineCov">          1 :         s &lt;&lt; PSBT_MAGIC_BYTES;</span>
-<span class="lineNum">     411 </span>                :            : 
-<span class="lineNum">     412 </span>                :            :         // unsigned tx flag
-<span class="lineNum">     413 </span>                :<span class="lineCov">          1 :         SerializeToVector(s, PSBT_GLOBAL_UNSIGNED_TX);</span>
-<span class="lineNum">     414 </span>                :            : 
-<span class="lineNum">     415 </span>                :            :         // Write serialized tx to a stream
-<span class="lineNum">     416 </span>                :<span class="lineCov">          3 :         OverrideStream&lt;Stream&gt; os(&amp;s, s.GetType(), s.GetVersion() | SERIALIZE_TRANSACTION_NO_WITNESS);</span>
-<span class="lineNum">     417 </span>                :<span class="lineCov">          1 :         SerializeToVector(os, *tx);</span>
-<span class="lineNum">     418 </span>                :            : 
-<span class="lineNum">     419 </span>                :            :         // Write the unknown things
-<span class="lineNum">     420 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :         for (auto&amp; entry : unknown) {</span>
-<span class="lineNum">     421 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; entry.first;</span>
-<span class="lineNum">     422 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; entry.second;</span>
-<span class="lineNum">     423 </span>                :            :         }
-<span class="lineNum">     424 </span>                :            : 
-<span class="lineNum">     425 </span>                :            :         // Separator
-<span class="lineNum">     426 </span>                :<span class="lineCov">          1 :         s &lt;&lt; PSBT_SEPARATOR;</span>
-<span class="lineNum">     427 </span>                :            : 
-<span class="lineNum">     428 </span>                :            :         // Write inputs
-<span class="lineNum">     429 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          3 :         for (const PSBTInput&amp; input : inputs) {</span>
-<span class="lineNum">     430 </span>                :<span class="lineCov">          2 :             s &lt;&lt; input;</span>
-<span class="lineNum">     431 </span>                :            :         }
-<span class="lineNum">     432 </span>                :            :         // Write outputs
-<span class="lineNum">     433 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          3 :         for (const PSBTOutput&amp; output : outputs) {</span>
-<span class="lineNum">     434 </span>                :<span class="lineCov">          2 :             s &lt;&lt; output;</span>
-<span class="lineNum">     435 </span>                :            :         }
-<span class="lineNum">     436 </span>                :<span class="lineCov">          1 :     }</span>
-<span class="lineNum">     437 </span>                :            : 
-<span class="lineNum">     438 </span>                :            : 
-<span class="lineNum">     439 </span>                :            :     template &lt;typename Stream&gt;
-<span class="lineNum">     440 </span>                :<span class="lineCov">          1 :     inline void Unserialize(Stream&amp; s) {</span>
-<span class="lineNum">     441 </span>                :            :         // Read the magic bytes
-<span class="lineNum">     442 </span>                :            :         uint8_t magic[5];
-<span class="lineNum">     443 </span>                :<span class="lineCov">          1 :         s &gt;&gt; magic;</span>
-<span class="lineNum">     444 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :         if (!std::equal(magic, magic + 5, PSBT_MAGIC_BYTES)) {</span>
-<span class="lineNum">     445 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Invalid PSBT magic bytes&quot;);</span>
-<span class="lineNum">     446 </span>                :            :         }
-<span class="lineNum">     447 </span>                :            : 
-<span class="lineNum">     448 </span>                :            :         // Read global data
-<span class="lineNum">     449 </span>                :            :         bool found_sep = false;
-<span class="lineNum">     450 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :         while(!s.empty()) {</span>
-<span class="lineNum">     451 </span>                :            :             // Read
-<span class="lineNum">     452 </span>                :<span class="lineCov">          1 :             std::vector&lt;unsigned char&gt; key;</span>
-<span class="lineNum">     453 </span>                :<span class="lineCov">          2 :             s &gt;&gt; key;</span>
-<span class="lineNum">     454 </span>                :            : 
-<span class="lineNum">     455 </span>                :            :             // the key is empty if that was actually a separator byte
-<span class="lineNum">     456 </span>                :            :             // This is a special case for key lengths 0 as those are not allowed (except for separator)
-<span class="lineNum">     457 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          2 :             if (key.empty()) {</span>
-<span class="lineNum">     458 </span>                :<span class="lineCov">          1 :                 found_sep = true;</span>
-<span class="lineNum">     459 </span>                :<span class="lineCov">          1 :                 break;</span>
-<span class="lineNum">     460 </span>                :            :             }
-<span class="lineNum">     461 </span>                :            : 
-<span class="lineNum">     462 </span>                :            :             // First byte of key is the type
-<span class="lineNum">     463 </span>                :<span class="lineCov">          1 :             unsigned char type = key[0];</span>
-<span class="lineNum">     464 </span>                :            : 
-<span class="lineNum">     465 </span>                :            :             // Do stuff based on type
-<span class="lineNum">     466 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          1 :             switch(type) {</span>
-<span class="lineNum">     467 </span>                :<span class="lineCov">          1 :                 case PSBT_GLOBAL_UNSIGNED_TX:</span>
-<span class="lineNum">     468 </span>                :            :                 {
-<span class="lineNum">     469 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :                     if (tx) {</span>
-<span class="lineNum">     470 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, unsigned tx already provided&quot;);</span>
-<span class="lineNum">     471 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :                     } else if (key.size() != 1) {</span>
-<span class="lineNum">     472 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Global unsigned tx key is more than one byte type&quot;);</span>
-<span class="lineNum">     473 </span>                :            :                     }
-<span class="lineNum">     474 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :                     CMutableTransaction mtx;</span>
-<span class="lineNum">     475 </span>                :            :                     // Set the stream to serialize with non-witness since this should always be non-witness
-<span class="lineNum">     476 </span>                :<span class="lineCov">          3 :                     OverrideStream&lt;Stream&gt; os(&amp;s, s.GetType(), s.GetVersion() | SERIALIZE_TRANSACTION_NO_WITNESS);</span>
-<span class="lineNum">     477 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :                     UnserializeFromVector(os, mtx);</span>
-<span class="lineNum">     478 </span>                :<span class="lineCov">          2 :                     tx = std::move(mtx);</span>
-<span class="lineNum">     479 </span>                :            :                     // Make sure that all scriptSigs and scriptWitnesses are empty
-<span class="lineNum">     480 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          3 :                     for (const CTxIn&amp; txin : tx-&gt;vin) {</span>
-<span class="lineNum">     481 </span>[<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          2 :                         if (!txin.scriptSig.empty() || !txin.scriptWitness.IsNull()) {</span>
-<span class="lineNum">     482 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                             throw std::ios_base::failure(&quot;Unsigned tx does not have empty scriptSigs and scriptWitnesses.&quot;);</span>
-<span class="lineNum">     483 </span>                :            :                         }
-<span class="lineNum">     484 </span>                :            :                     }
-<span class="lineNum">     485 </span>                :            :                     break;
-<span class="lineNum">     486 </span>                :            :                 }
-<span class="lineNum">     487 </span>                :            :                 // Unknown stuff
-<span class="lineNum">     488 </span>                :<span class="lineNoCov">          0 :                 default: {</span>
-<span class="lineNum">     489 </span>                :<span class="lineNoCov">          0 :                     if (unknown.count(key) &gt; 0) {</span>
-<span class="lineNum">     490 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, key for unknown value already provided&quot;);</span>
-<span class="lineNum">     491 </span>                :            :                     }
-<span class="lineNum">     492 </span>                :            :                     // Read in the value
-<span class="lineNum">     493 </span>                :<span class="lineNoCov">          0 :                     std::vector&lt;unsigned char&gt; val_bytes;</span>
-<span class="lineNum">     494 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; val_bytes;</span>
-<span class="lineNum">     495 </span>                :<span class="lineNoCov">          0 :                     unknown.emplace(std::move(key), std::move(val_bytes));</span>
-<span class="lineNum">     496 </span>                :            :                 }
-<span class="lineNum">     497 </span>                :            :             }
-<span class="lineNum">     498 </span>                :            :         }
-<span class="lineNum">     499 </span>                :            : 
-<span class="lineNum">     500 </span>                :            :         if (!found_sep) {
-<span class="lineNum">     501 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Separator is missing at the end of the global map&quot;);</span>
-<span class="lineNum">     502 </span>                :            :         }
-<span class="lineNum">     503 </span>                :            : 
-<span class="lineNum">     504 </span>                :            :         // Make sure that we got an unsigned tx
-<span class="lineNum">     505 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :         if (!tx) {</span>
-<span class="lineNum">     506 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;No unsigned transcation was provided&quot;);</span>
-<span class="lineNum">     507 </span>                :            :         }
-<span class="lineNum">     508 </span>                :            : 
-<span class="lineNum">     509 </span>                :            :         // Read input data
-<span class="lineNum">     510 </span>                :            :         unsigned int i = 0;
-<span class="lineNum">     511 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          6 :         while (!s.empty() &amp;&amp; i &lt; tx-&gt;vin.size()) {</span>
-<span class="lineNum">     512 </span>                :<span class="lineCov">          4 :             PSBTInput input;</span>
-<span class="lineNum">     513 </span>                :<span class="lineCov">          2 :             s &gt;&gt; input;</span>
-<span class="lineNum">     514 </span>        [<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :             inputs.push_back(input);</span>
-<span class="lineNum">     515 </span>                :            : 
-<span class="lineNum">     516 </span>                :            :             // Make sure the non-witness utxo matches the outpoint
-<span class="lineNum">     517 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">          2 :             if (input.non_witness_utxo &amp;&amp; input.non_witness_utxo-&gt;GetHash() != tx-&gt;vin[i].prevout.hash) {</span>
-<span class="lineNum">     518 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 throw std::ios_base::failure(&quot;Non-witness UTXO does not match outpoint hash&quot;);</span>
-<span class="lineNum">     519 </span>                :            :             }
-<span class="lineNum">     520 </span>                :<span class="lineCov">          2 :             ++i;</span>
-<span class="lineNum">     521 </span>                :            :         }
-<span class="lineNum">     522 </span>                :            :         // Make sure that the number of inputs matches the number of inputs in the transaction
-<span class="lineNum">     523 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :         if (inputs.size() != tx-&gt;vin.size()) {</span>
-<span class="lineNum">     524 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Inputs provided does not match the number of inputs in transaction.&quot;);</span>
-<span class="lineNum">     525 </span>                :            :         }
-<span class="lineNum">     526 </span>                :            : 
-<span class="lineNum">     527 </span>                :            :         // Read output data
-<span class="lineNum">     528 </span>                :            :         i = 0;
-<span class="lineNum">     529 </span>[<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          5 :         while (!s.empty() &amp;&amp; i &lt; tx-&gt;vout.size()) {</span>
-<span class="lineNum">     530 </span>                :<span class="lineCov">          2 :             PSBTOutput output;</span>
-<span class="lineNum">     531 </span>                :<span class="lineCov">          2 :             s &gt;&gt; output;</span>
-<span class="lineNum">     532 </span>        [<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :             outputs.push_back(output);</span>
-<span class="lineNum">     533 </span>                :<span class="lineCov">          2 :             ++i;</span>
-<span class="lineNum">     534 </span>                :            :         }
-<span class="lineNum">     535 </span>                :            :         // Make sure that the number of outputs matches the number of outputs in the transaction
-<span class="lineNum">     536 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :         if (outputs.size() != tx-&gt;vout.size()) {</span>
-<span class="lineNum">     537 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Outputs provided does not match the number of outputs in transaction.&quot;);</span>
-<span class="lineNum">     538 </span>                :            :         }
-<span class="lineNum">     539 </span>                :            :         // Sanity check
-<span class="lineNum">     540 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span>]:<span class="lineCov">          1 :         if (!IsSane()) {</span>
-<span class="lineNum">     541 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;PSBT is not sane.&quot;);</span>
-<span class="lineNum">     542 </span>                :            :         }
-<span class="lineNum">     543 </span>                :<span class="lineCov">          1 :     }</span>
-<span class="lineNum">     544 </span>                :            : 
-<span class="lineNum">     545 </span>                :            :     template &lt;typename Stream&gt;
-<span class="lineNum">     546 </span>                :            :     PartiallySignedTransaction(deserialize_type, Stream&amp; s) {
-<span class="lineNum">     547 </span>                :            :         Unserialize(s);
-<span class="lineNum">     548 </span>                :            :     }
-<span class="lineNum">     549 </span>                :            : };
-<span class="lineNum">     550 </span>                :            : 
-<span class="lineNum">     551 </span>                :            : /** Checks whether a PSBTInput is already signed. */
-<span class="lineNum">     552 </span>                :            : bool PSBTInputSigned(PSBTInput&amp; input);
-<span class="lineNum">     553 </span>                :            : 
-<span class="lineNum">     554 </span>                :            : /** Signs a PSBTInput, verifying that all provided data matches what is being signed. */
-<span class="lineNum">     555 </span>                :            : bool SignPSBTInput(const SigningProvider&amp; provider, PartiallySignedTransaction&amp; psbt, int index, int sighash = SIGHASH_ALL, SignatureData* out_sigdata = nullptr, bool use_dummy = false);
-<span class="lineNum">     556 </span>                :            : 
-<span class="lineNum">     557 </span>                :            : /**
-<span class="lineNum">     558 </span>                :            :  * Finalizes a PSBT if possible, combining partial signatures.
-<span class="lineNum">     559 </span>                :            :  *
-<span class="lineNum">     560 </span>                :            :  * @param[in,out] &amp;psbtx reference to PartiallySignedTransaction to finalize
-<span class="lineNum">     561 </span>                :            :  * return True if the PSBT is now complete, false otherwise
-<span class="lineNum">     562 </span>                :            :  */
-<span class="lineNum">     563 </span>                :            : bool FinalizePSBT(PartiallySignedTransaction&amp; psbtx);
+<span class="lineNum">     388 </span>                :            :     bool IsNull() const;
+<span class="lineNum">     389 </span>                :            : 
+<span class="lineNum">     390 </span>                :            :     /** Merge psbt into this. The two psbts must have the same underlying CTransaction (i.e. the
+<span class="lineNum">     391 </span>                :            :       * same actual Bitcoin transaction.) Returns true if the merge succeeded, false otherwise. */
+<span class="lineNum">     392 </span>                :            :     NODISCARD bool Merge(const PartiallySignedTransaction&amp; psbt);
+<span class="lineNum">     393 </span>                :            :     bool IsSane() const;
+<span class="lineNum">     394 </span>                :            :     bool AddInput(const CTxIn&amp; txin, PSBTInput&amp; psbtin);
+<a name="395"><span class="lineNum">     395 </span>                :            :     bool AddOutput(const CTxOut&amp; txout, const PSBTOutput&amp; psbtout);</a>
+<span class="lineNum">     396 </span>                :<span class="lineCov">          5 :     PartiallySignedTransaction() {}</span>
+<span class="lineNum">     397 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :     PartiallySignedTransaction(const PartiallySignedTransaction&amp; psbt_in) : tx(psbt_in.tx), inputs(psbt_in.inputs), outputs(psbt_in.outputs), unknown(psbt_in.unknown) {}</span>
+<span class="lineNum">     398 </span>                :            :     explicit PartiallySignedTransaction(const CMutableTransaction&amp; tx);
+<span class="lineNum">     399 </span>                :            :     /**
+<span class="lineNum">     400 </span>                :            :      * Finds the UTXO for a given input index
+<span class="lineNum">     401 </span>                :            :      *
+<span class="lineNum">     402 </span>                :            :      * @param[out] utxo The UTXO of the input if found
+<span class="lineNum">     403 </span>                :            :      * @param[in] input_index Index of the input to retrieve the UTXO of
+<span class="lineNum">     404 </span>                :            :      * @return Whether the UTXO for the specified input was found
+<span class="lineNum">     405 </span>                :            :      */
+<span class="lineNum">     406 </span>                :            :     bool GetInputUTXO(CTxOut&amp; utxo, int input_index) const;
+<a name="407"><span class="lineNum">     407 </span>                :            : </a>
+<span class="lineNum">     408 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">     409 </span>                :<span class="lineCov">          1 :     inline void Serialize(Stream&amp; s) const {</span>
+<span class="lineNum">     410 </span>                :            : 
+<span class="lineNum">     411 </span>                :            :         // magic bytes
+<span class="lineNum">     412 </span>                :<span class="lineCov">          1 :         s &lt;&lt; PSBT_MAGIC_BYTES;</span>
+<span class="lineNum">     413 </span>                :            : 
+<span class="lineNum">     414 </span>                :            :         // unsigned tx flag
+<span class="lineNum">     415 </span>                :<span class="lineCov">          1 :         SerializeToVector(s, PSBT_GLOBAL_UNSIGNED_TX);</span>
+<span class="lineNum">     416 </span>                :            : 
+<span class="lineNum">     417 </span>                :            :         // Write serialized tx to a stream
+<span class="lineNum">     418 </span>                :<span class="lineCov">          3 :         OverrideStream&lt;Stream&gt; os(&amp;s, s.GetType(), s.GetVersion() | SERIALIZE_TRANSACTION_NO_WITNESS);</span>
+<span class="lineNum">     419 </span>                :<span class="lineCov">          1 :         SerializeToVector(os, *tx);</span>
+<span class="lineNum">     420 </span>                :            : 
+<span class="lineNum">     421 </span>                :            :         // Write the unknown things
+<span class="lineNum">     422 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :         for (auto&amp; entry : unknown) {</span>
+<span class="lineNum">     423 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; entry.first;</span>
+<span class="lineNum">     424 </span>                :<span class="lineNoCov">          0 :             s &lt;&lt; entry.second;</span>
+<span class="lineNum">     425 </span>                :            :         }
+<span class="lineNum">     426 </span>                :            : 
+<span class="lineNum">     427 </span>                :            :         // Separator
+<span class="lineNum">     428 </span>                :<span class="lineCov">          1 :         s &lt;&lt; PSBT_SEPARATOR;</span>
+<span class="lineNum">     429 </span>                :            : 
+<span class="lineNum">     430 </span>                :            :         // Write inputs
+<span class="lineNum">     431 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          3 :         for (const PSBTInput&amp; input : inputs) {</span>
+<span class="lineNum">     432 </span>                :<span class="lineCov">          2 :             s &lt;&lt; input;</span>
+<span class="lineNum">     433 </span>                :            :         }
+<span class="lineNum">     434 </span>                :            :         // Write outputs
+<span class="lineNum">     435 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          3 :         for (const PSBTOutput&amp; output : outputs) {</span>
+<span class="lineNum">     436 </span>                :<span class="lineCov">          2 :             s &lt;&lt; output;</span>
+<span class="lineNum">     437 </span>                :            :         }
+<span class="lineNum">     438 </span>                :<span class="lineCov">          1 :     }</span>
+<span class="lineNum">     439 </span>                :            : 
+<span class="lineNum">     440 </span>                :            : 
+<span class="lineNum">     441 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">     442 </span>                :<span class="lineCov">          1 :     inline void Unserialize(Stream&amp; s) {</span>
+<span class="lineNum">     443 </span>                :            :         // Read the magic bytes
+<span class="lineNum">     444 </span>                :            :         uint8_t magic[5];
+<span class="lineNum">     445 </span>                :<span class="lineCov">          1 :         s &gt;&gt; magic;</span>
+<span class="lineNum">     446 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :         if (!std::equal(magic, magic + 5, PSBT_MAGIC_BYTES)) {</span>
+<span class="lineNum">     447 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Invalid PSBT magic bytes&quot;);</span>
+<span class="lineNum">     448 </span>                :            :         }
+<span class="lineNum">     449 </span>                :            : 
+<span class="lineNum">     450 </span>                :            :         // Read global data
+<span class="lineNum">     451 </span>                :            :         bool found_sep = false;
+<span class="lineNum">     452 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :         while(!s.empty()) {</span>
+<span class="lineNum">     453 </span>                :            :             // Read
+<span class="lineNum">     454 </span>                :<span class="lineCov">          1 :             std::vector&lt;unsigned char&gt; key;</span>
+<span class="lineNum">     455 </span>                :<span class="lineCov">          2 :             s &gt;&gt; key;</span>
+<span class="lineNum">     456 </span>                :            : 
+<span class="lineNum">     457 </span>                :            :             // the key is empty if that was actually a separator byte
+<span class="lineNum">     458 </span>                :            :             // This is a special case for key lengths 0 as those are not allowed (except for separator)
+<span class="lineNum">     459 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          2 :             if (key.empty()) {</span>
+<span class="lineNum">     460 </span>                :<span class="lineCov">          1 :                 found_sep = true;</span>
+<span class="lineNum">     461 </span>                :<span class="lineCov">          1 :                 break;</span>
+<span class="lineNum">     462 </span>                :            :             }
+<span class="lineNum">     463 </span>                :            : 
+<span class="lineNum">     464 </span>                :            :             // First byte of key is the type
+<span class="lineNum">     465 </span>                :<span class="lineCov">          1 :             unsigned char type = key[0];</span>
+<span class="lineNum">     466 </span>                :            : 
+<span class="lineNum">     467 </span>                :            :             // Do stuff based on type
+<span class="lineNum">     468 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          1 :             switch(type) {</span>
+<span class="lineNum">     469 </span>                :<span class="lineCov">          1 :                 case PSBT_GLOBAL_UNSIGNED_TX:</span>
+<span class="lineNum">     470 </span>                :            :                 {
+<span class="lineNum">     471 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :                     if (tx) {</span>
+<span class="lineNum">     472 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, unsigned tx already provided&quot;);</span>
+<span class="lineNum">     473 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :                     } else if (key.size() != 1) {</span>
+<span class="lineNum">     474 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Global unsigned tx key is more than one byte type&quot;);</span>
+<span class="lineNum">     475 </span>                :            :                     }
+<span class="lineNum">     476 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :                     CMutableTransaction mtx;</span>
+<span class="lineNum">     477 </span>                :            :                     // Set the stream to serialize with non-witness since this should always be non-witness
+<span class="lineNum">     478 </span>                :<span class="lineCov">          3 :                     OverrideStream&lt;Stream&gt; os(&amp;s, s.GetType(), s.GetVersion() | SERIALIZE_TRANSACTION_NO_WITNESS);</span>
+<span class="lineNum">     479 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :                     UnserializeFromVector(os, mtx);</span>
+<span class="lineNum">     480 </span>                :<span class="lineCov">          2 :                     tx = std::move(mtx);</span>
+<span class="lineNum">     481 </span>                :            :                     // Make sure that all scriptSigs and scriptWitnesses are empty
+<span class="lineNum">     482 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          3 :                     for (const CTxIn&amp; txin : tx-&gt;vin) {</span>
+<span class="lineNum">     483 </span>[<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          2 :                         if (!txin.scriptSig.empty() || !txin.scriptWitness.IsNull()) {</span>
+<span class="lineNum">     484 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                             throw std::ios_base::failure(&quot;Unsigned tx does not have empty scriptSigs and scriptWitnesses.&quot;);</span>
+<span class="lineNum">     485 </span>                :            :                         }
+<span class="lineNum">     486 </span>                :            :                     }
+<span class="lineNum">     487 </span>                :            :                     break;
+<span class="lineNum">     488 </span>                :            :                 }
+<span class="lineNum">     489 </span>                :            :                 // Unknown stuff
+<span class="lineNum">     490 </span>                :<span class="lineNoCov">          0 :                 default: {</span>
+<span class="lineNum">     491 </span>                :<span class="lineNoCov">          0 :                     if (unknown.count(key) &gt; 0) {</span>
+<span class="lineNum">     492 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         throw std::ios_base::failure(&quot;Duplicate Key, key for unknown value already provided&quot;);</span>
+<span class="lineNum">     493 </span>                :            :                     }
+<span class="lineNum">     494 </span>                :            :                     // Read in the value
+<span class="lineNum">     495 </span>                :<span class="lineNoCov">          0 :                     std::vector&lt;unsigned char&gt; val_bytes;</span>
+<span class="lineNum">     496 </span>                :<span class="lineNoCov">          0 :                     s &gt;&gt; val_bytes;</span>
+<span class="lineNum">     497 </span>                :<span class="lineNoCov">          0 :                     unknown.emplace(std::move(key), std::move(val_bytes));</span>
+<span class="lineNum">     498 </span>                :            :                 }
+<span class="lineNum">     499 </span>                :            :             }
+<span class="lineNum">     500 </span>                :            :         }
+<span class="lineNum">     501 </span>                :            : 
+<span class="lineNum">     502 </span>                :            :         if (!found_sep) {
+<span class="lineNum">     503 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Separator is missing at the end of the global map&quot;);</span>
+<span class="lineNum">     504 </span>                :            :         }
+<span class="lineNum">     505 </span>                :            : 
+<span class="lineNum">     506 </span>                :            :         // Make sure that we got an unsigned tx
+<span class="lineNum">     507 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :         if (!tx) {</span>
+<span class="lineNum">     508 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;No unsigned transcation was provided&quot;);</span>
+<span class="lineNum">     509 </span>                :            :         }
+<span class="lineNum">     510 </span>                :            : 
+<span class="lineNum">     511 </span>                :            :         // Read input data
+<span class="lineNum">     512 </span>                :            :         unsigned int i = 0;
+<span class="lineNum">     513 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          6 :         while (!s.empty() &amp;&amp; i &lt; tx-&gt;vin.size()) {</span>
+<span class="lineNum">     514 </span>                :<span class="lineCov">          4 :             PSBTInput input;</span>
+<span class="lineNum">     515 </span>                :<span class="lineCov">          2 :             s &gt;&gt; input;</span>
+<span class="lineNum">     516 </span>        [<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :             inputs.push_back(input);</span>
+<span class="lineNum">     517 </span>                :            : 
+<span class="lineNum">     518 </span>                :            :             // Make sure the non-witness utxo matches the outpoint
+<span class="lineNum">     519 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">          2 :             if (input.non_witness_utxo &amp;&amp; input.non_witness_utxo-&gt;GetHash() != tx-&gt;vin[i].prevout.hash) {</span>
+<span class="lineNum">     520 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 throw std::ios_base::failure(&quot;Non-witness UTXO does not match outpoint hash&quot;);</span>
+<span class="lineNum">     521 </span>                :            :             }
+<span class="lineNum">     522 </span>                :<span class="lineCov">          2 :             ++i;</span>
+<span class="lineNum">     523 </span>                :            :         }
+<span class="lineNum">     524 </span>                :            :         // Make sure that the number of inputs matches the number of inputs in the transaction
+<span class="lineNum">     525 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :         if (inputs.size() != tx-&gt;vin.size()) {</span>
+<span class="lineNum">     526 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Inputs provided does not match the number of inputs in transaction.&quot;);</span>
+<span class="lineNum">     527 </span>                :            :         }
+<span class="lineNum">     528 </span>                :            : 
+<span class="lineNum">     529 </span>                :            :         // Read output data
+<span class="lineNum">     530 </span>                :            :         i = 0;
+<span class="lineNum">     531 </span>[<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          5 :         while (!s.empty() &amp;&amp; i &lt; tx-&gt;vout.size()) {</span>
+<span class="lineNum">     532 </span>                :<span class="lineCov">          2 :             PSBTOutput output;</span>
+<span class="lineNum">     533 </span>                :<span class="lineCov">          2 :             s &gt;&gt; output;</span>
+<span class="lineNum">     534 </span>        [<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :             outputs.push_back(output);</span>
+<span class="lineNum">     535 </span>                :<span class="lineCov">          2 :             ++i;</span>
+<span class="lineNum">     536 </span>                :            :         }
+<span class="lineNum">     537 </span>                :            :         // Make sure that the number of outputs matches the number of outputs in the transaction
+<span class="lineNum">     538 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :         if (outputs.size() != tx-&gt;vout.size()) {</span>
+<span class="lineNum">     539 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;Outputs provided does not match the number of outputs in transaction.&quot;);</span>
+<span class="lineNum">     540 </span>                :            :         }
+<span class="lineNum">     541 </span>                :            :         // Sanity check
+<span class="lineNum">     542 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span>]:<span class="lineCov">          1 :         if (!IsSane()) {</span>
+<span class="lineNum">     543 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::ios_base::failure(&quot;PSBT is not sane.&quot;);</span>
+<span class="lineNum">     544 </span>                :            :         }
+<span class="lineNum">     545 </span>                :<span class="lineCov">          1 :     }</span>
+<span class="lineNum">     546 </span>                :            : 
+<span class="lineNum">     547 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">     548 </span>                :            :     PartiallySignedTransaction(deserialize_type, Stream&amp; s) {
+<span class="lineNum">     549 </span>                :            :         Unserialize(s);
+<span class="lineNum">     550 </span>                :            :     }
+<span class="lineNum">     551 </span>                :            : };
+<span class="lineNum">     552 </span>                :            : 
+<span class="lineNum">     553 </span>                :            : enum class PSBTRole {
+<span class="lineNum">     554 </span>                :            :     UPDATER,
+<span class="lineNum">     555 </span>                :            :     SIGNER,
+<span class="lineNum">     556 </span>                :            :     FINALIZER,
+<span class="lineNum">     557 </span>                :            :     EXTRACTOR
+<span class="lineNum">     558 </span>                :            : };
+<span class="lineNum">     559 </span>                :            : 
+<span class="lineNum">     560 </span>                :            : std::string PSBTRoleName(PSBTRole role);
+<span class="lineNum">     561 </span>                :            : 
+<span class="lineNum">     562 </span>                :            : /** Checks whether a PSBTInput is already signed. */
+<span class="lineNum">     563 </span>                :            : bool PSBTInputSigned(const PSBTInput&amp; input);
 <span class="lineNum">     564 </span>                :            : 
-<span class="lineNum">     565 </span>                :            : /**
-<span class="lineNum">     566 </span>                :            :  * Finalizes a PSBT if possible, and extracts it to a CMutableTransaction if it could be finalized.
-<span class="lineNum">     567 </span>                :            :  *
-<span class="lineNum">     568 </span>                :            :  * @param[in]  &amp;psbtx reference to PartiallySignedTransaction
-<span class="lineNum">     569 </span>                :            :  * @param[out] result CMutableTransaction representing the complete transaction, if successful
-<span class="lineNum">     570 </span>                :            :  * @return True if we successfully extracted the transaction, false otherwise
-<span class="lineNum">     571 </span>                :            :  */
-<span class="lineNum">     572 </span>                :            : bool FinalizeAndExtractPSBT(PartiallySignedTransaction&amp; psbtx, CMutableTransaction&amp; result);
-<span class="lineNum">     573 </span>                :            : 
-<span class="lineNum">     574 </span>                :            : /**
-<span class="lineNum">     575 </span>                :            :  * Combines PSBTs with the same underlying transaction, resulting in a single PSBT with all partial signatures from each input.
-<span class="lineNum">     576 </span>                :            :  *
-<span class="lineNum">     577 </span>                :            :  * @param[out] &amp;out   the combined PSBT, if successful
-<span class="lineNum">     578 </span>                :            :  * @param[in]  psbtxs the PSBTs to combine
-<span class="lineNum">     579 </span>                :            :  * @return error (OK if we successfully combined the transactions, other error if they were not compatible)
-<span class="lineNum">     580 </span>                :            :  */
-<span class="lineNum">     581 </span>                :            : NODISCARD TransactionError CombinePSBTs(PartiallySignedTransaction&amp; out, const std::vector&lt;PartiallySignedTransaction&gt;&amp; psbtxs);
-<span class="lineNum">     582 </span>                :            : 
-<span class="lineNum">     583 </span>                :            : #endif // BITCOIN_PSBT_H
+<span class="lineNum">     565 </span>                :            : /** Signs a PSBTInput, verifying that all provided data matches what is being signed. */
+<span class="lineNum">     566 </span>                :            : bool SignPSBTInput(const SigningProvider&amp; provider, PartiallySignedTransaction&amp; psbt, int index, int sighash = SIGHASH_ALL, SignatureData* out_sigdata = nullptr, bool use_dummy = false);
+<span class="lineNum">     567 </span>                :            : 
+<span class="lineNum">     568 </span>                :            : /**
+<span class="lineNum">     569 </span>                :            :  * Finalizes a PSBT if possible, combining partial signatures.
+<span class="lineNum">     570 </span>                :            :  *
+<span class="lineNum">     571 </span>                :            :  * @param[in,out] &amp;psbtx reference to PartiallySignedTransaction to finalize
+<span class="lineNum">     572 </span>                :            :  * return True if the PSBT is now complete, false otherwise
+<span class="lineNum">     573 </span>                :            :  */
+<span class="lineNum">     574 </span>                :            : bool FinalizePSBT(PartiallySignedTransaction&amp; psbtx);
+<span class="lineNum">     575 </span>                :            : 
+<span class="lineNum">     576 </span>                :            : /**
+<span class="lineNum">     577 </span>                :            :  * Finalizes a PSBT if possible, and extracts it to a CMutableTransaction if it could be finalized.
+<span class="lineNum">     578 </span>                :            :  *
+<span class="lineNum">     579 </span>                :            :  * @param[in]  &amp;psbtx reference to PartiallySignedTransaction
+<span class="lineNum">     580 </span>                :            :  * @param[out] result CMutableTransaction representing the complete transaction, if successful
+<span class="lineNum">     581 </span>                :            :  * @return True if we successfully extracted the transaction, false otherwise
+<span class="lineNum">     582 </span>                :            :  */
+<span class="lineNum">     583 </span>                :            : bool FinalizeAndExtractPSBT(PartiallySignedTransaction&amp; psbtx, CMutableTransaction&amp; result);
+<span class="lineNum">     584 </span>                :            : 
+<span class="lineNum">     585 </span>                :            : /**
+<span class="lineNum">     586 </span>                :            :  * Combines PSBTs with the same underlying transaction, resulting in a single PSBT with all partial signatures from each input.
+<span class="lineNum">     587 </span>                :            :  *
+<span class="lineNum">     588 </span>                :            :  * @param[out] &amp;out   the combined PSBT, if successful
+<span class="lineNum">     589 </span>                :            :  * @param[in]  psbtxs the PSBTs to combine
+<span class="lineNum">     590 </span>                :            :  * @return error (OK if we successfully combined the transactions, other error if they were not compatible)
+<span class="lineNum">     591 </span>                :            :  */
+<span class="lineNum">     592 </span>                :            : NODISCARD TransactionError CombinePSBTs(PartiallySignedTransaction&amp; out, const std::vector&lt;PartiallySignedTransaction&gt;&amp; psbtxs);
+<span class="lineNum">     593 </span>                :            : 
+<span class="lineNum">     594 </span>                :            : //! Decode a base64ed PSBT into a PartiallySignedTransaction
+<span class="lineNum">     595 </span>                :            : NODISCARD bool DecodeBase64PSBT(PartiallySignedTransaction&amp; decoded_psbt, const std::string&amp; base64_psbt, std::string&amp; error);
+<span class="lineNum">     596 </span>                :            : //! Decode a raw (binary blob) PSBT into a PartiallySignedTransaction
+<span class="lineNum">     597 </span>                :            : NODISCARD bool DecodeRawPSBT(PartiallySignedTransaction&amp; decoded_psbt, const std::string&amp; raw_psbt, std::string&amp; error);
+<span class="lineNum">     598 </span>                :            : 
+<span class="lineNum">     599 </span>                :            : #endif // BITCOIN_PSBT_H
 </pre>
       </td>
     </tr>

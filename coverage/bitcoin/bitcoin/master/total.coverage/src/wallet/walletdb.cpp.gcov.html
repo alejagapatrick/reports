@@ -76,7 +76,7 @@
 <span class="lineNum">       5 </span>                :            : 
 <span class="lineNum">       6 </span>                :            : #include &lt;wallet/walletdb.h&gt;
 <span class="lineNum">       7 </span>                :            : 
-<span class="lineNum">       8 </span>                :            : #include &lt;consensus/tx_verify.h&gt;
+<span class="lineNum">       8 </span>                :            : #include &lt;consensus/tx_check.h&gt;
 <span class="lineNum">       9 </span>                :            : #include &lt;consensus/validation.h&gt;
 <span class="lineNum">      10 </span>                :            : #include &lt;fs.h&gt;
 <span class="lineNum">      11 </span>                :            : #include &lt;key_io.h&gt;
@@ -96,9 +96,9 @@
 <span class="lineNum">      25 </span>                :            : // WalletBatch
 <a name="26"><span class="lineNum">      26 </span>                :            : //</a>
 <span class="lineNum">      27 </span>                :            : 
-<span class="lineNum">      28 </span>                :<span class="lineCov">       2695 : bool WalletBatch::WriteName(const std::string&amp; strAddress, const std::string&amp; strName)</span>
+<span class="lineNum">      28 </span>                :<span class="lineCov">       2703 : bool WalletBatch::WriteName(const std::string&amp; strAddress, const std::string&amp; strName)</span>
 <span class="lineNum">      29 </span>                :            : {
-<span class="lineNum">      30 </span>[<span class="branchCov" title="Branch 1 was taken 2695 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2695 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       8085 :     return WriteIC(std::make_pair(std::string(&quot;name&quot;), strAddress), strName);</span>
+<span class="lineNum">      30 </span>[<span class="branchCov" title="Branch 1 was taken 2703 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2703 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       8109 :     return WriteIC(std::make_pair(std::string(&quot;name&quot;), strAddress), strName);</span>
 <a name="31"><span class="lineNum">      31 </span>                :            : }</a>
 <span class="lineNum">      32 </span>                :            : 
 <span class="lineNum">      33 </span>                :<span class="lineNoCov">          0 : bool WalletBatch::EraseName(const std::string&amp; strAddress)</span>
@@ -108,9 +108,9 @@
 <span class="lineNum">      37 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return EraseIC(std::make_pair(std::string(&quot;name&quot;), strAddress));</span>
 <a name="38"><span class="lineNum">      38 </span>                :            : }</a>
 <span class="lineNum">      39 </span>                :            : 
-<span class="lineNum">      40 </span>                :<span class="lineCov">       2695 : bool WalletBatch::WritePurpose(const std::string&amp; strAddress, const std::string&amp; strPurpose)</span>
+<span class="lineNum">      40 </span>                :<span class="lineCov">       2703 : bool WalletBatch::WritePurpose(const std::string&amp; strAddress, const std::string&amp; strPurpose)</span>
 <span class="lineNum">      41 </span>                :            : {
-<span class="lineNum">      42 </span>[<span class="branchCov" title="Branch 1 was taken 2695 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2695 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       8085 :     return WriteIC(std::make_pair(std::string(&quot;purpose&quot;), strAddress), strPurpose);</span>
+<span class="lineNum">      42 </span>[<span class="branchCov" title="Branch 1 was taken 2703 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2703 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       8109 :     return WriteIC(std::make_pair(std::string(&quot;purpose&quot;), strAddress), strPurpose);</span>
 <a name="43"><span class="lineNum">      43 </span>                :            : }</a>
 <span class="lineNum">      44 </span>                :            : 
 <span class="lineNum">      45 </span>                :<span class="lineNoCov">          0 : bool WalletBatch::ErasePurpose(const std::string&amp; strAddress)</span>
@@ -118,52 +118,52 @@
 <span class="lineNum">      47 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return EraseIC(std::make_pair(std::string(&quot;purpose&quot;), strAddress));</span>
 <a name="48"><span class="lineNum">      48 </span>                :            : }</a>
 <span class="lineNum">      49 </span>                :            : 
-<span class="lineNum">      50 </span>                :<span class="lineCov">     129943 : bool WalletBatch::WriteTx(const CWalletTx&amp; wtx)</span>
+<span class="lineNum">      50 </span>                :<span class="lineCov">     129478 : bool WalletBatch::WriteTx(const CWalletTx&amp; wtx)</span>
 <span class="lineNum">      51 </span>                :            : {
-<span class="lineNum">      52 </span>[<span class="branchCov" title="Branch 1 was taken 129943 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 129943 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     389829 :     return WriteIC(std::make_pair(std::string(&quot;tx&quot;), wtx.GetHash()), wtx);</span>
+<span class="lineNum">      52 </span>[<span class="branchCov" title="Branch 1 was taken 129478 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 129478 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     388434 :     return WriteIC(std::make_pair(std::string(&quot;tx&quot;), wtx.GetHash()), wtx);</span>
 <a name="53"><span class="lineNum">      53 </span>                :            : }</a>
 <span class="lineNum">      54 </span>                :            : 
-<span class="lineNum">      55 </span>                :<span class="lineCov">        514 : bool WalletBatch::EraseTx(uint256 hash)</span>
+<span class="lineNum">      55 </span>                :<span class="lineCov">        506 : bool WalletBatch::EraseTx(uint256 hash)</span>
 <span class="lineNum">      56 </span>                :            : {
-<span class="lineNum">      57 </span>[<span class="branchCov" title="Branch 1 was taken 514 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 514 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1542 :     return EraseIC(std::make_pair(std::string(&quot;tx&quot;), hash));</span>
+<span class="lineNum">      57 </span>[<span class="branchCov" title="Branch 1 was taken 506 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 506 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1518 :     return EraseIC(std::make_pair(std::string(&quot;tx&quot;), hash));</span>
 <a name="58"><span class="lineNum">      58 </span>                :            : }</a>
 <span class="lineNum">      59 </span>                :            : 
-<span class="lineNum">      60 </span>                :<span class="lineCov">      10826 : bool WalletBatch::WriteKeyMetadata(const CKeyMetadata&amp; meta, const CPubKey&amp; pubkey, const bool overwrite)</span>
+<span class="lineNum">      60 </span>                :<span class="lineCov">      10787 : bool WalletBatch::WriteKeyMetadata(const CKeyMetadata&amp; meta, const CPubKey&amp; pubkey, const bool overwrite)</span>
 <span class="lineNum">      61 </span>                :            : {
-<span class="lineNum">      62 </span>[<span class="branchCov" title="Branch 1 was taken 10826 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 10826 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      32478 :     return WriteIC(std::make_pair(std::string(&quot;keymeta&quot;), pubkey), meta, overwrite);</span>
+<span class="lineNum">      62 </span>[<span class="branchCov" title="Branch 1 was taken 10787 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 10787 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      32361 :     return WriteIC(std::make_pair(std::string(&quot;keymeta&quot;), pubkey), meta, overwrite);</span>
 <span class="lineNum">      63 </span>                :            : }
 <span class="lineNum">      64 </span>                :            : 
-<span class="lineNum">      65 </span>                :<span class="lineCov">      10070 : bool WalletBatch::WriteKey(const CPubKey&amp; vchPubKey, const CPrivKey&amp; vchPrivKey, const CKeyMetadata&amp; keyMeta)</span>
+<span class="lineNum">      65 </span>                :<span class="lineCov">      10020 : bool WalletBatch::WriteKey(const CPubKey&amp; vchPubKey, const CPrivKey&amp; vchPrivKey, const CKeyMetadata&amp; keyMeta)</span>
 <span class="lineNum">      66 </span>                :            : {
-<span class="lineNum">      67 </span>        [<span class="branchCov" title="Branch 1 was taken 10070 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      10070 :     if (!WriteKeyMetadata(keyMeta, vchPubKey, false)) {</span>
+<span class="lineNum">      67 </span>        [<span class="branchCov" title="Branch 1 was taken 10020 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      10020 :     if (!WriteKeyMetadata(keyMeta, vchPubKey, false)) {</span>
 <span class="lineNum">      68 </span>                :            :         return false;
 <span class="lineNum">      69 </span>                :            :     }
 <span class="lineNum">      70 </span>                :            : 
 <span class="lineNum">      71 </span>                :            :     // hash pubkey/privkey to accelerate wallet load
-<span class="lineNum">      72 </span>                :<span class="lineCov">      10070 :     std::vector&lt;unsigned char&gt; vchKey;</span>
-<span class="lineNum">      73 </span>        [<span class="branchCov" title="Branch 1 was taken 10070 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      10070 :     vchKey.reserve(vchPubKey.size() + vchPrivKey.size());</span>
-<span class="lineNum">      74 </span>        [<span class="branchCov" title="Branch 1 was taken 10070 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      10070 :     vchKey.insert(vchKey.end(), vchPubKey.begin(), vchPubKey.end());</span>
-<span class="lineNum">      75 </span>        [<span class="branchCov" title="Branch 1 was taken 10070 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      10070 :     vchKey.insert(vchKey.end(), vchPrivKey.begin(), vchPrivKey.end());</span>
+<span class="lineNum">      72 </span>                :<span class="lineCov">      10020 :     std::vector&lt;unsigned char&gt; vchKey;</span>
+<span class="lineNum">      73 </span>        [<span class="branchCov" title="Branch 1 was taken 10020 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      10020 :     vchKey.reserve(vchPubKey.size() + vchPrivKey.size());</span>
+<span class="lineNum">      74 </span>        [<span class="branchCov" title="Branch 1 was taken 10020 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      10020 :     vchKey.insert(vchKey.end(), vchPubKey.begin(), vchPubKey.end());</span>
+<span class="lineNum">      75 </span>        [<span class="branchCov" title="Branch 1 was taken 10020 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      10020 :     vchKey.insert(vchKey.end(), vchPrivKey.begin(), vchPrivKey.end());</span>
 <span class="lineNum">      76 </span>                :            : 
-<span class="lineNum">      77 </span>[<span class="branchCov" title="Branch 1 was taken 10070 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 10070 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      30210 :     return WriteIC(std::make_pair(std::string(&quot;key&quot;), vchPubKey), std::make_pair(vchPrivKey, Hash(vchKey.begin(), vchKey.end())), false);</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 10070 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">      77 </span>[<span class="branchCov" title="Branch 1 was taken 10020 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 10020 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      30060 :     return WriteIC(std::make_pair(std::string(&quot;key&quot;), vchPubKey), std::make_pair(vchPrivKey, Hash(vchKey.begin(), vchKey.end())), false);</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 10020 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
 <a name="78"><span class="lineNum">      78 </span>                :            : }</a>
 <span class="lineNum">      79 </span>                :            : 
-<span class="lineNum">      80 </span>                :<span class="lineCov">        741 : bool WalletBatch::WriteCryptedKey(const CPubKey&amp; vchPubKey,</span>
+<span class="lineNum">      80 </span>                :<span class="lineCov">        748 : bool WalletBatch::WriteCryptedKey(const CPubKey&amp; vchPubKey,</span>
 <span class="lineNum">      81 </span>                :            :                                 const std::vector&lt;unsigned char&gt;&amp; vchCryptedSecret,
 <span class="lineNum">      82 </span>                :            :                                 const CKeyMetadata &amp;keyMeta)
 <span class="lineNum">      83 </span>                :            : {
-<span class="lineNum">      84 </span>        [<span class="branchCov" title="Branch 1 was taken 741 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        741 :     if (!WriteKeyMetadata(keyMeta, vchPubKey, true)) {</span>
+<span class="lineNum">      84 </span>        [<span class="branchCov" title="Branch 1 was taken 748 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        748 :     if (!WriteKeyMetadata(keyMeta, vchPubKey, true)) {</span>
 <span class="lineNum">      85 </span>                :            :         return false;
 <span class="lineNum">      86 </span>                :            :     }
 <span class="lineNum">      87 </span>                :            : 
-<span class="lineNum">      88 </span>[<span class="branchCov" title="Branch 1 was taken 741 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 741 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       2223 :     if (!WriteIC(std::make_pair(std::string(&quot;ckey&quot;), vchPubKey), vchCryptedSecret, false)) {</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 741 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">      88 </span>[<span class="branchCov" title="Branch 1 was taken 748 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 748 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       2244 :     if (!WriteIC(std::make_pair(std::string(&quot;ckey&quot;), vchPubKey), vchCryptedSecret, false)) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 748 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
 <span class="lineNum">      89 </span>                :            :         return false;
 <span class="lineNum">      90 </span>                :            :     }
-<span class="lineNum">      91 </span>[<span class="branchCov" title="Branch 1 was taken 741 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 741 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1482 :     EraseIC(std::make_pair(std::string(&quot;key&quot;), vchPubKey));</span>
-<span class="lineNum">      92 </span>[<span class="branchCov" title="Branch 1 was taken 741 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 741 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1482 :     EraseIC(std::make_pair(std::string(&quot;wkey&quot;), vchPubKey));</span>
-<span class="lineNum">      93 </span>                :<span class="lineCov">        741 :     return true;</span>
+<span class="lineNum">      91 </span>[<span class="branchCov" title="Branch 1 was taken 748 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 748 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1496 :     EraseIC(std::make_pair(std::string(&quot;key&quot;), vchPubKey));</span>
+<span class="lineNum">      92 </span>[<span class="branchCov" title="Branch 1 was taken 748 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 748 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1496 :     EraseIC(std::make_pair(std::string(&quot;wkey&quot;), vchPubKey));</span>
+<span class="lineNum">      93 </span>                :<span class="lineCov">        748 :     return true;</span>
 <a name="94"><span class="lineNum">      94 </span>                :            : }</a>
 <span class="lineNum">      95 </span>                :            : 
 <span class="lineNum">      96 </span>                :<span class="lineCov">         13 : bool WalletBatch::WriteMasterKey(unsigned int nID, const CMasterKey&amp; kMasterKey)</span>
@@ -171,18 +171,18 @@
 <span class="lineNum">      98 </span>[<span class="branchCov" title="Branch 1 was taken 13 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 13 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         39 :     return WriteIC(std::make_pair(std::string(&quot;mkey&quot;), nID), kMasterKey, true);</span>
 <a name="99"><span class="lineNum">      99 </span>                :            : }</a>
 <span class="lineNum">     100 </span>                :            : 
-<span class="lineNum">     101 </span>                :<span class="lineCov">       2413 : bool WalletBatch::WriteCScript(const uint160&amp; hash, const CScript&amp; redeemScript)</span>
+<span class="lineNum">     101 </span>                :<span class="lineCov">       2363 : bool WalletBatch::WriteCScript(const uint160&amp; hash, const CScript&amp; redeemScript)</span>
 <span class="lineNum">     102 </span>                :            : {
-<span class="lineNum">     103 </span>[<span class="branchCov" title="Branch 1 was taken 2413 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2413 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       7239 :     return WriteIC(std::make_pair(std::string(&quot;cscript&quot;), hash), redeemScript, false);</span>
+<span class="lineNum">     103 </span>[<span class="branchCov" title="Branch 1 was taken 2363 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2363 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       7089 :     return WriteIC(std::make_pair(std::string(&quot;cscript&quot;), hash), redeemScript, false);</span>
 <a name="104"><span class="lineNum">     104 </span>                :            : }</a>
 <span class="lineNum">     105 </span>                :            : 
-<span class="lineNum">     106 </span>                :<span class="lineCov">        227 : bool WalletBatch::WriteWatchOnly(const CScript &amp;dest, const CKeyMetadata&amp; keyMeta)</span>
+<span class="lineNum">     106 </span>                :<span class="lineCov">        229 : bool WalletBatch::WriteWatchOnly(const CScript &amp;dest, const CKeyMetadata&amp; keyMeta)</span>
 <span class="lineNum">     107 </span>                :            : {
-<span class="lineNum">     108 </span>  [<span class="branchCov" title="Branch 1 was taken 227 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 227 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        681 :     if (!WriteIC(std::make_pair(std::string(&quot;watchmeta&quot;), dest), keyMeta)) {</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 227 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     108 </span>  [<span class="branchCov" title="Branch 1 was taken 229 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 229 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        687 :     if (!WriteIC(std::make_pair(std::string(&quot;watchmeta&quot;), dest), keyMeta)) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 229 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
 <span class="lineNum">     109 </span>                :            :         return false;
 <span class="lineNum">     110 </span>                :            :     }
-<span class="lineNum">     111 </span>  [<span class="branchCov" title="Branch 1 was taken 227 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 227 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        681 :     return WriteIC(std::make_pair(std::string(&quot;watchs&quot;), dest), '1');</span>
+<span class="lineNum">     111 </span>  [<span class="branchCov" title="Branch 1 was taken 229 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 229 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        687 :     return WriteIC(std::make_pair(std::string(&quot;watchs&quot;), dest), '1');</span>
 <a name="112"><span class="lineNum">     112 </span>                :            : }</a>
 <span class="lineNum">     113 </span>                :            : 
 <span class="lineNum">     114 </span>                :<span class="lineCov">          8 : bool WalletBatch::EraseWatchOnly(const CScript &amp;dest)</span>
@@ -194,45 +194,45 @@
 <span class="lineNum">     119 </span>  [<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         24 :     return EraseIC(std::make_pair(std::string(&quot;watchs&quot;), dest));</span>
 <span class="lineNum">     120 </span>                :            : }
 <span class="lineNum">     121 </span>                :            : 
-<span class="lineNum">     122 </span>                :<span class="lineCov">        741 : bool WalletBatch::WriteBestBlock(const CBlockLocator&amp; locator)</span>
+<span class="lineNum">     122 </span>                :<span class="lineCov">        743 : bool WalletBatch::WriteBestBlock(const CBlockLocator&amp; locator)</span>
 <span class="lineNum">     123 </span>                :            : {
-<span class="lineNum">     124 </span>[<span class="branchCov" title="Branch 1 was taken 741 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 741 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        741 :     WriteIC(std::string(&quot;bestblock&quot;), CBlockLocator()); // Write empty block locator so versions that require a merkle branch automatically rescan</span>
-<span class="lineNum">     125 </span>[<span class="branchCov" title="Branch 1 was taken 741 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 741 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1482 :     return WriteIC(std::string(&quot;bestblock_nomerkle&quot;), locator);</span>
+<span class="lineNum">     124 </span>[<span class="branchCov" title="Branch 1 was taken 743 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 743 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        743 :     WriteIC(std::string(&quot;bestblock&quot;), CBlockLocator()); // Write empty block locator so versions that require a merkle branch automatically rescan</span>
+<span class="lineNum">     125 </span>[<span class="branchCov" title="Branch 1 was taken 743 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 743 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       1486 :     return WriteIC(std::string(&quot;bestblock_nomerkle&quot;), locator);</span>
 <span class="lineNum">     126 </span>                :            : }
 <span class="lineNum">     127 </span>                :            : 
-<span class="lineNum">     128 </span>                :<span class="lineCov">        459 : bool WalletBatch::ReadBestBlock(CBlockLocator&amp; locator)</span>
+<span class="lineNum">     128 </span>                :<span class="lineCov">        460 : bool WalletBatch::ReadBestBlock(CBlockLocator&amp; locator)</span>
 <span class="lineNum">     129 </span>                :            : {
-<span class="lineNum">     130 </span>[<span class="branchCov" title="Branch 2 was taken 459 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 458 times"> + </span><span class="branchCov" title="Branch 5 was taken 1 time"> + </span>]:<span class="lineCov">        918 :     if (m_batch.Read(std::string(&quot;bestblock&quot;), locator) &amp;&amp; !locator.vHave.empty()) return true;</span>
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 6 was taken 458 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>][<span class="branchCov" title="Branch 8 was taken 459 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
-<span class="lineNum">     131 </span>[<span class="branchCov" title="Branch 1 was taken 459 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 459 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        918 :     return m_batch.Read(std::string(&quot;bestblock_nomerkle&quot;), locator);</span>
+<span class="lineNum">     130 </span>[<span class="branchCov" title="Branch 2 was taken 460 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 459 times"> + </span><span class="branchCov" title="Branch 5 was taken 1 time"> + </span>]:<span class="lineCov">        920 :     if (m_batch.Read(std::string(&quot;bestblock&quot;), locator) &amp;&amp; !locator.vHave.empty()) return true;</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 6 was taken 459 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>][<span class="branchCov" title="Branch 8 was taken 460 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     131 </span>[<span class="branchCov" title="Branch 1 was taken 460 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 460 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        920 :     return m_batch.Read(std::string(&quot;bestblock_nomerkle&quot;), locator);</span>
 <a name="132"><span class="lineNum">     132 </span>                :            : }</a>
 <span class="lineNum">     133 </span>                :            : 
-<span class="lineNum">     134 </span>                :<span class="lineCov">     128083 : bool WalletBatch::WriteOrderPosNext(int64_t nOrderPosNext)</span>
+<span class="lineNum">     134 </span>                :<span class="lineCov">     127565 : bool WalletBatch::WriteOrderPosNext(int64_t nOrderPosNext)</span>
 <span class="lineNum">     135 </span>                :            : {
-<span class="lineNum">     136 </span>[<span class="branchCov" title="Branch 1 was taken 128083 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 128083 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     256166 :     return WriteIC(std::string(&quot;orderposnext&quot;), nOrderPosNext);</span>
+<span class="lineNum">     136 </span>[<span class="branchCov" title="Branch 1 was taken 127565 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 127565 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     255130 :     return WriteIC(std::string(&quot;orderposnext&quot;), nOrderPosNext);</span>
 <a name="137"><span class="lineNum">     137 </span>                :            : }</a>
 <span class="lineNum">     138 </span>                :            : 
-<span class="lineNum">     139 </span>                :<span class="lineCov">       2914 : bool WalletBatch::ReadPool(int64_t nPool, CKeyPool&amp; keypool)</span>
+<span class="lineNum">     139 </span>                :<span class="lineCov">       2867 : bool WalletBatch::ReadPool(int64_t nPool, CKeyPool&amp; keypool)</span>
 <span class="lineNum">     140 </span>                :            : {
-<span class="lineNum">     141 </span>[<span class="branchCov" title="Branch 1 was taken 2914 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2914 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       8742 :     return m_batch.Read(std::make_pair(std::string(&quot;pool&quot;), nPool), keypool);</span>
+<span class="lineNum">     141 </span>[<span class="branchCov" title="Branch 1 was taken 2867 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2867 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       8601 :     return m_batch.Read(std::make_pair(std::string(&quot;pool&quot;), nPool), keypool);</span>
 <a name="142"><span class="lineNum">     142 </span>                :            : }</a>
 <span class="lineNum">     143 </span>                :            : 
-<span class="lineNum">     144 </span>                :<span class="lineCov">       9159 : bool WalletBatch::WritePool(int64_t nPool, const CKeyPool&amp; keypool)</span>
+<span class="lineNum">     144 </span>                :<span class="lineCov">       9112 : bool WalletBatch::WritePool(int64_t nPool, const CKeyPool&amp; keypool)</span>
 <span class="lineNum">     145 </span>                :            : {
-<span class="lineNum">     146 </span>[<span class="branchCov" title="Branch 1 was taken 9159 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 9159 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      27477 :     return WriteIC(std::make_pair(std::string(&quot;pool&quot;), nPool), keypool);</span>
+<span class="lineNum">     146 </span>[<span class="branchCov" title="Branch 1 was taken 9112 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 9112 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      27336 :     return WriteIC(std::make_pair(std::string(&quot;pool&quot;), nPool), keypool);</span>
 <a name="147"><span class="lineNum">     147 </span>                :            : }</a>
 <span class="lineNum">     148 </span>                :            : 
-<span class="lineNum">     149 </span>                :<span class="lineCov">       2566 : bool WalletBatch::ErasePool(int64_t nPool)</span>
+<span class="lineNum">     149 </span>                :<span class="lineCov">       2515 : bool WalletBatch::ErasePool(int64_t nPool)</span>
 <span class="lineNum">     150 </span>                :            : {
-<span class="lineNum">     151 </span>[<span class="branchCov" title="Branch 1 was taken 2566 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2566 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       7698 :     return EraseIC(std::make_pair(std::string(&quot;pool&quot;), nPool));</span>
+<span class="lineNum">     151 </span>[<span class="branchCov" title="Branch 1 was taken 2515 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2515 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       7545 :     return EraseIC(std::make_pair(std::string(&quot;pool&quot;), nPool));</span>
 <a name="152"><span class="lineNum">     152 </span>                :            : }</a>
 <span class="lineNum">     153 </span>                :            : 
-<span class="lineNum">     154 </span>                :<span class="lineCov">        282 : bool WalletBatch::WriteMinVersion(int nVersion)</span>
+<span class="lineNum">     154 </span>                :<span class="lineCov">        283 : bool WalletBatch::WriteMinVersion(int nVersion)</span>
 <span class="lineNum">     155 </span>                :            : {
-<span class="lineNum">     156 </span>[<span class="branchCov" title="Branch 1 was taken 282 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 282 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        564 :     return WriteIC(std::string(&quot;minversion&quot;), nVersion);</span>
+<span class="lineNum">     156 </span>[<span class="branchCov" title="Branch 1 was taken 283 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 283 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        566 :     return WriteIC(std::string(&quot;minversion&quot;), nVersion);</span>
 <span class="lineNum">     157 </span>                :            : }
 <span class="lineNum">     158 </span>                :            : 
-<span class="lineNum">     159 </span>                :<span class="lineCov">        970 : class CWalletScanState {</span>
+<span class="lineNum">     159 </span>                :<span class="lineCov">        972 : class CWalletScanState {</span>
 <span class="lineNum">     160 </span>                :            : public:
 <span class="lineNum">     161 </span>                :            :     unsigned int nKeys{0};
 <span class="lineNum">     162 </span>                :            :     unsigned int nCKeys{0};
@@ -244,44 +244,44 @@
 <span class="lineNum">     168 </span>                :            :     int nFileVersion{0};
 <span class="lineNum">     169 </span>                :            :     std::vector&lt;uint256&gt; vWalletUpgrade;
 <span class="lineNum">     170 </span>                :            : 
-<span class="lineNum">     171 </span>                :<span class="lineCov">        970 :     CWalletScanState() {</span>
+<span class="lineNum">     171 </span>                :<span class="lineCov">        972 :     CWalletScanState() {</span>
 <span class="lineNum">     172 </span>                :            :     }
 <span class="lineNum">     173 </span>                :            : };
 <span class="lineNum">     174 </span>                :            : 
 <span class="lineNum">     175 </span>                :            : static bool
-<span class="lineNum">     176 </span>                :<span class="lineCov">      23468 : ReadKeyValue(CWallet* pwallet, CDataStream&amp; ssKey, CDataStream&amp; ssValue,</span>
+<span class="lineNum">     176 </span>                :<span class="lineCov">      23329 : ReadKeyValue(CWallet* pwallet, CDataStream&amp; ssKey, CDataStream&amp; ssValue,</span>
 <span class="lineNum">     177 </span>                :            :              CWalletScanState &amp;wss, std::string&amp; strType, std::string&amp; strErr) EXCLUSIVE_LOCKS_REQUIRED(pwallet-&gt;cs_wallet)
 <span class="lineNum">     178 </span>                :            : {
 <span class="lineNum">     179 </span>                :            :     try {
 <span class="lineNum">     180 </span>                :            :         // Unserialize
 <span class="lineNum">     181 </span>                :            :         // Taking advantage of the fact that pair serialization
 <span class="lineNum">     182 </span>                :            :         // is just the two items serialized one after the other
-<span class="lineNum">     183 </span>                :<span class="lineCov">      23468 :         ssKey &gt;&gt; strType;</span>
-<span class="lineNum">     184 </span>        [<span class="branchCov" title="Branch 0 was taken 970 times"> + </span><span class="branchCov" title="Branch 1 was taken 22498 times"> + </span>]:<span class="lineCov">      23468 :         if (strType == &quot;name&quot;)</span>
+<span class="lineNum">     183 </span>                :<span class="lineCov">      23329 :         ssKey &gt;&gt; strType;</span>
+<span class="lineNum">     184 </span>        [<span class="branchCov" title="Branch 0 was taken 959 times"> + </span><span class="branchCov" title="Branch 1 was taken 22370 times"> + </span>]:<span class="lineCov">      23329 :         if (strType == &quot;name&quot;)</span>
 <span class="lineNum">     185 </span>                :            :         {
-<span class="lineNum">     186 </span>                :<span class="lineCov">        970 :             std::string strAddress;</span>
-<span class="lineNum">     187 </span>                :<span class="lineCov">        970 :             ssKey &gt;&gt; strAddress;</span>
-<span class="lineNum">     188 </span>[<span class="branchCov" title="Branch 1 was taken 970 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 970 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        970 :             ssValue &gt;&gt; pwallet-&gt;mapAddressBook[DecodeDestination(strAddress)].name;</span>
+<span class="lineNum">     186 </span>                :<span class="lineCov">        959 :             std::string strAddress;</span>
+<span class="lineNum">     187 </span>                :<span class="lineCov">        959 :             ssKey &gt;&gt; strAddress;</span>
+<span class="lineNum">     188 </span>[<span class="branchCov" title="Branch 1 was taken 959 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 959 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        959 :             ssValue &gt;&gt; pwallet-&gt;mapAddressBook[DecodeDestination(strAddress)].name;</span>
 <span class="lineNum">     189 </span>                :            :         }
-<span class="lineNum">     190 </span>        [<span class="branchCov" title="Branch 0 was taken 970 times"> + </span><span class="branchCov" title="Branch 1 was taken 21528 times"> + </span>]:<span class="lineCov">      22498 :         else if (strType == &quot;purpose&quot;)</span>
+<span class="lineNum">     190 </span>        [<span class="branchCov" title="Branch 0 was taken 959 times"> + </span><span class="branchCov" title="Branch 1 was taken 21411 times"> + </span>]:<span class="lineCov">      22370 :         else if (strType == &quot;purpose&quot;)</span>
 <span class="lineNum">     191 </span>                :            :         {
-<span class="lineNum">     192 </span>                :<span class="lineCov">        970 :             std::string strAddress;</span>
-<span class="lineNum">     193 </span>                :<span class="lineCov">        970 :             ssKey &gt;&gt; strAddress;</span>
-<span class="lineNum">     194 </span>[<span class="branchCov" title="Branch 1 was taken 970 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 970 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        970 :             ssValue &gt;&gt; pwallet-&gt;mapAddressBook[DecodeDestination(strAddress)].purpose;</span>
+<span class="lineNum">     192 </span>                :<span class="lineCov">        959 :             std::string strAddress;</span>
+<span class="lineNum">     193 </span>                :<span class="lineCov">        959 :             ssKey &gt;&gt; strAddress;</span>
+<span class="lineNum">     194 </span>[<span class="branchCov" title="Branch 1 was taken 959 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 959 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        959 :             ssValue &gt;&gt; pwallet-&gt;mapAddressBook[DecodeDestination(strAddress)].purpose;</span>
 <span class="lineNum">     195 </span>                :            :         }
-<span class="lineNum">     196 </span>        [<span class="branchCov" title="Branch 0 was taken 5640 times"> + </span><span class="branchCov" title="Branch 1 was taken 15888 times"> + </span>]:<span class="lineCov">      21528 :         else if (strType == &quot;tx&quot;)</span>
+<span class="lineNum">     196 </span>        [<span class="branchCov" title="Branch 0 was taken 5580 times"> + </span><span class="branchCov" title="Branch 1 was taken 15831 times"> + </span>]:<span class="lineCov">      21411 :         else if (strType == &quot;tx&quot;)</span>
 <span class="lineNum">     197 </span>                :            :         {
-<span class="lineNum">     198 </span>                :<span class="lineCov">       5640 :             uint256 hash;</span>
-<span class="lineNum">     199 </span>                :<span class="lineCov">       5640 :             ssKey &gt;&gt; hash;</span>
-<span class="lineNum">     200 </span>                :<span class="lineCov">      11280 :             CWalletTx wtx(nullptr /* pwallet */, MakeTransactionRef());</span>
-<span class="lineNum">     201 </span>                :<span class="lineCov">       5640 :             ssValue &gt;&gt; wtx;</span>
-<span class="lineNum">     202 </span>                :<span class="lineCov">       5640 :             CValidationState state;</span>
-<span class="lineNum">     203 </span>[<span class="branchCov" title="Branch 1 was taken 5640 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 5640 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       5640 :             if (!(CheckTransaction(*wtx.tx, state) &amp;&amp; (wtx.GetHash() == hash) &amp;&amp; state.IsValid()))</span>
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 5 was taken 5640 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>][<span class="branchNoCov" title="Branch 7 was not taken"> - </span><span class="branchCov" title="Branch 8 was taken 5640 times"> + </span>]
+<span class="lineNum">     198 </span>                :<span class="lineCov">       5580 :             uint256 hash;</span>
+<span class="lineNum">     199 </span>                :<span class="lineCov">       5580 :             ssKey &gt;&gt; hash;</span>
+<span class="lineNum">     200 </span>                :<span class="lineCov">      11160 :             CWalletTx wtx(nullptr /* pwallet */, MakeTransactionRef());</span>
+<span class="lineNum">     201 </span>                :<span class="lineCov">       5580 :             ssValue &gt;&gt; wtx;</span>
+<span class="lineNum">     202 </span>                :<span class="lineCov">       5580 :             CValidationState state;</span>
+<span class="lineNum">     203 </span>[<span class="branchCov" title="Branch 1 was taken 5580 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 5580 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       5580 :             if (!(CheckTransaction(*wtx.tx, state) &amp;&amp; (wtx.GetHash() == hash) &amp;&amp; state.IsValid()))</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 5 was taken 5580 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>][<span class="branchNoCov" title="Branch 7 was not taken"> - </span><span class="branchCov" title="Branch 8 was taken 5580 times"> + </span>]
 <span class="lineNum">     204 </span>                :<span class="lineNoCov">          0 :                 return false;</span>
 <span class="lineNum">     205 </span>                :            : 
 <span class="lineNum">     206 </span>                :            :             // Undo serialize changes in 31600
-<span class="lineNum">     207 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 5640 times"> + </span>]:<span class="lineCov">       5640 :             if (31404 &lt;= wtx.fTimeReceivedIsTxTime &amp;&amp; wtx.fTimeReceivedIsTxTime &lt;= 31703)</span>
+<span class="lineNum">     207 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 5580 times"> + </span>]:<span class="lineCov">       5580 :             if (31404 &lt;= wtx.fTimeReceivedIsTxTime &amp;&amp; wtx.fTimeReceivedIsTxTime &lt;= 31703)</span>
 <span class="lineNum">     208 </span>                :            :             {
 <span class="lineNum">     209 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 if (!ssValue.empty())</span>
 <span class="lineNum">     210 </span>                :            :                 {
@@ -301,12 +301,12 @@
 <span class="lineNum">     224 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 wss.vWalletUpgrade.push_back(hash);</span>
 <span class="lineNum">     225 </span>                :            :             }
 <span class="lineNum">     226 </span>                :            : 
-<span class="lineNum">     227 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 5640 times"> + </span>]:<span class="lineCov">       5640 :             if (wtx.nOrderPos == -1)</span>
+<span class="lineNum">     227 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 5580 times"> + </span>]:<span class="lineCov">       5580 :             if (wtx.nOrderPos == -1)</span>
 <span class="lineNum">     228 </span>                :<span class="lineNoCov">          0 :                 wss.fAnyUnordered = true;</span>
 <span class="lineNum">     229 </span>                :            : 
-<span class="lineNum">     230 </span>        [<span class="branchCov" title="Branch 1 was taken 5640 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       5640 :             pwallet-&gt;LoadToWallet(wtx);</span>
+<span class="lineNum">     230 </span>        [<span class="branchCov" title="Branch 1 was taken 5580 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       5580 :             pwallet-&gt;LoadToWallet(wtx);</span>
 <span class="lineNum">     231 </span>                :            :         }
-<span class="lineNum">     232 </span>        [<span class="branchCov" title="Branch 0 was taken 57 times"> + </span><span class="branchCov" title="Branch 1 was taken 15831 times"> + </span>]:<span class="lineCov">      15888 :         else if (strType == &quot;watchs&quot;)</span>
+<span class="lineNum">     232 </span>        [<span class="branchCov" title="Branch 0 was taken 57 times"> + </span><span class="branchCov" title="Branch 1 was taken 15774 times"> + </span>]:<span class="lineCov">      15831 :         else if (strType == &quot;watchs&quot;)</span>
 <span class="lineNum">     233 </span>                :            :         {
 <span class="lineNum">     234 </span>                :<span class="lineCov">         57 :             wss.nWatchKeys++;</span>
 <span class="lineNum">     235 </span>                :<span class="lineCov">         57 :             CScript script;</span>
@@ -316,22 +316,22 @@
 <span class="lineNum">     239 </span>        [<span class="branchCov" title="Branch 0 was taken 57 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         57 :             if (fYes == '1')</span>
 <span class="lineNum">     240 </span>        [<span class="branchCov" title="Branch 1 was taken 57 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         57 :                 pwallet-&gt;LoadWatchOnly(script);</span>
 <span class="lineNum">     241 </span>                :            :         }
-<span class="lineNum">     242 </span>  [<span class="branchCov" title="Branch 0 was taken 11047 times"> + </span><span class="branchCov" title="Branch 1 was taken 4784 times"> + </span><span class="branchCov" title="Branch 2 was taken 11047 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">      26878 :         else if (strType == &quot;key&quot; || strType == &quot;wkey&quot;)</span>
+<span class="lineNum">     242 </span>  [<span class="branchCov" title="Branch 0 was taken 11010 times"> + </span><span class="branchCov" title="Branch 1 was taken 4764 times"> + </span><span class="branchCov" title="Branch 2 was taken 11010 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">      26784 :         else if (strType == &quot;key&quot; || strType == &quot;wkey&quot;)</span>
 <span class="lineNum">     243 </span>                :            :         {
-<span class="lineNum">     244 </span>                :<span class="lineCov">       4784 :             CPubKey vchPubKey;</span>
-<span class="lineNum">     245 </span>                :<span class="lineCov">       4784 :             ssKey &gt;&gt; vchPubKey;</span>
+<span class="lineNum">     244 </span>                :<span class="lineCov">       4764 :             CPubKey vchPubKey;</span>
+<span class="lineNum">     245 </span>                :<span class="lineCov">       4764 :             ssKey &gt;&gt; vchPubKey;</span>
 <span class="lineNum">     246 </span>                :<span class="lineNoCov">          0 :             if (!vchPubKey.IsValid())</span>
 <span class="lineNum">     247 </span>                :            :             {
 <span class="lineNum">     248 </span>                :            :                 strErr = &quot;Error reading wallet database: CPubKey corrupt&quot;;
 <span class="lineNum">     249 </span>                :<span class="lineNoCov">          0 :                 return false;</span>
 <span class="lineNum">     250 </span>                :            :             }
-<span class="lineNum">     251 </span>        [<span class="branchCov" title="Branch 1 was taken 4784 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       9568 :             CKey key;</span>
+<span class="lineNum">     251 </span>        [<span class="branchCov" title="Branch 1 was taken 4764 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       9528 :             CKey key;</span>
 <span class="lineNum">     252 </span>                :<span class="lineNoCov">          0 :             CPrivKey pkey;</span>
-<span class="lineNum">     253 </span>                :<span class="lineCov">       4784 :             uint256 hash;</span>
+<span class="lineNum">     253 </span>                :<span class="lineCov">       4764 :             uint256 hash;</span>
 <span class="lineNum">     254 </span>                :            : 
-<span class="lineNum">     255 </span>        [<span class="branchCov" title="Branch 0 was taken 4784 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       4784 :             if (strType == &quot;key&quot;)</span>
+<span class="lineNum">     255 </span>        [<span class="branchCov" title="Branch 0 was taken 4764 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       4764 :             if (strType == &quot;key&quot;)</span>
 <span class="lineNum">     256 </span>                :            :             {
-<span class="lineNum">     257 </span>                :<span class="lineCov">       4784 :                 wss.nKeys++;</span>
+<span class="lineNum">     257 </span>                :<span class="lineCov">       4764 :                 wss.nKeys++;</span>
 <span class="lineNum">     258 </span>                :            :                 ssValue &gt;&gt; pkey;
 <span class="lineNum">     259 </span>                :            :             } else {
 <span class="lineNum">     260 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 CWalletKey wkey;</span>
@@ -350,37 +350,37 @@
 <span class="lineNum">     273 </span>                :            :             }
 <span class="lineNum">     274 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             catch (...) {}</span>
 <span class="lineNum">     275 </span>                :            : 
-<span class="lineNum">     276 </span>                :<span class="lineCov">       4784 :             bool fSkipCheck = false;</span>
+<span class="lineNum">     276 </span>                :<span class="lineCov">       4764 :             bool fSkipCheck = false;</span>
 <span class="lineNum">     277 </span>                :            : 
-<span class="lineNum">     278 </span>        [<span class="branchCov" title="Branch 0 was taken 4784 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       4784 :             if (!hash.IsNull())</span>
+<span class="lineNum">     278 </span>        [<span class="branchCov" title="Branch 0 was taken 4764 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       4764 :             if (!hash.IsNull())</span>
 <span class="lineNum">     279 </span>                :            :             {
 <span class="lineNum">     280 </span>                :            :                 // hash pubkey/privkey to accelerate wallet load
-<span class="lineNum">     281 </span>                :<span class="lineCov">       4784 :                 std::vector&lt;unsigned char&gt; vchKey;</span>
-<span class="lineNum">     282 </span>        [<span class="branchCov" title="Branch 1 was taken 4784 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       4784 :                 vchKey.reserve(vchPubKey.size() + pkey.size());</span>
-<span class="lineNum">     283 </span>        [<span class="branchCov" title="Branch 1 was taken 4784 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       4784 :                 vchKey.insert(vchKey.end(), vchPubKey.begin(), vchPubKey.end());</span>
-<span class="lineNum">     284 </span>        [<span class="branchCov" title="Branch 1 was taken 4784 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       4784 :                 vchKey.insert(vchKey.end(), pkey.begin(), pkey.end());</span>
+<span class="lineNum">     281 </span>                :<span class="lineCov">       4764 :                 std::vector&lt;unsigned char&gt; vchKey;</span>
+<span class="lineNum">     282 </span>        [<span class="branchCov" title="Branch 1 was taken 4764 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       4764 :                 vchKey.reserve(vchPubKey.size() + pkey.size());</span>
+<span class="lineNum">     283 </span>        [<span class="branchCov" title="Branch 1 was taken 4764 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       4764 :                 vchKey.insert(vchKey.end(), vchPubKey.begin(), vchPubKey.end());</span>
+<span class="lineNum">     284 </span>        [<span class="branchCov" title="Branch 1 was taken 4764 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       4764 :                 vchKey.insert(vchKey.end(), pkey.begin(), pkey.end());</span>
 <span class="lineNum">     285 </span>                :            : 
-<span class="lineNum">     286 </span>[<span class="branchCov" title="Branch 1 was taken 4784 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 4784 times"> + </span>]:<span class="lineCov">       4784 :                 if (Hash(vchKey.begin(), vchKey.end()) != hash)</span>
+<span class="lineNum">     286 </span>[<span class="branchCov" title="Branch 1 was taken 4764 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 4764 times"> + </span>]:<span class="lineCov">       4764 :                 if (Hash(vchKey.begin(), vchKey.end()) != hash)</span>
 <span class="lineNum">     287 </span>                :            :                 {
 <span class="lineNum">     288 </span>                :<span class="lineNoCov">          0 :                     strErr = &quot;Error reading wallet database: CPubKey/CPrivKey corrupt&quot;;</span>
 <span class="lineNum">     289 </span>                :<span class="lineNoCov">          0 :                     return false;</span>
 <span class="lineNum">     290 </span>                :            :                 }
 <span class="lineNum">     291 </span>                :            : 
-<span class="lineNum">     292 </span>                :<span class="lineCov">       4784 :                 fSkipCheck = true;</span>
+<span class="lineNum">     292 </span>                :<span class="lineCov">       4764 :                 fSkipCheck = true;</span>
 <span class="lineNum">     293 </span>                :            :             }
 <span class="lineNum">     294 </span>                :            : 
-<span class="lineNum">     295 </span>[<span class="branchCov" title="Branch 1 was taken 4784 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 4784 times"> + </span>]:<span class="lineCov">       4784 :             if (!key.Load(pkey, vchPubKey, fSkipCheck))</span>
+<span class="lineNum">     295 </span>[<span class="branchCov" title="Branch 1 was taken 4764 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 4764 times"> + </span>]:<span class="lineCov">       4764 :             if (!key.Load(pkey, vchPubKey, fSkipCheck))</span>
 <span class="lineNum">     296 </span>                :            :             {
 <span class="lineNum">     297 </span>                :            :                 strErr = &quot;Error reading wallet database: CPrivKey corrupt&quot;;
 <span class="lineNum">     298 </span>                :            :                 return false;
 <span class="lineNum">     299 </span>                :            :             }
-<span class="lineNum">     300 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 4784 times"> + </span>]:<span class="lineCov">       4784 :             if (!pwallet-&gt;LoadKey(key, vchPubKey))</span>
+<span class="lineNum">     300 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 4764 times"> + </span>]:<span class="lineCov">       4764 :             if (!pwallet-&gt;LoadKey(key, vchPubKey))</span>
 <span class="lineNum">     301 </span>                :            :             {
 <span class="lineNum">     302 </span>                :            :                 strErr = &quot;Error reading wallet database: LoadKey failed&quot;;
 <span class="lineNum">     303 </span>                :            :                 return false;
 <span class="lineNum">     304 </span>                :            :             }
 <span class="lineNum">     305 </span>                :            :         }
-<span class="lineNum">     306 </span>        [<span class="branchCov" title="Branch 0 was taken 5 times"> + </span><span class="branchCov" title="Branch 1 was taken 11042 times"> + </span>]:<span class="lineCov">      11047 :         else if (strType == &quot;mkey&quot;)</span>
+<span class="lineNum">     306 </span>        [<span class="branchCov" title="Branch 0 was taken 5 times"> + </span><span class="branchCov" title="Branch 1 was taken 11005 times"> + </span>]:<span class="lineCov">      11010 :         else if (strType == &quot;mkey&quot;)</span>
 <span class="lineNum">     307 </span>                :            :         {
 <span class="lineNum">     308 </span>                :            :             unsigned int nID;
 <span class="lineNum">     309 </span>                :<span class="lineCov">          5 :             ssKey &gt;&gt; nID;</span>
@@ -395,7 +395,7 @@
 <span class="lineNum">     318 </span>        [<span class="branchCov" title="Branch 0 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          5 :             if (pwallet-&gt;nMasterKeyMaxID &lt; nID)</span>
 <span class="lineNum">     319 </span>                :<span class="lineCov">          5 :                 pwallet-&gt;nMasterKeyMaxID = nID;</span>
 <span class="lineNum">     320 </span>                :            :         }
-<span class="lineNum">     321 </span>        [<span class="branchCov" title="Branch 0 was taken 51 times"> + </span><span class="branchCov" title="Branch 1 was taken 10991 times"> + </span>]:<span class="lineCov">      11042 :         else if (strType == &quot;ckey&quot;)</span>
+<span class="lineNum">     321 </span>        [<span class="branchCov" title="Branch 0 was taken 51 times"> + </span><span class="branchCov" title="Branch 1 was taken 10954 times"> + </span>]:<span class="lineCov">      11005 :         else if (strType == &quot;ckey&quot;)</span>
 <span class="lineNum">     322 </span>                :            :         {
 <span class="lineNum">     323 </span>                :<span class="lineCov">         51 :             CPubKey vchPubKey;</span>
 <span class="lineNum">     324 </span>                :<span class="lineCov">         51 :             ssKey &gt;&gt; vchPubKey;</span>
@@ -415,16 +415,16 @@
 <span class="lineNum">     338 </span>                :            :             }
 <span class="lineNum">     339 </span>                :<span class="lineCov">         51 :             wss.fIsEncrypted = true;</span>
 <span class="lineNum">     340 </span>                :            :         }
-<span class="lineNum">     341 </span>        [<span class="branchCov" title="Branch 0 was taken 4840 times"> + </span><span class="branchCov" title="Branch 1 was taken 6151 times"> + </span>]:<span class="lineCov">      10991 :         else if (strType == &quot;keymeta&quot;)</span>
+<span class="lineNum">     341 </span>        [<span class="branchCov" title="Branch 0 was taken 4822 times"> + </span><span class="branchCov" title="Branch 1 was taken 6132 times"> + </span>]:<span class="lineCov">      10954 :         else if (strType == &quot;keymeta&quot;)</span>
 <span class="lineNum">     342 </span>                :            :         {
-<span class="lineNum">     343 </span>                :<span class="lineCov">       4840 :             CPubKey vchPubKey;</span>
-<span class="lineNum">     344 </span>                :<span class="lineCov">       4840 :             ssKey &gt;&gt; vchPubKey;</span>
-<span class="lineNum">     345 </span>                :<span class="lineCov">       9680 :             CKeyMetadata keyMeta;</span>
-<span class="lineNum">     346 </span>                :<span class="lineCov">       4840 :             ssValue &gt;&gt; keyMeta;</span>
-<span class="lineNum">     347 </span>                :<span class="lineCov">       4840 :             wss.nKeyMeta++;</span>
-<span class="lineNum">     348 </span>[<span class="branchCov" title="Branch 1 was taken 4840 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 4840 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       4840 :             pwallet-&gt;LoadKeyMetadata(vchPubKey.GetID(), keyMeta);</span>
+<span class="lineNum">     343 </span>                :<span class="lineCov">       4822 :             CPubKey vchPubKey;</span>
+<span class="lineNum">     344 </span>                :<span class="lineCov">       4822 :             ssKey &gt;&gt; vchPubKey;</span>
+<span class="lineNum">     345 </span>                :<span class="lineCov">       9644 :             CKeyMetadata keyMeta;</span>
+<span class="lineNum">     346 </span>                :<span class="lineCov">       4822 :             ssValue &gt;&gt; keyMeta;</span>
+<span class="lineNum">     347 </span>                :<span class="lineCov">       4822 :             wss.nKeyMeta++;</span>
+<span class="lineNum">     348 </span>[<span class="branchCov" title="Branch 1 was taken 4822 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 4822 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       4822 :             pwallet-&gt;LoadKeyMetadata(vchPubKey.GetID(), keyMeta);</span>
 <span class="lineNum">     349 </span>                :            :         }
-<span class="lineNum">     350 </span>        [<span class="branchCov" title="Branch 0 was taken 57 times"> + </span><span class="branchCov" title="Branch 1 was taken 6094 times"> + </span>]:<span class="lineCov">       6151 :         else if (strType == &quot;watchmeta&quot;)</span>
+<span class="lineNum">     350 </span>        [<span class="branchCov" title="Branch 0 was taken 57 times"> + </span><span class="branchCov" title="Branch 1 was taken 6075 times"> + </span>]:<span class="lineCov">       6132 :         else if (strType == &quot;watchmeta&quot;)</span>
 <span class="lineNum">     351 </span>                :            :         {
 <span class="lineNum">     352 </span>                :<span class="lineCov">         57 :             CScript script;</span>
 <span class="lineNum">     353 </span>                :<span class="lineCov">         57 :             ssKey &gt;&gt; script;</span>
@@ -433,7 +433,7 @@
 <span class="lineNum">     356 </span>                :<span class="lineCov">         57 :             wss.nKeyMeta++;</span>
 <span class="lineNum">     357 </span>[<span class="branchCov" title="Branch 1 was taken 57 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 57 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         57 :             pwallet-&gt;LoadScriptMetadata(CScriptID(script), keyMeta);</span>
 <span class="lineNum">     358 </span>                :            :         }
-<span class="lineNum">     359 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 6094 times"> + </span>]:<span class="lineCov">       6094 :         else if (strType == &quot;defaultkey&quot;)</span>
+<span class="lineNum">     359 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 6075 times"> + </span>]:<span class="lineCov">       6075 :         else if (strType == &quot;defaultkey&quot;)</span>
 <span class="lineNum">     360 </span>                :            :         {
 <span class="lineNum">     361 </span>                :            :             // We don't want or need the default key, but if there is one set,
 <span class="lineNum">     362 </span>                :            :             // we want to make sure that it is valid so that we can detect corruption
@@ -444,28 +444,28 @@
 <span class="lineNum">     367 </span>                :<span class="lineNoCov">          0 :                 return false;</span>
 <span class="lineNum">     368 </span>                :            :             }
 <span class="lineNum">     369 </span>                :            :         }
-<span class="lineNum">     370 </span>        [<span class="branchCov" title="Branch 0 was taken 3714 times"> + </span><span class="branchCov" title="Branch 1 was taken 2380 times"> + </span>]:<span class="lineCov">       6094 :         else if (strType == &quot;pool&quot;)</span>
+<span class="lineNum">     370 </span>        [<span class="branchCov" title="Branch 0 was taken 3713 times"> + </span><span class="branchCov" title="Branch 1 was taken 2362 times"> + </span>]:<span class="lineCov">       6075 :         else if (strType == &quot;pool&quot;)</span>
 <span class="lineNum">     371 </span>                :            :         {
 <span class="lineNum">     372 </span>                :            :             int64_t nIndex;
-<span class="lineNum">     373 </span>                :<span class="lineCov">       3714 :             ssKey &gt;&gt; nIndex;</span>
-<span class="lineNum">     374 </span>        [<span class="branchCov" title="Branch 1 was taken 3714 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3714 :             CKeyPool keypool;</span>
-<span class="lineNum">     375 </span>                :<span class="lineCov">       3714 :             ssValue &gt;&gt; keypool;</span>
+<span class="lineNum">     373 </span>                :<span class="lineCov">       3713 :             ssKey &gt;&gt; nIndex;</span>
+<span class="lineNum">     374 </span>        [<span class="branchCov" title="Branch 1 was taken 3713 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3713 :             CKeyPool keypool;</span>
+<span class="lineNum">     375 </span>                :<span class="lineCov">       3713 :             ssValue &gt;&gt; keypool;</span>
 <span class="lineNum">     376 </span>                :            : 
-<span class="lineNum">     377 </span>        [<span class="branchCov" title="Branch 1 was taken 3714 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3714 :             pwallet-&gt;LoadKeyPool(nIndex, keypool);</span>
+<span class="lineNum">     377 </span>        [<span class="branchCov" title="Branch 1 was taken 3713 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3713 :             pwallet-&gt;LoadKeyPool(nIndex, keypool);</span>
 <span class="lineNum">     378 </span>                :            :         }
-<span class="lineNum">     379 </span>        [<span class="branchCov" title="Branch 0 was taken 485 times"> + </span><span class="branchCov" title="Branch 1 was taken 1895 times"> + </span>]:<span class="lineCov">       2380 :         else if (strType == &quot;version&quot;)</span>
+<span class="lineNum">     379 </span>        [<span class="branchCov" title="Branch 0 was taken 486 times"> + </span><span class="branchCov" title="Branch 1 was taken 1876 times"> + </span>]:<span class="lineCov">       2362 :         else if (strType == &quot;version&quot;)</span>
 <span class="lineNum">     380 </span>                :            :         {
-<span class="lineNum">     381 </span>                :<span class="lineCov">        970 :             ssValue &gt;&gt; wss.nFileVersion;</span>
-<span class="lineNum">     382 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 485 times"> + </span>]:<span class="lineCov">        485 :             if (wss.nFileVersion == 10300)</span>
+<span class="lineNum">     381 </span>                :<span class="lineCov">        972 :             ssValue &gt;&gt; wss.nFileVersion;</span>
+<span class="lineNum">     382 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 486 times"> + </span>]:<span class="lineCov">        486 :             if (wss.nFileVersion == 10300)</span>
 <span class="lineNum">     383 </span>                :<span class="lineNoCov">          0 :                 wss.nFileVersion = 300;</span>
 <span class="lineNum">     384 </span>                :            :         }
-<span class="lineNum">     385 </span>        [<span class="branchCov" title="Branch 0 was taken 822 times"> + </span><span class="branchCov" title="Branch 1 was taken 1073 times"> + </span>]:<span class="lineCov">       1895 :         else if (strType == &quot;cscript&quot;)</span>
+<span class="lineNum">     385 </span>        [<span class="branchCov" title="Branch 0 was taken 803 times"> + </span><span class="branchCov" title="Branch 1 was taken 1073 times"> + </span>]:<span class="lineCov">       1876 :         else if (strType == &quot;cscript&quot;)</span>
 <span class="lineNum">     386 </span>                :            :         {
-<span class="lineNum">     387 </span>                :<span class="lineCov">        822 :             uint160 hash;</span>
-<span class="lineNum">     388 </span>                :<span class="lineCov">        822 :             ssKey &gt;&gt; hash;</span>
-<span class="lineNum">     389 </span>                :<span class="lineCov">        822 :             CScript script;</span>
-<span class="lineNum">     390 </span>                :<span class="lineCov">        822 :             ssValue &gt;&gt; script;</span>
-<span class="lineNum">     391 </span>[<span class="branchCov" title="Branch 1 was taken 822 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 822 times"> + </span>]:<span class="lineCov">        822 :             if (!pwallet-&gt;LoadCScript(script))</span>
+<span class="lineNum">     387 </span>                :<span class="lineCov">        803 :             uint160 hash;</span>
+<span class="lineNum">     388 </span>                :<span class="lineCov">        803 :             ssKey &gt;&gt; hash;</span>
+<span class="lineNum">     389 </span>                :<span class="lineCov">        803 :             CScript script;</span>
+<span class="lineNum">     390 </span>                :<span class="lineCov">        803 :             ssValue &gt;&gt; script;</span>
+<span class="lineNum">     391 </span>[<span class="branchCov" title="Branch 1 was taken 803 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 803 times"> + </span>]:<span class="lineCov">        803 :             if (!pwallet-&gt;LoadCScript(script))</span>
 <span class="lineNum">     392 </span>                :            :             {
 <span class="lineNum">     393 </span>                :<span class="lineNoCov">          0 :                 strErr = &quot;Error reading wallet database: LoadCScript failed&quot;;</span>
 <span class="lineNum">     394 </span>                :<span class="lineNoCov">          0 :                 return false;</span>
@@ -497,7 +497,7 @@
 <span class="lineNum">     420 </span>                :            :             }
 <span class="lineNum">     421 </span>  [<span class="branchCov" title="Branch 0 was taken 195 times"> + </span><span class="branchCov" title="Branch 1 was taken 194 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 195 times"> + </span>]:<span class="lineCov">        584 :         } else if (strType != &quot;bestblock&quot; &amp;&amp; strType != &quot;bestblock_nomerkle&quot; &amp;&amp;</span>
 <span class="lineNum">     422 </span>  [<span class="branchCov" title="Branch 0 was taken 389 times"> + </span><span class="branchCov" title="Branch 1 was taken 194 times"> + </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">        583 :                 strType != &quot;minversion&quot; &amp;&amp; strType != &quot;acentry&quot;) {</span>
-<span class="lineNum">     423 </span>                :<span class="lineCov">      23468 :             wss.m_unknown_records++;</span>
+<span class="lineNum">     423 </span>                :<span class="lineCov">      23329 :             wss.m_unknown_records++;</span>
 <span class="lineNum">     424 </span>                :            :         }
 <span class="lineNum">     425 </span>                :<span class="lineNoCov">          0 :     } catch (const std::exception&amp; e) {</span>
 <span class="lineNum">     426 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (strErr.empty()) {</span>
@@ -519,17 +519,17 @@
 <span class="lineNum">     442 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             strType == &quot;mkey&quot; || strType == &quot;ckey&quot;);</span>
 <span class="lineNum">     443 </span>                :            : }
 <span class="lineNum">     444 </span>                :            : 
-<span class="lineNum">     445 </span>                :<span class="lineCov">        485 : DBErrors WalletBatch::LoadWallet(CWallet* pwallet)</span>
+<span class="lineNum">     445 </span>                :<span class="lineCov">        486 : DBErrors WalletBatch::LoadWallet(CWallet* pwallet)</span>
 <span class="lineNum">     446 </span>                :            : {
-<span class="lineNum">     447 </span>                :<span class="lineCov">        485 :     CWalletScanState wss;</span>
-<span class="lineNum">     448 </span>                :<span class="lineCov">        485 :     bool fNoncriticalErrors = false;</span>
-<span class="lineNum">     449 </span>                :<span class="lineCov">        485 :     DBErrors result = DBErrors::LOAD_OK;</span>
+<span class="lineNum">     447 </span>                :<span class="lineCov">        486 :     CWalletScanState wss;</span>
+<span class="lineNum">     448 </span>                :<span class="lineCov">        486 :     bool fNoncriticalErrors = false;</span>
+<span class="lineNum">     449 </span>                :<span class="lineCov">        486 :     DBErrors result = DBErrors::LOAD_OK;</span>
 <span class="lineNum">     450 </span>                :            : 
-<span class="lineNum">     451 </span>        [<span class="branchCov" title="Branch 1 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        485 :     LOCK(pwallet-&gt;cs_wallet);</span>
+<span class="lineNum">     451 </span>        [<span class="branchCov" title="Branch 1 was taken 486 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        486 :     LOCK(pwallet-&gt;cs_wallet);</span>
 <span class="lineNum">     452 </span>                :            :     try {
-<span class="lineNum">     453 </span>                :<span class="lineCov">        485 :         int nMinVersion = 0;</span>
-<span class="lineNum">     454 </span>[<span class="branchCov" title="Branch 1 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        970 :         if (m_batch.Read((std::string)&quot;minversion&quot;, nMinVersion))</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 195 times"> + </span><span class="branchCov" title="Branch 7 was taken 290 times"> + </span>]
+<span class="lineNum">     453 </span>                :<span class="lineCov">        486 :         int nMinVersion = 0;</span>
+<span class="lineNum">     454 </span>[<span class="branchCov" title="Branch 1 was taken 486 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 486 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        972 :         if (m_batch.Read((std::string)&quot;minversion&quot;, nMinVersion))</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 195 times"> + </span><span class="branchCov" title="Branch 7 was taken 291 times"> + </span>]
 <span class="lineNum">     455 </span>                :            :         {
 <span class="lineNum">     456 </span>        [<span class="branchCov" title="Branch 0 was taken 195 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        195 :             if (nMinVersion &gt; FEATURE_LATEST)</span>
 <span class="lineNum">     457 </span>                :<span class="lineNoCov">          0 :                 return DBErrors::TOO_NEW;</span>
@@ -538,7 +538,7 @@
 <span class="lineNum">     460 </span>                :            : 
 <span class="lineNum">     461 </span>                :            :         // Get cursor
 <span class="lineNum">     462 </span>                :<span class="lineNoCov">          0 :         Dbc* pcursor = m_batch.GetCursor();</span>
-<span class="lineNum">     463 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 485 times"> + </span>]:<span class="lineCov">        485 :         if (!pcursor)</span>
+<span class="lineNum">     463 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 486 times"> + </span>]:<span class="lineCov">        486 :         if (!pcursor)</span>
 <span class="lineNum">     464 </span>                :            :         {
 <span class="lineNum">     465 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :             pwallet-&gt;WalletLogPrintf(&quot;Error getting wallet database cursor\n&quot;);</span>
 <span class="lineNum">     466 </span>                :<span class="lineNoCov">          0 :             return DBErrors::CORRUPT;</span>
@@ -547,12 +547,12 @@
 <span class="lineNum">     469 </span>                :            :         while (true)
 <span class="lineNum">     470 </span>                :            :         {
 <span class="lineNum">     471 </span>                :            :             // Read next record
-<span class="lineNum">     472 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineCov">      23468 :             CDataStream ssKey(SER_DISK, CLIENT_VERSION);</span>
+<span class="lineNum">     472 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineCov">      23329 :             CDataStream ssKey(SER_DISK, CLIENT_VERSION);</span>
 <span class="lineNum">     473 </span>                :<span class="lineNoCov">          0 :             CDataStream ssValue(SER_DISK, CLIENT_VERSION);</span>
-<span class="lineNum">     474 </span>        [<span class="branchCov" title="Branch 1 was taken 23953 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      23953 :             int ret = m_batch.ReadAtCursor(pcursor, ssKey, ssValue);</span>
-<span class="lineNum">     475 </span>        [<span class="branchCov" title="Branch 0 was taken 23468 times"> + </span><span class="branchCov" title="Branch 1 was taken 485 times"> + </span>]:<span class="lineCov">      23953 :             if (ret == DB_NOTFOUND)</span>
+<span class="lineNum">     474 </span>        [<span class="branchCov" title="Branch 1 was taken 23815 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      23815 :             int ret = m_batch.ReadAtCursor(pcursor, ssKey, ssValue);</span>
+<span class="lineNum">     475 </span>        [<span class="branchCov" title="Branch 0 was taken 23329 times"> + </span><span class="branchCov" title="Branch 1 was taken 486 times"> + </span>]:<span class="lineCov">      23815 :             if (ret == DB_NOTFOUND)</span>
 <span class="lineNum">     476 </span>                :            :                 break;
-<span class="lineNum">     477 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 23468 times"> + </span>]:<span class="lineCov">      23468 :             else if (ret != 0)</span>
+<span class="lineNum">     477 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 23329 times"> + </span>]:<span class="lineCov">      23329 :             else if (ret != 0)</span>
 <span class="lineNum">     478 </span>                :            :             {
 <span class="lineNum">     479 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 pwallet-&gt;WalletLogPrintf(&quot;Error reading next record from wallet database\n&quot;);</span>
 <span class="lineNum">     480 </span>                :<span class="lineNoCov">          0 :                 return DBErrors::CORRUPT;</span>
@@ -560,7 +560,7 @@
 <span class="lineNum">     482 </span>                :            : 
 <span class="lineNum">     483 </span>                :            :             // Try to be tolerant of single corrupt records:
 <span class="lineNum">     484 </span>                :<span class="lineNoCov">          0 :             std::string strType, strErr;</span>
-<span class="lineNum">     485 </span>[<span class="branchCov" title="Branch 1 was taken 23468 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 23468 times"> + </span>]:<span class="lineCov">      23468 :             if (!ReadKeyValue(pwallet, ssKey, ssValue, wss, strType, strErr))</span>
+<span class="lineNum">     485 </span>[<span class="branchCov" title="Branch 1 was taken 23329 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 23329 times"> + </span>]:<span class="lineCov">      23329 :             if (!ReadKeyValue(pwallet, ssKey, ssValue, wss, strType, strErr))</span>
 <span class="lineNum">     486 </span>                :            :             {
 <span class="lineNum">     487 </span>                :            :                 // losing keys is considered a catastrophic error, anything else
 <span class="lineNum">     488 </span>                :            :                 // we assume the user can live with:
@@ -577,10 +577,10 @@
 <span class="lineNum">     499 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                         gArgs.SoftSetBoolArg(&quot;-rescan&quot;, true);</span>
 <span class="lineNum">     500 </span>                :            :                 }
 <span class="lineNum">     501 </span>                :            :             }
-<span class="lineNum">     502 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 23468 times"> + </span>]:<span class="lineCov">      23468 :             if (!strErr.empty())</span>
+<span class="lineNum">     502 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 23329 times"> + </span>]:<span class="lineCov">      23329 :             if (!strErr.empty())</span>
 <span class="lineNum">     503 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 pwallet-&gt;WalletLogPrintf(&quot;%s\n&quot;, strErr);</span>
 <span class="lineNum">     504 </span>                :            :         }
-<span class="lineNum">     505 </span>        [<span class="branchCov" title="Branch 1 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        485 :         pcursor-&gt;close();</span>
+<span class="lineNum">     505 </span>        [<span class="branchCov" title="Branch 1 was taken 486 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        486 :         pcursor-&gt;close();</span>
 <span class="lineNum">     506 </span>                :            :     }
 <span class="lineNum">     507 </span>                :<span class="lineNoCov">          0 :     catch (const boost::thread_interrupted&amp;) {</span>
 <span class="lineNum">     508 </span>                :<span class="lineNoCov">          0 :         throw;</span>
@@ -589,40 +589,40 @@
 <span class="lineNum">     511 </span>                :<span class="lineNoCov">          0 :         result = DBErrors::CORRUPT;</span>
 <span class="lineNum">     512 </span>                :            :     }
 <span class="lineNum">     513 </span>                :            : 
-<span class="lineNum">     514 </span>        [<span class="branchCov" title="Branch 0 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        485 :     if (fNoncriticalErrors &amp;&amp; result == DBErrors::LOAD_OK)</span>
+<span class="lineNum">     514 </span>        [<span class="branchCov" title="Branch 0 was taken 486 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        486 :     if (fNoncriticalErrors &amp;&amp; result == DBErrors::LOAD_OK)</span>
 <span class="lineNum">     515 </span>                :            :         result = DBErrors::NONCRITICAL_ERROR;
 <span class="lineNum">     516 </span>                :            : 
 <span class="lineNum">     517 </span>                :            :     // Any wallet corruption at all: skip any rewriting or
 <span class="lineNum">     518 </span>                :            :     // upgrading, we don't want to make it worse.
-<span class="lineNum">     519 </span>        [<span class="branchCov" title="Branch 0 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        485 :     if (result != DBErrors::LOAD_OK)</span>
+<span class="lineNum">     519 </span>        [<span class="branchCov" title="Branch 0 was taken 486 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        486 :     if (result != DBErrors::LOAD_OK)</span>
 <span class="lineNum">     520 </span>                :            :         return result;
 <span class="lineNum">     521 </span>                :            : 
-<span class="lineNum">     522 </span>[<span class="branchCov" title="Branch 1 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        485 :     pwallet-&gt;WalletLogPrintf(&quot;nFileVersion = %d\n&quot;, wss.nFileVersion);</span>
+<span class="lineNum">     522 </span>[<span class="branchCov" title="Branch 1 was taken 486 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 486 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        486 :     pwallet-&gt;WalletLogPrintf(&quot;nFileVersion = %d\n&quot;, wss.nFileVersion);</span>
 <span class="lineNum">     523 </span>                :            : 
-<span class="lineNum">     524 </span>[<span class="branchCov" title="Branch 1 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        485 :     pwallet-&gt;WalletLogPrintf(&quot;Keys: %u plaintext, %u encrypted, %u w/ metadata, %u total. Unknown wallet records: %u\n&quot;,</span>
-<span class="lineNum">     525 </span>                :<span class="lineCov">        485 :            wss.nKeys, wss.nCKeys, wss.nKeyMeta, wss.nKeys + wss.nCKeys, wss.m_unknown_records);</span>
+<span class="lineNum">     524 </span>[<span class="branchCov" title="Branch 1 was taken 486 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 486 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        486 :     pwallet-&gt;WalletLogPrintf(&quot;Keys: %u plaintext, %u encrypted, %u w/ metadata, %u total. Unknown wallet records: %u\n&quot;,</span>
+<span class="lineNum">     525 </span>                :<span class="lineCov">        486 :            wss.nKeys, wss.nCKeys, wss.nKeyMeta, wss.nKeys + wss.nCKeys, wss.m_unknown_records);</span>
 <span class="lineNum">     526 </span>                :            : 
 <span class="lineNum">     527 </span>                :            :     // nTimeFirstKey is only reliable if all keys have metadata
-<span class="lineNum">     528 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 483 times"> + </span>]:<span class="lineCov">        485 :     if ((wss.nKeys + wss.nCKeys + wss.nWatchKeys) != wss.nKeyMeta)</span>
+<span class="lineNum">     528 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 484 times"> + </span>]:<span class="lineCov">        486 :     if ((wss.nKeys + wss.nCKeys + wss.nWatchKeys) != wss.nKeyMeta)</span>
 <span class="lineNum">     529 </span>        [<span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :         pwallet-&gt;UpdateTimeFirstKey(1);</span>
 <span class="lineNum">     530 </span>                :            : 
-<span class="lineNum">     531 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 485 times"> + </span>]:<span class="lineCov">        485 :     for (const uint256&amp; hash : wss.vWalletUpgrade)</span>
+<span class="lineNum">     531 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 486 times"> + </span>]:<span class="lineCov">        486 :     for (const uint256&amp; hash : wss.vWalletUpgrade)</span>
 <span class="lineNum">     532 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         WriteTx(pwallet-&gt;mapWallet.at(hash));</span>
 <span class="lineNum">     533 </span>                :            : 
 <span class="lineNum">     534 </span>                :            :     // Rewrite encrypted wallets of versions 0.4.0 and 0.5.0rc:
-<span class="lineNum">     535 </span>[<span class="branchCov" title="Branch 0 was taken 5 times"> + </span><span class="branchCov" title="Branch 1 was taken 480 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        485 :     if (wss.fIsEncrypted &amp;&amp; (wss.nFileVersion == 40000 || wss.nFileVersion == 50000))</span>
+<span class="lineNum">     535 </span>[<span class="branchCov" title="Branch 0 was taken 5 times"> + </span><span class="branchCov" title="Branch 1 was taken 481 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        486 :     if (wss.fIsEncrypted &amp;&amp; (wss.nFileVersion == 40000 || wss.nFileVersion == 50000))</span>
 <span class="lineNum">     536 </span>                :            :         return DBErrors::NEED_REWRITE;
 <span class="lineNum">     537 </span>                :            : 
-<span class="lineNum">     538 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 485 times"> + </span>]:<span class="lineCov">        485 :     if (wss.nFileVersion &lt; CLIENT_VERSION) // Update</span>
+<span class="lineNum">     538 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 486 times"> + </span>]:<span class="lineCov">        486 :     if (wss.nFileVersion &lt; CLIENT_VERSION) // Update</span>
 <span class="lineNum">     539 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         WriteVersion(CLIENT_VERSION);</span>
 <span class="lineNum">     540 </span>                :            : 
-<span class="lineNum">     541 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 485 times"> + </span>]:<span class="lineCov">        485 :     if (wss.fAnyUnordered)</span>
+<span class="lineNum">     541 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 486 times"> + </span>]:<span class="lineCov">        486 :     if (wss.fAnyUnordered)</span>
 <span class="lineNum">     542 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         result = pwallet-&gt;ReorderTransactions();</span>
 <span class="lineNum">     543 </span>                :            : 
 <span class="lineNum">     544 </span>                :            :     // Upgrade all of the wallet keymetadata to have the hd master key id
 <span class="lineNum">     545 </span>                :            :     // This operation is not atomic, but if it fails, updated entries are still backwards compatible with older software
 <span class="lineNum">     546 </span>                :            :     try {
-<span class="lineNum">     547 </span>        [<span class="branchCov" title="Branch 1 was taken 485 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        485 :         pwallet-&gt;UpgradeKeyMetadata();</span>
+<span class="lineNum">     547 </span>        [<span class="branchCov" title="Branch 1 was taken 486 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        486 :         pwallet-&gt;UpgradeKeyMetadata();</span>
 <span class="lineNum">     548 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     } catch (...) {</span>
 <span class="lineNum">     549 </span>                :<span class="lineNoCov">          0 :         result = DBErrors::CORRUPT;</span>
 <span class="lineNum">     550 </span>                :            :     }
@@ -654,28 +654,28 @@
 <span class="lineNum">     575 </span>                :            :         while (true)
 <span class="lineNum">     576 </span>                :            :         {
 <span class="lineNum">     577 </span>                :            :             // Read next record
-<span class="lineNum">     578 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineCov">       1178 :             CDataStream ssKey(SER_DISK, CLIENT_VERSION);</span>
+<span class="lineNum">     578 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineCov">       1138 :             CDataStream ssKey(SER_DISK, CLIENT_VERSION);</span>
 <span class="lineNum">     579 </span>                :<span class="lineNoCov">          0 :             CDataStream ssValue(SER_DISK, CLIENT_VERSION);</span>
-<span class="lineNum">     580 </span>        [<span class="branchCov" title="Branch 1 was taken 1189 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1189 :             int ret = m_batch.ReadAtCursor(pcursor, ssKey, ssValue);</span>
-<span class="lineNum">     581 </span>        [<span class="branchCov" title="Branch 0 was taken 1178 times"> + </span><span class="branchCov" title="Branch 1 was taken 11 times"> + </span>]:<span class="lineCov">       1189 :             if (ret == DB_NOTFOUND)</span>
+<span class="lineNum">     580 </span>        [<span class="branchCov" title="Branch 1 was taken 1149 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1149 :             int ret = m_batch.ReadAtCursor(pcursor, ssKey, ssValue);</span>
+<span class="lineNum">     581 </span>        [<span class="branchCov" title="Branch 0 was taken 1138 times"> + </span><span class="branchCov" title="Branch 1 was taken 11 times"> + </span>]:<span class="lineCov">       1149 :             if (ret == DB_NOTFOUND)</span>
 <span class="lineNum">     582 </span>                :            :                 break;
-<span class="lineNum">     583 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1178 times"> + </span>]:<span class="lineCov">       1178 :             else if (ret != 0)</span>
+<span class="lineNum">     583 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1138 times"> + </span>]:<span class="lineCov">       1138 :             else if (ret != 0)</span>
 <span class="lineNum">     584 </span>                :            :             {
 <span class="lineNum">     585 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 LogPrintf(&quot;Error reading next record from wallet database\n&quot;);</span>
 <span class="lineNum">     586 </span>                :<span class="lineNoCov">          0 :                 return DBErrors::CORRUPT;</span>
 <span class="lineNum">     587 </span>                :            :             }
 <span class="lineNum">     588 </span>                :            : 
 <span class="lineNum">     589 </span>                :<span class="lineNoCov">          0 :             std::string strType;</span>
-<span class="lineNum">     590 </span>                :<span class="lineCov">       1178 :             ssKey &gt;&gt; strType;</span>
-<span class="lineNum">     591 </span>        [<span class="branchCov" title="Branch 0 was taken 517 times"> + </span><span class="branchCov" title="Branch 1 was taken 661 times"> + </span>]:<span class="lineCov">       1178 :             if (strType == &quot;tx&quot;) {</span>
-<span class="lineNum">     592 </span>                :<span class="lineCov">        517 :                 uint256 hash;</span>
-<span class="lineNum">     593 </span>                :<span class="lineCov">        517 :                 ssKey &gt;&gt; hash;</span>
+<span class="lineNum">     590 </span>                :<span class="lineCov">       1138 :             ssKey &gt;&gt; strType;</span>
+<span class="lineNum">     591 </span>        [<span class="branchCov" title="Branch 0 was taken 509 times"> + </span><span class="branchCov" title="Branch 1 was taken 629 times"> + </span>]:<span class="lineCov">       1138 :             if (strType == &quot;tx&quot;) {</span>
+<span class="lineNum">     592 </span>                :<span class="lineCov">        509 :                 uint256 hash;</span>
+<span class="lineNum">     593 </span>                :<span class="lineCov">        509 :                 ssKey &gt;&gt; hash;</span>
 <span class="lineNum">     594 </span>                :            : 
-<span class="lineNum">     595 </span>                :<span class="lineCov">       1034 :                 CWalletTx wtx(nullptr /* pwallet */, MakeTransactionRef());</span>
-<span class="lineNum">     596 </span>                :<span class="lineCov">        517 :                 ssValue &gt;&gt; wtx;</span>
+<span class="lineNum">     595 </span>                :<span class="lineCov">       1018 :                 CWalletTx wtx(nullptr /* pwallet */, MakeTransactionRef());</span>
+<span class="lineNum">     596 </span>                :<span class="lineCov">        509 :                 ssValue &gt;&gt; wtx;</span>
 <span class="lineNum">     597 </span>                :            : 
-<span class="lineNum">     598 </span>        [<span class="branchCov" title="Branch 1 was taken 517 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        517 :                 vTxHash.push_back(hash);</span>
-<span class="lineNum">     599 </span>        [<span class="branchCov" title="Branch 1 was taken 517 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        517 :                 vWtx.push_back(wtx);</span>
+<span class="lineNum">     598 </span>        [<span class="branchCov" title="Branch 1 was taken 509 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        509 :                 vTxHash.push_back(hash);</span>
+<span class="lineNum">     599 </span>        [<span class="branchCov" title="Branch 1 was taken 509 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        509 :                 vWtx.push_back(wtx);</span>
 <span class="lineNum">     600 </span>                :            :             }
 <span class="lineNum">     601 </span>                :            :         }
 <span class="lineNum">     602 </span>        [<span class="branchCov" title="Branch 1 was taken 11 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         11 :         pcursor-&gt;close();</span>
@@ -737,39 +737,39 @@
 <span class="lineNum">     658 </span>                :            :         return err;
 <span class="lineNum">     659 </span>                :            : 
 <span class="lineNum">     660 </span>                :            :     // erase each wallet TX
-<span class="lineNum">     661 </span>        [<span class="branchCov" title="Branch 0 was taken 512 times"> + </span><span class="branchCov" title="Branch 1 was taken 8 times"> + </span>]:<span class="lineCov">        520 :     for (const uint256&amp; hash : vTxHash) {</span>
-<span class="lineNum">     662 </span>[<span class="branchCov" title="Branch 1 was taken 512 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 512 times"> + </span>]:<span class="lineCov">        512 :         if (!EraseTx(hash))</span>
+<span class="lineNum">     661 </span>        [<span class="branchCov" title="Branch 0 was taken 504 times"> + </span><span class="branchCov" title="Branch 1 was taken 8 times"> + </span>]:<span class="lineCov">        512 :     for (const uint256&amp; hash : vTxHash) {</span>
+<span class="lineNum">     662 </span>[<span class="branchCov" title="Branch 1 was taken 504 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 504 times"> + </span>]:<span class="lineCov">        504 :         if (!EraseTx(hash))</span>
 <span class="lineNum">     663 </span>                :<span class="lineNoCov">          0 :             return DBErrors::CORRUPT;</span>
 <span class="lineNum">     664 </span>                :            :     }
 <span class="lineNum">     665 </span>                :            : 
 <span class="lineNum">     666 </span>                :<span class="lineCov">          8 :     return DBErrors::LOAD_OK;</span>
 <span class="lineNum">     667 </span>                :            : }
 <span class="lineNum">     668 </span>                :            : 
-<span class="lineNum">     669 </span>                :<span class="lineCov">       9379 : void MaybeCompactWalletDB()</span>
+<span class="lineNum">     669 </span>                :<span class="lineCov">       8535 : void MaybeCompactWalletDB()</span>
 <span class="lineNum">     670 </span>                :            : {
 <span class="lineNum">     671 </span>                :            :     static std::atomic&lt;bool&gt; fOneThread(false);
-<span class="lineNum">     672 </span>        [<span class="branchCov" title="Branch 0 was taken 9379 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       9379 :     if (fOneThread.exchange(true)) {</span>
+<span class="lineNum">     672 </span>        [<span class="branchCov" title="Branch 0 was taken 8535 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       8535 :     if (fOneThread.exchange(true)) {</span>
 <span class="lineNum">     673 </span>                :            :         return;
 <span class="lineNum">     674 </span>                :            :     }
-<span class="lineNum">     675 </span>[<span class="branchCov" title="Branch 1 was taken 9379 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 9379 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      18758 :     if (!gArgs.GetBoolArg(&quot;-flushwallet&quot;, DEFAULT_FLUSHWALLET)) {</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 9379 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">     675 </span>[<span class="branchCov" title="Branch 1 was taken 8535 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 8535 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      17070 :     if (!gArgs.GetBoolArg(&quot;-flushwallet&quot;, DEFAULT_FLUSHWALLET)) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 8535 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
 <span class="lineNum">     676 </span>                :            :         return;
 <span class="lineNum">     677 </span>                :            :     }
 <span class="lineNum">     678 </span>                :            : 
-<span class="lineNum">     679 </span>        [<span class="branchCov" title="Branch 1 was taken 9730 times"> + </span><span class="branchCov" title="Branch 2 was taken 9379 times"> + </span>]:<span class="lineCov">      19109 :     for (const std::shared_ptr&lt;CWallet&gt;&amp; pwallet : GetWallets()) {</span>
-<span class="lineNum">     680 </span>                :<span class="lineCov">      19460 :         WalletDatabase&amp; dbh = pwallet-&gt;GetDBHandle();</span>
+<span class="lineNum">     679 </span>        [<span class="branchCov" title="Branch 1 was taken 8899 times"> + </span><span class="branchCov" title="Branch 2 was taken 8535 times"> + </span>]:<span class="lineCov">      17434 :     for (const std::shared_ptr&lt;CWallet&gt;&amp; pwallet : GetWallets()) {</span>
+<span class="lineNum">     680 </span>                :<span class="lineCov">      17798 :         WalletDatabase&amp; dbh = pwallet-&gt;GetDBHandle();</span>
 <span class="lineNum">     681 </span>                :            : 
-<span class="lineNum">     682 </span>                :<span class="lineCov">      19460 :         unsigned int nUpdateCounter = dbh.nUpdateCounter;</span>
+<span class="lineNum">     682 </span>                :<span class="lineCov">      17798 :         unsigned int nUpdateCounter = dbh.nUpdateCounter;</span>
 <span class="lineNum">     683 </span>                :            : 
-<span class="lineNum">     684 </span>        [<span class="branchCov" title="Branch 0 was taken 1764 times"> + </span><span class="branchCov" title="Branch 1 was taken 7966 times"> + </span>]:<span class="lineCov">       9730 :         if (dbh.nLastSeen != nUpdateCounter) {</span>
-<span class="lineNum">     685 </span>                :<span class="lineCov">       1764 :             dbh.nLastSeen = nUpdateCounter;</span>
-<span class="lineNum">     686 </span>        [<span class="branchCov" title="Branch 1 was taken 1764 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1764 :             dbh.nLastWalletUpdate = GetTime();</span>
+<span class="lineNum">     684 </span>        [<span class="branchCov" title="Branch 0 was taken 1694 times"> + </span><span class="branchCov" title="Branch 1 was taken 7205 times"> + </span>]:<span class="lineCov">       8899 :         if (dbh.nLastSeen != nUpdateCounter) {</span>
+<span class="lineNum">     685 </span>                :<span class="lineCov">       1694 :             dbh.nLastSeen = nUpdateCounter;</span>
+<span class="lineNum">     686 </span>        [<span class="branchCov" title="Branch 1 was taken 1694 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1694 :             dbh.nLastWalletUpdate = GetTime();</span>
 <span class="lineNum">     687 </span>                :            :         }
 <span class="lineNum">     688 </span>                :            : 
-<span class="lineNum">     689 </span>[<span class="branchCov" title="Branch 0 was taken 3675 times"> + </span><span class="branchCov" title="Branch 1 was taken 6055 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 3675 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       9730 :         if (dbh.nLastFlushed != nUpdateCounter &amp;&amp; GetTime() - dbh.nLastWalletUpdate &gt;= 2) {</span>
-<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 5 was taken 372 times"> + </span><span class="branchCov" title="Branch 6 was taken 3303 times"> + </span>]
-<span class="lineNum">     690 </span>[<span class="branchCov" title="Branch 1 was taken 372 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 371 times"> + </span><span class="branchCov" title="Branch 4 was taken 1 time"> + </span>]:<span class="lineCov">        372 :             if (BerkeleyBatch::PeriodicFlush(dbh)) {</span>
-<span class="lineNum">     691 </span>                :<span class="lineCov">        371 :                 dbh.nLastFlushed = nUpdateCounter;</span>
+<span class="lineNum">     689 </span>[<span class="branchCov" title="Branch 0 was taken 3671 times"> + </span><span class="branchCov" title="Branch 1 was taken 5228 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 3671 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       8899 :         if (dbh.nLastFlushed != nUpdateCounter &amp;&amp; GetTime() - dbh.nLastWalletUpdate &gt;= 2) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 5 was taken 387 times"> + </span><span class="branchCov" title="Branch 6 was taken 3284 times"> + </span>]
+<span class="lineNum">     690 </span>[<span class="branchCov" title="Branch 1 was taken 387 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 384 times"> + </span><span class="branchCov" title="Branch 4 was taken 3 times"> + </span>]:<span class="lineCov">        387 :             if (BerkeleyBatch::PeriodicFlush(dbh)) {</span>
+<span class="lineNum">     691 </span>                :<span class="lineCov">        384 :                 dbh.nLastFlushed = nUpdateCounter;</span>
 <span class="lineNum">     692 </span>                :            :             }
 <span class="lineNum">     693 </span>                :            :         }
 <span class="lineNum">     694 </span>                :            :     }
@@ -815,14 +815,14 @@
 <span class="lineNum">     734 </span>                :            :     return true;
 <a name="735"><span class="lineNum">     735 </span>                :            : }</a>
 <span class="lineNum">     736 </span>                :            : 
-<span class="lineNum">     737 </span>                :<span class="lineCov">        498 : bool WalletBatch::VerifyEnvironment(const fs::path&amp; wallet_path, std::string&amp; errorStr)</span>
+<span class="lineNum">     737 </span>                :<span class="lineCov">        499 : bool WalletBatch::VerifyEnvironment(const fs::path&amp; wallet_path, std::string&amp; errorStr)</span>
 <span class="lineNum">     738 </span>                :            : {
-<span class="lineNum">     739 </span>                :<span class="lineCov">        498 :     return BerkeleyBatch::VerifyEnvironment(wallet_path, errorStr);</span>
+<span class="lineNum">     739 </span>                :<span class="lineCov">        499 :     return BerkeleyBatch::VerifyEnvironment(wallet_path, errorStr);</span>
 <a name="740"><span class="lineNum">     740 </span>                :            : }</a>
 <span class="lineNum">     741 </span>                :            : 
-<span class="lineNum">     742 </span>                :<span class="lineCov">        488 : bool WalletBatch::VerifyDatabaseFile(const fs::path&amp; wallet_path, std::string&amp; warningStr, std::string&amp; errorStr)</span>
+<span class="lineNum">     742 </span>                :<span class="lineCov">        489 : bool WalletBatch::VerifyDatabaseFile(const fs::path&amp; wallet_path, std::string&amp; warningStr, std::string&amp; errorStr)</span>
 <span class="lineNum">     743 </span>                :            : {
-<span class="lineNum">     744 </span>                :<span class="lineCov">        488 :     return BerkeleyBatch::VerifyDatabaseFile(wallet_path, warningStr, errorStr, WalletBatch::Recover);</span>
+<span class="lineNum">     744 </span>                :<span class="lineCov">        489 :     return BerkeleyBatch::VerifyDatabaseFile(wallet_path, warningStr, errorStr, WalletBatch::Recover);</span>
 <a name="745"><span class="lineNum">     745 </span>                :            : }</a>
 <span class="lineNum">     746 </span>                :            : 
 <span class="lineNum">     747 </span>                :<span class="lineCov">          3 : bool WalletBatch::WriteDestData(const std::string &amp;address, const std::string &amp;key, const std::string &amp;value)</span>
@@ -836,14 +836,14 @@
 <span class="lineNum">     755 </span>                :            : }
 <a name="756"><span class="lineNum">     756 </span>                :            : </a>
 <span class="lineNum">     757 </span>                :            : 
-<span class="lineNum">     758 </span>                :<span class="lineCov">       8435 : bool WalletBatch::WriteHDChain(const CHDChain&amp; chain)</span>
+<span class="lineNum">     758 </span>                :<span class="lineCov">       8389 : bool WalletBatch::WriteHDChain(const CHDChain&amp; chain)</span>
 <span class="lineNum">     759 </span>                :            : {
-<span class="lineNum">     760 </span>[<span class="branchCov" title="Branch 1 was taken 8435 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 8435 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      16870 :     return WriteIC(std::string(&quot;hdchain&quot;), chain);</span>
+<span class="lineNum">     760 </span>[<span class="branchCov" title="Branch 1 was taken 8389 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 8389 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      16778 :     return WriteIC(std::string(&quot;hdchain&quot;), chain);</span>
 <a name="761"><span class="lineNum">     761 </span>                :            : }</a>
 <span class="lineNum">     762 </span>                :            : 
-<span class="lineNum">     763 </span>                :<span class="lineCov">       3686 : bool WalletBatch::WriteWalletFlags(const uint64_t flags)</span>
+<span class="lineNum">     763 </span>                :<span class="lineCov">       3646 : bool WalletBatch::WriteWalletFlags(const uint64_t flags)</span>
 <span class="lineNum">     764 </span>                :            : {
-<span class="lineNum">     765 </span>[<span class="branchCov" title="Branch 1 was taken 3686 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3686 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       7372 :     return WriteIC(std::string(&quot;flags&quot;), flags);</span>
+<span class="lineNum">     765 </span>[<span class="branchCov" title="Branch 1 was taken 3646 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 3646 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">       7292 :     return WriteIC(std::string(&quot;flags&quot;), flags);</span>
 <a name="766"><span class="lineNum">     766 </span>                :            : }</a>
 <span class="lineNum">     767 </span>                :            : 
 <span class="lineNum">     768 </span>                :<span class="lineCov">         12 : bool WalletBatch::TxnBegin()</span>
@@ -869,7 +869,7 @@
 <span class="lineNum">     788 </span>                :<span class="lineNoCov">          0 : bool WalletBatch::WriteVersion(int nVersion)</span>
 <a name="789"><span class="lineNum">     789 </span>                :            : {</a>
 <span class="lineNum">     790 </span>                :<span class="lineNoCov">          0 :     return m_batch.WriteVersion(nVersion);</span>
-<span class="lineNum">     791 </span>[<span class="branchCov" title="Branch 1 was taken 498 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 498 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       1992 : }</span>
+<span class="lineNum">     791 </span>[<span class="branchCov" title="Branch 1 was taken 500 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 500 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">       2000 : }</span>
 </pre>
       </td>
     </tr>

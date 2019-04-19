@@ -31,27 +31,27 @@
             <td class="headerValue">total_coverage.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">148</td>
             <td class="headerCovTableEntry">163</td>
-            <td class="headerCovTableEntryHi">90.8 %</td>
+            <td class="headerCovTableEntry">180</td>
+            <td class="headerCovTableEntryHi">90.6 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
             <td class="headerValue">2000-01-01 12:00:00</td>
             <td></td>
             <td class="headerItem">Functions:</td>
-            <td class="headerCovTableEntry">18</td>
             <td class="headerCovTableEntry">21</td>
-            <td class="headerCovTableEntryMed">85.7 %</td>
+            <td class="headerCovTableEntry">24</td>
+            <td class="headerCovTableEntryMed">87.5 %</td>
           </tr>
           <tr>
             <td></td>
             <td></td>
             <td></td>
             <td class="headerItem">Branches:</td>
-            <td class="headerCovTableEntry">126</td>
-            <td class="headerCovTableEntry">188</td>
-            <td class="headerCovTableEntryLo">67.0 %</td>
+            <td class="headerCovTableEntry">134</td>
+            <td class="headerCovTableEntry">203</td>
+            <td class="headerCovTableEntryLo">66.0 %</td>
           </tr>
           <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
         </table>
@@ -73,334 +73,376 @@
 <span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
 <span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 <span class="lineNum">       4 </span>                :            : 
-<span class="lineNum">       5 </span>                :            : #include &lt;psbt.h&gt;
-<span class="lineNum">       6 </span>                :            : #include &lt;util/strencodings.h&gt;
-<span class="lineNum">       7 </span>                :            : 
-<span class="lineNum">       8 </span>                :<span class="lineCov">          9 : PartiallySignedTransaction::PartiallySignedTransaction(const CMutableTransaction&amp; tx) : tx(tx)</span>
-<span class="lineNum">       9 </span>                :            : {
-<span class="lineNum">      10 </span>        [<span class="branchCov" title="Branch 1 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          9 :     inputs.resize(tx.vin.size());</span>
-<span class="lineNum">      11 </span>        [<span class="branchCov" title="Branch 1 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          9 :     outputs.resize(tx.vout.size());</span>
-<span class="lineNum">      12 </span>                :<span class="lineCov">          9 : }</span>
-<span class="lineNum">      13 </span>                :            : 
-<span class="lineNum">      14 </span>                :<span class="lineNoCov">          0 : bool PartiallySignedTransaction::IsNull() const</span>
-<span class="lineNum">      15 </span>                :            : {
-<span class="lineNum">      16 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return !tx &amp;&amp; inputs.empty() &amp;&amp; outputs.empty() &amp;&amp; unknown.empty();</span>
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
-<span class="lineNum">      17 </span>                :            : }
+<span class="lineNum">       5 </span>                :            : #include &lt;coins.h&gt;
+<span class="lineNum">       6 </span>                :            : #include &lt;consensus/tx_verify.h&gt;
+<span class="lineNum">       7 </span>                :            : #include &lt;policy/policy.h&gt;
+<span class="lineNum">       8 </span>                :            : #include &lt;psbt.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;util/strencodings.h&gt;
+<span class="lineNum">      10 </span>                :            : 
+<span class="lineNum">      11 </span>                :            : #include &lt;numeric&gt;
+<span class="lineNum">      12 </span>                :            : 
+<span class="lineNum">      13 </span>                :<span class="lineCov">          9 : PartiallySignedTransaction::PartiallySignedTransaction(const CMutableTransaction&amp; tx) : tx(tx)</span>
+<span class="lineNum">      14 </span>                :            : {
+<span class="lineNum">      15 </span>        [<span class="branchCov" title="Branch 1 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          9 :     inputs.resize(tx.vin.size());</span>
+<span class="lineNum">      16 </span>        [<span class="branchCov" title="Branch 1 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          9 :     outputs.resize(tx.vout.size());</span>
+<span class="lineNum">      17 </span>                :<span class="lineCov">          9 : }</span>
 <span class="lineNum">      18 </span>                :            : 
-<span class="lineNum">      19 </span>                :<span class="lineCov">          3 : bool PartiallySignedTransaction::Merge(const PartiallySignedTransaction&amp; psbt)</span>
+<span class="lineNum">      19 </span>                :<span class="lineNoCov">          0 : bool PartiallySignedTransaction::IsNull() const</span>
 <span class="lineNum">      20 </span>                :            : {
-<span class="lineNum">      21 </span>                :            :     // Prohibited to merge two PSBTs over different transactions
-<span class="lineNum">      22 </span>        [<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          6 :     if (tx-&gt;GetHash() != psbt.tx-&gt;GetHash()) {</span>
-<span class="lineNum">      23 </span>                :            :         return false;
-<span class="lineNum">      24 </span>                :            :     }
-<span class="lineNum">      25 </span>                :            : 
-<span class="lineNum">      26 </span>        [<span class="branchCov" title="Branch 0 was taken 5 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">          8 :     for (unsigned int i = 0; i &lt; inputs.size(); ++i) {</span>
-<span class="lineNum">      27 </span>                :<span class="lineCov">          5 :         inputs[i].Merge(psbt.inputs[i]);</span>
-<span class="lineNum">      28 </span>                :            :     }
-<span class="lineNum">      29 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">          7 :     for (unsigned int i = 0; i &lt; outputs.size(); ++i) {</span>
-<span class="lineNum">      30 </span>                :<span class="lineCov">          4 :         outputs[i].Merge(psbt.outputs[i]);</span>
-<span class="lineNum">      31 </span>                :            :     }
-<span class="lineNum">      32 </span>                :<span class="lineCov">          3 :     unknown.insert(psbt.unknown.begin(), psbt.unknown.end());</span>
-<span class="lineNum">      33 </span>                :            : 
-<span class="lineNum">      34 </span>                :<span class="lineCov">          3 :     return true;</span>
-<span class="lineNum">      35 </span>                :            : }
-<span class="lineNum">      36 </span>                :            : 
-<span class="lineNum">      37 </span>                :<span class="lineCov">        195 : bool PartiallySignedTransaction::IsSane() const</span>
-<span class="lineNum">      38 </span>                :            : {
-<span class="lineNum">      39 </span>        [<span class="branchCov" title="Branch 0 was taken 247 times"> + </span><span class="branchCov" title="Branch 1 was taken 195 times"> + </span>]:<span class="lineCov">        689 :     for (PSBTInput input : inputs) {</span>
-<span class="lineNum">      40 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 247 times"> + </span>]:<span class="lineCov">        247 :         if (!input.IsSane()) return false;</span>
-<span class="lineNum">      41 </span>                :            :     }
-<span class="lineNum">      42 </span>                :<span class="lineCov">        195 :     return true;</span>
-<span class="lineNum">      43 </span>                :            : }
-<span class="lineNum">      44 </span>                :            : 
-<span class="lineNum">      45 </span>                :<span class="lineCov">          6 : bool PartiallySignedTransaction::AddInput(const CTxIn&amp; txin, PSBTInput&amp; psbtin)</span>
-<span class="lineNum">      46 </span>                :            : {
-<span class="lineNum">      47 </span>        [<span class="branchCov" title="Branch 1 was taken 5 times"> + </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span>]:<span class="lineCov">          6 :     if (std::find(tx-&gt;vin.begin(), tx-&gt;vin.end(), txin) != tx-&gt;vin.end()) {</span>
-<span class="lineNum">      48 </span>                :            :         return false;
-<span class="lineNum">      49 </span>                :            :     }
-<span class="lineNum">      50 </span>                :<span class="lineCov">          5 :     tx-&gt;vin.push_back(txin);</span>
-<span class="lineNum">      51 </span>                :<span class="lineCov">         10 :     psbtin.partial_sigs.clear();</span>
-<span class="lineNum">      52 </span>                :<span class="lineCov">          5 :     psbtin.final_script_sig.clear();</span>
-<span class="lineNum">      53 </span>                :<span class="lineCov">         10 :     psbtin.final_script_witness.SetNull();</span>
-<span class="lineNum">      54 </span>                :<span class="lineCov">          5 :     inputs.push_back(psbtin);</span>
-<span class="lineNum">      55 </span>                :<span class="lineCov">          5 :     return true;</span>
-<a name="56"><span class="lineNum">      56 </span>                :            : }</a>
-<span class="lineNum">      57 </span>                :            : 
-<span class="lineNum">      58 </span>                :<span class="lineCov">          3 : bool PartiallySignedTransaction::AddOutput(const CTxOut&amp; txout, const PSBTOutput&amp; psbtout)</span>
-<span class="lineNum">      59 </span>                :            : {
-<span class="lineNum">      60 </span>                :<span class="lineCov">          3 :     tx-&gt;vout.push_back(txout);</span>
-<span class="lineNum">      61 </span>                :<span class="lineCov">          3 :     outputs.push_back(psbtout);</span>
-<span class="lineNum">      62 </span>                :<span class="lineCov">          3 :     return true;</span>
-<span class="lineNum">      63 </span>                :            : }
-<span class="lineNum">      64 </span>                :            : 
-<span class="lineNum">      65 </span>                :<span class="lineCov">          5 : bool PartiallySignedTransaction::GetInputUTXO(CTxOut&amp; utxo, int input_index) const</span>
-<span class="lineNum">      66 </span>                :            : {
-<span class="lineNum">      67 </span>                :<span class="lineCov">         10 :     PSBTInput input = inputs[input_index];</span>
-<span class="lineNum">      68 </span>                :<span class="lineCov">         15 :     int prevout_index = tx-&gt;vin[input_index].prevout.n;</span>
-<span class="lineNum">      69 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>]:<span class="lineCov">          5 :     if (input.non_witness_utxo) {</span>
-<span class="lineNum">      70 </span>                :<span class="lineNoCov">          0 :         utxo = input.non_witness_utxo-&gt;vout[prevout_index];</span>
-<span class="lineNum">      71 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          5 :     } else if (!input.witness_utxo.IsNull()) {</span>
-<span class="lineNum">      72 </span>                :            :         utxo = input.witness_utxo;
-<span class="lineNum">      73 </span>                :            :     } else {
-<span class="lineNum">      74 </span>                :            :         return false;
-<span class="lineNum">      75 </span>                :            :     }
-<span class="lineNum">      76 </span>                :            :     return true;
-<a name="77"><span class="lineNum">      77 </span>                :            : }</a>
-<span class="lineNum">      78 </span>                :            : 
-<span class="lineNum">      79 </span>                :<span class="lineNoCov">          0 : bool PSBTInput::IsNull() const</span>
-<span class="lineNum">      80 </span>                :            : {
-<span class="lineNum">      81 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return !non_witness_utxo &amp;&amp; witness_utxo.IsNull() &amp;&amp; partial_sigs.empty() &amp;&amp; unknown.empty() &amp;&amp; hd_keypaths.empty() &amp;&amp; redeem_script.empty() &amp;&amp; witness_script.empty();</span>
+<span class="lineNum">      21 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return !tx &amp;&amp; inputs.empty() &amp;&amp; outputs.empty() &amp;&amp; unknown.empty();</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">      22 </span>                :            : }
+<span class="lineNum">      23 </span>                :            : 
+<span class="lineNum">      24 </span>                :<span class="lineCov">          3 : bool PartiallySignedTransaction::Merge(const PartiallySignedTransaction&amp; psbt)</span>
+<span class="lineNum">      25 </span>                :            : {
+<span class="lineNum">      26 </span>                :            :     // Prohibited to merge two PSBTs over different transactions
+<span class="lineNum">      27 </span>        [<span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          6 :     if (tx-&gt;GetHash() != psbt.tx-&gt;GetHash()) {</span>
+<span class="lineNum">      28 </span>                :            :         return false;
+<span class="lineNum">      29 </span>                :            :     }
+<span class="lineNum">      30 </span>                :            : 
+<span class="lineNum">      31 </span>        [<span class="branchCov" title="Branch 0 was taken 5 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">          8 :     for (unsigned int i = 0; i &lt; inputs.size(); ++i) {</span>
+<span class="lineNum">      32 </span>                :<span class="lineCov">          5 :         inputs[i].Merge(psbt.inputs[i]);</span>
+<span class="lineNum">      33 </span>                :            :     }
+<span class="lineNum">      34 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">          7 :     for (unsigned int i = 0; i &lt; outputs.size(); ++i) {</span>
+<span class="lineNum">      35 </span>                :<span class="lineCov">          4 :         outputs[i].Merge(psbt.outputs[i]);</span>
+<span class="lineNum">      36 </span>                :            :     }
+<span class="lineNum">      37 </span>                :<span class="lineCov">          3 :     unknown.insert(psbt.unknown.begin(), psbt.unknown.end());</span>
+<span class="lineNum">      38 </span>                :            : 
+<span class="lineNum">      39 </span>                :<span class="lineCov">          3 :     return true;</span>
+<span class="lineNum">      40 </span>                :            : }
+<span class="lineNum">      41 </span>                :            : 
+<span class="lineNum">      42 </span>                :<span class="lineCov">        195 : bool PartiallySignedTransaction::IsSane() const</span>
+<span class="lineNum">      43 </span>                :            : {
+<span class="lineNum">      44 </span>        [<span class="branchCov" title="Branch 0 was taken 247 times"> + </span><span class="branchCov" title="Branch 1 was taken 195 times"> + </span>]:<span class="lineCov">        689 :     for (PSBTInput input : inputs) {</span>
+<span class="lineNum">      45 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 247 times"> + </span>]:<span class="lineCov">        247 :         if (!input.IsSane()) return false;</span>
+<span class="lineNum">      46 </span>                :            :     }
+<span class="lineNum">      47 </span>                :<span class="lineCov">        195 :     return true;</span>
+<span class="lineNum">      48 </span>                :            : }
+<span class="lineNum">      49 </span>                :            : 
+<span class="lineNum">      50 </span>                :<span class="lineCov">          6 : bool PartiallySignedTransaction::AddInput(const CTxIn&amp; txin, PSBTInput&amp; psbtin)</span>
+<span class="lineNum">      51 </span>                :            : {
+<span class="lineNum">      52 </span>        [<span class="branchCov" title="Branch 1 was taken 5 times"> + </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span>]:<span class="lineCov">          6 :     if (std::find(tx-&gt;vin.begin(), tx-&gt;vin.end(), txin) != tx-&gt;vin.end()) {</span>
+<span class="lineNum">      53 </span>                :            :         return false;
+<span class="lineNum">      54 </span>                :            :     }
+<span class="lineNum">      55 </span>                :<span class="lineCov">          5 :     tx-&gt;vin.push_back(txin);</span>
+<span class="lineNum">      56 </span>                :<span class="lineCov">         10 :     psbtin.partial_sigs.clear();</span>
+<span class="lineNum">      57 </span>                :<span class="lineCov">          5 :     psbtin.final_script_sig.clear();</span>
+<span class="lineNum">      58 </span>                :<span class="lineCov">         10 :     psbtin.final_script_witness.SetNull();</span>
+<span class="lineNum">      59 </span>                :<span class="lineCov">          5 :     inputs.push_back(psbtin);</span>
+<span class="lineNum">      60 </span>                :<span class="lineCov">          5 :     return true;</span>
+<a name="61"><span class="lineNum">      61 </span>                :            : }</a>
+<span class="lineNum">      62 </span>                :            : 
+<span class="lineNum">      63 </span>                :<span class="lineCov">          3 : bool PartiallySignedTransaction::AddOutput(const CTxOut&amp; txout, const PSBTOutput&amp; psbtout)</span>
+<span class="lineNum">      64 </span>                :            : {
+<span class="lineNum">      65 </span>                :<span class="lineCov">          3 :     tx-&gt;vout.push_back(txout);</span>
+<span class="lineNum">      66 </span>                :<span class="lineCov">          3 :     outputs.push_back(psbtout);</span>
+<span class="lineNum">      67 </span>                :<span class="lineCov">          3 :     return true;</span>
+<span class="lineNum">      68 </span>                :            : }
+<span class="lineNum">      69 </span>                :            : 
+<span class="lineNum">      70 </span>                :<span class="lineCov">          5 : bool PartiallySignedTransaction::GetInputUTXO(CTxOut&amp; utxo, int input_index) const</span>
+<span class="lineNum">      71 </span>                :            : {
+<span class="lineNum">      72 </span>                :<span class="lineCov">         10 :     PSBTInput input = inputs[input_index];</span>
+<span class="lineNum">      73 </span>                :<span class="lineCov">         15 :     int prevout_index = tx-&gt;vin[input_index].prevout.n;</span>
+<span class="lineNum">      74 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>]:<span class="lineCov">          5 :     if (input.non_witness_utxo) {</span>
+<span class="lineNum">      75 </span>                :<span class="lineNoCov">          0 :         utxo = input.non_witness_utxo-&gt;vout[prevout_index];</span>
+<span class="lineNum">      76 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          5 :     } else if (!input.witness_utxo.IsNull()) {</span>
+<span class="lineNum">      77 </span>                :            :         utxo = input.witness_utxo;
+<span class="lineNum">      78 </span>                :            :     } else {
+<span class="lineNum">      79 </span>                :            :         return false;
+<span class="lineNum">      80 </span>                :            :     }
+<span class="lineNum">      81 </span>                :            :     return true;
+<a name="82"><span class="lineNum">      82 </span>                :            : }</a>
+<span class="lineNum">      83 </span>                :            : 
+<span class="lineNum">      84 </span>                :<span class="lineNoCov">          0 : bool PSBTInput::IsNull() const</span>
+<span class="lineNum">      85 </span>                :            : {
+<span class="lineNum">      86 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return !non_witness_utxo &amp;&amp; witness_utxo.IsNull() &amp;&amp; partial_sigs.empty() &amp;&amp; unknown.empty() &amp;&amp; hd_keypaths.empty() &amp;&amp; redeem_script.empty() &amp;&amp; witness_script.empty();</span>
 <span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
 <span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
 <span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
-<span class="lineNum">      82 </span>                :            : }
-<span class="lineNum">      83 </span>                :            : 
-<span class="lineNum">      84 </span>                :<span class="lineCov">        125 : void PSBTInput::FillSignatureData(SignatureData&amp; sigdata) const</span>
-<span class="lineNum">      85 </span>                :            : {
-<span class="lineNum">      86 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 125 times"> + </span>]:<span class="lineCov">        125 :     if (!final_script_sig.empty()) {</span>
-<span class="lineNum">      87 </span>                :<span class="lineNoCov">          0 :         sigdata.scriptSig = final_script_sig;</span>
-<span class="lineNum">      88 </span>                :<span class="lineNoCov">          0 :         sigdata.complete = true;</span>
-<span class="lineNum">      89 </span>                :            :     }
-<span class="lineNum">      90 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 125 times"> + </span>]:<span class="lineCov">        125 :     if (!final_script_witness.IsNull()) {</span>
-<span class="lineNum">      91 </span>                :<span class="lineNoCov">          0 :         sigdata.scriptWitness = final_script_witness;</span>
-<span class="lineNum">      92 </span>                :<span class="lineNoCov">          0 :         sigdata.complete = true;</span>
-<span class="lineNum">      93 </span>                :            :     }
-<span class="lineNum">      94 </span>        [<span class="branchCov" title="Branch 0 was taken 125 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        125 :     if (sigdata.complete) {</span>
-<span class="lineNum">      95 </span>                :            :         return;
-<span class="lineNum">      96 </span>                :            :     }
-<span class="lineNum">      97 </span>                :            : 
-<span class="lineNum">      98 </span>                :<span class="lineCov">        500 :     sigdata.signatures.insert(partial_sigs.begin(), partial_sigs.end());</span>
-<span class="lineNum">      99 </span>        [<span class="branchCov" title="Branch 0 was taken 22 times"> + </span><span class="branchCov" title="Branch 1 was taken 103 times"> + </span>]:<span class="lineCov">        125 :     if (!redeem_script.empty()) {</span>
-<span class="lineNum">     100 </span>                :<span class="lineCov">         22 :         sigdata.redeem_script = redeem_script;</span>
+<span class="lineNum">      87 </span>                :            : }
+<span class="lineNum">      88 </span>                :            : 
+<span class="lineNum">      89 </span>                :<span class="lineCov">        125 : void PSBTInput::FillSignatureData(SignatureData&amp; sigdata) const</span>
+<span class="lineNum">      90 </span>                :            : {
+<span class="lineNum">      91 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 125 times"> + </span>]:<span class="lineCov">        125 :     if (!final_script_sig.empty()) {</span>
+<span class="lineNum">      92 </span>                :<span class="lineNoCov">          0 :         sigdata.scriptSig = final_script_sig;</span>
+<span class="lineNum">      93 </span>                :<span class="lineNoCov">          0 :         sigdata.complete = true;</span>
+<span class="lineNum">      94 </span>                :            :     }
+<span class="lineNum">      95 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 125 times"> + </span>]:<span class="lineCov">        125 :     if (!final_script_witness.IsNull()) {</span>
+<span class="lineNum">      96 </span>                :<span class="lineNoCov">          0 :         sigdata.scriptWitness = final_script_witness;</span>
+<span class="lineNum">      97 </span>                :<span class="lineNoCov">          0 :         sigdata.complete = true;</span>
+<span class="lineNum">      98 </span>                :            :     }
+<span class="lineNum">      99 </span>        [<span class="branchCov" title="Branch 0 was taken 125 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        125 :     if (sigdata.complete) {</span>
+<span class="lineNum">     100 </span>                :            :         return;
 <span class="lineNum">     101 </span>                :            :     }
-<span class="lineNum">     102 </span>        [<span class="branchCov" title="Branch 0 was taken 10 times"> + </span><span class="branchCov" title="Branch 1 was taken 115 times"> + </span>]:<span class="lineCov">        125 :     if (!witness_script.empty()) {</span>
-<span class="lineNum">     103 </span>                :<span class="lineCov">         10 :         sigdata.witness_script = witness_script;</span>
-<span class="lineNum">     104 </span>                :            :     }
-<span class="lineNum">     105 </span>        [<span class="branchCov" title="Branch 0 was taken 27 times"> + </span><span class="branchCov" title="Branch 1 was taken 125 times"> + </span>]:<span class="lineCov">        152 :     for (const auto&amp; key_pair : hd_keypaths) {</span>
-<span class="lineNum">     106 </span>                :<span class="lineCov">         27 :         sigdata.misc_pubkeys.emplace(key_pair.first.GetID(), key_pair);</span>
-<span class="lineNum">     107 </span>                :            :     }
-<span class="lineNum">     108 </span>                :            : }
-<span class="lineNum">     109 </span>                :            : 
-<span class="lineNum">     110 </span>                :<span class="lineCov">        119 : void PSBTInput::FromSignatureData(const SignatureData&amp; sigdata)</span>
-<span class="lineNum">     111 </span>                :            : {
-<span class="lineNum">     112 </span>        [<span class="branchCov" title="Branch 0 was taken 17 times"> + </span><span class="branchCov" title="Branch 1 was taken 102 times"> + </span>]:<span class="lineCov">        119 :     if (sigdata.complete) {</span>
-<span class="lineNum">     113 </span>                :<span class="lineCov">         34 :         partial_sigs.clear();</span>
-<span class="lineNum">     114 </span>                :<span class="lineCov">         34 :         hd_keypaths.clear();</span>
-<span class="lineNum">     115 </span>                :<span class="lineCov">         17 :         redeem_script.clear();</span>
-<span class="lineNum">     116 </span>                :<span class="lineCov">         17 :         witness_script.clear();</span>
-<span class="lineNum">     117 </span>                :            : 
-<span class="lineNum">     118 </span>        [<span class="branchCov" title="Branch 0 was taken 15 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">         17 :         if (!sigdata.scriptSig.empty()) {</span>
-<span class="lineNum">     119 </span>                :<span class="lineCov">         15 :             final_script_sig = sigdata.scriptSig;</span>
-<span class="lineNum">     120 </span>                :            :         }
-<span class="lineNum">     121 </span>        [<span class="branchCov" title="Branch 0 was taken 12 times"> + </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>]:<span class="lineCov">         17 :         if (!sigdata.scriptWitness.IsNull()) {</span>
-<span class="lineNum">     122 </span>                :<span class="lineCov">         12 :             final_script_witness = sigdata.scriptWitness;</span>
-<span class="lineNum">     123 </span>                :            :         }
-<span class="lineNum">     124 </span>                :            :         return;
-<span class="lineNum">     125 </span>                :            :     }
-<span class="lineNum">     126 </span>                :            : 
-<span class="lineNum">     127 </span>                :<span class="lineCov">        408 :     partial_sigs.insert(sigdata.signatures.begin(), sigdata.signatures.end());</span>
-<span class="lineNum">     128 </span>[<span class="branchCov" title="Branch 0 was taken 90 times"> + </span><span class="branchCov" title="Branch 1 was taken 12 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 53 times"> + </span><span class="branchCov" title="Branch 3 was taken 37 times"> + </span>]:<span class="lineCov">        192 :     if (redeem_script.empty() &amp;&amp; !sigdata.redeem_script.empty()) {</span>
-<span class="lineNum">     129 </span>                :<span class="lineCov">         53 :         redeem_script = sigdata.redeem_script;</span>
+<span class="lineNum">     102 </span>                :            : 
+<span class="lineNum">     103 </span>                :<span class="lineCov">        500 :     sigdata.signatures.insert(partial_sigs.begin(), partial_sigs.end());</span>
+<span class="lineNum">     104 </span>        [<span class="branchCov" title="Branch 0 was taken 22 times"> + </span><span class="branchCov" title="Branch 1 was taken 103 times"> + </span>]:<span class="lineCov">        125 :     if (!redeem_script.empty()) {</span>
+<span class="lineNum">     105 </span>                :<span class="lineCov">         22 :         sigdata.redeem_script = redeem_script;</span>
+<span class="lineNum">     106 </span>                :            :     }
+<span class="lineNum">     107 </span>        [<span class="branchCov" title="Branch 0 was taken 10 times"> + </span><span class="branchCov" title="Branch 1 was taken 115 times"> + </span>]:<span class="lineCov">        125 :     if (!witness_script.empty()) {</span>
+<span class="lineNum">     108 </span>                :<span class="lineCov">         10 :         sigdata.witness_script = witness_script;</span>
+<span class="lineNum">     109 </span>                :            :     }
+<span class="lineNum">     110 </span>        [<span class="branchCov" title="Branch 0 was taken 27 times"> + </span><span class="branchCov" title="Branch 1 was taken 125 times"> + </span>]:<span class="lineCov">        152 :     for (const auto&amp; key_pair : hd_keypaths) {</span>
+<span class="lineNum">     111 </span>                :<span class="lineCov">         27 :         sigdata.misc_pubkeys.emplace(key_pair.first.GetID(), key_pair);</span>
+<span class="lineNum">     112 </span>                :            :     }
+<span class="lineNum">     113 </span>                :            : }
+<span class="lineNum">     114 </span>                :            : 
+<span class="lineNum">     115 </span>                :<span class="lineCov">        119 : void PSBTInput::FromSignatureData(const SignatureData&amp; sigdata)</span>
+<span class="lineNum">     116 </span>                :            : {
+<span class="lineNum">     117 </span>        [<span class="branchCov" title="Branch 0 was taken 17 times"> + </span><span class="branchCov" title="Branch 1 was taken 102 times"> + </span>]:<span class="lineCov">        119 :     if (sigdata.complete) {</span>
+<span class="lineNum">     118 </span>                :<span class="lineCov">         34 :         partial_sigs.clear();</span>
+<span class="lineNum">     119 </span>                :<span class="lineCov">         34 :         hd_keypaths.clear();</span>
+<span class="lineNum">     120 </span>                :<span class="lineCov">         17 :         redeem_script.clear();</span>
+<span class="lineNum">     121 </span>                :<span class="lineCov">         17 :         witness_script.clear();</span>
+<span class="lineNum">     122 </span>                :            : 
+<span class="lineNum">     123 </span>        [<span class="branchCov" title="Branch 0 was taken 15 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">         17 :         if (!sigdata.scriptSig.empty()) {</span>
+<span class="lineNum">     124 </span>                :<span class="lineCov">         15 :             final_script_sig = sigdata.scriptSig;</span>
+<span class="lineNum">     125 </span>                :            :         }
+<span class="lineNum">     126 </span>        [<span class="branchCov" title="Branch 0 was taken 12 times"> + </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>]:<span class="lineCov">         17 :         if (!sigdata.scriptWitness.IsNull()) {</span>
+<span class="lineNum">     127 </span>                :<span class="lineCov">         12 :             final_script_witness = sigdata.scriptWitness;</span>
+<span class="lineNum">     128 </span>                :            :         }
+<span class="lineNum">     129 </span>                :            :         return;
 <span class="lineNum">     130 </span>                :            :     }
-<span class="lineNum">     131 </span>[<span class="branchCov" title="Branch 0 was taken 97 times"> + </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 27 times"> + </span><span class="branchCov" title="Branch 3 was taken 70 times"> + </span>]:<span class="lineCov">        199 :     if (witness_script.empty() &amp;&amp; !sigdata.witness_script.empty()) {</span>
-<span class="lineNum">     132 </span>                :<span class="lineCov">         27 :         witness_script = sigdata.witness_script;</span>
-<span class="lineNum">     133 </span>                :            :     }
-<span class="lineNum">     134 </span>        [<span class="branchCov" title="Branch 0 was taken 123 times"> + </span><span class="branchCov" title="Branch 1 was taken 102 times"> + </span>]:<span class="lineCov">        225 :     for (const auto&amp; entry : sigdata.misc_pubkeys) {</span>
-<span class="lineNum">     135 </span>                :<span class="lineCov">        246 :         hd_keypaths.emplace(entry.second);</span>
-<span class="lineNum">     136 </span>                :            :     }
-<span class="lineNum">     137 </span>                :            : }
-<span class="lineNum">     138 </span>                :            : 
-<span class="lineNum">     139 </span>                :<span class="lineCov">          5 : void PSBTInput::Merge(const PSBTInput&amp; input)</span>
-<span class="lineNum">     140 </span>                :            : {
-<span class="lineNum">     141 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          5 :     if (!non_witness_utxo &amp;&amp; input.non_witness_utxo) non_witness_utxo = input.non_witness_utxo;</span>
-<span class="lineNum">     142 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          5 :     if (witness_utxo.IsNull() &amp;&amp; !input.witness_utxo.IsNull()) {</span>
-<span class="lineNum">     143 </span>                :<span class="lineCov">          2 :         witness_utxo = input.witness_utxo;</span>
-<span class="lineNum">     144 </span>                :<span class="lineCov">          1 :         non_witness_utxo = nullptr; // Clear out any non-witness utxo when we set a witness one.</span>
-<span class="lineNum">     145 </span>                :            :     }
-<span class="lineNum">     146 </span>                :            : 
-<span class="lineNum">     147 </span>                :<span class="lineCov">         20 :     partial_sigs.insert(input.partial_sigs.begin(), input.partial_sigs.end());</span>
-<span class="lineNum">     148 </span>                :<span class="lineCov">         20 :     hd_keypaths.insert(input.hd_keypaths.begin(), input.hd_keypaths.end());</span>
-<span class="lineNum">     149 </span>                :<span class="lineCov">         20 :     unknown.insert(input.unknown.begin(), input.unknown.end());</span>
-<span class="lineNum">     150 </span>                :            : 
-<span class="lineNum">     151 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">          8 :     if (redeem_script.empty() &amp;&amp; !input.redeem_script.empty()) redeem_script = input.redeem_script;</span>
-<span class="lineNum">     152 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          9 :     if (witness_script.empty() &amp;&amp; !input.witness_script.empty()) witness_script = input.witness_script;</span>
-<span class="lineNum">     153 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">          9 :     if (final_script_sig.empty() &amp;&amp; !input.final_script_sig.empty()) final_script_sig = input.final_script_sig;</span>
-<span class="lineNum">     154 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">          5 :     if (final_script_witness.IsNull() &amp;&amp; !input.final_script_witness.IsNull()) final_script_witness = input.final_script_witness;</span>
-<span class="lineNum">     155 </span>                :<span class="lineCov">          5 : }</span>
-<span class="lineNum">     156 </span>                :            : 
-<span class="lineNum">     157 </span>                :<span class="lineCov">        493 : bool PSBTInput::IsSane() const</span>
-<span class="lineNum">     158 </span>                :            : {
-<span class="lineNum">     159 </span>                :            :     // Cannot have both witness and non-witness utxos
-<span class="lineNum">     160 </span>[<span class="branchCov" title="Branch 0 was taken 133 times"> + </span><span class="branchCov" title="Branch 1 was taken 360 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 133 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        493 :     if (!witness_utxo.IsNull() &amp;&amp; non_witness_utxo) return false;</span>
+<span class="lineNum">     131 </span>                :            : 
+<span class="lineNum">     132 </span>                :<span class="lineCov">        408 :     partial_sigs.insert(sigdata.signatures.begin(), sigdata.signatures.end());</span>
+<span class="lineNum">     133 </span>[<span class="branchCov" title="Branch 0 was taken 90 times"> + </span><span class="branchCov" title="Branch 1 was taken 12 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 53 times"> + </span><span class="branchCov" title="Branch 3 was taken 37 times"> + </span>]:<span class="lineCov">        192 :     if (redeem_script.empty() &amp;&amp; !sigdata.redeem_script.empty()) {</span>
+<span class="lineNum">     134 </span>                :<span class="lineCov">         53 :         redeem_script = sigdata.redeem_script;</span>
+<span class="lineNum">     135 </span>                :            :     }
+<span class="lineNum">     136 </span>[<span class="branchCov" title="Branch 0 was taken 97 times"> + </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 27 times"> + </span><span class="branchCov" title="Branch 3 was taken 70 times"> + </span>]:<span class="lineCov">        199 :     if (witness_script.empty() &amp;&amp; !sigdata.witness_script.empty()) {</span>
+<span class="lineNum">     137 </span>                :<span class="lineCov">         27 :         witness_script = sigdata.witness_script;</span>
+<span class="lineNum">     138 </span>                :            :     }
+<span class="lineNum">     139 </span>        [<span class="branchCov" title="Branch 0 was taken 123 times"> + </span><span class="branchCov" title="Branch 1 was taken 102 times"> + </span>]:<span class="lineCov">        225 :     for (const auto&amp; entry : sigdata.misc_pubkeys) {</span>
+<span class="lineNum">     140 </span>                :<span class="lineCov">        246 :         hd_keypaths.emplace(entry.second);</span>
+<span class="lineNum">     141 </span>                :            :     }
+<span class="lineNum">     142 </span>                :            : }
+<span class="lineNum">     143 </span>                :            : 
+<span class="lineNum">     144 </span>                :<span class="lineCov">          5 : void PSBTInput::Merge(const PSBTInput&amp; input)</span>
+<span class="lineNum">     145 </span>                :            : {
+<span class="lineNum">     146 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          5 :     if (!non_witness_utxo &amp;&amp; input.non_witness_utxo) non_witness_utxo = input.non_witness_utxo;</span>
+<span class="lineNum">     147 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          5 :     if (witness_utxo.IsNull() &amp;&amp; !input.witness_utxo.IsNull()) {</span>
+<span class="lineNum">     148 </span>                :<span class="lineCov">          2 :         witness_utxo = input.witness_utxo;</span>
+<span class="lineNum">     149 </span>                :<span class="lineCov">          1 :         non_witness_utxo = nullptr; // Clear out any non-witness utxo when we set a witness one.</span>
+<span class="lineNum">     150 </span>                :            :     }
+<span class="lineNum">     151 </span>                :            : 
+<span class="lineNum">     152 </span>                :<span class="lineCov">         20 :     partial_sigs.insert(input.partial_sigs.begin(), input.partial_sigs.end());</span>
+<span class="lineNum">     153 </span>                :<span class="lineCov">         20 :     hd_keypaths.insert(input.hd_keypaths.begin(), input.hd_keypaths.end());</span>
+<span class="lineNum">     154 </span>                :<span class="lineCov">         20 :     unknown.insert(input.unknown.begin(), input.unknown.end());</span>
+<span class="lineNum">     155 </span>                :            : 
+<span class="lineNum">     156 </span>[<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">          8 :     if (redeem_script.empty() &amp;&amp; !input.redeem_script.empty()) redeem_script = input.redeem_script;</span>
+<span class="lineNum">     157 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          9 :     if (witness_script.empty() &amp;&amp; !input.witness_script.empty()) witness_script = input.witness_script;</span>
+<span class="lineNum">     158 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">          9 :     if (final_script_sig.empty() &amp;&amp; !input.final_script_sig.empty()) final_script_sig = input.final_script_sig;</span>
+<span class="lineNum">     159 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">          5 :     if (final_script_witness.IsNull() &amp;&amp; !input.final_script_witness.IsNull()) final_script_witness = input.final_script_witness;</span>
+<span class="lineNum">     160 </span>                :<span class="lineCov">          5 : }</span>
 <span class="lineNum">     161 </span>                :            : 
-<span class="lineNum">     162 </span>                :            :     // If we have a witness_script or a scriptWitness, we must also have a witness utxo
-<span class="lineNum">     163 </span>[<span class="branchCov" title="Branch 0 was taken 57 times"> + </span><span class="branchCov" title="Branch 1 was taken 436 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 57 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        493 :     if (!witness_script.empty() &amp;&amp; witness_utxo.IsNull()) return false;</span>
-<span class="lineNum">     164 </span>[<span class="branchCov" title="Branch 0 was taken 20 times"> + </span><span class="branchCov" title="Branch 1 was taken 473 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 20 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        493 :     if (!final_script_witness.IsNull() &amp;&amp; witness_utxo.IsNull()) return false;</span>
-<span class="lineNum">     165 </span>                :            : 
-<span class="lineNum">     166 </span>                :            :     return true;
-<a name="167"><span class="lineNum">     167 </span>                :            : }</a>
-<span class="lineNum">     168 </span>                :            : 
-<span class="lineNum">     169 </span>                :<span class="lineCov">        118 : void PSBTOutput::FillSignatureData(SignatureData&amp; sigdata) const</span>
-<span class="lineNum">     170 </span>                :            : {
-<span class="lineNum">     171 </span>        [<span class="branchCov" title="Branch 0 was taken 11 times"> + </span><span class="branchCov" title="Branch 1 was taken 107 times"> + </span>]:<span class="lineCov">        118 :     if (!redeem_script.empty()) {</span>
-<span class="lineNum">     172 </span>                :<span class="lineCov">         11 :         sigdata.redeem_script = redeem_script;</span>
-<span class="lineNum">     173 </span>                :            :     }
-<span class="lineNum">     174 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 118 times"> + </span>]:<span class="lineCov">        118 :     if (!witness_script.empty()) {</span>
-<span class="lineNum">     175 </span>                :<span class="lineNoCov">          0 :         sigdata.witness_script = witness_script;</span>
-<span class="lineNum">     176 </span>                :            :     }
-<span class="lineNum">     177 </span>        [<span class="branchCov" title="Branch 0 was taken 12 times"> + </span><span class="branchCov" title="Branch 1 was taken 118 times"> + </span>]:<span class="lineCov">        130 :     for (const auto&amp; key_pair : hd_keypaths) {</span>
-<span class="lineNum">     178 </span>                :<span class="lineCov">         12 :         sigdata.misc_pubkeys.emplace(key_pair.first.GetID(), key_pair);</span>
-<span class="lineNum">     179 </span>                :            :     }
-<a name="180"><span class="lineNum">     180 </span>                :<span class="lineCov">        118 : }</span></a>
-<span class="lineNum">     181 </span>                :            : 
-<span class="lineNum">     182 </span>                :<span class="lineCov">        118 : void PSBTOutput::FromSignatureData(const SignatureData&amp; sigdata)</span>
-<span class="lineNum">     183 </span>                :            : {
-<span class="lineNum">     184 </span>[<span class="branchCov" title="Branch 0 was taken 107 times"> + </span><span class="branchCov" title="Branch 1 was taken 11 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 50 times"> + </span><span class="branchCov" title="Branch 3 was taken 57 times"> + </span>]:<span class="lineCov">        225 :     if (redeem_script.empty() &amp;&amp; !sigdata.redeem_script.empty()) {</span>
-<span class="lineNum">     185 </span>                :<span class="lineCov">         50 :         redeem_script = sigdata.redeem_script;</span>
-<span class="lineNum">     186 </span>                :            :     }
-<span class="lineNum">     187 </span>[<span class="branchCov" title="Branch 0 was taken 118 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 24 times"> + </span><span class="branchCov" title="Branch 3 was taken 94 times"> + </span>]:<span class="lineCov">        236 :     if (witness_script.empty() &amp;&amp; !sigdata.witness_script.empty()) {</span>
-<span class="lineNum">     188 </span>                :<span class="lineCov">         24 :         witness_script = sigdata.witness_script;</span>
-<span class="lineNum">     189 </span>                :            :     }
-<span class="lineNum">     190 </span>        [<span class="branchCov" title="Branch 0 was taken 112 times"> + </span><span class="branchCov" title="Branch 1 was taken 118 times"> + </span>]:<span class="lineCov">        230 :     for (const auto&amp; entry : sigdata.misc_pubkeys) {</span>
-<span class="lineNum">     191 </span>                :<span class="lineCov">        224 :         hd_keypaths.emplace(entry.second);</span>
-<span class="lineNum">     192 </span>                :            :     }
-<a name="193"><span class="lineNum">     193 </span>                :<span class="lineCov">        118 : }</span></a>
-<span class="lineNum">     194 </span>                :            : 
-<span class="lineNum">     195 </span>                :<span class="lineNoCov">          0 : bool PSBTOutput::IsNull() const</span>
-<span class="lineNum">     196 </span>                :            : {
-<span class="lineNum">     197 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return redeem_script.empty() &amp;&amp; witness_script.empty() &amp;&amp; hd_keypaths.empty() &amp;&amp; unknown.empty();</span>
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
-<a name="198"><span class="lineNum">     198 </span>                :            : }</a>
+<span class="lineNum">     162 </span>                :<span class="lineCov">        493 : bool PSBTInput::IsSane() const</span>
+<span class="lineNum">     163 </span>                :            : {
+<span class="lineNum">     164 </span>                :            :     // Cannot have both witness and non-witness utxos
+<span class="lineNum">     165 </span>[<span class="branchCov" title="Branch 0 was taken 133 times"> + </span><span class="branchCov" title="Branch 1 was taken 360 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 133 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        493 :     if (!witness_utxo.IsNull() &amp;&amp; non_witness_utxo) return false;</span>
+<span class="lineNum">     166 </span>                :            : 
+<span class="lineNum">     167 </span>                :            :     // If we have a witness_script or a scriptWitness, we must also have a witness utxo
+<span class="lineNum">     168 </span>[<span class="branchCov" title="Branch 0 was taken 57 times"> + </span><span class="branchCov" title="Branch 1 was taken 436 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 57 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        493 :     if (!witness_script.empty() &amp;&amp; witness_utxo.IsNull()) return false;</span>
+<span class="lineNum">     169 </span>[<span class="branchCov" title="Branch 0 was taken 20 times"> + </span><span class="branchCov" title="Branch 1 was taken 473 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 20 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        493 :     if (!final_script_witness.IsNull() &amp;&amp; witness_utxo.IsNull()) return false;</span>
+<span class="lineNum">     170 </span>                :            : 
+<span class="lineNum">     171 </span>                :            :     return true;
+<a name="172"><span class="lineNum">     172 </span>                :            : }</a>
+<span class="lineNum">     173 </span>                :            : 
+<span class="lineNum">     174 </span>                :<span class="lineCov">        118 : void PSBTOutput::FillSignatureData(SignatureData&amp; sigdata) const</span>
+<span class="lineNum">     175 </span>                :            : {
+<span class="lineNum">     176 </span>        [<span class="branchCov" title="Branch 0 was taken 11 times"> + </span><span class="branchCov" title="Branch 1 was taken 107 times"> + </span>]:<span class="lineCov">        118 :     if (!redeem_script.empty()) {</span>
+<span class="lineNum">     177 </span>                :<span class="lineCov">         11 :         sigdata.redeem_script = redeem_script;</span>
+<span class="lineNum">     178 </span>                :            :     }
+<span class="lineNum">     179 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 118 times"> + </span>]:<span class="lineCov">        118 :     if (!witness_script.empty()) {</span>
+<span class="lineNum">     180 </span>                :<span class="lineNoCov">          0 :         sigdata.witness_script = witness_script;</span>
+<span class="lineNum">     181 </span>                :            :     }
+<span class="lineNum">     182 </span>        [<span class="branchCov" title="Branch 0 was taken 12 times"> + </span><span class="branchCov" title="Branch 1 was taken 118 times"> + </span>]:<span class="lineCov">        130 :     for (const auto&amp; key_pair : hd_keypaths) {</span>
+<span class="lineNum">     183 </span>                :<span class="lineCov">         12 :         sigdata.misc_pubkeys.emplace(key_pair.first.GetID(), key_pair);</span>
+<span class="lineNum">     184 </span>                :            :     }
+<a name="185"><span class="lineNum">     185 </span>                :<span class="lineCov">        118 : }</span></a>
+<span class="lineNum">     186 </span>                :            : 
+<span class="lineNum">     187 </span>                :<span class="lineCov">        118 : void PSBTOutput::FromSignatureData(const SignatureData&amp; sigdata)</span>
+<span class="lineNum">     188 </span>                :            : {
+<span class="lineNum">     189 </span>[<span class="branchCov" title="Branch 0 was taken 107 times"> + </span><span class="branchCov" title="Branch 1 was taken 11 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 50 times"> + </span><span class="branchCov" title="Branch 3 was taken 57 times"> + </span>]:<span class="lineCov">        225 :     if (redeem_script.empty() &amp;&amp; !sigdata.redeem_script.empty()) {</span>
+<span class="lineNum">     190 </span>                :<span class="lineCov">         50 :         redeem_script = sigdata.redeem_script;</span>
+<span class="lineNum">     191 </span>                :            :     }
+<span class="lineNum">     192 </span>[<span class="branchCov" title="Branch 0 was taken 118 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 24 times"> + </span><span class="branchCov" title="Branch 3 was taken 94 times"> + </span>]:<span class="lineCov">        236 :     if (witness_script.empty() &amp;&amp; !sigdata.witness_script.empty()) {</span>
+<span class="lineNum">     193 </span>                :<span class="lineCov">         24 :         witness_script = sigdata.witness_script;</span>
+<span class="lineNum">     194 </span>                :            :     }
+<span class="lineNum">     195 </span>        [<span class="branchCov" title="Branch 0 was taken 112 times"> + </span><span class="branchCov" title="Branch 1 was taken 118 times"> + </span>]:<span class="lineCov">        230 :     for (const auto&amp; entry : sigdata.misc_pubkeys) {</span>
+<span class="lineNum">     196 </span>                :<span class="lineCov">        224 :         hd_keypaths.emplace(entry.second);</span>
+<span class="lineNum">     197 </span>                :            :     }
+<a name="198"><span class="lineNum">     198 </span>                :<span class="lineCov">        118 : }</span></a>
 <span class="lineNum">     199 </span>                :            : 
-<span class="lineNum">     200 </span>                :<span class="lineCov">          4 : void PSBTOutput::Merge(const PSBTOutput&amp; output)</span>
+<span class="lineNum">     200 </span>                :<span class="lineNoCov">          0 : bool PSBTOutput::IsNull() const</span>
 <span class="lineNum">     201 </span>                :            : {
-<span class="lineNum">     202 </span>                :<span class="lineCov">         16 :     hd_keypaths.insert(output.hd_keypaths.begin(), output.hd_keypaths.end());</span>
-<span class="lineNum">     203 </span>                :<span class="lineCov">         16 :     unknown.insert(output.unknown.begin(), output.unknown.end());</span>
+<span class="lineNum">     202 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return redeem_script.empty() &amp;&amp; witness_script.empty() &amp;&amp; hd_keypaths.empty() &amp;&amp; unknown.empty();</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<a name="203"><span class="lineNum">     203 </span>                :            : }</a>
 <span class="lineNum">     204 </span>                :            : 
-<span class="lineNum">     205 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          8 :     if (redeem_script.empty() &amp;&amp; !output.redeem_script.empty()) redeem_script = output.redeem_script;</span>
-<span class="lineNum">     206 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          8 :     if (witness_script.empty() &amp;&amp; !output.witness_script.empty()) witness_script = output.witness_script;</span>
-<span class="lineNum">     207 </span>                :<span class="lineCov">          4 : }</span>
-<span class="lineNum">     208 </span>                :<span class="lineCov">        263 : bool PSBTInputSigned(PSBTInput&amp; input)</span>
-<span class="lineNum">     209 </span>                :            : {
-<span class="lineNum">     210 </span>[<span class="branchCov" title="Branch 0 was taken 249 times"> + </span><span class="branchCov" title="Branch 1 was taken 14 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchCov" title="Branch 3 was taken 247 times"> + </span>]:<span class="lineCov">        263 :     return !input.final_script_sig.empty() || !input.final_script_witness.IsNull();</span>
-<span class="lineNum">     211 </span>                :            : }
-<span class="lineNum">     212 </span>                :            : 
-<span class="lineNum">     213 </span>                :<span class="lineCov">        138 : bool SignPSBTInput(const SigningProvider&amp; provider, PartiallySignedTransaction&amp; psbt, int index, int sighash, SignatureData* out_sigdata, bool use_dummy)</span>
+<span class="lineNum">     205 </span>                :<span class="lineCov">          4 : void PSBTOutput::Merge(const PSBTOutput&amp; output)</span>
+<span class="lineNum">     206 </span>                :            : {
+<span class="lineNum">     207 </span>                :<span class="lineCov">         16 :     hd_keypaths.insert(output.hd_keypaths.begin(), output.hd_keypaths.end());</span>
+<span class="lineNum">     208 </span>                :<span class="lineCov">         16 :     unknown.insert(output.unknown.begin(), output.unknown.end());</span>
+<span class="lineNum">     209 </span>                :            : 
+<span class="lineNum">     210 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          8 :     if (redeem_script.empty() &amp;&amp; !output.redeem_script.empty()) redeem_script = output.redeem_script;</span>
+<span class="lineNum">     211 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          8 :     if (witness_script.empty() &amp;&amp; !output.witness_script.empty()) witness_script = output.witness_script;</span>
+<span class="lineNum">     212 </span>                :<span class="lineCov">          4 : }</span>
+<span class="lineNum">     213 </span>                :<span class="lineCov">        263 : bool PSBTInputSigned(const PSBTInput&amp; input)</span>
 <span class="lineNum">     214 </span>                :            : {
-<span class="lineNum">     215 </span>                :<span class="lineCov">        276 :     PSBTInput&amp; input = psbt.inputs.at(index);</span>
-<span class="lineNum">     216 </span>                :<span class="lineCov">        276 :     const CMutableTransaction&amp; tx = *psbt.tx;</span>
+<span class="lineNum">     215 </span>[<span class="branchCov" title="Branch 0 was taken 249 times"> + </span><span class="branchCov" title="Branch 1 was taken 14 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchCov" title="Branch 3 was taken 247 times"> + </span>]:<span class="lineCov">        263 :     return !input.final_script_sig.empty() || !input.final_script_witness.IsNull();</span>
+<span class="lineNum">     216 </span>                :            : }
 <span class="lineNum">     217 </span>                :            : 
-<span class="lineNum">     218 </span>        [<span class="branchCov" title="Branch 0 was taken 125 times"> + </span><span class="branchCov" title="Branch 1 was taken 13 times"> + </span>]:<span class="lineCov">        138 :     if (PSBTInputSigned(input)) {</span>
-<span class="lineNum">     219 </span>                :            :         return true;
-<span class="lineNum">     220 </span>                :            :     }
-<span class="lineNum">     221 </span>                :            : 
-<span class="lineNum">     222 </span>                :            :     // Fill SignatureData with input info
-<span class="lineNum">     223 </span>                :<span class="lineCov">        263 :     SignatureData sigdata;</span>
-<span class="lineNum">     224 </span>        [<span class="branchCov" title="Branch 1 was taken 125 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        125 :     input.FillSignatureData(sigdata);</span>
-<span class="lineNum">     225 </span>                :            : 
-<span class="lineNum">     226 </span>                :            :     // Get UTXO
-<span class="lineNum">     227 </span>                :<span class="lineCov">        125 :     bool require_witness_sig = false;</span>
-<span class="lineNum">     228 </span>                :<span class="lineNoCov">          0 :     CTxOut utxo;</span>
-<span class="lineNum">     229 </span>                :            : 
-<span class="lineNum">     230 </span>                :            :     // Verify input sanity, which checks that at most one of witness or non-witness utxos is provided.
-<span class="lineNum">     231 </span>        [<span class="branchCov" title="Branch 0 was taken 125 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        125 :     if (!input.IsSane()) {</span>
-<span class="lineNum">     232 </span>                :            :         return false;
-<span class="lineNum">     233 </span>                :            :     }
+<span class="lineNum">     218 </span>                :<span class="lineCov">        138 : bool SignPSBTInput(const SigningProvider&amp; provider, PartiallySignedTransaction&amp; psbt, int index, int sighash, SignatureData* out_sigdata, bool use_dummy)</span>
+<span class="lineNum">     219 </span>                :            : {
+<span class="lineNum">     220 </span>                :<span class="lineCov">        276 :     PSBTInput&amp; input = psbt.inputs.at(index);</span>
+<span class="lineNum">     221 </span>                :<span class="lineCov">        276 :     const CMutableTransaction&amp; tx = *psbt.tx;</span>
+<span class="lineNum">     222 </span>                :            : 
+<span class="lineNum">     223 </span>        [<span class="branchCov" title="Branch 0 was taken 125 times"> + </span><span class="branchCov" title="Branch 1 was taken 13 times"> + </span>]:<span class="lineCov">        138 :     if (PSBTInputSigned(input)) {</span>
+<span class="lineNum">     224 </span>                :            :         return true;
+<span class="lineNum">     225 </span>                :            :     }
+<span class="lineNum">     226 </span>                :            : 
+<span class="lineNum">     227 </span>                :            :     // Fill SignatureData with input info
+<span class="lineNum">     228 </span>                :<span class="lineCov">        263 :     SignatureData sigdata;</span>
+<span class="lineNum">     229 </span>        [<span class="branchCov" title="Branch 1 was taken 125 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        125 :     input.FillSignatureData(sigdata);</span>
+<span class="lineNum">     230 </span>                :            : 
+<span class="lineNum">     231 </span>                :            :     // Get UTXO
+<span class="lineNum">     232 </span>                :<span class="lineCov">        125 :     bool require_witness_sig = false;</span>
+<span class="lineNum">     233 </span>                :<span class="lineNoCov">          0 :     CTxOut utxo;</span>
 <span class="lineNum">     234 </span>                :            : 
-<span class="lineNum">     235 </span>        [<span class="branchCov" title="Branch 0 was taken 104 times"> + </span><span class="branchCov" title="Branch 1 was taken 21 times"> + </span>]:<span class="lineCov">        125 :     if (input.non_witness_utxo) {</span>
-<span class="lineNum">     236 </span>                :            :         // If we're taking our information from a non-witness UTXO, verify that it matches the prevout.
-<span class="lineNum">     237 </span>                :<span class="lineCov">        208 :         COutPoint prevout = tx.vin[index].prevout;</span>
-<span class="lineNum">     238 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 104 times"> + </span>]:<span class="lineCov">        104 :         if (input.non_witness_utxo-&gt;GetHash() != prevout.hash) {</span>
-<span class="lineNum">     239 </span>                :<span class="lineNoCov">          0 :             return false;</span>
-<span class="lineNum">     240 </span>                :            :         }
-<span class="lineNum">     241 </span>                :<span class="lineCov">        104 :         utxo = input.non_witness_utxo-&gt;vout[prevout.n];</span>
-<span class="lineNum">     242 </span>        [<span class="branchCov" title="Branch 0 was taken 18 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">         21 :     } else if (!input.witness_utxo.IsNull()) {</span>
-<span class="lineNum">     243 </span>                :<span class="lineCov">         36 :         utxo = input.witness_utxo;</span>
-<span class="lineNum">     244 </span>                :            :         // When we're taking our information from a witness UTXO, we can't verify it is actually data from
-<span class="lineNum">     245 </span>                :            :         // the output being spent. This is safe in case a witness signature is produced (which includes this
-<span class="lineNum">     246 </span>                :            :         // information directly in the hash), but not for non-witness signatures. Remember that we require
-<span class="lineNum">     247 </span>                :            :         // a witness signature in this situation.
-<span class="lineNum">     248 </span>                :<span class="lineCov">         18 :         require_witness_sig = true;</span>
-<span class="lineNum">     249 </span>                :            :     } else {
-<span class="lineNum">     250 </span>                :            :         return false;
-<span class="lineNum">     251 </span>                :            :     }
-<span class="lineNum">     252 </span>                :            : 
-<span class="lineNum">     253 </span>                :<span class="lineCov">        122 :     sigdata.witness = false;</span>
-<span class="lineNum">     254 </span>                :            :     bool sig_complete;
-<span class="lineNum">     255 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 121 times"> + </span>]:<span class="lineCov">        122 :     if (use_dummy) {</span>
-<span class="lineNum">     256 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :         sig_complete = ProduceSignature(provider, DUMMY_SIGNATURE_CREATOR, utxo.scriptPubKey, sigdata);</span>
-<span class="lineNum">     257 </span>                :            :     } else {
-<span class="lineNum">     258 </span>        [<span class="branchCov" title="Branch 1 was taken 121 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        242 :         MutableTransactionSignatureCreator creator(&amp;tx, index, utxo.nValue, sighash);</span>
-<span class="lineNum">     259 </span>        [<span class="branchCov" title="Branch 1 was taken 121 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        121 :         sig_complete = ProduceSignature(provider, creator, utxo.scriptPubKey, sigdata);</span>
-<span class="lineNum">     260 </span>                :            :     }
-<span class="lineNum">     261 </span>                :            :     // Verify that a witness signature was produced in case one was required.
-<span class="lineNum">     262 </span>[<span class="branchCov" title="Branch 0 was taken 18 times"> + </span><span class="branchCov" title="Branch 1 was taken 104 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 15 times"> + </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">        122 :     if (require_witness_sig &amp;&amp; !sigdata.witness) return false;</span>
-<span class="lineNum">     263 </span>        [<span class="branchCov" title="Branch 1 was taken 119 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        119 :     input.FromSignatureData(sigdata);</span>
-<span class="lineNum">     264 </span>                :            : 
-<span class="lineNum">     265 </span>                :            :     // If we have a witness signature, use the smaller witness UTXO.
-<span class="lineNum">     266 </span>        [<span class="branchCov" title="Branch 0 was taken 81 times"> + </span><span class="branchCov" title="Branch 1 was taken 38 times"> + </span>]:<span class="lineCov">        119 :     if (sigdata.witness) {</span>
-<span class="lineNum">     267 </span>                :<span class="lineCov">        162 :         input.witness_utxo = utxo;</span>
-<span class="lineNum">     268 </span>                :<span class="lineCov">         81 :         input.non_witness_utxo = nullptr;</span>
-<span class="lineNum">     269 </span>                :            :     }
-<span class="lineNum">     270 </span>                :            : 
-<span class="lineNum">     271 </span>                :            :     // Fill in the missing info
-<span class="lineNum">     272 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 118 times"> + </span>]:<span class="lineCov">        119 :     if (out_sigdata) {</span>
-<span class="lineNum">     273 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :         out_sigdata-&gt;missing_pubkeys = sigdata.missing_pubkeys;</span>
-<span class="lineNum">     274 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :         out_sigdata-&gt;missing_sigs = sigdata.missing_sigs;</span>
-<span class="lineNum">     275 </span>                :<span class="lineCov">          1 :         out_sigdata-&gt;missing_redeem_script = sigdata.missing_redeem_script;</span>
-<span class="lineNum">     276 </span>                :<span class="lineCov">          1 :         out_sigdata-&gt;missing_witness_script = sigdata.missing_witness_script;</span>
-<span class="lineNum">     277 </span>                :            :     }
-<span class="lineNum">     278 </span>                :            : 
-<span class="lineNum">     279 </span>                :            :     return sig_complete;
-<span class="lineNum">     280 </span>                :            : }
-<span class="lineNum">     281 </span>                :            : 
-<span class="lineNum">     282 </span>                :<span class="lineCov">          7 : bool FinalizePSBT(PartiallySignedTransaction&amp; psbtx)</span>
-<span class="lineNum">     283 </span>                :            : {
-<span class="lineNum">     284 </span>                :            :     // Finalize input signatures -- in case we have partial signatures that add up to a complete
-<span class="lineNum">     285 </span>                :            :     //   signature, but have not combined them yet (e.g. because the combiner that created this
-<span class="lineNum">     286 </span>                :            :     //   PartiallySignedTransaction did not understand them), this will combine them into a final
-<span class="lineNum">     287 </span>                :            :     //   script.
-<span class="lineNum">     288 </span>                :<span class="lineCov">          7 :     bool complete = true;</span>
-<span class="lineNum">     289 </span>        [<span class="branchCov" title="Branch 0 was taken 14 times"> + </span><span class="branchCov" title="Branch 1 was taken 7 times"> + </span>]:<span class="lineCov">         42 :     for (unsigned int i = 0; i &lt; psbtx.tx-&gt;vin.size(); ++i) {</span>
-<span class="lineNum">     290 </span>                :<span class="lineCov">         14 :         complete &amp;= SignPSBTInput(DUMMY_SIGNING_PROVIDER, psbtx, i, SIGHASH_ALL);</span>
-<span class="lineNum">     291 </span>                :            :     }
-<span class="lineNum">     292 </span>                :            : 
-<span class="lineNum">     293 </span>                :<span class="lineCov">          7 :     return complete;</span>
-<span class="lineNum">     294 </span>                :            : }
-<span class="lineNum">     295 </span>                :            : 
-<span class="lineNum">     296 </span>                :<span class="lineCov">          7 : bool FinalizeAndExtractPSBT(PartiallySignedTransaction&amp; psbtx, CMutableTransaction&amp; result)</span>
-<span class="lineNum">     297 </span>                :            : {
-<span class="lineNum">     298 </span>                :            :     // It's not safe to extract a PSBT that isn't finalized, and there's no easy way to check
-<span class="lineNum">     299 </span>                :            :     //   whether a PSBT is finalized without finalizing it, so we just do this.
-<span class="lineNum">     300 </span>        [<span class="branchCov" title="Branch 1 was taken 7 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          7 :     if (!FinalizePSBT(psbtx)) {</span>
-<span class="lineNum">     301 </span>                :            :         return false;
-<span class="lineNum">     302 </span>                :            :     }
-<span class="lineNum">     303 </span>                :            : 
-<span class="lineNum">     304 </span>                :<span class="lineCov">         14 :     result = *psbtx.tx;</span>
-<span class="lineNum">     305 </span>        [<span class="branchCov" title="Branch 1 was taken 14 times"> + </span><span class="branchCov" title="Branch 2 was taken 7 times"> + </span>]:<span class="lineCov">         21 :     for (unsigned int i = 0; i &lt; result.vin.size(); ++i) {</span>
-<span class="lineNum">     306 </span>                :<span class="lineCov">         56 :         result.vin[i].scriptSig = psbtx.inputs[i].final_script_sig;</span>
-<span class="lineNum">     307 </span>                :<span class="lineCov">         56 :         result.vin[i].scriptWitness = psbtx.inputs[i].final_script_witness;</span>
-<span class="lineNum">     308 </span>                :            :     }
-<span class="lineNum">     309 </span>                :            :     return true;
-<span class="lineNum">     310 </span>                :            : }
-<span class="lineNum">     311 </span>                :            : 
-<span class="lineNum">     312 </span>                :<span class="lineCov">          3 : TransactionError CombinePSBTs(PartiallySignedTransaction&amp; out, const std::vector&lt;PartiallySignedTransaction&gt;&amp; psbtxs)</span>
-<span class="lineNum">     313 </span>                :            : {
-<span class="lineNum">     314 </span>                :<span class="lineCov">          3 :     out = psbtxs[0]; // Copy the first one</span>
-<span class="lineNum">     315 </span>                :            : 
-<span class="lineNum">     316 </span>                :            :     // Merge
-<span class="lineNum">     317 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">          6 :     for (auto it = std::next(psbtxs.begin()); it != psbtxs.end(); ++it) {</span>
-<span class="lineNum">     318 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 3 times"> + </span>]:<span class="lineCov">          3 :         if (!out.Merge(*it)) {</span>
-<span class="lineNum">     319 </span>                :<span class="lineNoCov">          0 :             return TransactionError::PSBT_MISMATCH;</span>
-<span class="lineNum">     320 </span>                :            :         }
-<span class="lineNum">     321 </span>                :            :     }
-<span class="lineNum">     322 </span>        [<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          3 :     if (!out.IsSane()) {</span>
-<span class="lineNum">     323 </span>                :            :         return TransactionError::INVALID_PSBT;
-<span class="lineNum">     324 </span>                :            :     }
-<span class="lineNum">     325 </span>                :            : 
-<span class="lineNum">     326 </span>                :<span class="lineCov">          3 :     return TransactionError::OK;</span>
-<span class="lineNum">     327 </span>                :            : }
+<span class="lineNum">     235 </span>                :            :     // Verify input sanity, which checks that at most one of witness or non-witness utxos is provided.
+<span class="lineNum">     236 </span>        [<span class="branchCov" title="Branch 0 was taken 125 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        125 :     if (!input.IsSane()) {</span>
+<span class="lineNum">     237 </span>                :            :         return false;
+<span class="lineNum">     238 </span>                :            :     }
+<span class="lineNum">     239 </span>                :            : 
+<span class="lineNum">     240 </span>        [<span class="branchCov" title="Branch 0 was taken 104 times"> + </span><span class="branchCov" title="Branch 1 was taken 21 times"> + </span>]:<span class="lineCov">        125 :     if (input.non_witness_utxo) {</span>
+<span class="lineNum">     241 </span>                :            :         // If we're taking our information from a non-witness UTXO, verify that it matches the prevout.
+<span class="lineNum">     242 </span>                :<span class="lineCov">        208 :         COutPoint prevout = tx.vin[index].prevout;</span>
+<span class="lineNum">     243 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 104 times"> + </span>]:<span class="lineCov">        104 :         if (input.non_witness_utxo-&gt;GetHash() != prevout.hash) {</span>
+<span class="lineNum">     244 </span>                :<span class="lineNoCov">          0 :             return false;</span>
+<span class="lineNum">     245 </span>                :            :         }
+<span class="lineNum">     246 </span>                :<span class="lineCov">        104 :         utxo = input.non_witness_utxo-&gt;vout[prevout.n];</span>
+<span class="lineNum">     247 </span>        [<span class="branchCov" title="Branch 0 was taken 18 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">         21 :     } else if (!input.witness_utxo.IsNull()) {</span>
+<span class="lineNum">     248 </span>                :<span class="lineCov">         36 :         utxo = input.witness_utxo;</span>
+<span class="lineNum">     249 </span>                :            :         // When we're taking our information from a witness UTXO, we can't verify it is actually data from
+<span class="lineNum">     250 </span>                :            :         // the output being spent. This is safe in case a witness signature is produced (which includes this
+<span class="lineNum">     251 </span>                :            :         // information directly in the hash), but not for non-witness signatures. Remember that we require
+<span class="lineNum">     252 </span>                :            :         // a witness signature in this situation.
+<span class="lineNum">     253 </span>                :<span class="lineCov">         18 :         require_witness_sig = true;</span>
+<span class="lineNum">     254 </span>                :            :     } else {
+<span class="lineNum">     255 </span>                :            :         return false;
+<span class="lineNum">     256 </span>                :            :     }
+<span class="lineNum">     257 </span>                :            : 
+<span class="lineNum">     258 </span>                :<span class="lineCov">        122 :     sigdata.witness = false;</span>
+<span class="lineNum">     259 </span>                :            :     bool sig_complete;
+<span class="lineNum">     260 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 121 times"> + </span>]:<span class="lineCov">        122 :     if (use_dummy) {</span>
+<span class="lineNum">     261 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :         sig_complete = ProduceSignature(provider, DUMMY_SIGNATURE_CREATOR, utxo.scriptPubKey, sigdata);</span>
+<span class="lineNum">     262 </span>                :            :     } else {
+<span class="lineNum">     263 </span>        [<span class="branchCov" title="Branch 1 was taken 121 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        242 :         MutableTransactionSignatureCreator creator(&amp;tx, index, utxo.nValue, sighash);</span>
+<span class="lineNum">     264 </span>        [<span class="branchCov" title="Branch 1 was taken 121 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        121 :         sig_complete = ProduceSignature(provider, creator, utxo.scriptPubKey, sigdata);</span>
+<span class="lineNum">     265 </span>                :            :     }
+<span class="lineNum">     266 </span>                :            :     // Verify that a witness signature was produced in case one was required.
+<span class="lineNum">     267 </span>[<span class="branchCov" title="Branch 0 was taken 18 times"> + </span><span class="branchCov" title="Branch 1 was taken 104 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 15 times"> + </span><span class="branchCov" title="Branch 3 was taken 3 times"> + </span>]:<span class="lineCov">        122 :     if (require_witness_sig &amp;&amp; !sigdata.witness) return false;</span>
+<span class="lineNum">     268 </span>        [<span class="branchCov" title="Branch 1 was taken 119 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        119 :     input.FromSignatureData(sigdata);</span>
+<span class="lineNum">     269 </span>                :            : 
+<span class="lineNum">     270 </span>                :            :     // If we have a witness signature, use the smaller witness UTXO.
+<span class="lineNum">     271 </span>        [<span class="branchCov" title="Branch 0 was taken 81 times"> + </span><span class="branchCov" title="Branch 1 was taken 38 times"> + </span>]:<span class="lineCov">        119 :     if (sigdata.witness) {</span>
+<span class="lineNum">     272 </span>                :<span class="lineCov">        162 :         input.witness_utxo = utxo;</span>
+<span class="lineNum">     273 </span>                :<span class="lineCov">         81 :         input.non_witness_utxo = nullptr;</span>
+<span class="lineNum">     274 </span>                :            :     }
+<span class="lineNum">     275 </span>                :            : 
+<span class="lineNum">     276 </span>                :            :     // Fill in the missing info
+<span class="lineNum">     277 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 118 times"> + </span>]:<span class="lineCov">        119 :     if (out_sigdata) {</span>
+<span class="lineNum">     278 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :         out_sigdata-&gt;missing_pubkeys = sigdata.missing_pubkeys;</span>
+<span class="lineNum">     279 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :         out_sigdata-&gt;missing_sigs = sigdata.missing_sigs;</span>
+<span class="lineNum">     280 </span>                :<span class="lineCov">          1 :         out_sigdata-&gt;missing_redeem_script = sigdata.missing_redeem_script;</span>
+<span class="lineNum">     281 </span>                :<span class="lineCov">          1 :         out_sigdata-&gt;missing_witness_script = sigdata.missing_witness_script;</span>
+<span class="lineNum">     282 </span>                :            :     }
+<span class="lineNum">     283 </span>                :            : 
+<span class="lineNum">     284 </span>                :            :     return sig_complete;
+<span class="lineNum">     285 </span>                :            : }
+<span class="lineNum">     286 </span>                :            : 
+<span class="lineNum">     287 </span>                :<span class="lineCov">          7 : bool FinalizePSBT(PartiallySignedTransaction&amp; psbtx)</span>
+<span class="lineNum">     288 </span>                :            : {
+<span class="lineNum">     289 </span>                :            :     // Finalize input signatures -- in case we have partial signatures that add up to a complete
+<span class="lineNum">     290 </span>                :            :     //   signature, but have not combined them yet (e.g. because the combiner that created this
+<span class="lineNum">     291 </span>                :            :     //   PartiallySignedTransaction did not understand them), this will combine them into a final
+<span class="lineNum">     292 </span>                :            :     //   script.
+<span class="lineNum">     293 </span>                :<span class="lineCov">          7 :     bool complete = true;</span>
+<span class="lineNum">     294 </span>        [<span class="branchCov" title="Branch 0 was taken 14 times"> + </span><span class="branchCov" title="Branch 1 was taken 7 times"> + </span>]:<span class="lineCov">         42 :     for (unsigned int i = 0; i &lt; psbtx.tx-&gt;vin.size(); ++i) {</span>
+<span class="lineNum">     295 </span>                :<span class="lineCov">         14 :         complete &amp;= SignPSBTInput(DUMMY_SIGNING_PROVIDER, psbtx, i, SIGHASH_ALL);</span>
+<span class="lineNum">     296 </span>                :            :     }
+<span class="lineNum">     297 </span>                :            : 
+<span class="lineNum">     298 </span>                :<span class="lineCov">          7 :     return complete;</span>
+<span class="lineNum">     299 </span>                :            : }
+<span class="lineNum">     300 </span>                :            : 
+<span class="lineNum">     301 </span>                :<span class="lineCov">          7 : bool FinalizeAndExtractPSBT(PartiallySignedTransaction&amp; psbtx, CMutableTransaction&amp; result)</span>
+<span class="lineNum">     302 </span>                :            : {
+<span class="lineNum">     303 </span>                :            :     // It's not safe to extract a PSBT that isn't finalized, and there's no easy way to check
+<span class="lineNum">     304 </span>                :            :     //   whether a PSBT is finalized without finalizing it, so we just do this.
+<span class="lineNum">     305 </span>        [<span class="branchCov" title="Branch 1 was taken 7 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          7 :     if (!FinalizePSBT(psbtx)) {</span>
+<span class="lineNum">     306 </span>                :            :         return false;
+<span class="lineNum">     307 </span>                :            :     }
+<span class="lineNum">     308 </span>                :            : 
+<span class="lineNum">     309 </span>                :<span class="lineCov">         14 :     result = *psbtx.tx;</span>
+<span class="lineNum">     310 </span>        [<span class="branchCov" title="Branch 1 was taken 14 times"> + </span><span class="branchCov" title="Branch 2 was taken 7 times"> + </span>]:<span class="lineCov">         21 :     for (unsigned int i = 0; i &lt; result.vin.size(); ++i) {</span>
+<span class="lineNum">     311 </span>                :<span class="lineCov">         56 :         result.vin[i].scriptSig = psbtx.inputs[i].final_script_sig;</span>
+<span class="lineNum">     312 </span>                :<span class="lineCov">         56 :         result.vin[i].scriptWitness = psbtx.inputs[i].final_script_witness;</span>
+<span class="lineNum">     313 </span>                :            :     }
+<span class="lineNum">     314 </span>                :            :     return true;
+<span class="lineNum">     315 </span>                :            : }
+<span class="lineNum">     316 </span>                :            : 
+<span class="lineNum">     317 </span>                :<span class="lineCov">          3 : TransactionError CombinePSBTs(PartiallySignedTransaction&amp; out, const std::vector&lt;PartiallySignedTransaction&gt;&amp; psbtxs)</span>
+<span class="lineNum">     318 </span>                :            : {
+<span class="lineNum">     319 </span>                :<span class="lineCov">          3 :     out = psbtxs[0]; // Copy the first one</span>
+<span class="lineNum">     320 </span>                :            : 
+<span class="lineNum">     321 </span>                :            :     // Merge
+<span class="lineNum">     322 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">          6 :     for (auto it = std::next(psbtxs.begin()); it != psbtxs.end(); ++it) {</span>
+<span class="lineNum">     323 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 3 times"> + </span>]:<span class="lineCov">          3 :         if (!out.Merge(*it)) {</span>
+<span class="lineNum">     324 </span>                :<span class="lineNoCov">          0 :             return TransactionError::PSBT_MISMATCH;</span>
+<span class="lineNum">     325 </span>                :            :         }
+<span class="lineNum">     326 </span>                :            :     }
+<span class="lineNum">     327 </span>        [<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          3 :     if (!out.IsSane()) {</span>
+<span class="lineNum">     328 </span>                :            :         return TransactionError::INVALID_PSBT;
+<span class="lineNum">     329 </span>                :            :     }
+<span class="lineNum">     330 </span>                :            : 
+<span class="lineNum">     331 </span>                :<span class="lineCov">          3 :     return TransactionError::OK;</span>
+<a name="332"><span class="lineNum">     332 </span>                :            : }</a>
+<span class="lineNum">     333 </span>                :            : 
+<span class="lineNum">     334 </span>                :<span class="lineCov">          6 : std::string PSBTRoleName(PSBTRole role) {</span>
+<span class="lineNum">     335 </span>  [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span> :<span class="lineCov">          6 :     switch (role) {</span>
+<span class="lineNum">         </span>            <span class="branchNoCov" title="Branch 4 was not taken"> - </span>]
+<span class="lineNum">     336 </span>                :<span class="lineCov">          3 :     case PSBTRole::UPDATER: return &quot;updater&quot;;</span>
+<span class="lineNum">     337 </span>                :<span class="lineCov">          2 :     case PSBTRole::SIGNER: return &quot;signer&quot;;</span>
+<span class="lineNum">     338 </span>                :<span class="lineNoCov">          0 :     case PSBTRole::FINALIZER: return &quot;finalizer&quot;;</span>
+<span class="lineNum">     339 </span>                :<span class="lineCov">          1 :     case PSBTRole::EXTRACTOR: return &quot;extractor&quot;;</span>
+<span class="lineNum">     340 </span>                :            :     }
+<a name="341"><span class="lineNum">     341 </span>                :<span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">     342 </span>                :            : 
+<span class="lineNum">     343 </span>                :<span class="lineCov">        212 : bool DecodeBase64PSBT(PartiallySignedTransaction&amp; psbt, const std::string&amp; base64_tx, std::string&amp; error)</span>
+<span class="lineNum">     344 </span>                :            : {
+<span class="lineNum">     345 </span>                :            :     bool invalid;
+<span class="lineNum">     346 </span>                :<span class="lineCov">        424 :     std::string tx_data = DecodeBase64(base64_tx, &amp;invalid);</span>
+<span class="lineNum">     347 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 209 times"> + </span>]:<span class="lineCov">        212 :     if (invalid) {</span>
+<span class="lineNum">     348 </span>                :            :         error = &quot;invalid base64&quot;;
+<span class="lineNum">     349 </span>                :            :         return false;
+<span class="lineNum">     350 </span>                :            :     }
+<span class="lineNum">     351 </span>        [<span class="branchCov" title="Branch 1 was taken 209 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        209 :     return DecodeRawPSBT(psbt, tx_data, error);</span>
+<span class="lineNum">     352 </span>                :            : }
+<span class="lineNum">     353 </span>                :            : 
+<span class="lineNum">     354 </span>                :<span class="lineCov">        209 : bool DecodeRawPSBT(PartiallySignedTransaction&amp; psbt, const std::string&amp; tx_data, std::string&amp; error)</span>
+<span class="lineNum">     355 </span>                :            : {
+<span class="lineNum">     356 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 18 times"> + </span>][<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineCov">        227 :     CDataStream ss_data(tx_data.data(), tx_data.data() + tx_data.size(), SER_NETWORK, PROTOCOL_VERSION);</span>
+<span class="lineNum">     357 </span>                :            :     try {
+<span class="lineNum">     358 </span>                :<span class="lineCov">        191 :         ss_data &gt;&gt; psbt;</span>
+<span class="lineNum">     359 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 191 times"> + </span>]:<span class="lineCov">        191 :         if (!ss_data.empty()) {</span>
+<span class="lineNum">     360 </span>                :            :             error = &quot;extra data after PSBT&quot;;
+<span class="lineNum">     361 </span>                :            :             return false;
+<span class="lineNum">     362 </span>                :            :         }
+<span class="lineNum">     363 </span>                :<span class="lineCov">         36 :     } catch (const std::exception&amp; e) {</span>
+<span class="lineNum">     364 </span>                :<span class="lineCov">         18 :         error = e.what();</span>
+<span class="lineNum">     365 </span>                :            :         return false;
+<span class="lineNum">     366 </span>                :            :     }
+<span class="lineNum">     367 </span>                :            :     return true;
+<span class="lineNum">     368 </span>                :            : }
 </pre>
       </td>
     </tr>

@@ -124,7 +124,7 @@
 <span class="lineNum">      53 </span>                :            : static const unsigned int MAX_ADDR_TO_SEND = 1000;
 <span class="lineNum">      54 </span>                :            : /** Maximum length of incoming protocol messages (no message over 4 MB is currently acceptable). */
 <span class="lineNum">      55 </span>                :            : static const unsigned int MAX_PROTOCOL_MESSAGE_LENGTH = 4 * 1000 * 1000;
-<span class="lineNum">      56 </span>                :            : /** Maximum length of strSubVer in `version` message */
+<span class="lineNum">      56 </span>                :            : /** Maximum length of the user agent string in `version` message */
 <span class="lineNum">      57 </span>                :            : static const unsigned int MAX_SUBVERSION_LENGTH = 256;
 <span class="lineNum">      58 </span>                :            : /** Maximum number of automatic outgoing nodes */
 <span class="lineNum">      59 </span>                :            : static const int MAX_OUTBOUND_CONNECTIONS = 8;
@@ -192,7 +192,7 @@
 <span class="lineNum">     121 </span>                :            :         CONNECTIONS_ALL = (CONNECTIONS_IN | CONNECTIONS_OUT),
 <a name="122"><span class="lineNum">     122 </span>                :            :     };</a>
 <span class="lineNum">     123 </span>                :            : 
-<span class="lineNum">     124 </span>                :<span class="lineCov">        288 :     struct Options</span>
+<span class="lineNum">     124 </span>                :<span class="lineCov">        292 :     struct Options</span>
 <span class="lineNum">     125 </span>                :            :     {
 <span class="lineNum">     126 </span>                :            :         ServiceFlags nLocalServices = NODE_NONE;
 <span class="lineNum">     127 </span>                :            :         int nMaxConnections = 0;
@@ -216,31 +216,31 @@
 <span class="lineNum">     145 </span>                :            :         std::vector&lt;std::string&gt; m_added_nodes;
 <a name="146"><span class="lineNum">     146 </span>                :            :     };</a>
 <span class="lineNum">     147 </span>                :            : 
-<span class="lineNum">     148 </span>                :<span class="lineCov">         72 :     void Init(const Options&amp; connOptions) {</span>
-<span class="lineNum">     149 </span>                :<span class="lineCov">         72 :         nLocalServices = connOptions.nLocalServices;</span>
-<span class="lineNum">     150 </span>                :<span class="lineCov">         72 :         nMaxConnections = connOptions.nMaxConnections;</span>
-<span class="lineNum">     151 </span>                :<span class="lineCov">        144 :         nMaxOutbound = std::min(connOptions.nMaxOutbound, connOptions.nMaxConnections);</span>
-<span class="lineNum">     152 </span>                :<span class="lineCov">         72 :         m_use_addrman_outgoing = connOptions.m_use_addrman_outgoing;</span>
-<span class="lineNum">     153 </span>                :<span class="lineCov">         72 :         nMaxAddnode = connOptions.nMaxAddnode;</span>
-<span class="lineNum">     154 </span>                :<span class="lineCov">         72 :         nMaxFeeler = connOptions.nMaxFeeler;</span>
-<span class="lineNum">     155 </span>                :<span class="lineCov">        144 :         nBestHeight = connOptions.nBestHeight;</span>
-<span class="lineNum">     156 </span>                :<span class="lineCov">         72 :         clientInterface = connOptions.uiInterface;</span>
-<span class="lineNum">     157 </span>                :<span class="lineCov">         72 :         m_banman = connOptions.m_banman;</span>
-<span class="lineNum">     158 </span>                :<span class="lineCov">         72 :         m_msgproc = connOptions.m_msgproc;</span>
-<span class="lineNum">     159 </span>                :<span class="lineCov">         72 :         nSendBufferMaxSize = connOptions.nSendBufferMaxSize;</span>
-<span class="lineNum">     160 </span>                :<span class="lineCov">         72 :         nReceiveFloodSize = connOptions.nReceiveFloodSize;</span>
-<span class="lineNum">     161 </span>                :<span class="lineCov">         72 :         m_peer_connect_timeout = connOptions.m_peer_connect_timeout;</span>
+<span class="lineNum">     148 </span>                :<span class="lineCov">         73 :     void Init(const Options&amp; connOptions) {</span>
+<span class="lineNum">     149 </span>                :<span class="lineCov">         73 :         nLocalServices = connOptions.nLocalServices;</span>
+<span class="lineNum">     150 </span>                :<span class="lineCov">         73 :         nMaxConnections = connOptions.nMaxConnections;</span>
+<span class="lineNum">     151 </span>                :<span class="lineCov">        146 :         nMaxOutbound = std::min(connOptions.nMaxOutbound, connOptions.nMaxConnections);</span>
+<span class="lineNum">     152 </span>                :<span class="lineCov">         73 :         m_use_addrman_outgoing = connOptions.m_use_addrman_outgoing;</span>
+<span class="lineNum">     153 </span>                :<span class="lineCov">         73 :         nMaxAddnode = connOptions.nMaxAddnode;</span>
+<span class="lineNum">     154 </span>                :<span class="lineCov">         73 :         nMaxFeeler = connOptions.nMaxFeeler;</span>
+<span class="lineNum">     155 </span>                :<span class="lineCov">        146 :         nBestHeight = connOptions.nBestHeight;</span>
+<span class="lineNum">     156 </span>                :<span class="lineCov">         73 :         clientInterface = connOptions.uiInterface;</span>
+<span class="lineNum">     157 </span>                :<span class="lineCov">         73 :         m_banman = connOptions.m_banman;</span>
+<span class="lineNum">     158 </span>                :<span class="lineCov">         73 :         m_msgproc = connOptions.m_msgproc;</span>
+<span class="lineNum">     159 </span>                :<span class="lineCov">         73 :         nSendBufferMaxSize = connOptions.nSendBufferMaxSize;</span>
+<span class="lineNum">     160 </span>                :<span class="lineCov">         73 :         nReceiveFloodSize = connOptions.nReceiveFloodSize;</span>
+<span class="lineNum">     161 </span>                :<span class="lineCov">         73 :         m_peer_connect_timeout = connOptions.m_peer_connect_timeout;</span>
 <span class="lineNum">     162 </span>                :            :         {
-<span class="lineNum">     163 </span>                :<span class="lineCov">         72 :             LOCK(cs_totalBytesSent);</span>
-<span class="lineNum">     164 </span>                :<span class="lineCov">         72 :             nMaxOutboundTimeframe = connOptions.nMaxOutboundTimeframe;</span>
-<span class="lineNum">     165 </span>                :<span class="lineCov">         72 :             nMaxOutboundLimit = connOptions.nMaxOutboundLimit;</span>
+<span class="lineNum">     163 </span>                :<span class="lineCov">         73 :             LOCK(cs_totalBytesSent);</span>
+<span class="lineNum">     164 </span>                :<span class="lineCov">         73 :             nMaxOutboundTimeframe = connOptions.nMaxOutboundTimeframe;</span>
+<span class="lineNum">     165 </span>                :<span class="lineCov">         73 :             nMaxOutboundLimit = connOptions.nMaxOutboundLimit;</span>
 <span class="lineNum">     166 </span>                :            :         }
-<span class="lineNum">     167 </span>                :<span class="lineCov">         72 :         vWhitelistedRange = connOptions.vWhitelistedRange;</span>
+<span class="lineNum">     167 </span>                :<span class="lineCov">         73 :         vWhitelistedRange = connOptions.vWhitelistedRange;</span>
 <span class="lineNum">     168 </span>                :            :         {
-<span class="lineNum">     169 </span>                :<span class="lineCov">         72 :             LOCK(cs_vAddedNodes);</span>
-<span class="lineNum">     170 </span>        [<span class="branchCov" title="Branch 1 was taken 72 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         72 :             vAddedNodes = connOptions.m_added_nodes;</span>
+<span class="lineNum">     169 </span>                :<span class="lineCov">         73 :             LOCK(cs_vAddedNodes);</span>
+<span class="lineNum">     170 </span>        [<span class="branchCov" title="Branch 1 was taken 73 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         73 :             vAddedNodes = connOptions.m_added_nodes;</span>
 <span class="lineNum">     171 </span>                :            :         }
-<span class="lineNum">     172 </span>                :<span class="lineCov">         72 :     }</span>
+<span class="lineNum">     172 </span>                :<span class="lineCov">         73 :     }</span>
 <span class="lineNum">     173 </span>                :            : 
 <span class="lineNum">     174 </span>                :            :     CConnman(uint64_t seed0, uint64_t seed1);
 <span class="lineNum">     175 </span>                :            :     ~CConnman();
@@ -726,12 +726,12 @@
 <span class="lineNum">     650 </span>                :            :     // Bind address of our side of the connection
 <span class="lineNum">     651 </span>                :            :     const CAddress addrBind;
 <span class="lineNum">     652 </span>                :            :     std::atomic&lt;int&gt; nVersion{0};
-<span class="lineNum">     653 </span>                :            :     // strSubVer is whatever byte array we read from the wire. However, this field is intended
-<span class="lineNum">     654 </span>                :            :     // to be printed out, displayed to humans in various forms and so on. So we sanitize it and
-<span class="lineNum">     655 </span>                :            :     // store the sanitized version in cleanSubVer. The original should be used when dealing with
-<span class="lineNum">     656 </span>                :            :     // the network or wire types and the cleaned string used when displayed or logged.
-<span class="lineNum">     657 </span>                :            :     std::string strSubVer GUARDED_BY(cs_SubVer), cleanSubVer GUARDED_BY(cs_SubVer);
-<span class="lineNum">     658 </span>                :            :     CCriticalSection cs_SubVer; // used for both cleanSubVer and strSubVer
+<span class="lineNum">     653 </span>                :            :     RecursiveMutex cs_SubVer;
+<span class="lineNum">     654 </span>                :            :     /**
+<span class="lineNum">     655 </span>                :            :      * cleanSubVer is a sanitized string of the user agent byte array we read
+<span class="lineNum">     656 </span>                :            :      * from the wire. This cleaned string can safely be logged or displayed.
+<span class="lineNum">     657 </span>                :            :      */
+<span class="lineNum">     658 </span>                :            :     std::string cleanSubVer GUARDED_BY(cs_SubVer){};
 <span class="lineNum">     659 </span>                :            :     bool m_prefer_evict{false}; // This peer is preferred for eviction.
 <span class="lineNum">     660 </span>                :            :     bool fWhitelisted{false}; // This peer can bypass DoS banning.
 <span class="lineNum">     661 </span>                :            :     bool fFeeler{false}; // If true this node is being used as a short lived feeler.
@@ -815,147 +815,149 @@
 <span class="lineNum">     739 </span>                :            :     CAmount lastSentFeeFilter{0};
 <span class="lineNum">     740 </span>                :            :     int64_t nextSendTimeFeeFilter{0};
 <span class="lineNum">     741 </span>                :            : 
-<span class="lineNum">     742 </span>                :            :     CNode(NodeId id, ServiceFlags nLocalServicesIn, int nMyStartingHeightIn, SOCKET hSocketIn, const CAddress &amp;addrIn, uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn, const CAddress &amp;addrBindIn, const std::string &amp;addrNameIn = &quot;&quot;, bool fInboundIn = false);
-<span class="lineNum">     743 </span>                :            :     ~CNode();
-<span class="lineNum">     744 </span>                :            :     CNode(const CNode&amp;) = delete;
-<span class="lineNum">     745 </span>                :            :     CNode&amp; operator=(const CNode&amp;) = delete;
-<span class="lineNum">     746 </span>                :            : 
-<span class="lineNum">     747 </span>                :            : private:
-<span class="lineNum">     748 </span>                :            :     const NodeId id;
-<span class="lineNum">     749 </span>                :            :     const uint64_t nLocalHostNonce;
-<span class="lineNum">     750 </span>                :            :     // Services offered to this peer
-<span class="lineNum">     751 </span>                :            :     const ServiceFlags nLocalServices;
-<span class="lineNum">     752 </span>                :            :     const int nMyStartingHeight;
-<span class="lineNum">     753 </span>                :            :     int nSendVersion{0};
-<span class="lineNum">     754 </span>                :            :     std::list&lt;CNetMessage&gt; vRecvMsg;  // Used only by SocketHandler thread
-<span class="lineNum">     755 </span>                :            : 
-<span class="lineNum">     756 </span>                :            :     mutable CCriticalSection cs_addrName;
-<span class="lineNum">     757 </span>                :            :     std::string addrName GUARDED_BY(cs_addrName);
-<span class="lineNum">     758 </span>                :            : 
-<span class="lineNum">     759 </span>                :            :     // Our address, as reported by the peer
-<span class="lineNum">     760 </span>                :            :     CService addrLocal GUARDED_BY(cs_addrLocal);
-<span class="lineNum">     761 </span>                :            :     mutable CCriticalSection cs_addrLocal;
-<span class="lineNum">     762 </span>                :            : public:
-<span class="lineNum">     763 </span>                :            : 
-<span class="lineNum">     764 </span>                :            :     NodeId GetId() const {
-<span class="lineNum">     765 </span>                :<span class="lineCov">        175 :         return id;</span>
-<span class="lineNum">     766 </span>                :            :     }
-<span class="lineNum">     767 </span>                :            : 
-<span class="lineNum">     768 </span>                :            :     uint64_t GetLocalNonce() const {
-<span class="lineNum">     769 </span>                :<span class="lineCov">         10 :         return nLocalHostNonce;</span>
-<span class="lineNum">     770 </span>                :            :     }
-<span class="lineNum">     771 </span>                :            : 
-<span class="lineNum">     772 </span>                :            :     int GetMyStartingHeight() const {
-<span class="lineNum">     773 </span>                :<span class="lineCov">         10 :         return nMyStartingHeight;</span>
-<a name="774"><span class="lineNum">     774 </span>                :            :     }</a>
-<span class="lineNum">     775 </span>                :            : 
-<span class="lineNum">     776 </span>                :<span class="lineNoCov">          0 :     int GetRefCount() const</span>
-<span class="lineNum">     777 </span>                :            :     {
-<span class="lineNum">     778 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         assert(nRefCount &gt;= 0);</span>
-<span class="lineNum">     779 </span>                :<span class="lineNoCov">          0 :         return nRefCount;</span>
-<span class="lineNum">     780 </span>                :            :     }
-<span class="lineNum">     781 </span>                :            : 
-<span class="lineNum">     782 </span>                :            :     bool ReceiveMsgBytes(const char *pch, unsigned int nBytes, bool&amp; complete);
+<span class="lineNum">     742 </span>                :            :     std::set&lt;uint256&gt; orphan_work_set;
+<span class="lineNum">     743 </span>                :            : 
+<span class="lineNum">     744 </span>                :            :     CNode(NodeId id, ServiceFlags nLocalServicesIn, int nMyStartingHeightIn, SOCKET hSocketIn, const CAddress &amp;addrIn, uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn, const CAddress &amp;addrBindIn, const std::string &amp;addrNameIn = &quot;&quot;, bool fInboundIn = false);
+<span class="lineNum">     745 </span>                :            :     ~CNode();
+<span class="lineNum">     746 </span>                :            :     CNode(const CNode&amp;) = delete;
+<span class="lineNum">     747 </span>                :            :     CNode&amp; operator=(const CNode&amp;) = delete;
+<span class="lineNum">     748 </span>                :            : 
+<span class="lineNum">     749 </span>                :            : private:
+<span class="lineNum">     750 </span>                :            :     const NodeId id;
+<span class="lineNum">     751 </span>                :            :     const uint64_t nLocalHostNonce;
+<span class="lineNum">     752 </span>                :            :     // Services offered to this peer
+<span class="lineNum">     753 </span>                :            :     const ServiceFlags nLocalServices;
+<span class="lineNum">     754 </span>                :            :     const int nMyStartingHeight;
+<span class="lineNum">     755 </span>                :            :     int nSendVersion{0};
+<span class="lineNum">     756 </span>                :            :     std::list&lt;CNetMessage&gt; vRecvMsg;  // Used only by SocketHandler thread
+<span class="lineNum">     757 </span>                :            : 
+<span class="lineNum">     758 </span>                :            :     mutable CCriticalSection cs_addrName;
+<span class="lineNum">     759 </span>                :            :     std::string addrName GUARDED_BY(cs_addrName);
+<span class="lineNum">     760 </span>                :            : 
+<span class="lineNum">     761 </span>                :            :     // Our address, as reported by the peer
+<span class="lineNum">     762 </span>                :            :     CService addrLocal GUARDED_BY(cs_addrLocal);
+<span class="lineNum">     763 </span>                :            :     mutable CCriticalSection cs_addrLocal;
+<span class="lineNum">     764 </span>                :            : public:
+<span class="lineNum">     765 </span>                :            : 
+<span class="lineNum">     766 </span>                :            :     NodeId GetId() const {
+<span class="lineNum">     767 </span>                :<span class="lineCov">        175 :         return id;</span>
+<span class="lineNum">     768 </span>                :            :     }
+<span class="lineNum">     769 </span>                :            : 
+<span class="lineNum">     770 </span>                :            :     uint64_t GetLocalNonce() const {
+<span class="lineNum">     771 </span>                :<span class="lineCov">         10 :         return nLocalHostNonce;</span>
+<span class="lineNum">     772 </span>                :            :     }
+<span class="lineNum">     773 </span>                :            : 
+<span class="lineNum">     774 </span>                :            :     int GetMyStartingHeight() const {
+<span class="lineNum">     775 </span>                :<span class="lineCov">         10 :         return nMyStartingHeight;</span>
+<a name="776"><span class="lineNum">     776 </span>                :            :     }</a>
+<span class="lineNum">     777 </span>                :            : 
+<span class="lineNum">     778 </span>                :<span class="lineNoCov">          0 :     int GetRefCount() const</span>
+<span class="lineNum">     779 </span>                :            :     {
+<span class="lineNum">     780 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         assert(nRefCount &gt;= 0);</span>
+<span class="lineNum">     781 </span>                :<span class="lineNoCov">          0 :         return nRefCount;</span>
+<span class="lineNum">     782 </span>                :            :     }
 <span class="lineNum">     783 </span>                :            : 
-<span class="lineNum">     784 </span>                :            :     void SetRecvVersion(int nVersionIn)
-<span class="lineNum">     785 </span>                :            :     {
-<span class="lineNum">     786 </span>                :<span class="lineNoCov">          0 :         nRecvVersion = nVersionIn;</span>
-<span class="lineNum">     787 </span>                :            :     }
-<span class="lineNum">     788 </span>                :            :     int GetRecvVersion() const
-<span class="lineNum">     789 </span>                :            :     {
-<span class="lineNum">     790 </span>                :<span class="lineNoCov">          0 :         return nRecvVersion;</span>
-<span class="lineNum">     791 </span>                :            :     }
-<span class="lineNum">     792 </span>                :            :     void SetSendVersion(int nVersionIn);
-<span class="lineNum">     793 </span>                :            :     int GetSendVersion() const;
-<span class="lineNum">     794 </span>                :            : 
-<span class="lineNum">     795 </span>                :            :     CService GetAddrLocal() const;
-<span class="lineNum">     796 </span>                :            :     //! May not be called more than once
-<span class="lineNum">     797 </span>                :            :     void SetAddrLocal(const CService&amp; addrLocalIn);
-<span class="lineNum">     798 </span>                :            : 
-<span class="lineNum">     799 </span>                :            :     CNode* AddRef()
-<span class="lineNum">     800 </span>                :            :     {
-<span class="lineNum">     801 </span>                :<span class="lineNoCov">          0 :         nRefCount++;</span>
-<span class="lineNum">     802 </span>                :            :         return this;
-<span class="lineNum">     803 </span>                :            :     }
-<span class="lineNum">     804 </span>                :            : 
-<span class="lineNum">     805 </span>                :            :     void Release()
-<span class="lineNum">     806 </span>                :            :     {
-<span class="lineNum">     807 </span>                :<span class="lineNoCov">          0 :         nRefCount--;</span>
-<span class="lineNum">     808 </span>                :            :     }
-<span class="lineNum">     809 </span>                :            : 
-<span class="lineNum">     810 </span>                :            : 
+<span class="lineNum">     784 </span>                :            :     bool ReceiveMsgBytes(const char *pch, unsigned int nBytes, bool&amp; complete);
+<span class="lineNum">     785 </span>                :            : 
+<span class="lineNum">     786 </span>                :            :     void SetRecvVersion(int nVersionIn)
+<span class="lineNum">     787 </span>                :            :     {
+<span class="lineNum">     788 </span>                :<span class="lineNoCov">          0 :         nRecvVersion = nVersionIn;</span>
+<span class="lineNum">     789 </span>                :            :     }
+<span class="lineNum">     790 </span>                :            :     int GetRecvVersion() const
+<span class="lineNum">     791 </span>                :            :     {
+<span class="lineNum">     792 </span>                :<span class="lineNoCov">          0 :         return nRecvVersion;</span>
+<span class="lineNum">     793 </span>                :            :     }
+<span class="lineNum">     794 </span>                :            :     void SetSendVersion(int nVersionIn);
+<span class="lineNum">     795 </span>                :            :     int GetSendVersion() const;
+<span class="lineNum">     796 </span>                :            : 
+<span class="lineNum">     797 </span>                :            :     CService GetAddrLocal() const;
+<span class="lineNum">     798 </span>                :            :     //! May not be called more than once
+<span class="lineNum">     799 </span>                :            :     void SetAddrLocal(const CService&amp; addrLocalIn);
+<span class="lineNum">     800 </span>                :            : 
+<span class="lineNum">     801 </span>                :            :     CNode* AddRef()
+<span class="lineNum">     802 </span>                :            :     {
+<span class="lineNum">     803 </span>                :<span class="lineNoCov">          0 :         nRefCount++;</span>
+<span class="lineNum">     804 </span>                :            :         return this;
+<span class="lineNum">     805 </span>                :            :     }
+<span class="lineNum">     806 </span>                :            : 
+<span class="lineNum">     807 </span>                :            :     void Release()
+<span class="lineNum">     808 </span>                :            :     {
+<span class="lineNum">     809 </span>                :<span class="lineNoCov">          0 :         nRefCount--;</span>
+<span class="lineNum">     810 </span>                :            :     }
 <span class="lineNum">     811 </span>                :            : 
-<span class="lineNum">     812 </span>                :<span class="lineNoCov">          0 :     void AddAddressKnown(const CAddress&amp; _addr)</span>
-<span class="lineNum">     813 </span>                :            :     {
-<span class="lineNum">     814 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         addrKnown.insert(_addr.GetKey());</span>
-<span class="lineNum">     815 </span>                :<span class="lineNoCov">          0 :     }</span>
-<span class="lineNum">     816 </span>                :            : 
-<span class="lineNum">     817 </span>                :<span class="lineCov">          1 :     void PushAddress(const CAddress&amp; _addr, FastRandomContext &amp;insecure_rand)</span>
-<span class="lineNum">     818 </span>                :            :     {
-<span class="lineNum">     819 </span>                :            :         // Known checking here is only to save space from duplicates.
-<span class="lineNum">     820 </span>                :            :         // SendMessages will filter it again for knowns that were added
-<span class="lineNum">     821 </span>                :            :         // after addresses were pushed.
-<span class="lineNum">     822 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">          2 :         if (_addr.IsValid() &amp;&amp; !addrKnown.contains(_addr.GetKey())) {</span>
+<span class="lineNum">     812 </span>                :            : 
+<span class="lineNum">     813 </span>                :            : 
+<span class="lineNum">     814 </span>                :<span class="lineNoCov">          0 :     void AddAddressKnown(const CAddress&amp; _addr)</span>
+<span class="lineNum">     815 </span>                :            :     {
+<span class="lineNum">     816 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         addrKnown.insert(_addr.GetKey());</span>
+<span class="lineNum">     817 </span>                :<span class="lineNoCov">          0 :     }</span>
+<span class="lineNum">     818 </span>                :            : 
+<span class="lineNum">     819 </span>                :<span class="lineCov">          1 :     void PushAddress(const CAddress&amp; _addr, FastRandomContext &amp;insecure_rand)</span>
+<span class="lineNum">     820 </span>                :            :     {
+<span class="lineNum">     821 </span>                :            :         // Known checking here is only to save space from duplicates.
+<span class="lineNum">     822 </span>                :            :         // SendMessages will filter it again for knowns that were added
+<span class="lineNum">     823 </span>                :            :         // after addresses were pushed.
+<span class="lineNum">     824 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">          2 :         if (_addr.IsValid() &amp;&amp; !addrKnown.contains(_addr.GetKey())) {</span>
 <span class="lineNum">         </span>[<span class="branchCov" title="Branch 6 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>][<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>]
 <span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 11 was not taken"> - </span><span class="branchCov" title="Branch 12 was taken 1 time"> + </span>][<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>]
 <span class="lineNum">         </span>        [<span class="branchCov" title="Branch 15 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 16 was not taken"> - </span>]
-<span class="lineNum">     823 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :             if (vAddrToSend.size() &gt;= MAX_ADDR_TO_SEND) {</span>
-<span class="lineNum">     824 </span>                :<span class="lineNoCov">          0 :                 vAddrToSend[insecure_rand.randrange(vAddrToSend.size())] = _addr;</span>
-<span class="lineNum">     825 </span>                :            :             } else {
-<span class="lineNum">     826 </span>                :<span class="lineCov">          1 :                 vAddrToSend.push_back(_addr);</span>
-<span class="lineNum">     827 </span>                :            :             }
-<span class="lineNum">     828 </span>                :            :         }
-<span class="lineNum">     829 </span>                :<span class="lineCov">          1 :     }</span>
-<a name="830"><span class="lineNum">     830 </span>                :            : </a>
-<span class="lineNum">     831 </span>                :            : 
-<span class="lineNum">     832 </span>                :<span class="lineNoCov">          0 :     void AddInventoryKnown(const CInv&amp; inv)</span>
-<span class="lineNum">     833 </span>                :            :     {
-<span class="lineNum">     834 </span>                :            :         {
-<span class="lineNum">     835 </span>                :<span class="lineNoCov">          0 :             LOCK(cs_inventory);</span>
-<span class="lineNum">     836 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             filterInventoryKnown.insert(inv.hash);</span>
-<span class="lineNum">     837 </span>                :            :         }
-<a name="838"><span class="lineNum">     838 </span>                :<span class="lineNoCov">          0 :     }</span></a>
-<span class="lineNum">     839 </span>                :            : 
-<span class="lineNum">     840 </span>                :<span class="lineNoCov">          0 :     void PushInventory(const CInv&amp; inv)</span>
-<span class="lineNum">     841 </span>                :            :     {
-<span class="lineNum">     842 </span>                :<span class="lineNoCov">          0 :         LOCK(cs_inventory);</span>
-<span class="lineNum">     843 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (inv.type == MSG_TX) {</span>
-<span class="lineNum">     844 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (!filterInventoryKnown.contains(inv.hash)) {</span>
-<span class="lineNum">     845 </span>                :<span class="lineNoCov">          0 :                 setInventoryTxToSend.insert(inv.hash);</span>
-<span class="lineNum">     846 </span>                :            :             }
-<span class="lineNum">     847 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         } else if (inv.type == MSG_BLOCK) {</span>
-<span class="lineNum">     848 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             vInventoryBlockToSend.push_back(inv.hash);</span>
-<span class="lineNum">     849 </span>                :            :         }
-<a name="850"><span class="lineNum">     850 </span>                :<span class="lineNoCov">          0 :     }</span></a>
-<span class="lineNum">     851 </span>                :            : 
-<span class="lineNum">     852 </span>                :<span class="lineNoCov">          0 :     void PushBlockHash(const uint256 &amp;hash)</span>
-<span class="lineNum">     853 </span>                :            :     {
-<span class="lineNum">     854 </span>                :<span class="lineNoCov">          0 :         LOCK(cs_inventory);</span>
-<span class="lineNum">     855 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         vBlockHashesToAnnounce.push_back(hash);</span>
-<span class="lineNum">     856 </span>                :<span class="lineNoCov">          0 :     }</span>
-<span class="lineNum">     857 </span>                :            : 
-<span class="lineNum">     858 </span>                :            :     void CloseSocketDisconnect();
+<span class="lineNum">     825 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :             if (vAddrToSend.size() &gt;= MAX_ADDR_TO_SEND) {</span>
+<span class="lineNum">     826 </span>                :<span class="lineNoCov">          0 :                 vAddrToSend[insecure_rand.randrange(vAddrToSend.size())] = _addr;</span>
+<span class="lineNum">     827 </span>                :            :             } else {
+<span class="lineNum">     828 </span>                :<span class="lineCov">          1 :                 vAddrToSend.push_back(_addr);</span>
+<span class="lineNum">     829 </span>                :            :             }
+<span class="lineNum">     830 </span>                :            :         }
+<span class="lineNum">     831 </span>                :<span class="lineCov">          1 :     }</span>
+<a name="832"><span class="lineNum">     832 </span>                :            : </a>
+<span class="lineNum">     833 </span>                :            : 
+<span class="lineNum">     834 </span>                :<span class="lineNoCov">          0 :     void AddInventoryKnown(const CInv&amp; inv)</span>
+<span class="lineNum">     835 </span>                :            :     {
+<span class="lineNum">     836 </span>                :            :         {
+<span class="lineNum">     837 </span>                :<span class="lineNoCov">          0 :             LOCK(cs_inventory);</span>
+<span class="lineNum">     838 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             filterInventoryKnown.insert(inv.hash);</span>
+<span class="lineNum">     839 </span>                :            :         }
+<a name="840"><span class="lineNum">     840 </span>                :<span class="lineNoCov">          0 :     }</span></a>
+<span class="lineNum">     841 </span>                :            : 
+<span class="lineNum">     842 </span>                :<span class="lineNoCov">          0 :     void PushInventory(const CInv&amp; inv)</span>
+<span class="lineNum">     843 </span>                :            :     {
+<span class="lineNum">     844 </span>                :<span class="lineNoCov">          0 :         LOCK(cs_inventory);</span>
+<span class="lineNum">     845 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (inv.type == MSG_TX) {</span>
+<span class="lineNum">     846 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (!filterInventoryKnown.contains(inv.hash)) {</span>
+<span class="lineNum">     847 </span>                :<span class="lineNoCov">          0 :                 setInventoryTxToSend.insert(inv.hash);</span>
+<span class="lineNum">     848 </span>                :            :             }
+<span class="lineNum">     849 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         } else if (inv.type == MSG_BLOCK) {</span>
+<span class="lineNum">     850 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :             vInventoryBlockToSend.push_back(inv.hash);</span>
+<span class="lineNum">     851 </span>                :            :         }
+<a name="852"><span class="lineNum">     852 </span>                :<span class="lineNoCov">          0 :     }</span></a>
+<span class="lineNum">     853 </span>                :            : 
+<span class="lineNum">     854 </span>                :<span class="lineNoCov">          0 :     void PushBlockHash(const uint256 &amp;hash)</span>
+<span class="lineNum">     855 </span>                :            :     {
+<span class="lineNum">     856 </span>                :<span class="lineNoCov">          0 :         LOCK(cs_inventory);</span>
+<span class="lineNum">     857 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         vBlockHashesToAnnounce.push_back(hash);</span>
+<span class="lineNum">     858 </span>                :<span class="lineNoCov">          0 :     }</span>
 <span class="lineNum">     859 </span>                :            : 
-<span class="lineNum">     860 </span>                :            :     void copyStats(CNodeStats &amp;stats);
+<span class="lineNum">     860 </span>                :            :     void CloseSocketDisconnect();
 <span class="lineNum">     861 </span>                :            : 
-<span class="lineNum">     862 </span>                :            :     ServiceFlags GetLocalServices() const
-<span class="lineNum">     863 </span>                :            :     {
-<span class="lineNum">     864 </span>                :<span class="lineCov">         11 :         return nLocalServices;</span>
-<span class="lineNum">     865 </span>                :            :     }
-<span class="lineNum">     866 </span>                :            : 
-<span class="lineNum">     867 </span>                :            :     std::string GetAddrName() const;
-<span class="lineNum">     868 </span>                :            :     //! Sets the addrName only if it was not previously set
-<span class="lineNum">     869 </span>                :            :     void MaybeSetAddrName(const std::string&amp; addrNameIn);
-<span class="lineNum">     870 </span>                :            : };
-<span class="lineNum">     871 </span>                :            : 
-<span class="lineNum">     872 </span>                :            : 
+<span class="lineNum">     862 </span>                :            :     void copyStats(CNodeStats &amp;stats);
+<span class="lineNum">     863 </span>                :            : 
+<span class="lineNum">     864 </span>                :            :     ServiceFlags GetLocalServices() const
+<span class="lineNum">     865 </span>                :            :     {
+<span class="lineNum">     866 </span>                :<span class="lineCov">         11 :         return nLocalServices;</span>
+<span class="lineNum">     867 </span>                :            :     }
+<span class="lineNum">     868 </span>                :            : 
+<span class="lineNum">     869 </span>                :            :     std::string GetAddrName() const;
+<span class="lineNum">     870 </span>                :            :     //! Sets the addrName only if it was not previously set
+<span class="lineNum">     871 </span>                :            :     void MaybeSetAddrName(const std::string&amp; addrNameIn);
+<span class="lineNum">     872 </span>                :            : };
 <span class="lineNum">     873 </span>                :            : 
 <span class="lineNum">     874 </span>                :            : 
 <span class="lineNum">     875 </span>                :            : 
-<span class="lineNum">     876 </span>                :            : /** Return a timestamp in the future (in microseconds) for exponentially distributed events. */
-<span class="lineNum">     877 </span>                :            : int64_t PoissonNextSend(int64_t now, int average_interval_seconds);
-<span class="lineNum">     878 </span>                :            : 
-<span class="lineNum">     879 </span>                :            : #endif // BITCOIN_NET_H
+<span class="lineNum">     876 </span>                :            : 
+<span class="lineNum">     877 </span>                :            : 
+<span class="lineNum">     878 </span>                :            : /** Return a timestamp in the future (in microseconds) for exponentially distributed events. */
+<span class="lineNum">     879 </span>                :            : int64_t PoissonNextSend(int64_t now, int average_interval_seconds);
+<span class="lineNum">     880 </span>                :            : 
+<span class="lineNum">     881 </span>                :            : #endif // BITCOIN_NET_H
 </pre>
       </td>
     </tr>

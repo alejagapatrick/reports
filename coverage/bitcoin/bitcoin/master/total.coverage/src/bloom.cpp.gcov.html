@@ -190,12 +190,12 @@
 <span class="lineNum">     119 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return vData.size() &lt;= MAX_BLOOM_FILTER_SIZE &amp;&amp; nHashFuncs &lt;= MAX_HASH_FUNCS;</span>
 <span class="lineNum">     120 </span>                :            : }
 <span class="lineNum">     121 </span>                :            : 
-<span class="lineNum">     122 </span>                :<span class="lineCov">      15014 : bool CBloomFilter::IsRelevantAndUpdate(const CTransaction&amp; tx)</span>
+<span class="lineNum">     122 </span>                :<span class="lineCov">      13476 : bool CBloomFilter::IsRelevantAndUpdate(const CTransaction&amp; tx)</span>
 <span class="lineNum">     123 </span>                :            : {
-<span class="lineNum">     124 </span>                :<span class="lineCov">      15014 :     bool fFound = false;</span>
+<span class="lineNum">     124 </span>                :<span class="lineCov">      13476 :     bool fFound = false;</span>
 <span class="lineNum">     125 </span>                :            :     // Match if the filter contains the hash of tx
 <span class="lineNum">     126 </span>                :            :     //  for finding tx when they appear in a block
-<span class="lineNum">     127 </span>        [<span class="branchCov" title="Branch 0 was taken 76 times"> + </span><span class="branchCov" title="Branch 1 was taken 14938 times"> + </span>]:<span class="lineCov">      15014 :     if (isFull)</span>
+<span class="lineNum">     127 </span>        [<span class="branchCov" title="Branch 0 was taken 76 times"> + </span><span class="branchCov" title="Branch 1 was taken 13400 times"> + </span>]:<span class="lineCov">      13476 :     if (isFull)</span>
 <span class="lineNum">     128 </span>                :            :         return true;
 <span class="lineNum">     129 </span>        [<span class="branchCov" title="Branch 0 was taken 76 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         76 :     if (isEmpty)</span>
 <span class="lineNum">     130 </span>                :            :         return false;
@@ -259,7 +259,7 @@
 <span class="lineNum">     186 </span>                :            :         }
 <span class="lineNum">     187 </span>                :            :     }
 <span class="lineNum">     188 </span>                :            : 
-<span class="lineNum">     189 </span>                :<span class="lineCov">      15014 :     return false;</span>
+<span class="lineNum">     189 </span>                :<span class="lineCov">      13476 :     return false;</span>
 <span class="lineNum">     190 </span>                :            : }
 <span class="lineNum">     191 </span>                :            : 
 <span class="lineNum">     192 </span>                :<span class="lineNoCov">          0 : void CBloomFilter::UpdateEmptyFull()</span>
@@ -275,15 +275,15 @@
 <span class="lineNum">     202 </span>                :<span class="lineNoCov">          0 :     isEmpty = empty;</span>
 <span class="lineNum">     203 </span>                :<span class="lineNoCov">          0 : }</span>
 <span class="lineNum">     204 </span>                :            : 
-<span class="lineNum">     205 </span>                :<span class="lineCov">       1882 : CRollingBloomFilter::CRollingBloomFilter(const unsigned int nElements, const double fpRate)</span>
+<span class="lineNum">     205 </span>                :<span class="lineCov">       1890 : CRollingBloomFilter::CRollingBloomFilter(const unsigned int nElements, const double fpRate)</span>
 <span class="lineNum">     206 </span>                :            : {
-<span class="lineNum">     207 </span>                :<span class="lineCov">       1882 :     double logFpRate = log(fpRate);</span>
+<span class="lineNum">     207 </span>                :<span class="lineCov">       1890 :     double logFpRate = log(fpRate);</span>
 <span class="lineNum">     208 </span>                :            :     /* The optimal number of hash functions is log(fpRate) / log(0.5), but
 <span class="lineNum">     209 </span>                :            :      * restrict it to the range 1-50. */
-<span class="lineNum">     210 </span>                :<span class="lineCov">       5646 :     nHashFuncs = std::max(1, std::min((int)round(logFpRate / log(0.5)), 50));</span>
+<span class="lineNum">     210 </span>                :<span class="lineCov">       5670 :     nHashFuncs = std::max(1, std::min((int)round(logFpRate / log(0.5)), 50));</span>
 <span class="lineNum">     211 </span>                :            :     /* In this rolling bloom filter, we'll store between 2 and 3 generations of nElements / 2 entries. */
-<span class="lineNum">     212 </span>                :<span class="lineCov">       1882 :     nEntriesPerGeneration = (nElements + 1) / 2;</span>
-<span class="lineNum">     213 </span>                :<span class="lineCov">       1882 :     uint32_t nMaxElements = nEntriesPerGeneration * 3;</span>
+<span class="lineNum">     212 </span>                :<span class="lineCov">       1890 :     nEntriesPerGeneration = (nElements + 1) / 2;</span>
+<span class="lineNum">     213 </span>                :<span class="lineCov">       1890 :     uint32_t nMaxElements = nEntriesPerGeneration * 3;</span>
 <span class="lineNum">     214 </span>                :            :     /* The maximum fpRate = pow(1.0 - exp(-nHashFuncs * nMaxElements / nFilterBits), nHashFuncs)
 <span class="lineNum">     215 </span>                :            :      * =&gt;          pow(fpRate, 1.0 / nHashFuncs) = 1.0 - exp(-nHashFuncs * nMaxElements / nFilterBits)
 <span class="lineNum">     216 </span>                :            :      * =&gt;          1.0 - pow(fpRate, 1.0 / nHashFuncs) = exp(-nHashFuncs * nMaxElements / nFilterBits)
@@ -291,20 +291,20 @@
 <span class="lineNum">     218 </span>                :            :      * =&gt;          nFilterBits = -nHashFuncs * nMaxElements / log(1.0 - pow(fpRate, 1.0 / nHashFuncs))
 <span class="lineNum">     219 </span>                :            :      * =&gt;          nFilterBits = -nHashFuncs * nMaxElements / log(1.0 - exp(logFpRate / nHashFuncs))
 <span class="lineNum">     220 </span>                :            :      */
-<span class="lineNum">     221 </span>                :<span class="lineCov">       1882 :     uint32_t nFilterBits = (uint32_t)ceil(-1.0 * nHashFuncs * nMaxElements / log(1.0 - exp(logFpRate / nHashFuncs)));</span>
-<span class="lineNum">     222 </span>                :<span class="lineCov">       3764 :     data.clear();</span>
+<span class="lineNum">     221 </span>                :<span class="lineCov">       1890 :     uint32_t nFilterBits = (uint32_t)ceil(-1.0 * nHashFuncs * nMaxElements / log(1.0 - exp(logFpRate / nHashFuncs)));</span>
+<span class="lineNum">     222 </span>                :<span class="lineCov">       3780 :     data.clear();</span>
 <span class="lineNum">     223 </span>                :            :     /* For each data element we need to store 2 bits. If both bits are 0, the
 <span class="lineNum">     224 </span>                :            :      * bit is treated as unset. If the bits are (01), (10), or (11), the bit is
 <span class="lineNum">     225 </span>                :            :      * treated as set in generation 1, 2, or 3 respectively.
 <span class="lineNum">     226 </span>                :            :      * These bits are stored in separate integers: position P corresponds to bit
 <span class="lineNum">     227 </span>                :            :      * (P &amp; 63) of the integers data[(P &gt;&gt; 6) * 2] and data[(P &gt;&gt; 6) * 2 + 1]. */
-<span class="lineNum">     228 </span>        [<span class="branchCov" title="Branch 1 was taken 1882 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1882 :     data.resize(((nFilterBits + 63) / 64) &lt;&lt; 1);</span>
-<span class="lineNum">     229 </span>                :<span class="lineCov">       1882 :     reset();</span>
-<span class="lineNum">     230 </span>                :<span class="lineCov">       1882 : }</span>
+<span class="lineNum">     228 </span>        [<span class="branchCov" title="Branch 1 was taken 1890 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1890 :     data.resize(((nFilterBits + 63) / 64) &lt;&lt; 1);</span>
+<span class="lineNum">     229 </span>                :<span class="lineCov">       1890 :     reset();</span>
+<span class="lineNum">     230 </span>                :<span class="lineCov">       1890 : }</span>
 <span class="lineNum">     231 </span>                :            : 
 <span class="lineNum">     232 </span>                :            : /* Similar to CBloomFilter::Hash */
 <span class="lineNum">     233 </span>                :            : static inline uint32_t RollingBloomHash(unsigned int nHashNum, uint32_t nTweak, const std::vector&lt;unsigned char&gt;&amp; vDataToHash) {
-<span class="lineNum">     234 </span>                :<span class="lineCov">    1225914 :     return MurmurHash3(nHashNum * 0xFBA4C795 + nTweak, vDataToHash);</span>
+<span class="lineNum">     234 </span>                :<span class="lineCov">    1108341 :     return MurmurHash3(nHashNum * 0xFBA4C795 + nTweak, vDataToHash);</span>
 <span class="lineNum">     235 </span>                :            : }
 <span class="lineNum">     236 </span>                :            : 
 <span class="lineNum">     237 </span>                :            : 
@@ -312,12 +312,12 @@
 <span class="lineNum">     239 </span>                :            : // which should be the case for a good hash.
 <span class="lineNum">     240 </span>                :            : // See https://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/
 <span class="lineNum">     241 </span>                :            : static inline uint32_t FastMod(uint32_t x, size_t n) {
-<span class="lineNum">     242 </span>                :<span class="lineCov">    1225914 :     return ((uint64_t)x * (uint64_t)n) &gt;&gt; 32;</span>
+<span class="lineNum">     242 </span>                :<span class="lineCov">    1108341 :     return ((uint64_t)x * (uint64_t)n) &gt;&gt; 32;</span>
 <span class="lineNum">     243 </span>                :            : }
 <span class="lineNum">     244 </span>                :            : 
-<span class="lineNum">     245 </span>                :<span class="lineCov">      42729 : void CRollingBloomFilter::insert(const std::vector&lt;unsigned char&gt;&amp; vKey)</span>
+<span class="lineNum">     245 </span>                :<span class="lineCov">      38693 : void CRollingBloomFilter::insert(const std::vector&lt;unsigned char&gt;&amp; vKey)</span>
 <span class="lineNum">     246 </span>                :            : {
-<span class="lineNum">     247 </span>        [<span class="branchCov" title="Branch 0 was taken 34 times"> + </span><span class="branchCov" title="Branch 1 was taken 42695 times"> + </span>]:<span class="lineCov">      42729 :     if (nEntriesThisGeneration == nEntriesPerGeneration) {</span>
+<span class="lineNum">     247 </span>        [<span class="branchCov" title="Branch 0 was taken 34 times"> + </span><span class="branchCov" title="Branch 1 was taken 38659 times"> + </span>]:<span class="lineCov">      38693 :     if (nEntriesThisGeneration == nEntriesPerGeneration) {</span>
 <span class="lineNum">     248 </span>                :<span class="lineCov">         34 :         nEntriesThisGeneration = 0;</span>
 <span class="lineNum">     249 </span>                :<span class="lineCov">         34 :         nGeneration++;</span>
 <span class="lineNum">     250 </span>        [<span class="branchCov" title="Branch 0 was taken 11 times"> + </span><span class="branchCov" title="Branch 1 was taken 23 times"> + </span>]:<span class="lineCov">         34 :         if (nGeneration == 4) {</span>
@@ -333,54 +333,54 @@
 <span class="lineNum">     260 </span>                :<span class="lineCov">       1564 :             data[p + 1] = p2 &amp; mask;</span>
 <span class="lineNum">     261 </span>                :            :         }
 <span class="lineNum">     262 </span>                :            :     }
-<span class="lineNum">     263 </span>                :<span class="lineCov">      42729 :     nEntriesThisGeneration++;</span>
+<span class="lineNum">     263 </span>                :<span class="lineCov">      38693 :     nEntriesThisGeneration++;</span>
 <span class="lineNum">     264 </span>                :            : 
-<span class="lineNum">     265 </span>        [<span class="branchCov" title="Branch 0 was taken 824579 times"> + </span><span class="branchCov" title="Branch 1 was taken 42729 times"> + </span>]:<span class="lineCov">     867308 :     for (int n = 0; n &lt; nHashFuncs; n++) {</span>
-<span class="lineNum">     266 </span>                :<span class="lineCov">    1649158 :         uint32_t h = RollingBloomHash(n, nTweak, vKey);</span>
-<span class="lineNum">     267 </span>                :<span class="lineCov">     824579 :         int bit = h &amp; 0x3F;</span>
+<span class="lineNum">     265 </span>        [<span class="branchCov" title="Branch 0 was taken 743819 times"> + </span><span class="branchCov" title="Branch 1 was taken 38693 times"> + </span>]:<span class="lineCov">     782512 :     for (int n = 0; n &lt; nHashFuncs; n++) {</span>
+<span class="lineNum">     266 </span>                :<span class="lineCov">    1487638 :         uint32_t h = RollingBloomHash(n, nTweak, vKey);</span>
+<span class="lineNum">     267 </span>                :<span class="lineCov">     743819 :         int bit = h &amp; 0x3F;</span>
 <span class="lineNum">     268 </span>                :            :         /* FastMod works with the upper bits of h, so it is safe to ignore that the lower bits of h are already used for bit. */
-<span class="lineNum">     269 </span>                :<span class="lineCov">    2473737 :         uint32_t pos = FastMod(h, data.size());</span>
+<span class="lineNum">     269 </span>                :<span class="lineCov">    2231457 :         uint32_t pos = FastMod(h, data.size());</span>
 <span class="lineNum">     270 </span>                :            :         /* The lowest bit of pos is ignored, and set to zero for the first bit, and to one for the second. */
-<span class="lineNum">     271 </span>                :<span class="lineCov">    1649158 :         data[pos &amp; ~1] = (data[pos &amp; ~1] &amp; ~(((uint64_t)1) &lt;&lt; bit)) | ((uint64_t)(nGeneration &amp; 1)) &lt;&lt; bit;</span>
-<span class="lineNum">     272 </span>                :<span class="lineCov">    1649158 :         data[pos | 1] = (data[pos | 1] &amp; ~(((uint64_t)1) &lt;&lt; bit)) | ((uint64_t)(nGeneration &gt;&gt; 1)) &lt;&lt; bit;</span>
+<span class="lineNum">     271 </span>                :<span class="lineCov">    1487638 :         data[pos &amp; ~1] = (data[pos &amp; ~1] &amp; ~(((uint64_t)1) &lt;&lt; bit)) | ((uint64_t)(nGeneration &amp; 1)) &lt;&lt; bit;</span>
+<span class="lineNum">     272 </span>                :<span class="lineCov">    1487638 :         data[pos | 1] = (data[pos | 1] &amp; ~(((uint64_t)1) &lt;&lt; bit)) | ((uint64_t)(nGeneration &gt;&gt; 1)) &lt;&lt; bit;</span>
 <span class="lineNum">     273 </span>                :            :     }
-<span class="lineNum">     274 </span>                :<span class="lineCov">      42729 : }</span>
+<span class="lineNum">     274 </span>                :<span class="lineCov">      38693 : }</span>
 <span class="lineNum">     275 </span>                :            : 
-<span class="lineNum">     276 </span>                :<span class="lineCov">      40268 : void CRollingBloomFilter::insert(const uint256&amp; hash)</span>
+<span class="lineNum">     276 </span>                :<span class="lineCov">      36228 : void CRollingBloomFilter::insert(const uint256&amp; hash)</span>
 <span class="lineNum">     277 </span>                :            : {
-<span class="lineNum">     278 </span>                :<span class="lineCov">      40268 :     std::vector&lt;unsigned char&gt; vData(hash.begin(), hash.end());</span>
-<span class="lineNum">     279 </span>        [<span class="branchCov" title="Branch 1 was taken 40268 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      40268 :     insert(vData);</span>
-<span class="lineNum">     280 </span>                :<span class="lineCov">      40268 : }</span>
+<span class="lineNum">     278 </span>                :<span class="lineCov">      36228 :     std::vector&lt;unsigned char&gt; vData(hash.begin(), hash.end());</span>
+<span class="lineNum">     279 </span>        [<span class="branchCov" title="Branch 1 was taken 36228 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      36228 :     insert(vData);</span>
+<span class="lineNum">     280 </span>                :<span class="lineCov">      36228 : }</span>
 <span class="lineNum">     281 </span>                :            : 
-<span class="lineNum">     282 </span>                :<span class="lineCov">     103312 : bool CRollingBloomFilter::contains(const std::vector&lt;unsigned char&gt;&amp; vKey) const</span>
+<span class="lineNum">     282 </span>                :<span class="lineCov">      94489 : bool CRollingBloomFilter::contains(const std::vector&lt;unsigned char&gt;&amp; vKey) const</span>
 <span class="lineNum">     283 </span>                :            : {
-<span class="lineNum">     284 </span>        [<span class="branchCov" title="Branch 0 was taken 401335 times"> + </span><span class="branchCov" title="Branch 1 was taken 16635 times"> + </span>]:<span class="lineCov">     417970 :     for (int n = 0; n &lt; nHashFuncs; n++) {</span>
-<span class="lineNum">     285 </span>                :<span class="lineCov">     802670 :         uint32_t h = RollingBloomHash(n, nTweak, vKey);</span>
-<span class="lineNum">     286 </span>                :<span class="lineCov">     401335 :         int bit = h &amp; 0x3F;</span>
-<span class="lineNum">     287 </span>                :<span class="lineCov">    1204005 :         uint32_t pos = FastMod(h, data.size());</span>
+<span class="lineNum">     284 </span>        [<span class="branchCov" title="Branch 0 was taken 364522 times"> + </span><span class="branchCov" title="Branch 1 was taken 15167 times"> + </span>]:<span class="lineCov">     379689 :     for (int n = 0; n &lt; nHashFuncs; n++) {</span>
+<span class="lineNum">     285 </span>                :<span class="lineCov">     729044 :         uint32_t h = RollingBloomHash(n, nTweak, vKey);</span>
+<span class="lineNum">     286 </span>                :<span class="lineCov">     364522 :         int bit = h &amp; 0x3F;</span>
+<span class="lineNum">     287 </span>                :<span class="lineCov">    1093566 :         uint32_t pos = FastMod(h, data.size());</span>
 <span class="lineNum">     288 </span>                :            :         /* If the relevant bit is not set in either data[pos &amp; ~1] or data[pos | 1], the filter does not contain vKey */
-<span class="lineNum">     289 </span>        [<span class="branchCov" title="Branch 0 was taken 314658 times"> + </span><span class="branchCov" title="Branch 1 was taken 86677 times"> + </span>]:<span class="lineCov">     401335 :         if (!(((data[pos &amp; ~1] | data[pos | 1]) &gt;&gt; bit) &amp; 1)) {</span>
+<span class="lineNum">     289 </span>        [<span class="branchCov" title="Branch 0 was taken 285200 times"> + </span><span class="branchCov" title="Branch 1 was taken 79322 times"> + </span>]:<span class="lineCov">     364522 :         if (!(((data[pos &amp; ~1] | data[pos | 1]) &gt;&gt; bit) &amp; 1)) {</span>
 <span class="lineNum">     290 </span>                :            :             return false;
 <span class="lineNum">     291 </span>                :            :         }
 <span class="lineNum">     292 </span>                :            :     }
 <span class="lineNum">     293 </span>                :            :     return true;
 <span class="lineNum">     294 </span>                :            : }
 <span class="lineNum">     295 </span>                :            : 
-<span class="lineNum">     296 </span>                :<span class="lineCov">      90701 : bool CRollingBloomFilter::contains(const uint256&amp; hash) const</span>
+<span class="lineNum">     296 </span>                :<span class="lineCov">      81876 : bool CRollingBloomFilter::contains(const uint256&amp; hash) const</span>
 <span class="lineNum">     297 </span>                :            : {
-<span class="lineNum">     298 </span>                :<span class="lineCov">      90701 :     std::vector&lt;unsigned char&gt; vData(hash.begin(), hash.end());</span>
-<span class="lineNum">     299 </span>        [<span class="branchCov" title="Branch 1 was taken 90701 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     181402 :     return contains(vData);</span>
+<span class="lineNum">     298 </span>                :<span class="lineCov">      81876 :     std::vector&lt;unsigned char&gt; vData(hash.begin(), hash.end());</span>
+<span class="lineNum">     299 </span>        [<span class="branchCov" title="Branch 1 was taken 81876 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     163752 :     return contains(vData);</span>
 <span class="lineNum">     300 </span>                :            : }
 <span class="lineNum">     301 </span>                :            : 
-<span class="lineNum">     302 </span>                :<span class="lineCov">       3080 : void CRollingBloomFilter::reset()</span>
+<span class="lineNum">     302 </span>                :<span class="lineCov">       3064 : void CRollingBloomFilter::reset()</span>
 <span class="lineNum">     303 </span>                :            : {
-<span class="lineNum">     304 </span>                :<span class="lineCov">       3080 :     nTweak = GetRand(std::numeric_limits&lt;unsigned int&gt;::max());</span>
-<span class="lineNum">     305 </span>                :<span class="lineCov">       3080 :     nEntriesThisGeneration = 0;</span>
-<span class="lineNum">     306 </span>                :<span class="lineCov">       3080 :     nGeneration = 1;</span>
-<span class="lineNum">     307 </span>        [<span class="branchCov" title="Branch 0 was taken 236001164 times"> + </span><span class="branchCov" title="Branch 1 was taken 3080 times"> + </span>]:<span class="lineCov">  236004244 :     for (std::vector&lt;uint64_t&gt;::iterator it = data.begin(); it != data.end(); it++) {</span>
-<span class="lineNum">     308 </span>                :<span class="lineCov">  236001164 :         *it = 0;</span>
+<span class="lineNum">     304 </span>                :<span class="lineCov">       3064 :     nTweak = GetRand(std::numeric_limits&lt;unsigned int&gt;::max());</span>
+<span class="lineNum">     305 </span>                :<span class="lineCov">       3064 :     nEntriesThisGeneration = 0;</span>
+<span class="lineNum">     306 </span>                :<span class="lineCov">       3064 :     nGeneration = 1;</span>
+<span class="lineNum">     307 </span>        [<span class="branchCov" title="Branch 0 was taken 232024812 times"> + </span><span class="branchCov" title="Branch 1 was taken 3064 times"> + </span>]:<span class="lineCov">  232027876 :     for (std::vector&lt;uint64_t&gt;::iterator it = data.begin(); it != data.end(); it++) {</span>
+<span class="lineNum">     308 </span>                :<span class="lineCov">  232024812 :         *it = 0;</span>
 <span class="lineNum">     309 </span>                :            :     }
-<span class="lineNum">     310 </span>                :<span class="lineCov">       3080 : }</span>
+<span class="lineNum">     310 </span>                :<span class="lineCov">       3064 : }</span>
 </pre>
       </td>
     </tr>
