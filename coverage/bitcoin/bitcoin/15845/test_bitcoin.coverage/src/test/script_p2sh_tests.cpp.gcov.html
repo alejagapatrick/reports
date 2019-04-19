@@ -1,0 +1,581 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/test/script_p2sh_tests.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/test</a> - script_p2sh_tests.cpp<span style="font-size: 80%;"> (source / <a href="script_p2sh_tests.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">230</td>
+            <td class="headerCovTableEntry">238</td>
+            <td class="headerCovTableEntryHi">96.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">465</td>
+            <td class="headerCovTableEntry">886</td>
+            <td class="headerCovTableEntryLo">52.5 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2012-2019 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #include &lt;consensus/tx_verify.h&gt;
+<span class="lineNum">       6 </span>                :            : #include &lt;core_io.h&gt;
+<span class="lineNum">       7 </span>                :            : #include &lt;key.h&gt;
+<span class="lineNum">       8 </span>                :            : #include &lt;keystore.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;validation.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;policy/policy.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;script/script.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;script/script_error.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;policy/settings.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;script/sign.h&gt;
+<span class="lineNum">      15 </span>                :            : #include &lt;script/ismine.h&gt;
+<span class="lineNum">      16 </span>                :            : #include &lt;test/setup_common.h&gt;
+<span class="lineNum">      17 </span>                :            : 
+<span class="lineNum">      18 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">      19 </span>                :            : 
+<span class="lineNum">      20 </span>                :            : #include &lt;boost/test/unit_test.hpp&gt;
+<span class="lineNum">      21 </span>                :            : 
+<a name="22"><span class="lineNum">      22 </span>                :            : // Helpers:</a>
+<span class="lineNum">      23 </span>                :            : static std::vector&lt;unsigned char&gt;
+<span class="lineNum">      24 </span>                :<span class="lineCov">          4 : Serialize(const CScript&amp; s)</span>
+<span class="lineNum">      25 </span>                :            : {
+<span class="lineNum">      26 </span>                :<span class="lineCov">          4 :     std::vector&lt;unsigned char&gt; sSerialized(s.begin(), s.end());</span>
+<span class="lineNum">      27 </span>                :<span class="lineCov">          4 :     return sSerialized;</span>
+<span class="lineNum">      28 </span>                :            : }
+<a name="29"><span class="lineNum">      29 </span>                :            : </a>
+<span class="lineNum">      30 </span>                :            : static bool
+<span class="lineNum">      31 </span>                :<span class="lineCov">          4 : Verify(const CScript&amp; scriptSig, const CScript&amp; scriptPubKey, bool fStrict, ScriptError&amp; err)</span>
+<span class="lineNum">      32 </span>                :            : {
+<span class="lineNum">      33 </span>                :            :     // Create dummy to/from transactions:
+<span class="lineNum">      34 </span>                :<span class="lineCov">          4 :     CMutableTransaction txFrom;</span>
+<span class="lineNum">      35 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :     txFrom.vout.resize(1);</span>
+<span class="lineNum">      36 </span>                :<span class="lineCov">          8 :     txFrom.vout[0].scriptPubKey = scriptPubKey;</span>
+<span class="lineNum">      37 </span>                :            : 
+<span class="lineNum">      38 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :     CMutableTransaction txTo;</span>
+<span class="lineNum">      39 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :     txTo.vin.resize(1);</span>
+<span class="lineNum">      40 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :     txTo.vout.resize(1);</span>
+<span class="lineNum">      41 </span>                :<span class="lineCov">          4 :     txTo.vin[0].prevout.n = 0;</span>
+<span class="lineNum">      42 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :     txTo.vin[0].prevout.hash = txFrom.GetHash();</span>
+<span class="lineNum">      43 </span>                :<span class="lineCov">          8 :     txTo.vin[0].scriptSig = scriptSig;</span>
+<span class="lineNum">      44 </span>                :<span class="lineCov">          4 :     txTo.vout[0].nValue = 1;</span>
+<span class="lineNum">      45 </span>                :            : 
+<span class="lineNum">      46 </span>[<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>][<span class="branchCov" title="Branch 3 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">          8 :     return VerifyScript(scriptSig, scriptPubKey, nullptr, fStrict ? SCRIPT_VERIFY_P2SH : SCRIPT_VERIFY_NONE, MutableTransactionSignatureChecker(&amp;txTo, 0, txFrom.vout[0].nValue), &amp;err);</span>
+<span class="lineNum">      47 </span>                :            : }
+<span class="lineNum">      48 </span>                :            : 
+<span class="lineNum">      49 </span>                :            : 
+<a name="50"><span class="lineNum">      50 </span>                :<span class="lineCov">        150 : BOOST_FIXTURE_TEST_SUITE(script_p2sh_tests, BasicTestingSetup)</span></a>
+<span class="lineNum">      51 </span>                :            : 
+<span class="lineNum">      52 </span>[<span class="branchCov" title="Branch 2 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        156 : BOOST_AUTO_TEST_CASE(sign)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 17 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 27 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 28 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchCov" title="Branch 41 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 42 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 44 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 45 was not taken"> - </span>]
+<span class="lineNum">      53 </span>                :            : {
+<span class="lineNum">      54 </span>                :<span class="lineCov">          1 :     LOCK(cs_main);</span>
+<span class="lineNum">      55 </span>                :            :     // Pay-to-script-hash looks like this:
+<span class="lineNum">      56 </span>                :            :     // scriptSig:    &lt;sig&gt; &lt;sig...&gt; &lt;serialized_script&gt;
+<span class="lineNum">      57 </span>                :            :     // scriptPubKey: HASH160 &lt;hash&gt; EQUAL
+<span class="lineNum">      58 </span>                :            : 
+<span class="lineNum">      59 </span>                :            :     // Test SignSignature() (and therefore the version of Solver() that signs transactions)
+<span class="lineNum">      60 </span>                :<span class="lineCov">          2 :     CBasicKeyStore keystore;</span>
+<span class="lineNum">      61 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 3 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         10 :     CKey key[4];</span>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 5 was taken 4 times"> + </span><span class="branchCov" title="Branch 6 was taken 1 time"> + </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span> 
+<span class="lineNum">         </span>         <span class="branchNoExec" title="Branch 9 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span>]
+<span class="lineNum">      62 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          5 :     for (int i = 0; i &lt; 4; i++)</span>
+<span class="lineNum">      63 </span>                :            :     {
+<span class="lineNum">      64 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :         key[i].MakeNewKey(true);</span>
+<span class="lineNum">      65 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          4 :         BOOST_CHECK(keystore.AddKey(key[i]));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">      66 </span>                :            :     }
+<span class="lineNum">      67 </span>                :            : 
+<span class="lineNum">      68 </span>                :            :     // 8 Scripts: checking all combinations of
+<span class="lineNum">      69 </span>                :            :     // different keys, straight/P2SH, pubkey/pubkeyhash
+<span class="lineNum">      70 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">         10 :     CScript standardScripts[4];</span>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 2 was taken 4 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">      71 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     standardScripts[0] &lt;&lt; ToByteVector(key[0].GetPubKey()) &lt;&lt; OP_CHECKSIG;</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">      72 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     standardScripts[1] = GetScriptForDestination(key[1].GetPubKey().GetID());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">      73 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     standardScripts[2] &lt;&lt; ToByteVector(key[1].GetPubKey()) &lt;&lt; OP_CHECKSIG;</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">      74 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          2 :     standardScripts[3] = GetScriptForDestination(key[2].GetPubKey().GetID());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">      75 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">         10 :     CScript evalScripts[4];</span>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 2 was taken 4 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">      76 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          5 :     for (int i = 0; i &lt; 4; i++)</span>
+<span class="lineNum">      77 </span>                :            :     {
+<span class="lineNum">      78 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          4 :         BOOST_CHECK(keystore.AddCScript(standardScripts[i]));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">      79 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          4 :         evalScripts[i] = GetScriptForDestination(CScriptID(standardScripts[i]));</span>
+<span class="lineNum">      80 </span>                :            :     }
+<span class="lineNum">      81 </span>                :            : 
+<span class="lineNum">      82 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :     CMutableTransaction txFrom;  // Funding transaction:</span>
+<span class="lineNum">      83 </span>                :<span class="lineNoCov">          0 :     std::string reason;</span>
+<span class="lineNum">      84 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     txFrom.vout.resize(8);</span>
+<span class="lineNum">      85 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          5 :     for (int i = 0; i &lt; 4; i++)</span>
+<span class="lineNum">      86 </span>                :            :     {
+<span class="lineNum">      87 </span>                :<span class="lineCov">         12 :         txFrom.vout[i].scriptPubKey = evalScripts[i];</span>
+<span class="lineNum">      88 </span>                :<span class="lineCov">          8 :         txFrom.vout[i].nValue = COIN;</span>
+<span class="lineNum">      89 </span>                :<span class="lineCov">         12 :         txFrom.vout[i+4].scriptPubKey = standardScripts[i];</span>
+<span class="lineNum">      90 </span>                :<span class="lineCov">          8 :         txFrom.vout[i+4].nValue = COIN;</span>
+<span class="lineNum">      91 </span>                :            :     }
+<span class="lineNum">      92 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          3 :     BOOST_CHECK(IsStandardTx(CTransaction(txFrom), reason));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">      93 </span>                :            : 
+<span class="lineNum">      94 </span>[<span class="branchCov" title="Branch 0 was taken 8 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 3 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         18 :     CMutableTransaction txTo[8]; // Spending transactions</span>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 5 was taken 8 times"> + </span><span class="branchCov" title="Branch 6 was taken 1 time"> + </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span> 
+<span class="lineNum">         </span>         <span class="branchNoExec" title="Branch 9 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span>]
+<span class="lineNum">      95 </span>        [<span class="branchCov" title="Branch 0 was taken 8 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          9 :     for (int i = 0; i &lt; 8; i++)</span>
+<span class="lineNum">      96 </span>                :            :     {
+<span class="lineNum">      97 </span>        [<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          8 :         txTo[i].vin.resize(1);</span>
+<span class="lineNum">      98 </span>        [<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          8 :         txTo[i].vout.resize(1);</span>
+<span class="lineNum">      99 </span>                :<span class="lineCov">         16 :         txTo[i].vin[0].prevout.n = i;</span>
+<span class="lineNum">     100 </span>        [<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          8 :         txTo[i].vin[0].prevout.hash = txFrom.GetHash();</span>
+<span class="lineNum">     101 </span>                :<span class="lineCov">         16 :         txTo[i].vout[0].nValue = 1;</span>
+<span class="lineNum">     102 </span>[<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          8 :         BOOST_CHECK_MESSAGE(IsMine(keystore, txFrom.vout[i].scriptPubKey), strprintf(&quot;IsMine %d&quot;, i));</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">     103 </span>                :            :     }
+<span class="lineNum">     104 </span>        [<span class="branchCov" title="Branch 0 was taken 8 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          9 :     for (int i = 0; i &lt; 8; i++)</span>
+<span class="lineNum">     105 </span>                :            :     {
+<span class="lineNum">     106 </span>[<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          8 :         BOOST_CHECK_MESSAGE(SignSignature(keystore, CTransaction(txFrom), txTo[i], 0, SIGHASH_ALL), strprintf(&quot;SignSignature %d&quot;, i));</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 14 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>]
+<span class="lineNum">     107 </span>                :            :     }
+<span class="lineNum">     108 </span>                :            :     // All of the above should be OK, and the txTos have valid signatures
+<span class="lineNum">     109 </span>                :            :     // Check to make sure signature verification fails if we use the wrong ScriptSig:
+<span class="lineNum">     110 </span>        [<span class="branchCov" title="Branch 0 was taken 8 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          9 :     for (int i = 0; i &lt; 8; i++) {</span>
+<span class="lineNum">     111 </span>        [<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          8 :         PrecomputedTransactionData txdata(txTo[i]);</span>
+<span class="lineNum">     112 </span>        [<span class="branchCov" title="Branch 0 was taken 64 times"> + </span><span class="branchCov" title="Branch 1 was taken 8 times"> + </span>]:<span class="lineCov">         72 :         for (int j = 0; j &lt; 8; j++)</span>
+<span class="lineNum">     113 </span>                :            :         {
+<span class="lineNum">     114 </span>                :<span class="lineNoCov">          0 :             CScript sigSave = txTo[i].vin[0].scriptSig;</span>
+<span class="lineNum">     115 </span>                :<span class="lineCov">        256 :             txTo[i].vin[0].scriptSig = txTo[j].vin[0].scriptSig;</span>
+<span class="lineNum">     116 </span>  [<span class="branchCov" title="Branch 1 was taken 64 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 64 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        128 :             bool sigOK = CScriptCheck(txFrom.vout[txTo[i].vin[0].prevout.n], CTransaction(txTo[i]), 0, SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC, false, &amp;txdata)();</span>
+<span class="lineNum">     117 </span>        [<span class="branchCov" title="Branch 0 was taken 8 times"> + </span><span class="branchCov" title="Branch 1 was taken 56 times"> + </span>]:<span class="lineCov">         64 :             if (i == j)</span>
+<span class="lineNum">     118 </span>[<span class="branchCov" title="Branch 1 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">         16 :                 BOOST_CHECK_MESSAGE(sigOK, strprintf(&quot;VerifySignature %d %d&quot;, i, j));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 8 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     119 </span>                :            :             else
+<span class="lineNum">     120 </span>[<span class="branchCov" title="Branch 1 was taken 56 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 56 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        112 :                 BOOST_CHECK_MESSAGE(!sigOK, strprintf(&quot;VerifySignature %d %d&quot;, i, j));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 56 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     121 </span>                :<span class="lineCov">        192 :             txTo[i].vin[0].scriptSig = sigSave;</span>
+<span class="lineNum">     122 </span>                :            :         }
+<span class="lineNum">     123 </span>                :            :     }
+<a name="124"><span class="lineNum">     124 </span>                :<span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     125 </span>                :            : 
+<span class="lineNum">     126 </span>[<span class="branchCov" title="Branch 2 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        156 : BOOST_AUTO_TEST_CASE(norecurse)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 17 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 27 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 28 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchCov" title="Branch 41 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 42 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 44 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 45 was not taken"> - </span>]
+<span class="lineNum">     127 </span>                :            : {
+<span class="lineNum">     128 </span>                :            :     ScriptError err;
+<span class="lineNum">     129 </span>                :            :     // Make sure only the outer pay-to-script-hash does the
+<span class="lineNum">     130 </span>                :            :     // extra-validation thing:
+<span class="lineNum">     131 </span>                :<span class="lineCov">          2 :     CScript invalidAsScript;</span>
+<span class="lineNum">     132 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     invalidAsScript &lt;&lt; OP_INVALIDOPCODE &lt;&lt; OP_INVALIDOPCODE;</span>
+<span class="lineNum">     133 </span>                :            : 
+<span class="lineNum">     134 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     CScript p2sh = GetScriptForDestination(CScriptID(invalidAsScript));</span>
+<span class="lineNum">     135 </span>                :            : 
+<span class="lineNum">     136 </span>                :<span class="lineNoCov">          0 :     CScript scriptSig;</span>
+<span class="lineNum">     137 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     scriptSig &lt;&lt; Serialize(invalidAsScript);</span>
+<span class="lineNum">     138 </span>                :            : 
+<span class="lineNum">     139 </span>                :            :     // Should not verify, because it will try to execute OP_INVALIDOPCODE
+<span class="lineNum">     140 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(!Verify(scriptSig, p2sh, true, err));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     141 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_BAD_OPCODE, ScriptErrorString(err));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     142 </span>                :            : 
+<span class="lineNum">     143 </span>                :            :     // Try to recur, and verification should succeed because
+<span class="lineNum">     144 </span>                :            :     // the inner HASH160 &lt;&gt; EQUAL should only check the hash:
+<span class="lineNum">     145 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     CScript p2sh2 = GetScriptForDestination(CScriptID(p2sh));</span>
+<span class="lineNum">     146 </span>                :<span class="lineNoCov">          0 :     CScript scriptSig2;</span>
+<span class="lineNum">     147 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     scriptSig2 &lt;&lt; Serialize(invalidAsScript) &lt;&lt; Serialize(p2sh);</span>
+<span class="lineNum">     148 </span>                :            : 
+<span class="lineNum">     149 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(Verify(scriptSig2, p2sh2, true, err));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     150 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK, ScriptErrorString(err));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<a name="151"><span class="lineNum">     151 </span>                :<span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     152 </span>                :            : 
+<span class="lineNum">     153 </span>[<span class="branchCov" title="Branch 2 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        156 : BOOST_AUTO_TEST_CASE(set)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 17 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 27 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 28 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchCov" title="Branch 41 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 42 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 44 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 45 was not taken"> - </span>]
+<span class="lineNum">     154 </span>                :            : {
+<span class="lineNum">     155 </span>                :<span class="lineCov">          1 :     LOCK(cs_main);</span>
+<span class="lineNum">     156 </span>                :            :     // Test the CScript::Set* methods
+<span class="lineNum">     157 </span>                :<span class="lineCov">          2 :     CBasicKeyStore keystore;</span>
+<span class="lineNum">     158 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 3 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         10 :     CKey key[4];</span>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 5 was taken 4 times"> + </span><span class="branchCov" title="Branch 6 was taken 1 time"> + </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span> 
+<span class="lineNum">         </span>         <span class="branchNoExec" title="Branch 9 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span>]
+<span class="lineNum">     159 </span>                :<span class="lineCov">          1 :     std::vector&lt;CPubKey&gt; keys;</span>
+<span class="lineNum">     160 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          5 :     for (int i = 0; i &lt; 4; i++)</span>
+<span class="lineNum">     161 </span>                :            :     {
+<span class="lineNum">     162 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :         key[i].MakeNewKey(true);</span>
+<span class="lineNum">     163 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          4 :         BOOST_CHECK(keystore.AddKey(key[i]));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     164 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :         keys.push_back(key[i].GetPubKey());</span>
+<span class="lineNum">     165 </span>                :            :     }
+<span class="lineNum">     166 </span>                :            : 
+<span class="lineNum">     167 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">         10 :     CScript inner[4];</span>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 2 was taken 4 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">     168 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     inner[0] = GetScriptForDestination(key[0].GetPubKey().GetID());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     169 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     inner[1] = GetScriptForMultisig(2, std::vector&lt;CPubKey&gt;(keys.begin(), keys.begin()+2));</span>
+<span class="lineNum">     170 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     inner[2] = GetScriptForMultisig(1, std::vector&lt;CPubKey&gt;(keys.begin(), keys.begin()+2));</span>
+<span class="lineNum">     171 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          2 :     inner[3] = GetScriptForMultisig(2, std::vector&lt;CPubKey&gt;(keys.begin(), keys.begin()+3));</span>
+<span class="lineNum">     172 </span>                :            : 
+<span class="lineNum">     173 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">         10 :     CScript outer[4];</span>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 2 was taken 4 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">     174 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          5 :     for (int i = 0; i &lt; 4; i++)</span>
+<span class="lineNum">     175 </span>                :            :     {
+<span class="lineNum">     176 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          4 :         outer[i] = GetScriptForDestination(CScriptID(inner[i]));</span>
+<span class="lineNum">     177 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          4 :         BOOST_CHECK(keystore.AddCScript(inner[i]));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     178 </span>                :            :     }
+<span class="lineNum">     179 </span>                :            : 
+<span class="lineNum">     180 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          2 :     CMutableTransaction txFrom;  // Funding transaction:</span>
+<span class="lineNum">     181 </span>                :<span class="lineNoCov">          0 :     std::string reason;</span>
+<span class="lineNum">     182 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     txFrom.vout.resize(4);</span>
+<span class="lineNum">     183 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          5 :     for (int i = 0; i &lt; 4; i++)</span>
+<span class="lineNum">     184 </span>                :            :     {
+<span class="lineNum">     185 </span>                :<span class="lineCov">         12 :         txFrom.vout[i].scriptPubKey = outer[i];</span>
+<span class="lineNum">     186 </span>                :<span class="lineCov">          8 :         txFrom.vout[i].nValue = CENT;</span>
+<span class="lineNum">     187 </span>                :            :     }
+<span class="lineNum">     188 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          3 :     BOOST_CHECK(IsStandardTx(CTransaction(txFrom), reason));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     189 </span>                :            : 
+<span class="lineNum">     190 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 3 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         10 :     CMutableTransaction txTo[4]; // Spending transactions</span>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 5 was taken 4 times"> + </span><span class="branchCov" title="Branch 6 was taken 1 time"> + </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span> 
+<span class="lineNum">         </span>         <span class="branchNoExec" title="Branch 9 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span>]
+<span class="lineNum">     191 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          5 :     for (int i = 0; i &lt; 4; i++)</span>
+<span class="lineNum">     192 </span>                :            :     {
+<span class="lineNum">     193 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :         txTo[i].vin.resize(1);</span>
+<span class="lineNum">     194 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :         txTo[i].vout.resize(1);</span>
+<span class="lineNum">     195 </span>                :<span class="lineCov">          8 :         txTo[i].vin[0].prevout.n = i;</span>
+<span class="lineNum">     196 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :         txTo[i].vin[0].prevout.hash = txFrom.GetHash();</span>
+<span class="lineNum">     197 </span>                :<span class="lineCov">          8 :         txTo[i].vout[0].nValue = 1*CENT;</span>
+<span class="lineNum">     198 </span>                :<span class="lineCov">          8 :         txTo[i].vout[0].scriptPubKey = inner[i];</span>
+<span class="lineNum">     199 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          4 :         BOOST_CHECK_MESSAGE(IsMine(keystore, txFrom.vout[i].scriptPubKey), strprintf(&quot;IsMine %d&quot;, i));</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">     200 </span>                :            :     }
+<span class="lineNum">     201 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          5 :     for (int i = 0; i &lt; 4; i++)</span>
+<span class="lineNum">     202 </span>                :            :     {
+<span class="lineNum">     203 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          4 :         BOOST_CHECK_MESSAGE(SignSignature(keystore, CTransaction(txFrom), txTo[i], 0, SIGHASH_ALL), strprintf(&quot;SignSignature %d&quot;, i));</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 14 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>]
+<span class="lineNum">     204 </span>[<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          8 :         BOOST_CHECK_MESSAGE(IsStandardTx(CTransaction(txTo[i]), reason), strprintf(&quot;txTo[%d].IsStandard&quot;, i));</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">     205 </span>                :            :     }
+<a name="206"><span class="lineNum">     206 </span>                :<span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     207 </span>                :            : 
+<span class="lineNum">     208 </span>[<span class="branchCov" title="Branch 2 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        156 : BOOST_AUTO_TEST_CASE(is)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 17 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 27 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 28 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchCov" title="Branch 41 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 42 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 44 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 45 was not taken"> - </span>]
+<span class="lineNum">     209 </span>                :            : {
+<span class="lineNum">     210 </span>                :            :     // Test CScript::IsPayToScriptHash()
+<span class="lineNum">     211 </span>                :<span class="lineCov">          1 :     uint160 dummy;</span>
+<span class="lineNum">     212 </span>                :<span class="lineCov">          2 :     CScript p2sh;</span>
+<span class="lineNum">     213 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     p2sh &lt;&lt; OP_HASH160 &lt;&lt; ToByteVector(dummy) &lt;&lt; OP_EQUAL;</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     214 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(p2sh.IsPayToScriptHash());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     215 </span>                :            : 
+<span class="lineNum">     216 </span>                :            :     // Not considered pay-to-script-hash if using one of the OP_PUSHDATA opcodes:
+<span class="lineNum">     217 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     std::vector&lt;unsigned char&gt; direct = {OP_HASH160, 20};</span>
+<span class="lineNum">     218 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     direct.insert(direct.end(), 20, 0);</span>
+<span class="lineNum">     219 </span>                :<span class="lineCov">          2 :     direct.push_back(OP_EQUAL);</span>
+<span class="lineNum">     220 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          2 :     BOOST_CHECK(CScript(direct.begin(), direct.end()).IsPayToScriptHash());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     221 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     std::vector&lt;unsigned char&gt; pushdata1 = {OP_HASH160, OP_PUSHDATA1, 20};</span>
+<span class="lineNum">     222 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     pushdata1.insert(pushdata1.end(), 20, 0);</span>
+<span class="lineNum">     223 </span>                :<span class="lineCov">          2 :     pushdata1.push_back(OP_EQUAL);</span>
+<span class="lineNum">     224 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          2 :     BOOST_CHECK(!CScript(pushdata1.begin(), pushdata1.end()).IsPayToScriptHash());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     225 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     std::vector&lt;unsigned char&gt; pushdata2 = {OP_HASH160, 20, 0};</span>
+<span class="lineNum">     226 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     pushdata2.insert(pushdata2.end(), 20, 0);</span>
+<span class="lineNum">     227 </span>                :<span class="lineCov">          2 :     pushdata2.push_back(OP_EQUAL);</span>
+<span class="lineNum">     228 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          2 :     BOOST_CHECK(!CScript(pushdata2.begin(), pushdata2.end()).IsPayToScriptHash());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     229 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     std::vector&lt;unsigned char&gt; pushdata4 = {OP_HASH160, 20, 0, 0, 0};</span>
+<span class="lineNum">     230 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     pushdata4.insert(pushdata4.end(), 20, 0);</span>
+<span class="lineNum">     231 </span>                :<span class="lineCov">          2 :     pushdata4.push_back(OP_EQUAL);</span>
+<span class="lineNum">     232 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          2 :     BOOST_CHECK(!CScript(pushdata4.begin(), pushdata4.end()).IsPayToScriptHash());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     233 </span>                :            : 
+<span class="lineNum">     234 </span>                :<span class="lineNoCov">          0 :     CScript not_p2sh;</span>
+<span class="lineNum">     235 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(!not_p2sh.IsPayToScriptHash());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     236 </span>                :            : 
+<span class="lineNum">     237 </span>[<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     not_p2sh.clear(); not_p2sh &lt;&lt; OP_HASH160 &lt;&lt; ToByteVector(dummy) &lt;&lt; ToByteVector(dummy) &lt;&lt; OP_EQUAL;</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 13 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>]
+<span class="lineNum">     238 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(!not_p2sh.IsPayToScriptHash());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     239 </span>                :            : 
+<span class="lineNum">     240 </span>[<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     not_p2sh.clear(); not_p2sh &lt;&lt; OP_NOP &lt;&lt; ToByteVector(dummy) &lt;&lt; OP_EQUAL;</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>]
+<span class="lineNum">     241 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(!not_p2sh.IsPayToScriptHash());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     242 </span>                :            : 
+<span class="lineNum">     243 </span>[<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     not_p2sh.clear(); not_p2sh &lt;&lt; OP_HASH160 &lt;&lt; ToByteVector(dummy) &lt;&lt; OP_CHECKSIG;</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>]
+<span class="lineNum">     244 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(!not_p2sh.IsPayToScriptHash());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<a name="245"><span class="lineNum">     245 </span>                :<span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     246 </span>                :            : 
+<span class="lineNum">     247 </span>[<span class="branchCov" title="Branch 2 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        156 : BOOST_AUTO_TEST_CASE(switchover)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 17 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 18 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>][<span class="branchCov" title="Branch 27 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 28 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 31 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 32 was not taken"> - </span>][<span class="branchCov" title="Branch 34 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchCov" title="Branch 41 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 42 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 44 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 45 was not taken"> - </span>]
+<span class="lineNum">     248 </span>                :            : {
+<span class="lineNum">     249 </span>                :            :     // Test switch over code
+<span class="lineNum">     250 </span>                :<span class="lineCov">          2 :     CScript notValid;</span>
+<span class="lineNum">     251 </span>                :            :     ScriptError err;
+<span class="lineNum">     252 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     notValid &lt;&lt; OP_11 &lt;&lt; OP_12 &lt;&lt; OP_EQUALVERIFY;</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     253 </span>                :<span class="lineNoCov">          0 :     CScript scriptSig;</span>
+<span class="lineNum">     254 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     scriptSig &lt;&lt; Serialize(notValid);</span>
+<span class="lineNum">     255 </span>                :            : 
+<span class="lineNum">     256 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     CScript fund = GetScriptForDestination(CScriptID(notValid));</span>
+<span class="lineNum">     257 </span>                :            : 
+<span class="lineNum">     258 </span>                :            : 
+<span class="lineNum">     259 </span>                :            :     // Validation should succeed under old rules (hash is correct):
+<span class="lineNum">     260 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(Verify(scriptSig, fund, false, err));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     261 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK, ScriptErrorString(err));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     262 </span>                :            :     // Fail under new:
+<span class="lineNum">     263 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(!Verify(scriptSig, fund, true, err));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     264 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_EQUALVERIFY, ScriptErrorString(err));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<a name="265"><span class="lineNum">     265 </span>                :<span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     266 </span>                :            : 
+<span class="lineNum">     267 </span>[<span class="branchCov" title="Branch 2 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">        156 : BOOST_AUTO_TEST_CASE(AreInputsStandard)</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>][<span class="branchCov" title="Branch 19 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 20 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 23 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 24 was not taken"> - </span>][<span class="branchCov" title="Branch 26 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 27 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 30 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 31 was not taken"> - </span>][<span class="branchCov" title="Branch 33 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 34 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 36 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 37 was not taken"> - </span>][<span class="branchCov" title="Branch 40 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 43 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 44 was not taken"> - </span>]
+<span class="lineNum">     268 </span>                :            : {
+<span class="lineNum">     269 </span>                :<span class="lineCov">          1 :     LOCK(cs_main);</span>
+<span class="lineNum">     270 </span>                :<span class="lineCov">          2 :     CCoinsView coinsDummy;</span>
+<span class="lineNum">     271 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     CCoinsViewCache coins(&amp;coinsDummy);</span>
+<span class="lineNum">     272 </span>                :<span class="lineCov">          2 :     CBasicKeyStore keystore;</span>
+<span class="lineNum">     273 </span>[<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 3 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">         14 :     CKey key[6];</span>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 5 was taken 6 times"> + </span><span class="branchCov" title="Branch 6 was taken 1 time"> + </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span> 
+<span class="lineNum">         </span>         <span class="branchNoExec" title="Branch 9 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span>]
+<span class="lineNum">     274 </span>                :<span class="lineCov">          1 :     std::vector&lt;CPubKey&gt; keys;</span>
+<span class="lineNum">     275 </span>        [<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          7 :     for (int i = 0; i &lt; 6; i++)</span>
+<span class="lineNum">     276 </span>                :            :     {
+<span class="lineNum">     277 </span>        [<span class="branchCov" title="Branch 1 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          6 :         key[i].MakeNewKey(true);</span>
+<span class="lineNum">     278 </span>[<span class="branchCov" title="Branch 1 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          6 :         BOOST_CHECK(keystore.AddKey(key[i]));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     279 </span>                :            :     }
+<span class="lineNum">     280 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          4 :     for (int i = 0; i &lt; 3; i++)</span>
+<span class="lineNum">     281 </span>        [<span class="branchCov" title="Branch 1 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          3 :         keys.push_back(key[i].GetPubKey());</span>
+<span class="lineNum">     282 </span>                :            : 
+<span class="lineNum">     283 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     CMutableTransaction txFrom;</span>
+<span class="lineNum">     284 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     txFrom.vout.resize(7);</span>
+<span class="lineNum">     285 </span>                :            : 
+<span class="lineNum">     286 </span>                :            :     // First three are standard:
+<span class="lineNum">     287 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     CScript pay1 = GetScriptForDestination(key[0].GetPubKey().GetID());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     288 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(keystore.AddCScript(pay1));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     289 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     CScript pay1of3 = GetScriptForMultisig(1, keys);</span>
+<span class="lineNum">     290 </span>                :            : 
+<span class="lineNum">     291 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     txFrom.vout[0].scriptPubKey = GetScriptForDestination(CScriptID(pay1)); // P2SH (OP_CHECKSIG)</span>
+<span class="lineNum">     292 </span>                :<span class="lineCov">          1 :     txFrom.vout[0].nValue = 1000;</span>
+<span class="lineNum">     293 </span>                :<span class="lineCov">          2 :     txFrom.vout[1].scriptPubKey = pay1; // ordinary OP_CHECKSIG</span>
+<span class="lineNum">     294 </span>                :<span class="lineCov">          1 :     txFrom.vout[1].nValue = 2000;</span>
+<span class="lineNum">     295 </span>                :<span class="lineCov">          2 :     txFrom.vout[2].scriptPubKey = pay1of3; // ordinary OP_CHECKMULTISIG</span>
+<span class="lineNum">     296 </span>                :<span class="lineCov">          1 :     txFrom.vout[2].nValue = 3000;</span>
+<span class="lineNum">     297 </span>                :            : 
+<span class="lineNum">     298 </span>                :            :     // vout[3] is complicated 1-of-3 AND 2-of-3
+<span class="lineNum">     299 </span>                :            :     // ... that is OK if wrapped in P2SH:
+<span class="lineNum">     300 </span>                :<span class="lineNoCov">          0 :     CScript oneAndTwo;</span>
+<span class="lineNum">     301 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     oneAndTwo &lt;&lt; OP_1 &lt;&lt; ToByteVector(key[0].GetPubKey()) &lt;&lt; ToByteVector(key[1].GetPubKey()) &lt;&lt; ToByteVector(key[2].GetPubKey());</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 14 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>][<span class="branchCov" title="Branch 18 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 21 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 22 was not taken"> - </span>]
+<span class="lineNum">     302 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     oneAndTwo &lt;&lt; OP_3 &lt;&lt; OP_CHECKMULTISIGVERIFY;</span>
+<span class="lineNum">     303 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     oneAndTwo &lt;&lt; OP_2 &lt;&lt; ToByteVector(key[3].GetPubKey()) &lt;&lt; ToByteVector(key[4].GetPubKey()) &lt;&lt; ToByteVector(key[5].GetPubKey());</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 14 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>][<span class="branchCov" title="Branch 18 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 21 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 22 was not taken"> - </span>]
+<span class="lineNum">     304 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     oneAndTwo &lt;&lt; OP_3 &lt;&lt; OP_CHECKMULTISIG;</span>
+<span class="lineNum">     305 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(keystore.AddCScript(oneAndTwo));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     306 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     txFrom.vout[3].scriptPubKey = GetScriptForDestination(CScriptID(oneAndTwo));</span>
+<span class="lineNum">     307 </span>                :<span class="lineCov">          1 :     txFrom.vout[3].nValue = 4000;</span>
+<span class="lineNum">     308 </span>                :            : 
+<span class="lineNum">     309 </span>                :            :     // vout[4] is max sigops:
+<span class="lineNum">     310 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     CScript fifteenSigops; fifteenSigops &lt;&lt; OP_1;</span>
+<span class="lineNum">     311 </span>        [<span class="branchCov" title="Branch 0 was taken 15 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">         16 :     for (unsigned i = 0; i &lt; MAX_P2SH_SIGOPS; i++)</span>
+<span class="lineNum">     312 </span>[<span class="branchCov" title="Branch 1 was taken 15 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 15 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">         15 :         fifteenSigops &lt;&lt; ToByteVector(key[i%3].GetPubKey());</span>
+<span class="lineNum">     313 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     fifteenSigops &lt;&lt; OP_15 &lt;&lt; OP_CHECKMULTISIG;</span>
+<span class="lineNum">     314 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(keystore.AddCScript(fifteenSigops));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     315 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     txFrom.vout[4].scriptPubKey = GetScriptForDestination(CScriptID(fifteenSigops));</span>
+<span class="lineNum">     316 </span>                :<span class="lineCov">          1 :     txFrom.vout[4].nValue = 5000;</span>
+<span class="lineNum">     317 </span>                :            : 
+<span class="lineNum">     318 </span>                :            :     // vout[5/6] are non-standard because they exceed MAX_P2SH_SIGOPS
+<span class="lineNum">     319 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     CScript sixteenSigops; sixteenSigops &lt;&lt; OP_16 &lt;&lt; OP_CHECKMULTISIG;</span>
+<span class="lineNum">     320 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(keystore.AddCScript(sixteenSigops));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     321 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     txFrom.vout[5].scriptPubKey = GetScriptForDestination(CScriptID(sixteenSigops));</span>
+<span class="lineNum">     322 </span>                :<span class="lineCov">          1 :     txFrom.vout[5].nValue = 5000;</span>
+<span class="lineNum">     323 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     CScript twentySigops; twentySigops &lt;&lt; OP_CHECKMULTISIG;</span>
+<span class="lineNum">     324 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(keystore.AddCScript(twentySigops));</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     325 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     txFrom.vout[6].scriptPubKey = GetScriptForDestination(CScriptID(twentySigops));</span>
+<span class="lineNum">     326 </span>                :<span class="lineCov">          1 :     txFrom.vout[6].nValue = 6000;</span>
+<span class="lineNum">     327 </span>                :            : 
+<span class="lineNum">     328 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     AddCoins(coins, CTransaction(txFrom), 0);</span>
+<span class="lineNum">     329 </span>                :            : 
+<span class="lineNum">     330 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     CMutableTransaction txTo;</span>
+<span class="lineNum">     331 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     txTo.vout.resize(1);</span>
+<span class="lineNum">     332 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     txTo.vout[0].scriptPubKey = GetScriptForDestination(key[1].GetPubKey().GetID());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     333 </span>                :            : 
+<span class="lineNum">     334 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     txTo.vin.resize(5);</span>
+<span class="lineNum">     335 </span>        [<span class="branchCov" title="Branch 0 was taken 5 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          6 :     for (int i = 0; i &lt; 5; i++)</span>
+<span class="lineNum">     336 </span>                :            :     {
+<span class="lineNum">     337 </span>                :<span class="lineCov">         10 :         txTo.vin[i].prevout.n = i;</span>
+<span class="lineNum">     338 </span>        [<span class="branchCov" title="Branch 1 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          5 :         txTo.vin[i].prevout.hash = txFrom.GetHash();</span>
+<span class="lineNum">     339 </span>                :            :     }
+<span class="lineNum">     340 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(SignSignature(keystore, CTransaction(txFrom), txTo, 0, SIGHASH_ALL));</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">     341 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(SignSignature(keystore, CTransaction(txFrom), txTo, 1, SIGHASH_ALL));</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">     342 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(SignSignature(keystore, CTransaction(txFrom), txTo, 2, SIGHASH_ALL));</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">     343 </span>                :            :     // SignSignature doesn't know how to sign these. We're
+<span class="lineNum">     344 </span>                :            :     // not testing validating signatures, so just create
+<span class="lineNum">     345 </span>                :            :     // dummy signatures that DO include the correct P2SH scripts:
+<span class="lineNum">     346 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          2 :     txTo.vin[3].scriptSig &lt;&lt; OP_11 &lt;&lt; OP_11 &lt;&lt; std::vector&lt;unsigned char&gt;(oneAndTwo.begin(), oneAndTwo.end());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     347 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     txTo.vin[4].scriptSig &lt;&lt; std::vector&lt;unsigned char&gt;(fifteenSigops.begin(), fifteenSigops.end());</span>
+<span class="lineNum">     348 </span>                :            : 
+<span class="lineNum">     349 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(::AreInputsStandard(CTransaction(txTo), coins));</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">     350 </span>                :            :     // 22 P2SH sigops for all inputs (1 for vin[0], 6 for vin[3], 15 for vin[4]
+<span class="lineNum">     351 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK_EQUAL(GetP2SHSigOpCount(CTransaction(txTo), coins), 22U);</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">     352 </span>                :            : 
+<span class="lineNum">     353 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     CMutableTransaction txToNonStd1;</span>
+<span class="lineNum">     354 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     txToNonStd1.vout.resize(1);</span>
+<span class="lineNum">     355 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     txToNonStd1.vout[0].scriptPubKey = GetScriptForDestination(key[1].GetPubKey().GetID());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     356 </span>                :<span class="lineCov">          1 :     txToNonStd1.vout[0].nValue = 1000;</span>
+<span class="lineNum">     357 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     txToNonStd1.vin.resize(1);</span>
+<span class="lineNum">     358 </span>                :<span class="lineCov">          1 :     txToNonStd1.vin[0].prevout.n = 5;</span>
+<span class="lineNum">     359 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     txToNonStd1.vin[0].prevout.hash = txFrom.GetHash();</span>
+<span class="lineNum">     360 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     txToNonStd1.vin[0].scriptSig &lt;&lt; std::vector&lt;unsigned char&gt;(sixteenSigops.begin(), sixteenSigops.end());</span>
+<span class="lineNum">     361 </span>                :            : 
+<span class="lineNum">     362 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(!::AreInputsStandard(CTransaction(txToNonStd1), coins));</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">     363 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK_EQUAL(GetP2SHSigOpCount(CTransaction(txToNonStd1), coins), 16U);</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">     364 </span>                :            : 
+<span class="lineNum">     365 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     CMutableTransaction txToNonStd2;</span>
+<span class="lineNum">     366 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     txToNonStd2.vout.resize(1);</span>
+<span class="lineNum">     367 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     txToNonStd2.vout[0].scriptPubKey = GetScriptForDestination(key[1].GetPubKey().GetID());</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>]
+<span class="lineNum">     368 </span>                :<span class="lineCov">          1 :     txToNonStd2.vout[0].nValue = 1000;</span>
+<span class="lineNum">     369 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     txToNonStd2.vin.resize(1);</span>
+<span class="lineNum">     370 </span>                :<span class="lineCov">          1 :     txToNonStd2.vin[0].prevout.n = 6;</span>
+<span class="lineNum">     371 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     txToNonStd2.vin[0].prevout.hash = txFrom.GetHash();</span>
+<span class="lineNum">     372 </span>        [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          1 :     txToNonStd2.vin[0].scriptSig &lt;&lt; std::vector&lt;unsigned char&gt;(twentySigops.begin(), twentySigops.end());</span>
+<span class="lineNum">     373 </span>                :            : 
+<span class="lineNum">     374 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK(!::AreInputsStandard(CTransaction(txToNonStd2), coins));</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<span class="lineNum">     375 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :     BOOST_CHECK_EQUAL(GetP2SHSigOpCount(CTransaction(txToNonStd2), coins), 20U);</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 11 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>]
+<a name="376"><span class="lineNum">     376 </span>                :<span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     377 </span>                :            : 
+<span class="lineNum">     378 </span>[<span class="branchCov" title="Branch 1 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        300 : BOOST_AUTO_TEST_SUITE_END()</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

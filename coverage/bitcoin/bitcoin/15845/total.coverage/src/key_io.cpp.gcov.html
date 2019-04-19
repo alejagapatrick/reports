@@ -1,0 +1,317 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/key_io.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - key_io.cpp<span style="font-size: 80%;"> (source / <a href="key_io.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">117</td>
+            <td class="headerCovTableEntry">120</td>
+            <td class="headerCovTableEntryHi">97.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">96</td>
+            <td class="headerCovTableEntry">138</td>
+            <td class="headerCovTableEntryLo">69.6 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2014-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #include &lt;key_io.h&gt;
+<span class="lineNum">       6 </span>                :            : 
+<span class="lineNum">       7 </span>                :            : #include &lt;base58.h&gt;
+<span class="lineNum">       8 </span>                :            : #include &lt;bech32.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;script/script.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;util/strencodings.h&gt;
+<span class="lineNum">      11 </span>                :            : 
+<span class="lineNum">      12 </span>                :            : #include &lt;boost/variant/apply_visitor.hpp&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;boost/variant/static_visitor.hpp&gt;
+<span class="lineNum">      14 </span>                :            : 
+<span class="lineNum">      15 </span>                :            : #include &lt;assert.h&gt;
+<span class="lineNum">      16 </span>                :            : #include &lt;string.h&gt;
+<span class="lineNum">      17 </span>                :            : #include &lt;algorithm&gt;
+<span class="lineNum">      18 </span>                :            : 
+<span class="lineNum">      19 </span>                :            : namespace
+<span class="lineNum">      20 </span>                :            : {
+<span class="lineNum">      21 </span>                :            : class DestinationEncoder : public boost::static_visitor&lt;std::string&gt;
+<span class="lineNum">      22 </span>                :            : {
+<span class="lineNum">      23 </span>                :            : private:
+<span class="lineNum">      24 </span>                :            :     const CChainParams&amp; m_params;
+<span class="lineNum">      25 </span>                :            : 
+<span class="lineNum">      26 </span>                :            : public:
+<span class="lineNum">      27 </span>                :<span class="lineCov">      42198 :     explicit DestinationEncoder(const CChainParams&amp; params) : m_params(params) {}</span>
+<span class="lineNum">      28 </span>                :            : 
+<span class="lineNum">      29 </span>                :<span class="lineCov">      22298 :     std::string operator()(const CKeyID&amp; id) const</span>
+<span class="lineNum">      30 </span>                :            :     {
+<span class="lineNum">      31 </span>                :<span class="lineCov">      22298 :         std::vector&lt;unsigned char&gt; data = m_params.Base58Prefix(CChainParams::PUBKEY_ADDRESS);</span>
+<span class="lineNum">      32 </span>        [<span class="branchCov" title="Branch 1 was taken 22298 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      22298 :         data.insert(data.end(), id.begin(), id.end());</span>
+<span class="lineNum">      33 </span>        [<span class="branchCov" title="Branch 1 was taken 22298 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      44596 :         return EncodeBase58Check(data);</span>
+<span class="lineNum">      34 </span>                :            :     }
+<span class="lineNum">      35 </span>                :            : 
+<span class="lineNum">      36 </span>                :<span class="lineCov">      17370 :     std::string operator()(const CScriptID&amp; id) const</span>
+<span class="lineNum">      37 </span>                :            :     {
+<span class="lineNum">      38 </span>                :<span class="lineCov">      17370 :         std::vector&lt;unsigned char&gt; data = m_params.Base58Prefix(CChainParams::SCRIPT_ADDRESS);</span>
+<span class="lineNum">      39 </span>        [<span class="branchCov" title="Branch 1 was taken 17370 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      17370 :         data.insert(data.end(), id.begin(), id.end());</span>
+<span class="lineNum">      40 </span>        [<span class="branchCov" title="Branch 1 was taken 17370 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      34740 :         return EncodeBase58Check(data);</span>
+<span class="lineNum">      41 </span>                :            :     }
+<span class="lineNum">      42 </span>                :            : 
+<span class="lineNum">      43 </span>                :<span class="lineCov">       1795 :     std::string operator()(const WitnessV0KeyHash&amp; id) const</span>
+<span class="lineNum">      44 </span>                :            :     {
+<span class="lineNum">      45 </span>                :<span class="lineCov">       1795 :         std::vector&lt;unsigned char&gt; data = {0};</span>
+<span class="lineNum">      46 </span>        [<span class="branchCov" title="Branch 1 was taken 1795 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1795 :         data.reserve(33);</span>
+<span class="lineNum">      47 </span>        [<span class="branchCov" title="Branch 3 was taken 1795 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">      59235 :         ConvertBits&lt;8, 5, true&gt;([&amp;](unsigned char c) { data.push_back(c); }, id.begin(), id.end());</span>
+<span class="lineNum">      48 </span>        [<span class="branchCov" title="Branch 1 was taken 1795 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       3590 :         return bech32::Encode(m_params.Bech32HRP(), data);</span>
+<span class="lineNum">      49 </span>                :            :     }
+<span class="lineNum">      50 </span>                :            : 
+<span class="lineNum">      51 </span>                :<span class="lineCov">        731 :     std::string operator()(const WitnessV0ScriptHash&amp; id) const</span>
+<span class="lineNum">      52 </span>                :            :     {
+<span class="lineNum">      53 </span>                :<span class="lineCov">        731 :         std::vector&lt;unsigned char&gt; data = {0};</span>
+<span class="lineNum">      54 </span>        [<span class="branchCov" title="Branch 1 was taken 731 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        731 :         data.reserve(53);</span>
+<span class="lineNum">      55 </span>        [<span class="branchCov" title="Branch 3 was taken 731 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">      38743 :         ConvertBits&lt;8, 5, true&gt;([&amp;](unsigned char c) { data.push_back(c); }, id.begin(), id.end());</span>
+<span class="lineNum">      56 </span>        [<span class="branchCov" title="Branch 1 was taken 731 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1462 :         return bech32::Encode(m_params.Bech32HRP(), data);</span>
+<span class="lineNum">      57 </span>                :            :     }
+<span class="lineNum">      58 </span>                :            : 
+<span class="lineNum">      59 </span>                :<span class="lineCov">          4 :     std::string operator()(const WitnessUnknown&amp; id) const</span>
+<span class="lineNum">      60 </span>                :            :     {
+<span class="lineNum">      61 </span>[<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          4 :         if (id.version &lt; 1 || id.version &gt; 16 || id.length &lt; 2 || id.length &gt; 40) {</span>
+<span class="lineNum">         </span>        [<span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 4 times"> + </span>]
+<span class="lineNum">      62 </span>                :            :             return {};
+<span class="lineNum">      63 </span>                :            :         }
+<span class="lineNum">      64 </span>                :<span class="lineCov">          4 :         std::vector&lt;unsigned char&gt; data = {(unsigned char)id.version};</span>
+<span class="lineNum">      65 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :         data.reserve(1 + (id.length * 8 + 4) / 5);</span>
+<span class="lineNum">      66 </span>        [<span class="branchCov" title="Branch 3 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        102 :         ConvertBits&lt;8, 5, true&gt;([&amp;](unsigned char c) { data.push_back(c); }, id.program, id.program + id.length);</span>
+<span class="lineNum">      67 </span>        [<span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          4 :         return bech32::Encode(m_params.Bech32HRP(), data);</span>
+<span class="lineNum">      68 </span>                :            :     }
+<span class="lineNum">      69 </span>                :            : 
+<span class="lineNum">      70 </span>                :<span class="lineNoCov">          0 :     std::string operator()(const CNoDestination&amp; no) const { return {}; }</span>
+<span class="lineNum">      71 </span>                :            : };
+<span class="lineNum">      72 </span>                :            : 
+<span class="lineNum">      73 </span>                :<span class="lineCov">       7489 : CTxDestination DecodeDestination(const std::string&amp; str, const CChainParams&amp; params)</span>
+<span class="lineNum">      74 </span>                :            : {
+<span class="lineNum">      75 </span>                :<span class="lineCov">       7489 :     std::vector&lt;unsigned char&gt; data;</span>
+<span class="lineNum">      76 </span>                :<span class="lineCov">       7489 :     uint160 hash;</span>
+<span class="lineNum">      77 </span>[<span class="branchCov" title="Branch 1 was taken 7489 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 6594 times"> + </span><span class="branchCov" title="Branch 4 was taken 895 times"> + </span>]:<span class="lineCov">       7489 :     if (DecodeBase58Check(str, data)) {</span>
+<span class="lineNum">      78 </span>                :            :         // base58-encoded Bitcoin addresses.
+<span class="lineNum">      79 </span>                :            :         // Public-key-hash-addresses have version 0 (or 111 testnet).
+<span class="lineNum">      80 </span>                :            :         // The data vector contains RIPEMD160(SHA256(pubkey)), where pubkey is the serialized public key.
+<span class="lineNum">      81 </span>                :<span class="lineCov">       6594 :         const std::vector&lt;unsigned char&gt;&amp; pubkey_prefix = params.Base58Prefix(CChainParams::PUBKEY_ADDRESS);</span>
+<span class="lineNum">      82 </span>[<span class="branchCov" title="Branch 0 was taken 6468 times"> + </span><span class="branchCov" title="Branch 1 was taken 126 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 2069 times"> + </span><span class="branchCov" title="Branch 3 was taken 4399 times"> + </span>]:<span class="lineCov">       6594 :         if (data.size() == hash.size() + pubkey_prefix.size() &amp;&amp; std::equal(pubkey_prefix.begin(), pubkey_prefix.end(), data.begin())) {</span>
+<span class="lineNum">      83 </span>                :<span class="lineCov">       2069 :             std::copy(data.begin() + pubkey_prefix.size(), data.end(), hash.begin());</span>
+<span class="lineNum">      84 </span>                :<span class="lineCov">       2069 :             return CKeyID(hash);</span>
+<span class="lineNum">      85 </span>                :            :         }
+<span class="lineNum">      86 </span>                :            :         // Script-hash-addresses have version 5 (or 196 testnet).
+<span class="lineNum">      87 </span>                :            :         // The data vector contains RIPEMD160(SHA256(cscript)), where cscript is the serialized redemption script.
+<span class="lineNum">      88 </span>                :<span class="lineCov">       4525 :         const std::vector&lt;unsigned char&gt;&amp; script_prefix = params.Base58Prefix(CChainParams::SCRIPT_ADDRESS);</span>
+<span class="lineNum">      89 </span>[<span class="branchCov" title="Branch 0 was taken 4399 times"> + </span><span class="branchCov" title="Branch 1 was taken 126 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 4375 times"> + </span><span class="branchCov" title="Branch 3 was taken 24 times"> + </span>]:<span class="lineCov">       6594 :         if (data.size() == hash.size() + script_prefix.size() &amp;&amp; std::equal(script_prefix.begin(), script_prefix.end(), data.begin())) {</span>
+<span class="lineNum">      90 </span>                :<span class="lineCov">       4375 :             std::copy(data.begin() + script_prefix.size(), data.end(), hash.begin());</span>
+<span class="lineNum">      91 </span>                :<span class="lineCov">       4375 :             return CScriptID(hash);</span>
+<span class="lineNum">      92 </span>                :            :         }
+<span class="lineNum">      93 </span>                :            :     }
+<span class="lineNum">      94 </span>                :<span class="lineCov">       1045 :     data.clear();</span>
+<span class="lineNum">      95 </span>        [<span class="branchCov" title="Branch 1 was taken 1045 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       2090 :     auto bech = bech32::Decode(str);</span>
+<span class="lineNum">      96 </span>[<span class="branchCov" title="Branch 0 was taken 777 times"> + </span><span class="branchCov" title="Branch 1 was taken 268 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 762 times"> + </span><span class="branchCov" title="Branch 3 was taken 15 times"> + </span>]:<span class="lineCov">       1045 :     if (bech.second.size() &gt; 0 &amp;&amp; bech.first == params.Bech32HRP()) {</span>
+<span class="lineNum">      97 </span>                :            :         // Bech32 decoding
+<span class="lineNum">      98 </span>                :<span class="lineCov">        762 :         int version = bech.second[0]; // The first 5 bit symbol is the witness version (0-16)</span>
+<span class="lineNum">      99 </span>                :            :         // The rest of the symbols are converted witness program bytes.
+<span class="lineNum">     100 </span>        [<span class="branchCov" title="Branch 1 was taken 762 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        762 :         data.reserve(((bech.second.size() - 1) * 5) / 8);</span>
+<span class="lineNum">     101 </span>[<span class="branchCov" title="Branch 2 was taken 762 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 760 times"> + </span><span class="branchCov" title="Branch 5 was taken 2 times"> + </span>]:<span class="lineCov">      17738 :         if (ConvertBits&lt;5, 8, false&gt;([&amp;](unsigned char c) { data.push_back(c); }, bech.second.begin() + 1, bech.second.end())) {</span>
+<span class="lineNum">     102 </span>        [<span class="branchCov" title="Branch 0 was taken 750 times"> + </span><span class="branchCov" title="Branch 1 was taken 10 times"> + </span>]:<span class="lineCov">        760 :             if (version == 0) {</span>
+<span class="lineNum">     103 </span>                :            :                 {
+<span class="lineNum">     104 </span>                :<span class="lineCov">        750 :                     WitnessV0KeyHash keyid;</span>
+<span class="lineNum">     105 </span>        [<span class="branchCov" title="Branch 0 was taken 603 times"> + </span><span class="branchCov" title="Branch 1 was taken 147 times"> + </span>]:<span class="lineCov">        750 :                     if (data.size() == keyid.size()) {</span>
+<span class="lineNum">     106 </span>                :<span class="lineCov">        603 :                         std::copy(data.begin(), data.end(), keyid.begin());</span>
+<span class="lineNum">     107 </span>                :<span class="lineCov">        603 :                         return keyid;</span>
+<span class="lineNum">     108 </span>                :            :                     }
+<span class="lineNum">     109 </span>                :            :                 }
+<span class="lineNum">     110 </span>                :            :                 {
+<span class="lineNum">     111 </span>                :<span class="lineCov">        147 :                     WitnessV0ScriptHash scriptid;</span>
+<span class="lineNum">     112 </span>        [<span class="branchCov" title="Branch 0 was taken 146 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">        147 :                     if (data.size() == scriptid.size()) {</span>
+<span class="lineNum">     113 </span>                :<span class="lineCov">        146 :                         std::copy(data.begin(), data.end(), scriptid.begin());</span>
+<span class="lineNum">     114 </span>                :<span class="lineCov">        146 :                         return scriptid;</span>
+<span class="lineNum">     115 </span>                :            :                     }
+<span class="lineNum">     116 </span>                :            :                 }
+<span class="lineNum">     117 </span>                :<span class="lineCov">          1 :                 return CNoDestination();</span>
+<span class="lineNum">     118 </span>                :            :             }
+<span class="lineNum">     119 </span>[<span class="branchCov" title="Branch 0 was taken 9 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 8 times"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">         10 :             if (version &gt; 16 || data.size() &lt; 2 || data.size() &gt; 40) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 7 times"> + </span><span class="branchCov" title="Branch 5 was taken 1 time"> + </span>]
+<span class="lineNum">     120 </span>                :<span class="lineCov">         10 :                 return CNoDestination();</span>
+<span class="lineNum">     121 </span>                :            :             }
+<span class="lineNum">     122 </span>                :            :             WitnessUnknown unk;
+<span class="lineNum">     123 </span>                :<span class="lineCov">          7 :             unk.version = version;</span>
+<span class="lineNum">     124 </span>                :<span class="lineCov">          7 :             std::copy(data.begin(), data.end(), unk.program);</span>
+<span class="lineNum">     125 </span>                :<span class="lineCov">          7 :             unk.length = data.size();</span>
+<span class="lineNum">     126 </span>                :            :             return unk;
+<span class="lineNum">     127 </span>                :            :         }
+<span class="lineNum">     128 </span>                :            :     }
+<span class="lineNum">     129 </span>                :<span class="lineCov">        285 :     return CNoDestination();</span>
+<span class="lineNum">     130 </span>                :            : }
+<span class="lineNum">     131 </span>                :            : } // namespace
+<span class="lineNum">     132 </span>                :            : 
+<span class="lineNum">     133 </span>                :<span class="lineCov">       2307 : CKey DecodeSecret(const std::string&amp; str)</span>
+<span class="lineNum">     134 </span>                :            : {
+<span class="lineNum">     135 </span>                :<span class="lineCov">       2307 :     CKey key;</span>
+<span class="lineNum">     136 </span>                :<span class="lineNoCov">          0 :     std::vector&lt;unsigned char&gt; data;</span>
+<span class="lineNum">     137 </span>[<span class="branchCov" title="Branch 1 was taken 2307 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 1366 times"> + </span><span class="branchCov" title="Branch 4 was taken 941 times"> + </span>]:<span class="lineCov">       2307 :     if (DecodeBase58Check(str, data)) {</span>
+<span class="lineNum">     138 </span>        [<span class="branchCov" title="Branch 1 was taken 1366 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1366 :         const std::vector&lt;unsigned char&gt;&amp; privkey_prefix = Params().Base58Prefix(CChainParams::SECRET_KEY);</span>
+<span class="lineNum">     139 </span>[<span class="branchCov" title="Branch 0 was taken 1321 times"> + </span><span class="branchCov" title="Branch 1 was taken 45 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1225 times"> + </span><span class="branchCov" title="Branch 3 was taken 96 times"> + </span>]:<span class="lineCov">       1366 :         if ((data.size() == 32 + privkey_prefix.size() || (data.size() == 33 + privkey_prefix.size() &amp;&amp; data.back() == 1)) &amp;&amp;</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 1210 times"> + </span><span class="branchCov" title="Branch 5 was taken 15 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 1237 times"> + </span><span class="branchCov" title="Branch 7 was taken 18 times"> + </span>]
+<span class="lineNum">     140 </span>                :<span class="lineCov">       3765 :             std::equal(privkey_prefix.begin(), privkey_prefix.end(), data.begin())) {</span>
+<span class="lineNum">     141 </span>                :<span class="lineCov">       1237 :             bool compressed = data.size() == 33 + privkey_prefix.size();</span>
+<span class="lineNum">     142 </span>        [<span class="branchCov" title="Branch 1 was taken 1237 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1237 :             key.Set(data.begin() + privkey_prefix.size(), data.begin() + privkey_prefix.size() + 32, compressed);</span>
+<span class="lineNum">     143 </span>                :            :         }
+<span class="lineNum">     144 </span>                :            :     }
+<span class="lineNum">     145 </span>        [<span class="branchCov" title="Branch 0 was taken 1366 times"> + </span><span class="branchCov" title="Branch 1 was taken 941 times"> + </span>]:<span class="lineCov">       2307 :     if (!data.empty()) {</span>
+<span class="lineNum">     146 </span>        [<span class="branchCov" title="Branch 1 was taken 1366 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1366 :         memory_cleanse(data.data(), data.size());</span>
+<span class="lineNum">     147 </span>                :            :     }
+<span class="lineNum">     148 </span>                :<span class="lineCov">       2307 :     return key;</span>
+<span class="lineNum">     149 </span>                :            : }
+<span class="lineNum">     150 </span>                :            : 
+<span class="lineNum">     151 </span>                :<span class="lineCov">       1438 : std::string EncodeSecret(const CKey&amp; key)</span>
+<span class="lineNum">     152 </span>                :            : {
+<span class="lineNum">     153 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1438 times"> + </span>]:<span class="lineCov">       1438 :     assert(key.IsValid());</span>
+<span class="lineNum">     154 </span>                :<span class="lineCov">       1438 :     std::vector&lt;unsigned char&gt; data = Params().Base58Prefix(CChainParams::SECRET_KEY);</span>
+<span class="lineNum">     155 </span>        [<span class="branchCov" title="Branch 1 was taken 1438 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1438 :     data.insert(data.end(), key.begin(), key.end());</span>
+<span class="lineNum">     156 </span>        [<span class="branchCov" title="Branch 0 was taken 1416 times"> + </span><span class="branchCov" title="Branch 1 was taken 22 times"> + </span>]:<span class="lineCov">       1438 :     if (key.IsCompressed()) {</span>
+<span class="lineNum">     157 </span>                :<span class="lineCov">       1416 :         data.push_back(1);</span>
+<span class="lineNum">     158 </span>                :            :     }
+<span class="lineNum">     159 </span>        [<span class="branchCov" title="Branch 1 was taken 1438 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1438 :     std::string ret = EncodeBase58Check(data);</span>
+<span class="lineNum">     160 </span>        [<span class="branchCov" title="Branch 1 was taken 1438 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       1438 :     memory_cleanse(data.data(), data.size());</span>
+<span class="lineNum">     161 </span>                :<span class="lineCov">       1438 :     return ret;</span>
+<span class="lineNum">     162 </span>                :            : }
+<span class="lineNum">     163 </span>                :            : 
+<span class="lineNum">     164 </span>                :<span class="lineCov">        106 : CExtPubKey DecodeExtPubKey(const std::string&amp; str)</span>
+<span class="lineNum">     165 </span>                :            : {
+<span class="lineNum">     166 </span>                :<span class="lineCov">        106 :     CExtPubKey key;</span>
+<span class="lineNum">     167 </span>                :<span class="lineCov">        212 :     std::vector&lt;unsigned char&gt; data;</span>
+<span class="lineNum">     168 </span>[<span class="branchCov" title="Branch 1 was taken 106 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 101 times"> + </span><span class="branchCov" title="Branch 4 was taken 5 times"> + </span>]:<span class="lineCov">        106 :     if (DecodeBase58Check(str, data)) {</span>
+<span class="lineNum">     169 </span>        [<span class="branchCov" title="Branch 1 was taken 101 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        101 :         const std::vector&lt;unsigned char&gt;&amp; prefix = Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY);</span>
+<span class="lineNum">     170 </span>[<span class="branchCov" title="Branch 0 was taken 98 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 46 times"> + </span><span class="branchCov" title="Branch 3 was taken 52 times"> + </span>]:<span class="lineCov">        101 :         if (data.size() == BIP32_EXTKEY_SIZE + prefix.size() &amp;&amp; std::equal(prefix.begin(), prefix.end(), data.begin())) {</span>
+<span class="lineNum">     171 </span>        [<span class="branchCov" title="Branch 1 was taken 46 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         46 :             key.Decode(data.data() + prefix.size());</span>
+<span class="lineNum">     172 </span>                :            :         }
+<span class="lineNum">     173 </span>                :            :     }
+<span class="lineNum">     174 </span>                :<span class="lineCov">        106 :     return key;</span>
+<span class="lineNum">     175 </span>                :            : }
+<span class="lineNum">     176 </span>                :            : 
+<span class="lineNum">     177 </span>                :<span class="lineCov">         44 : std::string EncodeExtPubKey(const CExtPubKey&amp; key)</span>
+<span class="lineNum">     178 </span>                :            : {
+<span class="lineNum">     179 </span>                :<span class="lineCov">         44 :     std::vector&lt;unsigned char&gt; data = Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY);</span>
+<span class="lineNum">     180 </span>                :<span class="lineCov">         44 :     size_t size = data.size();</span>
+<span class="lineNum">     181 </span>        [<span class="branchCov" title="Branch 1 was taken 44 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         44 :     data.resize(size + BIP32_EXTKEY_SIZE);</span>
+<span class="lineNum">     182 </span>        [<span class="branchCov" title="Branch 1 was taken 44 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         44 :     key.Encode(data.data() + size);</span>
+<span class="lineNum">     183 </span>        [<span class="branchCov" title="Branch 1 was taken 44 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         44 :     std::string ret = EncodeBase58Check(data);</span>
+<span class="lineNum">     184 </span>                :<span class="lineCov">         44 :     return ret;</span>
+<span class="lineNum">     185 </span>                :            : }
+<span class="lineNum">     186 </span>                :            : 
+<span class="lineNum">     187 </span>                :<span class="lineCov">        106 : CExtKey DecodeExtKey(const std::string&amp; str)</span>
+<span class="lineNum">     188 </span>                :            : {
+<span class="lineNum">     189 </span>                :<span class="lineCov">        106 :     CExtKey key;</span>
+<span class="lineNum">     190 </span>                :<span class="lineNoCov">          0 :     std::vector&lt;unsigned char&gt; data;</span>
+<span class="lineNum">     191 </span>[<span class="branchCov" title="Branch 1 was taken 106 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 101 times"> + </span><span class="branchCov" title="Branch 4 was taken 5 times"> + </span>]:<span class="lineCov">        106 :     if (DecodeBase58Check(str, data)) {</span>
+<span class="lineNum">     192 </span>        [<span class="branchCov" title="Branch 1 was taken 101 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        101 :         const std::vector&lt;unsigned char&gt;&amp; prefix = Params().Base58Prefix(CChainParams::EXT_SECRET_KEY);</span>
+<span class="lineNum">     193 </span>[<span class="branchCov" title="Branch 0 was taken 98 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 66 times"> + </span><span class="branchCov" title="Branch 3 was taken 32 times"> + </span>]:<span class="lineCov">        101 :         if (data.size() == BIP32_EXTKEY_SIZE + prefix.size() &amp;&amp; std::equal(prefix.begin(), prefix.end(), data.begin())) {</span>
+<span class="lineNum">     194 </span>        [<span class="branchCov" title="Branch 1 was taken 66 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         66 :             key.Decode(data.data() + prefix.size());</span>
+<span class="lineNum">     195 </span>                :            :         }
+<span class="lineNum">     196 </span>                :            :     }
+<span class="lineNum">     197 </span>                :<span class="lineCov">        106 :     return key;</span>
+<span class="lineNum">     198 </span>                :            : }
+<span class="lineNum">     199 </span>                :            : 
+<span class="lineNum">     200 </span>                :<span class="lineCov">         49 : std::string EncodeExtKey(const CExtKey&amp; key)</span>
+<span class="lineNum">     201 </span>                :            : {
+<span class="lineNum">     202 </span>                :<span class="lineCov">         49 :     std::vector&lt;unsigned char&gt; data = Params().Base58Prefix(CChainParams::EXT_SECRET_KEY);</span>
+<span class="lineNum">     203 </span>                :<span class="lineCov">         49 :     size_t size = data.size();</span>
+<span class="lineNum">     204 </span>        [<span class="branchCov" title="Branch 1 was taken 49 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         49 :     data.resize(size + BIP32_EXTKEY_SIZE);</span>
+<span class="lineNum">     205 </span>        [<span class="branchCov" title="Branch 1 was taken 49 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         49 :     key.Encode(data.data() + size);</span>
+<span class="lineNum">     206 </span>        [<span class="branchCov" title="Branch 1 was taken 49 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         49 :     std::string ret = EncodeBase58Check(data);</span>
+<span class="lineNum">     207 </span>        [<span class="branchCov" title="Branch 1 was taken 49 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">         49 :     memory_cleanse(data.data(), data.size());</span>
+<span class="lineNum">     208 </span>                :<span class="lineCov">         49 :     return ret;</span>
+<a name="209"><span class="lineNum">     209 </span>                :            : }</a>
+<span class="lineNum">     210 </span>                :            : 
+<span class="lineNum">     211 </span>                :<span class="lineCov">      42198 : std::string EncodeDestination(const CTxDestination&amp; dest)</span>
+<span class="lineNum">     212 </span>                :            : {
+<span class="lineNum">     213 </span>                :<span class="lineCov">      42198 :     return boost::apply_visitor(DestinationEncoder(Params()), dest);</span>
+<a name="214"><span class="lineNum">     214 </span>                :            : }</a>
+<span class="lineNum">     215 </span>                :            : 
+<span class="lineNum">     216 </span>                :<span class="lineCov">       7483 : CTxDestination DecodeDestination(const std::string&amp; str)</span>
+<span class="lineNum">     217 </span>                :            : {
+<span class="lineNum">     218 </span>                :<span class="lineCov">       7483 :     return DecodeDestination(str, Params());</span>
+<a name="219"><span class="lineNum">     219 </span>                :            : }</a>
+<span class="lineNum">     220 </span>                :            : 
+<span class="lineNum">     221 </span>                :<span class="lineCov">          6 : bool IsValidDestinationString(const std::string&amp; str, const CChainParams&amp; params)</span>
+<span class="lineNum">     222 </span>                :            : {
+<span class="lineNum">     223 </span>        [<span class="branchCov" title="Branch 2 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">         12 :     return IsValidDestination(DecodeDestination(str, params));</span>
+<a name="224"><span class="lineNum">     224 </span>                :            : }</a>
+<span class="lineNum">     225 </span>                :            : 
+<span class="lineNum">     226 </span>                :<span class="lineCov">          6 : bool IsValidDestinationString(const std::string&amp; str)</span>
+<span class="lineNum">     227 </span>                :            : {
+<span class="lineNum">     228 </span>                :<span class="lineCov">          6 :     return IsValidDestinationString(str, Params());</span>
+<span class="lineNum">     229 </span>                :            : }
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

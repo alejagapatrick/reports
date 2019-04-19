@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/compressor.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - compressor.h<span style="font-size: 80%;"> (source / <a href="compressor.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">33</td>
+            <td class="headerCovTableEntry">33</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">12</td>
+            <td class="headerCovTableEntry">12</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">19</td>
+            <td class="headerCovTableEntry">30</td>
+            <td class="headerCovTableEntryLo">63.3 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #ifndef BITCOIN_COMPRESSOR_H
+<span class="lineNum">       7 </span>                :            : #define BITCOIN_COMPRESSOR_H
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : #include &lt;primitives/transaction.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;script/script.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;serialize.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;span.h&gt;
+<span class="lineNum">      13 </span>                :            : 
+<span class="lineNum">      14 </span>                :            : class CKeyID;
+<span class="lineNum">      15 </span>                :            : class CPubKey;
+<span class="lineNum">      16 </span>                :            : class CScriptID;
+<span class="lineNum">      17 </span>                :            : 
+<span class="lineNum">      18 </span>                :            : bool CompressScript(const CScript&amp; script, std::vector&lt;unsigned char&gt; &amp;out);
+<span class="lineNum">      19 </span>                :            : unsigned int GetSpecialScriptSize(unsigned int nSize);
+<span class="lineNum">      20 </span>                :            : bool DecompressScript(CScript&amp; script, unsigned int nSize, const std::vector&lt;unsigned char&gt; &amp;out);
+<span class="lineNum">      21 </span>                :            : 
+<span class="lineNum">      22 </span>                :            : uint64_t CompressAmount(uint64_t nAmount);
+<span class="lineNum">      23 </span>                :            : uint64_t DecompressAmount(uint64_t nAmount);
+<span class="lineNum">      24 </span>                :            : 
+<span class="lineNum">      25 </span>                :            : /** Compact serializer for scripts.
+<span class="lineNum">      26 </span>                :            :  *
+<span class="lineNum">      27 </span>                :            :  *  It detects common cases and encodes them much more efficiently.
+<span class="lineNum">      28 </span>                :            :  *  3 special cases are defined:
+<span class="lineNum">      29 </span>                :            :  *  * Pay to pubkey hash (encoded as 21 bytes)
+<span class="lineNum">      30 </span>                :            :  *  * Pay to script hash (encoded as 21 bytes)
+<span class="lineNum">      31 </span>                :            :  *  * Pay to pubkey starting with 0x02, 0x03 or 0x04 (encoded as 33 bytes)
+<span class="lineNum">      32 </span>                :            :  *
+<span class="lineNum">      33 </span>                :            :  *  Other scripts up to 121 bytes require 1 byte + script length. Above
+<span class="lineNum">      34 </span>                :            :  *  that, scripts up to 16505 bytes require 2 bytes + script length.
+<span class="lineNum">      35 </span>                :            :  */
+<span class="lineNum">      36 </span>                :            : class CScriptCompressor
+<span class="lineNum">      37 </span>                :            : {
+<span class="lineNum">      38 </span>                :            : private:
+<span class="lineNum">      39 </span>                :            :     /**
+<span class="lineNum">      40 </span>                :            :      * make this static for now (there are only 6 special scripts defined)
+<span class="lineNum">      41 </span>                :            :      * this can potentially be extended together with a new nVersion for
+<span class="lineNum">      42 </span>                :            :      * transactions, in which case this value becomes dependent on nVersion
+<span class="lineNum">      43 </span>                :            :      * and nHeight of the enclosing transaction.
+<span class="lineNum">      44 </span>                :            :      */
+<span class="lineNum">      45 </span>                :            :     static const unsigned int nSpecialScripts = 6;
+<span class="lineNum">      46 </span>                :            : 
+<span class="lineNum">      47 </span>                :            :     CScript &amp;script;
+<span class="lineNum">      48 </span>                :            : public:
+<span class="lineNum">      49 </span>                :<span class="lineCov">     392688 :     explicit CScriptCompressor(CScript &amp;scriptIn) : script(scriptIn) { }</span>
+<span class="lineNum">      50 </span>                :            : 
+<span class="lineNum">      51 </span>                :            :     template&lt;typename Stream&gt;
+<span class="lineNum">      52 </span>                :<span class="lineCov">     364706 :     void Serialize(Stream &amp;s) const {</span>
+<span class="lineNum">      53 </span>                :<span class="lineCov">     364706 :         std::vector&lt;unsigned char&gt; compr;</span>
+<span class="lineNum">      54 </span>[<span class="branchCov" title="Branch 1 was taken 226634 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 153608 times"> + </span><span class="branchCov" title="Branch 4 was taken 73026 times"> + </span>]:<span class="lineCov">     364706 :         if (CompressScript(script, compr)) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 6 was taken 69036 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>][<span class="branchCov" title="Branch 8 was taken 36158 times"> + </span><span class="branchCov" title="Branch 9 was taken 32878 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 11 was taken 69036 times"> + </span><span class="branchNoCov" title="Branch 12 was not taken"> - </span>][<span class="branchCov" title="Branch 13 was taken 36158 times"> + </span><span class="branchCov" title="Branch 14 was taken 32878 times"> + </span>]
+<span class="lineNum">      55 </span>        [<span class="branchCov" title="Branch 1 was taken 36158 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     198742 :             s &lt;&lt; MakeSpan(compr);</span>
+<span class="lineNum">      56 </span>                :<span class="lineCov">     225924 :             return;</span>
+<span class="lineNum">      57 </span>                :            :         }
+<span class="lineNum">      58 </span>                :<span class="lineCov">     277564 :         unsigned int nSize = script.size() + nSpecialScripts;</span>
+<span class="lineNum">      59 </span>        [<span class="branchCov" title="Branch 4 was taken 32878 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     138782 :         s &lt;&lt; VARINT(nSize);</span>
+<span class="lineNum">      60 </span>        [<span class="branchCov" title="Branch 1 was taken 32878 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      54688 :         s &lt;&lt; MakeSpan(script);</span>
+<span class="lineNum">      61 </span>                :            :     }
+<span class="lineNum">      62 </span>                :            : 
+<span class="lineNum">      63 </span>                :            :     template&lt;typename Stream&gt;
+<span class="lineNum">      64 </span>                :<span class="lineCov">      27982 :     void Unserialize(Stream &amp;s) {</span>
+<span class="lineNum">      65 </span>                :<span class="lineCov">      27982 :         unsigned int nSize = 0;</span>
+<span class="lineNum">      66 </span>                :<span class="lineCov">      27982 :         s &gt;&gt; VARINT(nSize);</span>
+<span class="lineNum">      67 </span>        [<span class="branchCov" title="Branch 0 was taken 18685 times"> + </span><span class="branchCov" title="Branch 1 was taken 9297 times"> + </span>]:<span class="lineCov">      27982 :         if (nSize &lt; nSpecialScripts) {</span>
+<span class="lineNum">      68 </span>[<span class="branchCov" title="Branch 1 was taken 18685 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 18685 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      37370 :             std::vector&lt;unsigned char&gt; vch(GetSpecialScriptSize(nSize), 0x00);</span>
+<span class="lineNum">      69 </span>                :<span class="lineCov">      37370 :             s &gt;&gt; MakeSpan(vch);</span>
+<span class="lineNum">      70 </span>        [<span class="branchCov" title="Branch 1 was taken 18685 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      18685 :             DecompressScript(script, nSize, vch);</span>
+<span class="lineNum">      71 </span>                :            :             return;
+<span class="lineNum">      72 </span>                :            :         }
+<span class="lineNum">      73 </span>                :<span class="lineCov">       9297 :         nSize -= nSpecialScripts;</span>
+<span class="lineNum">      74 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 9296 times"> + </span>]:<span class="lineCov">       9297 :         if (nSize &gt; MAX_SCRIPT_SIZE) {</span>
+<span class="lineNum">      75 </span>                :            :             // Overly long script, replace with a short invalid one
+<span class="lineNum">      76 </span>                :<span class="lineCov">          1 :             script &lt;&lt; OP_RETURN;</span>
+<span class="lineNum">      77 </span>                :<span class="lineCov">          1 :             s.ignore(nSize);</span>
+<span class="lineNum">      78 </span>                :            :         } else {
+<span class="lineNum">      79 </span>                :<span class="lineCov">       9296 :             script.resize(nSize);</span>
+<span class="lineNum">      80 </span>                :<span class="lineCov">      27981 :             s &gt;&gt; MakeSpan(script);</span>
+<span class="lineNum">      81 </span>                :            :         }
+<span class="lineNum">      82 </span>                :            :     }
+<span class="lineNum">      83 </span>                :            : };
+<span class="lineNum">      84 </span>                :            : 
+<span class="lineNum">      85 </span>                :            : /** wrapper for CTxOut that provides a more compact serialization */
+<span class="lineNum">      86 </span>                :            : class CTxOutCompressor
+<span class="lineNum">      87 </span>                :            : {
+<span class="lineNum">      88 </span>                :            : private:
+<span class="lineNum">      89 </span>                :            :     CTxOut &amp;txout;
+<span class="lineNum">      90 </span>                :            : 
+<span class="lineNum">      91 </span>                :            : public:
+<span class="lineNum">      92 </span>                :<span class="lineCov">     392688 :     explicit CTxOutCompressor(CTxOut &amp;txoutIn) : txout(txoutIn) { }</span>
+<span class="lineNum">      93 </span>                :            : 
+<span class="lineNum">      94 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">     392688 :     ADD_SERIALIZE_METHODS;</span>
+<a name="95"><span class="lineNum">      95 </span>                :            : </a>
+<span class="lineNum">      96 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
+<span class="lineNum">      97 </span>                :<span class="lineCov">     392688 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">      98 </span>                :            :         if (!ser_action.ForRead()) {
+<span class="lineNum">      99 </span>                :<span class="lineCov">     364706 :             uint64_t nVal = CompressAmount(txout.nValue);</span>
+<span class="lineNum">     100 </span>                :<span class="lineCov">     364706 :             READWRITE(VARINT(nVal));</span>
+<span class="lineNum">     101 </span>                :            :         } else {
+<span class="lineNum">     102 </span>                :<span class="lineCov">      27982 :             uint64_t nVal = 0;</span>
+<span class="lineNum">     103 </span>                :<span class="lineCov">      27982 :             READWRITE(VARINT(nVal));</span>
+<span class="lineNum">     104 </span>                :<span class="lineCov">      27982 :             txout.nValue = DecompressAmount(nVal);</span>
+<span class="lineNum">     105 </span>                :            :         }
+<span class="lineNum">     106 </span>                :<span class="lineCov">     785376 :         CScriptCompressor cscript(REF(txout.scriptPubKey));</span>
+<span class="lineNum">     107 </span>                :<span class="lineCov">     392686 :         READWRITE(cscript);</span>
+<span class="lineNum">     108 </span>                :<span class="lineCov">     392686 :     }</span>
+<span class="lineNum">     109 </span>                :            : };
+<span class="lineNum">     110 </span>                :            : 
+<span class="lineNum">     111 </span>                :            : #endif // BITCOIN_COMPRESSOR_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

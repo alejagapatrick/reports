@@ -1,0 +1,275 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/validationinterface.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - validationinterface.h<span style="font-size: 80%;"> (source / <a href="validationinterface.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">9</td>
+            <td class="headerCovTableEntryLo">44.4 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">9</td>
+            <td class="headerCovTableEntryLo">44.4 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntryHi">-</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #ifndef BITCOIN_VALIDATIONINTERFACE_H
+<span class="lineNum">       7 </span>                :            : #define BITCOIN_VALIDATIONINTERFACE_H
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : #include &lt;primitives/transaction.h&gt; // CTransaction(Ref)
+<span class="lineNum">      10 </span>                :            : #include &lt;sync.h&gt;
+<span class="lineNum">      11 </span>                :            : 
+<span class="lineNum">      12 </span>                :            : #include &lt;functional&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;memory&gt;
+<span class="lineNum">      14 </span>                :            : 
+<span class="lineNum">      15 </span>                :            : extern CCriticalSection cs_main;
+<span class="lineNum">      16 </span>                :            : class CBlock;
+<span class="lineNum">      17 </span>                :            : class CBlockIndex;
+<span class="lineNum">      18 </span>                :            : struct CBlockLocator;
+<span class="lineNum">      19 </span>                :            : class CBlockIndex;
+<span class="lineNum">      20 </span>                :            : class CConnman;
+<span class="lineNum">      21 </span>                :            : class CValidationInterface;
+<span class="lineNum">      22 </span>                :            : class CValidationState;
+<span class="lineNum">      23 </span>                :            : class uint256;
+<span class="lineNum">      24 </span>                :            : class CScheduler;
+<span class="lineNum">      25 </span>                :            : class CTxMemPool;
+<span class="lineNum">      26 </span>                :            : enum class MemPoolRemovalReason;
+<span class="lineNum">      27 </span>                :            : 
+<span class="lineNum">      28 </span>                :            : // These functions dispatch to one or all registered wallets
+<span class="lineNum">      29 </span>                :            : 
+<span class="lineNum">      30 </span>                :            : /** Register a wallet to receive updates from core */
+<span class="lineNum">      31 </span>                :            : void RegisterValidationInterface(CValidationInterface* pwalletIn);
+<span class="lineNum">      32 </span>                :            : /** Unregister a wallet from core */
+<span class="lineNum">      33 </span>                :            : void UnregisterValidationInterface(CValidationInterface* pwalletIn);
+<span class="lineNum">      34 </span>                :            : /** Unregister all wallets from core */
+<span class="lineNum">      35 </span>                :            : void UnregisterAllValidationInterfaces();
+<span class="lineNum">      36 </span>                :            : /**
+<span class="lineNum">      37 </span>                :            :  * Pushes a function to callback onto the notification queue, guaranteeing any
+<span class="lineNum">      38 </span>                :            :  * callbacks generated prior to now are finished when the function is called.
+<span class="lineNum">      39 </span>                :            :  *
+<span class="lineNum">      40 </span>                :            :  * Be very careful blocking on func to be called if any locks are held -
+<span class="lineNum">      41 </span>                :            :  * validation interface clients may not be able to make progress as they often
+<span class="lineNum">      42 </span>                :            :  * wait for things like cs_main, so blocking until func is called with cs_main
+<span class="lineNum">      43 </span>                :            :  * will result in a deadlock (that DEBUG_LOCKORDER will miss).
+<span class="lineNum">      44 </span>                :            :  */
+<span class="lineNum">      45 </span>                :            : void CallFunctionInValidationInterfaceQueue(std::function&lt;void ()&gt; func);
+<span class="lineNum">      46 </span>                :            : /**
+<span class="lineNum">      47 </span>                :            :  * This is a synonym for the following, which asserts certain locks are not
+<span class="lineNum">      48 </span>                :            :  * held:
+<span class="lineNum">      49 </span>                :            :  *     std::promise&lt;void&gt; promise;
+<span class="lineNum">      50 </span>                :            :  *     CallFunctionInValidationInterfaceQueue([&amp;promise] {
+<span class="lineNum">      51 </span>                :            :  *         promise.set_value();
+<span class="lineNum">      52 </span>                :            :  *     });
+<span class="lineNum">      53 </span>                :            :  *     promise.get_future().wait();
+<span class="lineNum">      54 </span>                :            :  */
+<span class="lineNum">      55 </span>                :            : void SyncWithValidationInterfaceQueue() LOCKS_EXCLUDED(cs_main);
+<span class="lineNum">      56 </span>                :            : 
+<span class="lineNum">      57 </span>                :            : /**
+<span class="lineNum">      58 </span>                :            :  * Implement this to subscribe to events generated in validation
+<span class="lineNum">      59 </span>                :            :  *
+<span class="lineNum">      60 </span>                :            :  * Each CValidationInterface() subscriber will receive event callbacks
+<span class="lineNum">      61 </span>                :            :  * in the order in which the events were generated by validation.
+<span class="lineNum">      62 </span>                :            :  * Furthermore, each ValidationInterface() subscriber may assume that
+<span class="lineNum">      63 </span>                :            :  * callbacks effectively run in a single thread with single-threaded
+<span class="lineNum">      64 </span>                :            :  * memory consistency. That is, for a given ValidationInterface()
+<span class="lineNum">      65 </span>                :            :  * instantiation, each callback will complete before the next one is
+<span class="lineNum">      66 </span>                :            :  * invoked. This means, for example when a block is connected that the
+<span class="lineNum">      67 </span>                :            :  * UpdatedBlockTip() callback may depend on an operation performed in
+<span class="lineNum">      68 </span>                :            :  * the BlockConnected() callback without worrying about explicit
+<span class="lineNum">      69 </span>                :            :  * synchronization. No ordering should be assumed across
+<span class="lineNum">      70 </span>                :            :  * ValidationInterface() subscribers.
+<span class="lineNum">      71 </span>                :            :  */
+<span class="lineNum">      72 </span>                :            : class CValidationInterface {
+<span class="lineNum">      73 </span>                :            : protected:
+<span class="lineNum">      74 </span>                :            :     /**
+<span class="lineNum">      75 </span>                :            :      * Protected destructor so that instances can only be deleted by derived classes.
+<span class="lineNum">      76 </span>                :            :      * If that restriction is no longer desired, this should be made public and virtual.
+<span class="lineNum">      77 </span>                :            :      */
+<span class="lineNum">      78 </span>                :            :     ~CValidationInterface() = default;
+<span class="lineNum">      79 </span>                :            :     /**
+<span class="lineNum">      80 </span>                :            :      * Notifies listeners when the block chain tip advances.
+<span class="lineNum">      81 </span>                :            :      *
+<span class="lineNum">      82 </span>                :            :      * When multiple blocks are connected at once, UpdatedBlockTip will be called on the final tip
+<span class="lineNum">      83 </span>                :            :      * but may not be called on every intermediate tip. If the latter behavior is desired,
+<span class="lineNum">      84 </span>                :            :      * subscribe to BlockConnected() instead.
+<span class="lineNum">      85 </span>                :            :      *
+<a name="86"><span class="lineNum">      86 </span>                :            :      * Called on a background thread.</a>
+<span class="lineNum">      87 </span>                :            :      */
+<span class="lineNum">      88 </span>                :<span class="lineCov">         14 :     virtual void UpdatedBlockTip(const CBlockIndex *pindexNew, const CBlockIndex *pindexFork, bool fInitialDownload) {}</span>
+<span class="lineNum">      89 </span>                :            :     /**
+<span class="lineNum">      90 </span>                :            :      * Notifies listeners of a transaction having been added to mempool.
+<span class="lineNum">      91 </span>                :            :      *
+<a name="92"><span class="lineNum">      92 </span>                :            :      * Called on a background thread.</a>
+<span class="lineNum">      93 </span>                :            :      */
+<span class="lineNum">      94 </span>                :<span class="lineNoCov">          0 :     virtual void TransactionAddedToMempool(const CTransactionRef &amp;ptxn) {}</span>
+<span class="lineNum">      95 </span>                :            :     /**
+<span class="lineNum">      96 </span>                :            :      * Notifies listeners of a transaction leaving mempool.
+<span class="lineNum">      97 </span>                :            :      *
+<span class="lineNum">      98 </span>                :            :      * This only fires for transactions which leave mempool because of expiry,
+<span class="lineNum">      99 </span>                :            :      * size limiting, reorg (changes in lock times/coinbase maturity), or
+<span class="lineNum">     100 </span>                :            :      * replacement. This does not include any transactions which are included
+<span class="lineNum">     101 </span>                :            :      * in BlockConnectedDisconnected either in block-&gt;vtx or in txnConflicted.
+<span class="lineNum">     102 </span>                :            :      *
+<a name="103"><span class="lineNum">     103 </span>                :            :      * Called on a background thread.</a>
+<span class="lineNum">     104 </span>                :            :      */
+<span class="lineNum">     105 </span>                :<span class="lineNoCov">          0 :     virtual void TransactionRemovedFromMempool(const CTransactionRef &amp;ptx) {}</span>
+<span class="lineNum">     106 </span>                :            :     /**
+<span class="lineNum">     107 </span>                :            :      * Notifies listeners of a block being connected.
+<span class="lineNum">     108 </span>                :            :      * Provides a vector of transactions evicted from the mempool as a result.
+<span class="lineNum">     109 </span>                :            :      *
+<a name="110"><span class="lineNum">     110 </span>                :            :      * Called on a background thread.</a>
+<span class="lineNum">     111 </span>                :            :      */
+<span class="lineNum">     112 </span>                :<span class="lineNoCov">          0 :     virtual void BlockConnected(const std::shared_ptr&lt;const CBlock&gt; &amp;block, const CBlockIndex *pindex, const std::vector&lt;CTransactionRef&gt; &amp;txnConflicted) {}</span>
+<span class="lineNum">     113 </span>                :            :     /**
+<span class="lineNum">     114 </span>                :            :      * Notifies listeners of a block being disconnected
+<span class="lineNum">     115 </span>                :            :      *
+<a name="116"><span class="lineNum">     116 </span>                :            :      * Called on a background thread.</a>
+<span class="lineNum">     117 </span>                :            :      */
+<span class="lineNum">     118 </span>                :<span class="lineNoCov">          0 :     virtual void BlockDisconnected(const std::shared_ptr&lt;const CBlock&gt; &amp;block) {}</span>
+<span class="lineNum">     119 </span>                :            :     /**
+<span class="lineNum">     120 </span>                :            :      * Notifies listeners of the new active block chain on-disk.
+<span class="lineNum">     121 </span>                :            :      *
+<span class="lineNum">     122 </span>                :            :      * Prior to this callback, any updates are not guaranteed to persist on disk
+<span class="lineNum">     123 </span>                :            :      * (ie clients need to handle shutdown/restart safety by being able to
+<span class="lineNum">     124 </span>                :            :      * understand when some updates were lost due to unclean shutdown).
+<span class="lineNum">     125 </span>                :            :      *
+<span class="lineNum">     126 </span>                :            :      * When this callback is invoked, the validation changes done by any prior
+<span class="lineNum">     127 </span>                :            :      * callback are guaranteed to exist on disk and survive a restart, including
+<span class="lineNum">     128 </span>                :            :      * an unclean shutdown.
+<span class="lineNum">     129 </span>                :            :      *
+<span class="lineNum">     130 </span>                :            :      * Provides a locator describing the best chain, which is likely useful for
+<span class="lineNum">     131 </span>                :            :      * storing current state on disk in client DBs.
+<span class="lineNum">     132 </span>                :            :      *
+<a name="133"><span class="lineNum">     133 </span>                :            :      * Called on a background thread.</a>
+<span class="lineNum">     134 </span>                :            :      */
+<span class="lineNum">     135 </span>                :<span class="lineNoCov">          0 :     virtual void ChainStateFlushed(const CBlockLocator &amp;locator) {}</span>
+<span class="lineNum">     136 </span>                :            :     /**
+<span class="lineNum">     137 </span>                :            :      * Notifies listeners of a block validation result.
+<span class="lineNum">     138 </span>                :            :      * If the provided CValidationState IsValid, the provided block
+<span class="lineNum">     139 </span>                :            :      * is guaranteed to be the current best block at the time the
+<a name="140"><span class="lineNum">     140 </span>                :            :      * callback was generated (not necessarily now)</a>
+<span class="lineNum">     141 </span>                :            :      */
+<span class="lineNum">     142 </span>                :<span class="lineCov">        362 :     virtual void BlockChecked(const CBlock&amp;, const CValidationState&amp;) {}</span>
+<span class="lineNum">     143 </span>                :            :     /**
+<a name="144"><span class="lineNum">     144 </span>                :            :      * Notifies listeners that a block which builds directly on our current tip</a>
+<span class="lineNum">     145 </span>                :            :      * has been received and connected to the headers tree, though not validated yet */
+<span class="lineNum">     146 </span>                :<span class="lineCov">         14 :     virtual void NewPoWValidBlock(const CBlockIndex *pindex, const std::shared_ptr&lt;const CBlock&gt;&amp; block) {};</span>
+<span class="lineNum">     147 </span>                :            :     friend void ::RegisterValidationInterface(CValidationInterface*);
+<span class="lineNum">     148 </span>                :            :     friend void ::UnregisterValidationInterface(CValidationInterface*);
+<span class="lineNum">     149 </span>                :            :     friend void ::UnregisterAllValidationInterfaces();
+<span class="lineNum">     150 </span>                :            : };
+<a name="151"><span class="lineNum">     151 </span>                :            : </a>
+<span class="lineNum">     152 </span>                :            : struct MainSignalsInstance;
+<span class="lineNum">     153 </span>                :<span class="lineCov">        150 : class CMainSignals {</span>
+<span class="lineNum">     154 </span>                :            : private:
+<span class="lineNum">     155 </span>                :            :     std::unique_ptr&lt;MainSignalsInstance&gt; m_internals;
+<span class="lineNum">     156 </span>                :            : 
+<span class="lineNum">     157 </span>                :            :     friend void ::RegisterValidationInterface(CValidationInterface*);
+<span class="lineNum">     158 </span>                :            :     friend void ::UnregisterValidationInterface(CValidationInterface*);
+<span class="lineNum">     159 </span>                :            :     friend void ::UnregisterAllValidationInterfaces();
+<span class="lineNum">     160 </span>                :            :     friend void ::CallFunctionInValidationInterfaceQueue(std::function&lt;void ()&gt; func);
+<span class="lineNum">     161 </span>                :            : 
+<span class="lineNum">     162 </span>                :            :     void MempoolEntryRemoved(CTransactionRef tx, MemPoolRemovalReason reason);
+<span class="lineNum">     163 </span>                :            : 
+<span class="lineNum">     164 </span>                :            : public:
+<span class="lineNum">     165 </span>                :            :     /** Register a CScheduler to give callbacks which should run in the background (may only be called once) */
+<span class="lineNum">     166 </span>                :            :     void RegisterBackgroundSignalScheduler(CScheduler&amp; scheduler);
+<span class="lineNum">     167 </span>                :            :     /** Unregister a CScheduler to give callbacks which should run in the background - these callbacks will now be dropped! */
+<span class="lineNum">     168 </span>                :            :     void UnregisterBackgroundSignalScheduler();
+<span class="lineNum">     169 </span>                :            :     /** Call any remaining callbacks on the calling thread */
+<span class="lineNum">     170 </span>                :            :     void FlushBackgroundCallbacks();
+<span class="lineNum">     171 </span>                :            : 
+<span class="lineNum">     172 </span>                :            :     size_t CallbacksPending();
+<span class="lineNum">     173 </span>                :            : 
+<span class="lineNum">     174 </span>                :            :     /** Register with mempool to call TransactionRemovedFromMempool callbacks */
+<span class="lineNum">     175 </span>                :            :     void RegisterWithMempoolSignals(CTxMemPool&amp; pool);
+<span class="lineNum">     176 </span>                :            :     /** Unregister with mempool */
+<span class="lineNum">     177 </span>                :            :     void UnregisterWithMempoolSignals(CTxMemPool&amp; pool);
+<span class="lineNum">     178 </span>                :            : 
+<span class="lineNum">     179 </span>                :            :     void UpdatedBlockTip(const CBlockIndex *, const CBlockIndex *, bool fInitialDownload);
+<span class="lineNum">     180 </span>                :            :     void TransactionAddedToMempool(const CTransactionRef &amp;);
+<span class="lineNum">     181 </span>                :            :     void BlockConnected(const std::shared_ptr&lt;const CBlock&gt; &amp;, const CBlockIndex *pindex, const std::shared_ptr&lt;const std::vector&lt;CTransactionRef&gt;&gt; &amp;);
+<span class="lineNum">     182 </span>                :            :     void BlockDisconnected(const std::shared_ptr&lt;const CBlock&gt; &amp;);
+<span class="lineNum">     183 </span>                :            :     void ChainStateFlushed(const CBlockLocator &amp;);
+<span class="lineNum">     184 </span>                :            :     void BlockChecked(const CBlock&amp;, const CValidationState&amp;);
+<span class="lineNum">     185 </span>                :            :     void NewPoWValidBlock(const CBlockIndex *, const std::shared_ptr&lt;const CBlock&gt;&amp;);
+<span class="lineNum">     186 </span>                :            : };
+<span class="lineNum">     187 </span>                :            : 
+<span class="lineNum">     188 </span>                :            : CMainSignals&amp; GetMainSignals();
+<span class="lineNum">     189 </span>                :            : 
+<span class="lineNum">     190 </span>                :            : #endif // BITCOIN_VALIDATIONINTERFACE_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

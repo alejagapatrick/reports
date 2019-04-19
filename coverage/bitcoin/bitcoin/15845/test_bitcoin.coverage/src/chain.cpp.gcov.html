@@ -1,0 +1,259 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/chain.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - chain.cpp<span style="font-size: 80%;"> (source / <a href="chain.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">65</td>
+            <td class="headerCovTableEntry">76</td>
+            <td class="headerCovTableEntryMed">85.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntry">12</td>
+            <td class="headerCovTableEntryHi">91.7 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">69</td>
+            <td class="headerCovTableEntry">88</td>
+            <td class="headerCovTableEntryMed">78.4 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #include &lt;chain.h&gt;
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : /**
+<span class="lineNum">       9 </span>                :            :  * CChain implementation
+<span class="lineNum">      10 </span>                :            :  */
+<span class="lineNum">      11 </span>                :<span class="lineCov">     421333 : void CChain::SetTip(CBlockIndex *pindex) {</span>
+<span class="lineNum">      12 </span>        [<span class="branchCov" title="Branch 0 was taken 67 times"> + </span><span class="branchCov" title="Branch 1 was taken 421266 times"> + </span>]:<span class="lineCov">     421333 :     if (pindex == nullptr) {</span>
+<span class="lineNum">      13 </span>                :<span class="lineCov">         67 :         vChain.clear();</span>
+<span class="lineNum">      14 </span>                :            :         return;
+<span class="lineNum">      15 </span>                :            :     }
+<span class="lineNum">      16 </span>                :<span class="lineCov">     421266 :     vChain.resize(pindex-&gt;nHeight + 1);</span>
+<span class="lineNum">      17 </span>[<span class="branchCov" title="Branch 0 was taken 832549 times"> + </span><span class="branchCov" title="Branch 1 was taken 70 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 411353 times"> + </span><span class="branchCov" title="Branch 3 was taken 421196 times"> + </span>]:<span class="lineCov">     832619 :     while (pindex &amp;&amp; vChain[pindex-&gt;nHeight] != pindex) {</span>
+<span class="lineNum">      18 </span>                :<span class="lineCov">     411353 :         vChain[pindex-&gt;nHeight] = pindex;</span>
+<span class="lineNum">      19 </span>                :<span class="lineCov">     411353 :         pindex = pindex-&gt;pprev;</span>
+<span class="lineNum">      20 </span>                :            :     }
+<span class="lineNum">      21 </span>                :            : }
+<span class="lineNum">      22 </span>                :            : 
+<span class="lineNum">      23 </span>                :<span class="lineCov">        109 : CBlockLocator CChain::GetLocator(const CBlockIndex *pindex) const {</span>
+<span class="lineNum">      24 </span>                :<span class="lineCov">        109 :     int nStep = 1;</span>
+<span class="lineNum">      25 </span>                :<span class="lineCov">        218 :     std::vector&lt;uint256&gt; vHave;</span>
+<span class="lineNum">      26 </span>        [<span class="branchCov" title="Branch 1 was taken 109 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        109 :     vHave.reserve(32);</span>
+<span class="lineNum">      27 </span>                :            : 
+<span class="lineNum">      28 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 107 times"> + </span>]:<span class="lineCov">        109 :     if (!pindex)</span>
+<span class="lineNum">      29 </span>                :            :         pindex = Tip();
+<span class="lineNum">      30 </span>        [<span class="branchCov" title="Branch 0 was taken 2753 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       2753 :     while (pindex) {</span>
+<span class="lineNum">      31 </span>                :<span class="lineCov">       5506 :         vHave.push_back(pindex-&gt;GetBlockHash());</span>
+<span class="lineNum">      32 </span>                :            :         // Stop when we have added the genesis block.
+<span class="lineNum">      33 </span>        [<span class="branchCov" title="Branch 0 was taken 2644 times"> + </span><span class="branchCov" title="Branch 1 was taken 109 times"> + </span>]:<span class="lineCov">       2753 :         if (pindex-&gt;nHeight == 0)</span>
+<span class="lineNum">      34 </span>                :            :             break;
+<span class="lineNum">      35 </span>                :            :         // Exponentially larger steps back, plus the genesis block.
+<span class="lineNum">      36 </span>                :<span class="lineCov">       5288 :         int nHeight = std::max(pindex-&gt;nHeight - nStep, 0);</span>
+<span class="lineNum">      37 </span>        [<span class="branchCov" title="Branch 0 was taken 2151 times"> + </span><span class="branchCov" title="Branch 1 was taken 493 times"> + </span>]:<span class="lineCov">       2644 :         if (Contains(pindex)) {</span>
+<span class="lineNum">      38 </span>                :            :             // Use O(1) CChain index if possible.
+<span class="lineNum">      39 </span>                :            :             pindex = (*this)[nHeight];
+<span class="lineNum">      40 </span>                :            :         } else {
+<span class="lineNum">      41 </span>                :            :             // Otherwise, use O(log n) skiplist.
+<span class="lineNum">      42 </span>                :<span class="lineCov">        493 :             pindex = pindex-&gt;GetAncestor(nHeight);</span>
+<span class="lineNum">      43 </span>                :            :         }
+<span class="lineNum">      44 </span>        [<span class="branchCov" title="Branch 0 was taken 1030 times"> + </span><span class="branchCov" title="Branch 1 was taken 1614 times"> + </span>]:<span class="lineCov">       2644 :         if (vHave.size() &gt; 10)</span>
+<span class="lineNum">      45 </span>                :<span class="lineCov">       1614 :             nStep *= 2;</span>
+<span class="lineNum">      46 </span>                :            :     }
+<span class="lineNum">      47 </span>                :            : 
+<span class="lineNum">      48 </span>                :<span class="lineCov">        109 :     return CBlockLocator(vHave);</span>
+<span class="lineNum">      49 </span>                :            : }
+<span class="lineNum">      50 </span>                :            : 
+<span class="lineNum">      51 </span>                :<span class="lineCov">       2860 : const CBlockIndex *CChain::FindFork(const CBlockIndex *pindex) const {</span>
+<span class="lineNum">      52 </span>        [<span class="branchCov" title="Branch 0 was taken 2793 times"> + </span><span class="branchCov" title="Branch 1 was taken 67 times"> + </span>]:<span class="lineCov">       2860 :     if (pindex == nullptr) {</span>
+<span class="lineNum">      53 </span>                :            :         return nullptr;
+<span class="lineNum">      54 </span>                :            :     }
+<span class="lineNum">      55 </span>        [<span class="branchCov" title="Branch 0 was taken 1429 times"> + </span><span class="branchCov" title="Branch 1 was taken 1364 times"> + </span>]:<span class="lineCov">       2793 :     if (pindex-&gt;nHeight &gt; Height())</span>
+<span class="lineNum">      56 </span>                :<span class="lineCov">       2793 :         pindex = pindex-&gt;GetAncestor(Height());</span>
+<span class="lineNum">      57 </span>[<span class="branchCov" title="Branch 0 was taken 2784 times"> + </span><span class="branchCov" title="Branch 1 was taken 67 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 58 times"> + </span><span class="branchCov" title="Branch 3 was taken 2726 times"> + </span>]:<span class="lineCov">       5577 :     while (pindex &amp;&amp; !Contains(pindex))</span>
+<span class="lineNum">      58 </span>                :<span class="lineCov">         58 :         pindex = pindex-&gt;pprev;</span>
+<span class="lineNum">      59 </span>                :            :     return pindex;
+<span class="lineNum">      60 </span>                :            : }
+<span class="lineNum">      61 </span>                :            : 
+<span class="lineNum">      62 </span>                :<span class="lineCov">      10024 : CBlockIndex* CChain::FindEarliestAtLeast(int64_t nTime, int height) const</span>
+<span class="lineNum">      63 </span>                :            : {
+<span class="lineNum">      64 </span>                :<span class="lineCov">      10024 :     std::pair&lt;int64_t, int&gt; blockparams = std::make_pair(nTime, height);</span>
+<span class="lineNum">      65 </span>                :            :     std::vector&lt;CBlockIndex*&gt;::const_iterator lower = std::lower_bound(vChain.begin(), vChain.end(), blockparams,
+<span class="lineNum">      66 </span>[<span class="branchCov" title="Branch 0 was taken 120481 times"> + </span><span class="branchCov" title="Branch 1 was taken 44172 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 10 times"> + </span><span class="branchCov" title="Branch 3 was taken 120471 times"> + </span>]:<span class="lineCov">     164653 :         [](CBlockIndex* pBlock, const std::pair&lt;int64_t, int&gt;&amp; blockparams) -&gt; bool { return pBlock-&gt;GetBlockTimeMax() &lt; blockparams.first || pBlock-&gt;nHeight &lt; blockparams.second; });</span>
+<span class="lineNum">      67 </span>        [<span class="branchCov" title="Branch 0 was taken 10018 times"> + </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>]:<span class="lineCov">      10024 :     return (lower == vChain.end() ? nullptr : *lower);</span>
+<span class="lineNum">      68 </span>                :            : }
+<span class="lineNum">      69 </span>                :            : 
+<span class="lineNum">      70 </span>                :            : /** Turn the lowest '1' bit in the binary representation of a number into a '0'. */
+<span class="lineNum">      71 </span>                :<span class="lineCov">   53602387 : int static inline InvertLowestOne(int n) { return n &amp; (n - 1); }</span>
+<span class="lineNum">      72 </span>                :            : 
+<span class="lineNum">      73 </span>                :            : /** Compute what height to jump back to with the CBlockIndex::pskip pointer. */
+<span class="lineNum">      74 </span>                :            : int static inline GetSkipHeight(int height) {
+<span class="lineNum">      75 </span>[<span class="branchCov" title="Branch 0 was taken 4746787 times"> + </span><span class="branchCov" title="Branch 1 was taken 340 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 15494306 times"> + </span><span class="branchCov" title="Branch 3 was taken 5022 times"> + </span>]:<span class="lineCov">   35740761 :     if (height &lt; 2)</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 15493952 times"> + </span><span class="branchCov" title="Branch 5 was taken 5376 times"> + </span>]
+<span class="lineNum">      76 </span>                :            :         return 0;
+<span class="lineNum">      77 </span>                :            : 
+<span class="lineNum">      78 </span>                :            :     // Determine which height to jump back to. Any number strictly lower than height is acceptable,
+<span class="lineNum">      79 </span>                :            :     // but the following expression seems to perform well in simulations (max 110 steps to go back
+<span class="lineNum">      80 </span>                :            :     // up to 2**18 blocks).
+<span class="lineNum">      81 </span>[<span class="branchCov" title="Branch 0 was taken 2373390 times"> + </span><span class="branchCov" title="Branch 1 was taken 2373397 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 8954425 times"> + </span><span class="branchCov" title="Branch 3 was taken 6539881 times"> + </span>]:<span class="lineCov">   35735045 :     return (height &amp; 1) ? InvertLowestOne(InvertLowestOne(height - 1)) + 1 : InvertLowestOne(height);</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 6539527 times"> + </span><span class="branchCov" title="Branch 5 was taken 8954425 times"> + </span>]
+<a name="82"><span class="lineNum">      82 </span>                :            : }</a>
+<span class="lineNum">      83 </span>                :            : 
+<span class="lineNum">      84 </span>                :<span class="lineCov">    5103448 : const CBlockIndex* CBlockIndex::GetAncestor(int height) const</span>
+<span class="lineNum">      85 </span>                :            : {
+<span class="lineNum">      86 </span>[<span class="branchCov" title="Branch 0 was taken 5100531 times"> + </span><span class="branchCov" title="Branch 1 was taken 2917 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 4850892 times"> + </span><span class="branchCov" title="Branch 3 was taken 249639 times"> + </span>]:<span class="lineCov">   20602776 :     if (height &gt; nHeight || height &lt; 0) {</span>
+<span class="lineNum">      87 </span>                :            :         return nullptr;
+<span class="lineNum">      88 </span>                :            :     }
+<span class="lineNum">      89 </span>                :            : 
+<span class="lineNum">      90 </span>                :            :     const CBlockIndex* pindexWalk = this;
+<span class="lineNum">      91 </span>                :            :     int heightWalk = nHeight;
+<span class="lineNum">      92 </span>        [<span class="branchCov" title="Branch 0 was taken 15499328 times"> + </span><span class="branchCov" title="Branch 1 was taken 4850892 times"> + </span>]:<span class="lineCov">   20350220 :     while (heightWalk &gt; height) {</span>
+<span class="lineNum">      93 </span>                :<span class="lineCov">   15499328 :         int heightSkip = GetSkipHeight(heightWalk);</span>
+<span class="lineNum">      94 </span>                :<span class="lineCov">   30998656 :         int heightSkipPrev = GetSkipHeight(heightWalk - 1);</span>
+<span class="lineNum">      95 </span>[<span class="branchCov" title="Branch 0 was taken 15499324 times"> + </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 2579502 times"> + </span><span class="branchCov" title="Branch 3 was taken 12919822 times"> + </span>]:<span class="lineCov">   15499328 :         if (pindexWalk-&gt;pskip != nullptr &amp;&amp;</span>
+<span class="lineNum">      96 </span>        [<span class="branchCov" title="Branch 0 was taken 5938040 times"> + </span><span class="branchCov" title="Branch 1 was taken 6981782 times"> + </span>]:<span class="lineCov">   12919822 :             (heightSkip == height ||</span>
+<span class="lineNum">      97 </span>[<span class="branchCov" title="Branch 0 was taken 4134857 times"> + </span><span class="branchCov" title="Branch 1 was taken 1803183 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1185486 times"> + </span><span class="branchCov" title="Branch 3 was taken 617697 times"> + </span>]:<span class="lineCov">    5938040 :              (heightSkip &gt; height &amp;&amp; !(heightSkipPrev &lt; heightSkip - 2 &amp;&amp;</span>
+<span class="lineNum">      98 </span>                :            :                                        heightSkipPrev &gt;= height)))) {
+<span class="lineNum">      99 </span>                :            :             // Only follow pskip if pprev-&gt;pskip isn't better than pskip-&gt;pprev.
+<span class="lineNum">     100 </span>                :            :             pindexWalk = pindexWalk-&gt;pskip;
+<span class="lineNum">     101 </span>                :            :             heightWalk = heightSkip;
+<span class="lineNum">     102 </span>                :            :         } else {
+<span class="lineNum">     103 </span>        [<span class="branchCov" title="Branch 0 was taken 7599483 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">    7599483 :             assert(pindexWalk-&gt;pprev);</span>
+<span class="lineNum">     104 </span>                :            :             pindexWalk = pindexWalk-&gt;pprev;
+<span class="lineNum">     105 </span>                :            :             heightWalk--;
+<span class="lineNum">     106 </span>                :            :         }
+<span class="lineNum">     107 </span>                :            :     }
+<span class="lineNum">     108 </span>                :            :     return pindexWalk;
+<a name="109"><span class="lineNum">     109 </span>                :            : }</a>
+<span class="lineNum">     110 </span>                :            : 
+<span class="lineNum">     111 </span>                :<span class="lineCov">    4764505 : CBlockIndex* CBlockIndex::GetAncestor(int height)</span>
+<span class="lineNum">     112 </span>                :            : {
+<span class="lineNum">     113 </span>                :<span class="lineCov">    4764505 :     return const_cast&lt;CBlockIndex*&gt;(static_cast&lt;const CBlockIndex*&gt;(this)-&gt;GetAncestor(height));</span>
+<a name="114"><span class="lineNum">     114 </span>                :            : }</a>
+<span class="lineNum">     115 </span>                :            : 
+<span class="lineNum">     116 </span>                :<span class="lineCov">    4747453 : void CBlockIndex::BuildSkip()</span>
+<span class="lineNum">     117 </span>                :            : {
+<span class="lineNum">     118 </span>        [<span class="branchCov" title="Branch 0 was taken 4747127 times"> + </span><span class="branchCov" title="Branch 1 was taken 326 times"> + </span>]:<span class="lineCov">    4747453 :     if (pprev)</span>
+<span class="lineNum">     119 </span>                :<span class="lineCov">    4747127 :         pskip = pprev-&gt;GetAncestor(GetSkipHeight(nHeight));</span>
+<a name="120"><span class="lineNum">     120 </span>                :<span class="lineCov">    4747453 : }</span></a>
+<span class="lineNum">     121 </span>                :            : 
+<span class="lineNum">     122 </span>                :<span class="lineCov">      12487 : arith_uint256 GetBlockProof(const CBlockIndex&amp; block)</span>
+<span class="lineNum">     123 </span>                :            : {
+<span class="lineNum">     124 </span>                :<span class="lineCov">      12487 :     arith_uint256 bnTarget;</span>
+<span class="lineNum">     125 </span>                :            :     bool fNegative;
+<span class="lineNum">     126 </span>                :            :     bool fOverflow;
+<span class="lineNum">     127 </span>                :<span class="lineCov">      12487 :     bnTarget.SetCompact(block.nBits, &amp;fNegative, &amp;fOverflow);</span>
+<span class="lineNum">     128 </span>        [<span class="branchCov" title="Branch 0 was taken 12487 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      24974 :     if (fNegative || fOverflow || bnTarget == 0)</span>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 2 was taken 12487 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 12487 times"> + </span>]
+<span class="lineNum">     129 </span>                :            :         return 0;
+<span class="lineNum">     130 </span>                :            :     // We need to compute 2**256 / (bnTarget+1), but we can't represent 2**256
+<span class="lineNum">     131 </span>                :            :     // as it's too large for an arith_uint256. However, as 2**256 is at least as large
+<span class="lineNum">     132 </span>                :            :     // as bnTarget+1, it is equal to ((2**256 - bnTarget - 1) / (bnTarget+1)) + 1,
+<span class="lineNum">     133 </span>                :            :     // or ~bnTarget / (bnTarget+1) + 1.
+<span class="lineNum">     134 </span>                :<span class="lineCov">      24974 :     return (~bnTarget / (bnTarget + 1)) + 1;</span>
+<a name="135"><span class="lineNum">     135 </span>                :            : }</a>
+<span class="lineNum">     136 </span>                :            : 
+<span class="lineNum">     137 </span>                :<span class="lineCov">       1000 : int64_t GetBlockProofEquivalentTime(const CBlockIndex&amp; to, const CBlockIndex&amp; from, const CBlockIndex&amp; tip, const Consensus::Params&amp; params)</span>
+<span class="lineNum">     138 </span>                :            : {
+<span class="lineNum">     139 </span>                :<span class="lineCov">       1000 :     arith_uint256 r;</span>
+<span class="lineNum">     140 </span>                :<span class="lineCov">       1000 :     int sign = 1;</span>
+<span class="lineNum">     141 </span>        [<span class="branchCov" title="Branch 0 was taken 514 times"> + </span><span class="branchCov" title="Branch 1 was taken 486 times"> + </span>]:<span class="lineCov">       1000 :     if (to.nChainWork &gt; from.nChainWork) {</span>
+<span class="lineNum">     142 </span>                :<span class="lineCov">       1028 :         r = to.nChainWork - from.nChainWork;</span>
+<span class="lineNum">     143 </span>                :            :     } else {
+<span class="lineNum">     144 </span>                :<span class="lineCov">        486 :         r = from.nChainWork - to.nChainWork;</span>
+<span class="lineNum">     145 </span>                :<span class="lineCov">        486 :         sign = -1;</span>
+<span class="lineNum">     146 </span>                :            :     }
+<span class="lineNum">     147 </span>                :<span class="lineCov">       2000 :     r = r * arith_uint256(params.nPowTargetSpacing) / GetBlockProof(tip);</span>
+<span class="lineNum">     148 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 1000 times"> + </span>]:<span class="lineCov">       1000 :     if (r.bits() &gt; 63) {</span>
+<span class="lineNum">     149 </span>                :<span class="lineNoCov">          0 :         return sign * std::numeric_limits&lt;int64_t&gt;::max();</span>
+<span class="lineNum">     150 </span>                :            :     }
+<span class="lineNum">     151 </span>                :<span class="lineCov">       1000 :     return sign * r.GetLow64();</span>
+<span class="lineNum">     152 </span>                :            : }
+<span class="lineNum">     153 </span>                :            : 
+<a name="154"><span class="lineNum">     154 </span>                :            : /** Find the last common ancestor two blocks have.</a>
+<span class="lineNum">     155 </span>                :            :  *  Both pa and pb must be non-nullptr. */
+<span class="lineNum">     156 </span>                :<span class="lineNoCov">          0 : const CBlockIndex* LastCommonAncestor(const CBlockIndex* pa, const CBlockIndex* pb) {</span>
+<span class="lineNum">     157 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (pa-&gt;nHeight &gt; pb-&gt;nHeight) {</span>
+<span class="lineNum">     158 </span>                :<span class="lineNoCov">          0 :         pa = pa-&gt;GetAncestor(pb-&gt;nHeight);</span>
+<span class="lineNum">     159 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     } else if (pb-&gt;nHeight &gt; pa-&gt;nHeight) {</span>
+<span class="lineNum">     160 </span>                :<span class="lineNoCov">          0 :         pb = pb-&gt;GetAncestor(pa-&gt;nHeight);</span>
+<span class="lineNum">     161 </span>                :            :     }
+<span class="lineNum">     162 </span>                :            : 
+<span class="lineNum">     163 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     while (pa != pb &amp;&amp; pa &amp;&amp; pb) {</span>
+<span class="lineNum">     164 </span>                :<span class="lineNoCov">          0 :         pa = pa-&gt;pprev;</span>
+<span class="lineNum">     165 </span>                :<span class="lineNoCov">          0 :         pb = pb-&gt;pprev;</span>
+<span class="lineNum">     166 </span>                :            :     }
+<span class="lineNum">     167 </span>                :            : 
+<span class="lineNum">     168 </span>                :            :     // Eventually all chain branches meet at the genesis block.
+<a name="169"><span class="lineNum">     169 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     assert(pa == pb);</span></a>
+<span class="lineNum">     170 </span>                :<span class="lineNoCov">          0 :     return pa;</span>
+<span class="lineNum">     171 </span>[<span class="branchCov" title="Branch 1 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        300 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

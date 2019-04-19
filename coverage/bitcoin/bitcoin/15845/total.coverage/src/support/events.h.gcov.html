@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/support/events.h</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/support</a> - events.h<span style="font-size: 80%;"> (source / <a href="events.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">15</td>
+            <td class="headerCovTableEntry">18</td>
+            <td class="headerCovTableEntryMed">83.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntryLo">37.5 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2016-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #ifndef BITCOIN_SUPPORT_EVENTS_H
+<span class="lineNum">       6 </span>                :            : #define BITCOIN_SUPPORT_EVENTS_H
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;ios&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;memory&gt;
+<span class="lineNum">      10 </span>                :            : 
+<span class="lineNum">      11 </span>                :            : #include &lt;event2/event.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;event2/http.h&gt;
+<span class="lineNum">      13 </span>                :            : 
+<span class="lineNum">      14 </span>                :            : #define MAKE_RAII(type) \
+<span class="lineNum">      15 </span>                :            : /* deleter */\
+<span class="lineNum">      16 </span>                :            : struct type##_deleter {\
+<span class="lineNum">      17 </span>                :            :     void operator()(struct type* ob) {\
+<span class="lineNum">      18 </span>                :            :         type##_free(ob);\
+<span class="lineNum">      19 </span>                :            :     }\
+<span class="lineNum">      20 </span>                :            : };\
+<span class="lineNum">      21 </span>                :            : /* unique ptr typedef */\
+<span class="lineNum">      22 </span>                :            : typedef std::unique_ptr&lt;struct type, type##_deleter&gt; raii_##type
+<span class="lineNum">      23 </span>                :            : 
+<span class="lineNum">      24 </span>                :<span class="lineCov">        700 : MAKE_RAII(event_base);</span>
+<span class="lineNum">      25 </span>                :<span class="lineCov">          2 : MAKE_RAII(event);</span>
+<span class="lineNum">      26 </span>                :<span class="lineNoCov">          0 : MAKE_RAII(evhttp);</span>
+<span class="lineNum">      27 </span>                :<span class="lineCov">          1 : MAKE_RAII(evhttp_request);</span>
+<a name="28"><span class="lineNum">      28 </span>                :<span class="lineCov">        310 : MAKE_RAII(evhttp_connection);</span></a>
+<span class="lineNum">      29 </span>                :            : 
+<span class="lineNum">      30 </span>                :<span class="lineCov">        700 : inline raii_event_base obtain_event_base() {</span>
+<span class="lineNum">      31 </span>                :<span class="lineCov">        700 :     auto result = raii_event_base(event_base_new());</span>
+<span class="lineNum">      32 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 700 times"> + </span>]:<span class="lineCov">        700 :     if (!result.get())</span>
+<span class="lineNum">      33 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw std::runtime_error(&quot;cannot create event_base&quot;);</span>
+<span class="lineNum">      34 </span>                :<span class="lineCov">        700 :     return result;</span>
+<span class="lineNum">      35 </span>                :            : }
+<span class="lineNum">      36 </span>                :            : 
+<span class="lineNum">      37 </span>                :            : inline raii_event obtain_event(struct event_base* base, evutil_socket_t s, short events, event_callback_fn cb, void* arg) {
+<span class="lineNum">      38 </span>  [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          2 :     return raii_event(event_new(base, s, events, cb, arg));</span>
+<span class="lineNum">      39 </span>                :            : }
+<span class="lineNum">      40 </span>                :            : 
+<span class="lineNum">      41 </span>                :            : inline raii_evhttp obtain_evhttp(struct event_base* base) {
+<span class="lineNum">      42 </span>        [<span class="branchCov" title="Branch 1 was taken 387 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        387 :     return raii_evhttp(evhttp_new(base));</span>
+<span class="lineNum">      43 </span>                :            : }
+<span class="lineNum">      44 </span>                :            : 
+<span class="lineNum">      45 </span>                :            : inline raii_evhttp_request obtain_evhttp_request(void(*cb)(struct evhttp_request *, void *), void *arg) {
+<span class="lineNum">      46 </span>        [<span class="branchCov" title="Branch 1 was taken 310 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        310 :     return raii_evhttp_request(evhttp_request_new(cb, arg));</span>
+<a name="47"><span class="lineNum">      47 </span>                :            : }</a>
+<span class="lineNum">      48 </span>                :            : 
+<span class="lineNum">      49 </span>                :<span class="lineCov">        310 : inline raii_evhttp_connection obtain_evhttp_connection_base(struct event_base* base, std::string host, uint16_t port) {</span>
+<span class="lineNum">      50 </span>                :<span class="lineCov">        310 :     auto result = raii_evhttp_connection(evhttp_connection_base_new(base, nullptr, host.c_str(), port));</span>
+<span class="lineNum">      51 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 310 times"> + </span>]:<span class="lineCov">        310 :     if (!result.get())</span>
+<span class="lineNum">      52 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw std::runtime_error(&quot;create connection failed&quot;);</span>
+<span class="lineNum">      53 </span>                :<span class="lineCov">        310 :     return result;</span>
+<span class="lineNum">      54 </span>                :            : }
+<span class="lineNum">      55 </span>                :            : 
+<span class="lineNum">      56 </span>                :            : #endif // BITCOIN_SUPPORT_EVENTS_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

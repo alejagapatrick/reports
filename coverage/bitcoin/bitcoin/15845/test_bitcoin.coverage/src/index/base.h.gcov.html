@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/index/base.h</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/index</a> - base.h<span style="font-size: 80%;"> (source / <a href="base.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntryLo">66.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryLo">50.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryLo">50.0 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2017-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #ifndef BITCOIN_INDEX_BASE_H
+<span class="lineNum">       6 </span>                :            : #define BITCOIN_INDEX_BASE_H
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;dbwrapper.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;primitives/block.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;primitives/transaction.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;threadinterrupt.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;uint256.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;validationinterface.h&gt;
+<span class="lineNum">      14 </span>                :            : 
+<span class="lineNum">      15 </span>                :            : class CBlockIndex;
+<span class="lineNum">      16 </span>                :            : 
+<span class="lineNum">      17 </span>                :            : /**
+<span class="lineNum">      18 </span>                :            :  * Base class for indices of blockchain data. This implements
+<span class="lineNum">      19 </span>                :            :  * CValidationInterface and ensures blocks are indexed sequentially according
+<a name="20"><span class="lineNum">      20 </span>                :            :  * to their position in the active chain.</a>
+<span class="lineNum">      21 </span>                :            :  */
+<span class="lineNum">      22 </span>        [<span class="branchCov" title="Branch 1 was taken 5 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">          5 : class BaseIndex : public CValidationInterface</span>
+<span class="lineNum">      23 </span>                :            : {
+<span class="lineNum">      24 </span>                :            : protected:
+<span class="lineNum">      25 </span>                :<span class="lineCov">          5 :     class DB : public CDBWrapper</span>
+<span class="lineNum">      26 </span>                :            :     {
+<span class="lineNum">      27 </span>                :            :     public:
+<span class="lineNum">      28 </span>                :            :         DB(const fs::path&amp; path, size_t n_cache_size,
+<span class="lineNum">      29 </span>                :            :            bool f_memory = false, bool f_wipe = false, bool f_obfuscate = false);
+<span class="lineNum">      30 </span>                :            : 
+<span class="lineNum">      31 </span>                :            :         /// Read block locator of the chain that the txindex is in sync with.
+<span class="lineNum">      32 </span>                :            :         bool ReadBestBlock(CBlockLocator&amp; locator) const;
+<span class="lineNum">      33 </span>                :            : 
+<span class="lineNum">      34 </span>                :            :         /// Write block locator of the chain that the txindex is in sync with.
+<span class="lineNum">      35 </span>                :            :         void WriteBestBlock(CDBBatch&amp; batch, const CBlockLocator&amp; locator);
+<span class="lineNum">      36 </span>                :            :     };
+<span class="lineNum">      37 </span>                :            : 
+<span class="lineNum">      38 </span>                :            : private:
+<span class="lineNum">      39 </span>                :            :     /// Whether the index is in sync with the main chain. The flag is flipped
+<span class="lineNum">      40 </span>                :            :     /// from false to true once, after which point this starts processing
+<span class="lineNum">      41 </span>                :            :     /// ValidationInterface notifications to stay in sync.
+<span class="lineNum">      42 </span>                :            :     std::atomic&lt;bool&gt; m_synced{false};
+<span class="lineNum">      43 </span>                :            : 
+<span class="lineNum">      44 </span>                :            :     /// The last block in the chain that the index is in sync with.
+<span class="lineNum">      45 </span>                :            :     std::atomic&lt;const CBlockIndex*&gt; m_best_block_index{nullptr};
+<span class="lineNum">      46 </span>                :            : 
+<span class="lineNum">      47 </span>                :            :     std::thread m_thread_sync;
+<span class="lineNum">      48 </span>                :            :     CThreadInterrupt m_interrupt;
+<span class="lineNum">      49 </span>                :            : 
+<span class="lineNum">      50 </span>                :            :     /// Sync the index with the block index starting from the current best block.
+<span class="lineNum">      51 </span>                :            :     /// Intended to be run in its own thread, m_thread_sync, and can be
+<span class="lineNum">      52 </span>                :            :     /// interrupted with m_interrupt. Once the index gets in sync, the m_synced
+<span class="lineNum">      53 </span>                :            :     /// flag is set and the BlockConnected ValidationInterface callback takes
+<span class="lineNum">      54 </span>                :            :     /// over and the sync thread exits.
+<span class="lineNum">      55 </span>                :            :     void ThreadSync();
+<span class="lineNum">      56 </span>                :            : 
+<span class="lineNum">      57 </span>                :            :     /// Write the current index state (eg. chain block locator and subclass-specific items) to disk.
+<span class="lineNum">      58 </span>                :            :     ///
+<span class="lineNum">      59 </span>                :            :     /// Recommendations for error handling:
+<span class="lineNum">      60 </span>                :            :     /// If called on a successor of the previous committed best block in the index, the index can
+<span class="lineNum">      61 </span>                :            :     /// continue processing without risk of corruption, though the index state will need to catch up
+<span class="lineNum">      62 </span>                :            :     /// from further behind on reboot. If the new state is not a successor of the previous state (due
+<span class="lineNum">      63 </span>                :            :     /// to a chain reorganization), the index must halt until Commit succeeds or else it could end up
+<span class="lineNum">      64 </span>                :            :     /// getting corrupted.
+<span class="lineNum">      65 </span>                :            :     bool Commit();
+<span class="lineNum">      66 </span>                :            : 
+<span class="lineNum">      67 </span>                :            : protected:
+<span class="lineNum">      68 </span>                :            :     void BlockConnected(const std::shared_ptr&lt;const CBlock&gt;&amp; block, const CBlockIndex* pindex,
+<span class="lineNum">      69 </span>                :            :                         const std::vector&lt;CTransactionRef&gt;&amp; txn_conflicted) override;
+<span class="lineNum">      70 </span>                :            : 
+<span class="lineNum">      71 </span>                :            :     void ChainStateFlushed(const CBlockLocator&amp; locator) override;
+<span class="lineNum">      72 </span>                :            : 
+<span class="lineNum">      73 </span>                :            :     /// Initialize internal state from the database and block index.
+<span class="lineNum">      74 </span>                :            :     virtual bool Init();
+<a name="75"><span class="lineNum">      75 </span>                :            : </a>
+<span class="lineNum">      76 </span>                :            :     /// Write update index entries for a newly connected block.
+<span class="lineNum">      77 </span>                :<span class="lineNoCov">          0 :     virtual bool WriteBlock(const CBlock&amp; block, const CBlockIndex* pindex) { return true; }</span>
+<span class="lineNum">      78 </span>                :            : 
+<span class="lineNum">      79 </span>                :            :     /// Virtual method called internally by Commit that can be overridden to atomically
+<span class="lineNum">      80 </span>                :            :     /// commit more index state.
+<span class="lineNum">      81 </span>                :            :     virtual bool CommitInternal(CDBBatch&amp; batch);
+<span class="lineNum">      82 </span>                :            : 
+<span class="lineNum">      83 </span>                :            :     /// Rewind index to an earlier chain tip during a chain reorg. The tip must
+<span class="lineNum">      84 </span>                :            :     /// be an ancestor of the current best block.
+<span class="lineNum">      85 </span>                :            :     virtual bool Rewind(const CBlockIndex* current_tip, const CBlockIndex* new_tip);
+<span class="lineNum">      86 </span>                :            : 
+<span class="lineNum">      87 </span>                :            :     virtual DB&amp; GetDB() const = 0;
+<span class="lineNum">      88 </span>                :            : 
+<span class="lineNum">      89 </span>                :            :     /// Get the name of the index for display in logs.
+<span class="lineNum">      90 </span>                :            :     virtual const char* GetName() const = 0;
+<span class="lineNum">      91 </span>                :            : 
+<span class="lineNum">      92 </span>                :            : public:
+<span class="lineNum">      93 </span>                :            :     /// Destructor interrupts sync thread if running and blocks until it exits.
+<span class="lineNum">      94 </span>                :            :     virtual ~BaseIndex();
+<span class="lineNum">      95 </span>                :            : 
+<span class="lineNum">      96 </span>                :            :     /// Blocks the current thread until the index is caught up to the current
+<span class="lineNum">      97 </span>                :            :     /// state of the block chain. This only blocks if the index has gotten in
+<span class="lineNum">      98 </span>                :            :     /// sync once and only needs to process blocks in the ValidationInterface
+<span class="lineNum">      99 </span>                :            :     /// queue. If the index is catching up from far behind, this method does
+<span class="lineNum">     100 </span>                :            :     /// not block and immediately returns false.
+<span class="lineNum">     101 </span>                :            :     bool BlockUntilSyncedToCurrentChain();
+<span class="lineNum">     102 </span>                :            : 
+<span class="lineNum">     103 </span>                :            :     void Interrupt();
+<span class="lineNum">     104 </span>                :            : 
+<span class="lineNum">     105 </span>                :            :     /// Start initializes the sync state and registers the instance as a
+<span class="lineNum">     106 </span>                :            :     /// ValidationInterface so that it stays in sync with blockchain updates.
+<span class="lineNum">     107 </span>                :            :     void Start();
+<span class="lineNum">     108 </span>                :            : 
+<span class="lineNum">     109 </span>                :            :     /// Stops the instance from staying in sync with blockchain updates.
+<span class="lineNum">     110 </span>                :            :     void Stop();
+<span class="lineNum">     111 </span>                :            : };
+<span class="lineNum">     112 </span>                :            : 
+<span class="lineNum">     113 </span>                :            : #endif // BITCOIN_INDEX_BASE_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

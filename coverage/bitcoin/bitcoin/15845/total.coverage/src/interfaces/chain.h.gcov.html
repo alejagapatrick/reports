@@ -1,0 +1,425 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/interfaces/chain.h</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/interfaces</a> - chain.h<span style="font-size: 80%;"> (source / <a href="chain.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntryHi">-</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntryHi">-</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #ifndef BITCOIN_INTERFACES_CHAIN_H
+<span class="lineNum">       6 </span>                :            : #define BITCOIN_INTERFACES_CHAIN_H
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;blockfilter.h&gt;            // For GCSFilter::ElementSet
+<span class="lineNum">       9 </span>                :            : #include &lt;optional.h&gt;               // For Optional and nullopt
+<span class="lineNum">      10 </span>                :            : #include &lt;primitives/transaction.h&gt; // For CTransactionRef
+<span class="lineNum">      11 </span>                :            : 
+<span class="lineNum">      12 </span>                :            : #include &lt;memory&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;stddef.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;stdint.h&gt;
+<span class="lineNum">      15 </span>                :            : #include &lt;string&gt;
+<span class="lineNum">      16 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">      17 </span>                :            : 
+<span class="lineNum">      18 </span>                :            : class CBlock;
+<span class="lineNum">      19 </span>                :            : class CFeeRate;
+<span class="lineNum">      20 </span>                :            : class CRPCCommand;
+<span class="lineNum">      21 </span>                :            : class CScheduler;
+<span class="lineNum">      22 </span>                :            : class CValidationState;
+<span class="lineNum">      23 </span>                :            : class Coin;
+<span class="lineNum">      24 </span>                :            : class uint256;
+<span class="lineNum">      25 </span>                :            : enum class RBFTransactionState;
+<span class="lineNum">      26 </span>                :            : struct CBlockLocator;
+<span class="lineNum">      27 </span>                :            : struct FeeCalculation;
+<span class="lineNum">      28 </span>                :            : 
+<span class="lineNum">      29 </span>                :            : namespace interfaces {
+<span class="lineNum">      30 </span>                :            : 
+<span class="lineNum">      31 </span>                :            : class Handler;
+<span class="lineNum">      32 </span>                :            : class Wallet;
+<span class="lineNum">      33 </span>                :            : 
+<span class="lineNum">      34 </span>                :            : //! Interface giving clients (wallet processes, maybe other analysis tools in
+<span class="lineNum">      35 </span>                :            : //! the future) ability to access to the chain state, receive notifications,
+<span class="lineNum">      36 </span>                :            : //! estimate fees, and submit transactions.
+<span class="lineNum">      37 </span>                :            : //!
+<span class="lineNum">      38 </span>                :            : //! TODO: Current chain methods are too low level, exposing too much of the
+<span class="lineNum">      39 </span>                :            : //! internal workings of the bitcoin node, and not being very convenient to use.
+<span class="lineNum">      40 </span>                :            : //! Chain methods should be cleaned up and simplified over time. Examples:
+<span class="lineNum">      41 </span>                :            : //!
+<span class="lineNum">      42 </span>                :            : //! * The Chain::lock() method, which lets clients delay chain tip updates
+<span class="lineNum">      43 </span>                :            : //!   should be removed when clients are able to respond to updates
+<span class="lineNum">      44 </span>                :            : //!   asynchronously
+<span class="lineNum">      45 </span>                :            : //!   (https://github.com/bitcoin/bitcoin/pull/10973#issuecomment-380101269).
+<span class="lineNum">      46 </span>                :            : //!
+<span class="lineNum">      47 </span>                :            : //! * The isPotentialTip() and waitForNotifications() methods are too low-level
+<span class="lineNum">      48 </span>                :            : //!   and should be replaced with a higher level
+<span class="lineNum">      49 </span>                :            : //!   waitForNotificationsUpTo(block_hash) method that the wallet can call
+<span class="lineNum">      50 </span>                :            : //!   instead
+<span class="lineNum">      51 </span>                :            : //!   (https://github.com/bitcoin/bitcoin/pull/10973#discussion_r266995234).
+<span class="lineNum">      52 </span>                :            : //!
+<span class="lineNum">      53 </span>                :            : //! * The relayTransactions() and submitToMemoryPool() methods could be replaced
+<span class="lineNum">      54 </span>                :            : //!   with a higher-level broadcastTransaction method
+<span class="lineNum">      55 </span>                :            : //!   (https://github.com/bitcoin/bitcoin/pull/14978#issuecomment-459373984).
+<span class="lineNum">      56 </span>                :            : //!
+<span class="lineNum">      57 </span>                :            : //! * The initMessages() and loadWallet() methods which the wallet uses to send
+<span class="lineNum">      58 </span>                :            : //!   notifications to the GUI should go away when GUI and wallet can directly
+<span class="lineNum">      59 </span>                :            : //!   communicate with each other without going through the node
+<span class="lineNum">      60 </span>                :            : //!   (https://github.com/bitcoin/bitcoin/pull/15288#discussion_r253321096).
+<span class="lineNum">      61 </span>                :            : //!
+<span class="lineNum">      62 </span>                :            : //! * The handleRpc, registerRpcs, rpcEnableDeprecated methods and other RPC
+<span class="lineNum">      63 </span>                :            : //!   methods can go away if wallets listen for HTTP requests on their own
+<span class="lineNum">      64 </span>                :            : //!   ports instead of registering to handle requests on the node HTTP port.
+<span class="lineNum">      65 </span>                :            : class Chain
+<span class="lineNum">      66 </span>                :            : {
+<span class="lineNum">      67 </span>                :            : public:
+<span class="lineNum">      68 </span>                :            :     virtual ~Chain() {}
+<span class="lineNum">      69 </span>                :            : 
+<span class="lineNum">      70 </span>                :            :     //! Interface for querying locked chain state, used by legacy code that
+<span class="lineNum">      71 </span>                :            :     //! assumes state won't change between calls. New code should avoid using
+<span class="lineNum">      72 </span>                :            :     //! the Lock interface and instead call higher-level Chain methods
+<span class="lineNum">      73 </span>                :            :     //! that return more information so the chain doesn't need to stay locked
+<span class="lineNum">      74 </span>                :            :     //! between calls.
+<span class="lineNum">      75 </span>                :            :     class Lock
+<span class="lineNum">      76 </span>                :            :     {
+<span class="lineNum">      77 </span>                :            :     public:
+<span class="lineNum">      78 </span>                :            :         virtual ~Lock() {}
+<span class="lineNum">      79 </span>                :            : 
+<span class="lineNum">      80 </span>                :            :         //! Get current chain height, not including genesis block (returns 0 if
+<span class="lineNum">      81 </span>                :            :         //! chain only contains genesis block, nullopt if chain does not contain
+<span class="lineNum">      82 </span>                :            :         //! any blocks).
+<span class="lineNum">      83 </span>                :            :         virtual Optional&lt;int&gt; getHeight() = 0;
+<span class="lineNum">      84 </span>                :            : 
+<span class="lineNum">      85 </span>                :            :         //! Get block height above genesis block. Returns 0 for genesis block,
+<span class="lineNum">      86 </span>                :            :         //! 1 for following block, and so on. Returns nullopt for a block not
+<span class="lineNum">      87 </span>                :            :         //! included in the current chain.
+<span class="lineNum">      88 </span>                :            :         virtual Optional&lt;int&gt; getBlockHeight(const uint256&amp; hash) = 0;
+<span class="lineNum">      89 </span>                :            : 
+<span class="lineNum">      90 </span>                :            :         //! Get block depth. Returns 1 for chain tip, 2 for preceding block, and
+<span class="lineNum">      91 </span>                :            :         //! so on. Returns 0 for a block not included in the current chain.
+<span class="lineNum">      92 </span>                :            :         virtual int getBlockDepth(const uint256&amp; hash) = 0;
+<span class="lineNum">      93 </span>                :            : 
+<span class="lineNum">      94 </span>                :            :         //! Get block hash. Height must be valid or this function will abort.
+<span class="lineNum">      95 </span>                :            :         virtual uint256 getBlockHash(int height) = 0;
+<span class="lineNum">      96 </span>                :            : 
+<span class="lineNum">      97 </span>                :            :         //! Get block time. Height must be valid or this function will abort.
+<span class="lineNum">      98 </span>                :            :         virtual int64_t getBlockTime(int height) = 0;
+<span class="lineNum">      99 </span>                :            : 
+<span class="lineNum">     100 </span>                :            :         //! Get block median time past. Height must be valid or this function
+<span class="lineNum">     101 </span>                :            :         //! will abort.
+<span class="lineNum">     102 </span>                :            :         virtual int64_t getBlockMedianTimePast(int height) = 0;
+<span class="lineNum">     103 </span>                :            : 
+<span class="lineNum">     104 </span>                :            :         //! Check that the block is available on disk (i.e. has not been
+<span class="lineNum">     105 </span>                :            :         //! pruned), and contains transactions.
+<span class="lineNum">     106 </span>                :            :         virtual bool haveBlockOnDisk(int height) = 0;
+<span class="lineNum">     107 </span>                :            : 
+<span class="lineNum">     108 </span>                :            :         //! Return height of the first block in the chain with timestamp equal
+<span class="lineNum">     109 </span>                :            :         //! or greater than the given time and height equal or greater than the
+<span class="lineNum">     110 </span>                :            :         //! given height, or nullopt if there is no block with a high enough
+<span class="lineNum">     111 </span>                :            :         //! timestamp and height. Also return the block hash as an optional output parameter
+<span class="lineNum">     112 </span>                :            :         //! (to avoid the cost of a second lookup in case this information is needed.)
+<span class="lineNum">     113 </span>                :            :         virtual Optional&lt;int&gt; findFirstBlockWithTimeAndHeight(int64_t time, int height, uint256* hash) = 0;
+<span class="lineNum">     114 </span>                :            : 
+<span class="lineNum">     115 </span>                :            :         //! Return height of last block in the specified range which is pruned, or
+<span class="lineNum">     116 </span>                :            :         //! nullopt if no block in the range is pruned. Range is inclusive.
+<span class="lineNum">     117 </span>                :            :         virtual Optional&lt;int&gt; findPruned(int start_height = 0, Optional&lt;int&gt; stop_height = nullopt) = 0;
+<span class="lineNum">     118 </span>                :            : 
+<span class="lineNum">     119 </span>                :            :         //! Return height of the specified block if it is on the chain, otherwise
+<span class="lineNum">     120 </span>                :            :         //! return the height of the highest block on chain that's an ancestor
+<span class="lineNum">     121 </span>                :            :         //! of the specified block, or nullopt if there is no common ancestor.
+<span class="lineNum">     122 </span>                :            :         //! Also return the height of the specified block as an optional output
+<span class="lineNum">     123 </span>                :            :         //! parameter (to avoid the cost of a second hash lookup in case this
+<span class="lineNum">     124 </span>                :            :         //! information is desired).
+<span class="lineNum">     125 </span>                :            :         virtual Optional&lt;int&gt; findFork(const uint256&amp; hash, Optional&lt;int&gt;* height) = 0;
+<span class="lineNum">     126 </span>                :            : 
+<span class="lineNum">     127 </span>                :            :         //! Return true if block hash points to the current chain tip, or to a
+<span class="lineNum">     128 </span>                :            :         //! possible descendant of the current chain tip that isn't currently
+<span class="lineNum">     129 </span>                :            :         //! connected.
+<span class="lineNum">     130 </span>                :            :         virtual bool isPotentialTip(const uint256&amp; hash) = 0;
+<span class="lineNum">     131 </span>                :            : 
+<span class="lineNum">     132 </span>                :            :         //! Get locator for the current chain tip.
+<span class="lineNum">     133 </span>                :            :         virtual CBlockLocator getTipLocator() = 0;
+<span class="lineNum">     134 </span>                :            : 
+<span class="lineNum">     135 </span>                :            :         //! Return height of the highest block on chain in common with the locator,
+<span class="lineNum">     136 </span>                :            :         //! which will either be the original block used to create the locator,
+<span class="lineNum">     137 </span>                :            :         //! or one of its ancestors.
+<span class="lineNum">     138 </span>                :            :         virtual Optional&lt;int&gt; findLocatorFork(const CBlockLocator&amp; locator) = 0;
+<span class="lineNum">     139 </span>                :            : 
+<span class="lineNum">     140 </span>                :            :         //! Check if transaction will be final given chain height current time.
+<span class="lineNum">     141 </span>                :            :         virtual bool checkFinalTx(const CTransaction&amp; tx) = 0;
+<span class="lineNum">     142 </span>                :            : 
+<span class="lineNum">     143 </span>                :            :         //! Add transaction to memory pool if the transaction fee is below the
+<span class="lineNum">     144 </span>                :            :         //! amount specified by absurd_fee. Returns false if the transaction
+<span class="lineNum">     145 </span>                :            :         //! could not be added due to the fee or for another reason.
+<span class="lineNum">     146 </span>                :            :         virtual bool submitToMemoryPool(const CTransactionRef&amp; tx, CAmount absurd_fee, CValidationState&amp; state) = 0;
+<span class="lineNum">     147 </span>                :            :     };
+<span class="lineNum">     148 </span>                :            : 
+<span class="lineNum">     149 </span>                :            :     //! Return Lock interface. Chain is locked when this is called, and
+<span class="lineNum">     150 </span>                :            :     //! unlocked when the returned interface is freed.
+<span class="lineNum">     151 </span>                :            :     virtual std::unique_ptr&lt;Lock&gt; lock(bool try_lock = false) = 0;
+<span class="lineNum">     152 </span>                :            : 
+<span class="lineNum">     153 </span>                :            :     //! Return Lock interface assuming chain is already locked. This
+<span class="lineNum">     154 </span>                :            :     //! method is temporary and is only used in a few places to avoid changing
+<span class="lineNum">     155 </span>                :            :     //! behavior while code is transitioned to use the Chain::Lock interface.
+<span class="lineNum">     156 </span>                :            :     virtual std::unique_ptr&lt;Lock&gt; assumeLocked() = 0;
+<span class="lineNum">     157 </span>                :            : 
+<span class="lineNum">     158 </span>                :            :     //! Return whether any of the elements match the block via a BIP 157 block
+<span class="lineNum">     159 </span>                :            :     //! filter.
+<span class="lineNum">     160 </span>                :            :     //!
+<span class="lineNum">     161 </span>                :            :     //! Returns true if the block filter for this block could not be found.
+<span class="lineNum">     162 </span>                :            :     virtual bool filterMatchesAny(const uint256&amp; hash, const GCSFilter::ElementSet&amp; filter_set) = 0;
+<span class="lineNum">     163 </span>                :            : 
+<span class="lineNum">     164 </span>                :            :     //! Return whether node has the block and optionally return block metadata
+<span class="lineNum">     165 </span>                :            :     //! or contents.
+<span class="lineNum">     166 </span>                :            :     //!
+<span class="lineNum">     167 </span>                :            :     //! If a block pointer is provided to retrieve the block contents, and the
+<span class="lineNum">     168 </span>                :            :     //! block exists but doesn't have data (for example due to pruning), the
+<span class="lineNum">     169 </span>                :            :     //! block will be empty and all fields set to null.
+<span class="lineNum">     170 </span>                :            :     virtual bool findBlock(const uint256&amp; hash,
+<span class="lineNum">     171 </span>                :            :         CBlock* block = nullptr,
+<span class="lineNum">     172 </span>                :            :         int64_t* time = nullptr,
+<span class="lineNum">     173 </span>                :            :         int64_t* max_time = nullptr) = 0;
+<span class="lineNum">     174 </span>                :            : 
+<span class="lineNum">     175 </span>                :            :     //! Look up unspent output information. Returns coins in the mempool and in
+<span class="lineNum">     176 </span>                :            :     //! the current chain UTXO set. Iterates through all the keys in the map and
+<span class="lineNum">     177 </span>                :            :     //! populates the values.
+<span class="lineNum">     178 </span>                :            :     virtual void findCoins(std::map&lt;COutPoint, Coin&gt;&amp; coins) = 0;
+<span class="lineNum">     179 </span>                :            : 
+<span class="lineNum">     180 </span>                :            :     //! Estimate fraction of total transactions verified if blocks up to
+<span class="lineNum">     181 </span>                :            :     //! the specified block hash are verified.
+<span class="lineNum">     182 </span>                :            :     virtual double guessVerificationProgress(const uint256&amp; block_hash) = 0;
+<span class="lineNum">     183 </span>                :            : 
+<span class="lineNum">     184 </span>                :            :     //! Check if transaction is RBF opt in.
+<span class="lineNum">     185 </span>                :            :     virtual RBFTransactionState isRBFOptIn(const CTransaction&amp; tx) = 0;
+<span class="lineNum">     186 </span>                :            : 
+<span class="lineNum">     187 </span>                :            :     //! Check if transaction has descendants in mempool.
+<span class="lineNum">     188 </span>                :            :     virtual bool hasDescendantsInMempool(const uint256&amp; txid) = 0;
+<span class="lineNum">     189 </span>                :            : 
+<span class="lineNum">     190 </span>                :            :     //! Relay transaction.
+<span class="lineNum">     191 </span>                :            :     virtual void relayTransaction(const uint256&amp; txid) = 0;
+<span class="lineNum">     192 </span>                :            : 
+<span class="lineNum">     193 </span>                :            :     //! Calculate mempool ancestor and descendant counts for the given transaction.
+<span class="lineNum">     194 </span>                :            :     virtual void getTransactionAncestry(const uint256&amp; txid, size_t&amp; ancestors, size_t&amp; descendants) = 0;
+<span class="lineNum">     195 </span>                :            : 
+<span class="lineNum">     196 </span>                :            :     //! Check if transaction will pass the mempool's chain limits.
+<span class="lineNum">     197 </span>                :            :     virtual bool checkChainLimits(const CTransactionRef&amp; tx) = 0;
+<span class="lineNum">     198 </span>                :            : 
+<span class="lineNum">     199 </span>                :            :     //! Estimate smart fee.
+<span class="lineNum">     200 </span>                :            :     virtual CFeeRate estimateSmartFee(int num_blocks, bool conservative, FeeCalculation* calc = nullptr) = 0;
+<span class="lineNum">     201 </span>                :            : 
+<span class="lineNum">     202 </span>                :            :     //! Fee estimator max target.
+<span class="lineNum">     203 </span>                :            :     virtual unsigned int estimateMaxBlocks() = 0;
+<span class="lineNum">     204 </span>                :            : 
+<span class="lineNum">     205 </span>                :            :     //! Mempool minimum fee.
+<span class="lineNum">     206 </span>                :            :     virtual CFeeRate mempoolMinFee() = 0;
+<span class="lineNum">     207 </span>                :            : 
+<span class="lineNum">     208 </span>                :            :     //! Relay current minimum fee (from -minrelaytxfee and -incrementalrelayfee settings).
+<span class="lineNum">     209 </span>                :            :     virtual CFeeRate relayMinFee() = 0;
+<span class="lineNum">     210 </span>                :            : 
+<span class="lineNum">     211 </span>                :            :     //! Relay incremental fee setting (-incrementalrelayfee), reflecting cost of relay.
+<span class="lineNum">     212 </span>                :            :     virtual CFeeRate relayIncrementalFee() = 0;
+<span class="lineNum">     213 </span>                :            : 
+<span class="lineNum">     214 </span>                :            :     //! Relay dust fee setting (-dustrelayfee), reflecting lowest rate it's economical to spend.
+<span class="lineNum">     215 </span>                :            :     virtual CFeeRate relayDustFee() = 0;
+<span class="lineNum">     216 </span>                :            : 
+<span class="lineNum">     217 </span>                :            :     //! Node max tx fee setting (-maxtxfee).
+<span class="lineNum">     218 </span>                :            :     //! This could be replaced by a per-wallet max fee, as proposed at
+<span class="lineNum">     219 </span>                :            :     //! https://github.com/bitcoin/bitcoin/issues/15355
+<span class="lineNum">     220 </span>                :            :     //! But for the time being, wallets call this to access the node setting.
+<span class="lineNum">     221 </span>                :            :     virtual CAmount maxTxFee() = 0;
+<span class="lineNum">     222 </span>                :            : 
+<span class="lineNum">     223 </span>                :            :     //! Check if pruning is enabled.
+<span class="lineNum">     224 </span>                :            :     virtual bool getPruneMode() = 0;
+<span class="lineNum">     225 </span>                :            : 
+<span class="lineNum">     226 </span>                :            :     //! Check if p2p enabled.
+<span class="lineNum">     227 </span>                :            :     virtual bool p2pEnabled() = 0;
+<span class="lineNum">     228 </span>                :            : 
+<span class="lineNum">     229 </span>                :            :     //! Check if the node is ready to broadcast transactions.
+<span class="lineNum">     230 </span>                :            :     virtual bool isReadyToBroadcast() = 0;
+<span class="lineNum">     231 </span>                :            : 
+<span class="lineNum">     232 </span>                :            :     //! Check if in IBD.
+<span class="lineNum">     233 </span>                :            :     virtual bool isInitialBlockDownload() = 0;
+<span class="lineNum">     234 </span>                :            : 
+<span class="lineNum">     235 </span>                :            :     //! Check if shutdown requested.
+<span class="lineNum">     236 </span>                :            :     virtual bool shutdownRequested() = 0;
+<span class="lineNum">     237 </span>                :            : 
+<span class="lineNum">     238 </span>                :            :     //! Get adjusted time.
+<span class="lineNum">     239 </span>                :            :     virtual int64_t getAdjustedTime() = 0;
+<span class="lineNum">     240 </span>                :            : 
+<span class="lineNum">     241 </span>                :            :     //! Send init message.
+<span class="lineNum">     242 </span>                :            :     virtual void initMessage(const std::string&amp; message) = 0;
+<span class="lineNum">     243 </span>                :            : 
+<span class="lineNum">     244 </span>                :            :     //! Send init warning.
+<span class="lineNum">     245 </span>                :            :     virtual void initWarning(const std::string&amp; message) = 0;
+<span class="lineNum">     246 </span>                :            : 
+<span class="lineNum">     247 </span>                :            :     //! Send init error.
+<span class="lineNum">     248 </span>                :            :     virtual void initError(const std::string&amp; message) = 0;
+<span class="lineNum">     249 </span>                :            : 
+<span class="lineNum">     250 </span>                :            :     //! Send wallet load notification to the GUI.
+<span class="lineNum">     251 </span>                :            :     virtual void loadWallet(std::unique_ptr&lt;Wallet&gt; wallet) = 0;
+<span class="lineNum">     252 </span>                :            : 
+<span class="lineNum">     253 </span>                :<span class="lineCov">        582 :     //! Send progress indicator.</span>
+<span class="lineNum">     254 </span>                :            :     virtual void showProgress(const std::string&amp; title, int progress, bool resume_possible) = 0;
+<span class="lineNum">     255 </span>                :            : 
+<span class="lineNum">     256 </span>                :            :     //! Chain notifications.
+<span class="lineNum">     257 </span>                :            :     class Notifications
+<span class="lineNum">     258 </span>                :            :     {
+<span class="lineNum">     259 </span>                :            :     public:
+<span class="lineNum">     260 </span>                :            :         virtual ~Notifications() {}
+<span class="lineNum">     261 </span>                :            :         virtual void TransactionAddedToMempool(const CTransactionRef&amp; tx) {}
+<span class="lineNum">     262 </span>                :            :         virtual void TransactionRemovedFromMempool(const CTransactionRef&amp; ptx) {}
+<span class="lineNum">     263 </span>                :            :         virtual void BlockConnected(const CBlock&amp; block, const std::vector&lt;CTransactionRef&gt;&amp; tx_conflicted) {}
+<span class="lineNum">     264 </span>                :            :         virtual void BlockDisconnected(const CBlock&amp; block) {}
+<span class="lineNum">     265 </span>                :            :         virtual void UpdatedBlockTip() {}
+<span class="lineNum">     266 </span>                :            :         virtual void ChainStateFlushed(const CBlockLocator&amp; locator) {}
+<span class="lineNum">     267 </span>                :            :     };
+<span class="lineNum">     268 </span>                :            : 
+<span class="lineNum">     269 </span>                :            :     //! Register handler for notifications.
+<span class="lineNum">     270 </span>                :            :     virtual std::unique_ptr&lt;Handler&gt; handleNotifications(Notifications&amp; notifications) = 0;
+<span class="lineNum">     271 </span>                :            : 
+<span class="lineNum">     272 </span>                :            :     //! Wait for pending notifications to be handled.
+<span class="lineNum">     273 </span>                :            :     virtual void waitForNotifications() = 0;
+<span class="lineNum">     274 </span>                :            : 
+<span class="lineNum">     275 </span>                :            :     //! Register handler for RPC. Command is not copied, so reference
+<span class="lineNum">     276 </span>                :            :     //! needs to remain valid until Handler is disconnected.
+<span class="lineNum">     277 </span>                :            :     virtual std::unique_ptr&lt;Handler&gt; handleRpc(const CRPCCommand&amp; command) = 0;
+<span class="lineNum">     278 </span>                :            : 
+<span class="lineNum">     279 </span>                :            :     //! Check if deprecated RPC is enabled.
+<span class="lineNum">     280 </span>                :            :     virtual bool rpcEnableDeprecated(const std::string&amp; method) = 0;
+<span class="lineNum">     281 </span>                :            : 
+<span class="lineNum">     282 </span>                :            :     //! Run function after given number of seconds. Cancel any previous calls with same name.
+<span class="lineNum">     283 </span>                :            :     virtual void rpcRunLater(const std::string&amp; name, std::function&lt;void()&gt; fn, int64_t seconds) = 0;
+<span class="lineNum">     284 </span>                :            : 
+<span class="lineNum">     285 </span>                :            :     //! Current RPC serialization flags.
+<span class="lineNum">     286 </span>                :            :     virtual int rpcSerializationFlags() = 0;
+<span class="lineNum">     287 </span>                :            : 
+<span class="lineNum">     288 </span>                :            :     //! Synchronously send TransactionAddedToMempool notifications about all
+<span class="lineNum">     289 </span>                :            :     //! current mempool transactions to the specified handler and return after
+<span class="lineNum">     290 </span>                :            :     //! the last one is sent. These notifications aren't coordinated with async
+<span class="lineNum">     291 </span>                :            :     //! notifications sent by handleNotifications, so out of date async
+<span class="lineNum">     292 </span>                :            :     //! notifications from handleNotifications can arrive during and after
+<span class="lineNum">     293 </span>                :            :     //! synchronous notifications from requestMempoolTransactions. Clients need
+<span class="lineNum">     294 </span>                :            :     //! to be prepared to handle this by ignoring notifications about unknown
+<span class="lineNum">     295 </span>                :            :     //! removed transactions and already added new transactions.
+<span class="lineNum">     296 </span>                :            :     virtual void requestMempoolTransactions(Notifications&amp; notifications) = 0;
+<span class="lineNum">     297 </span>                :            : };
+<span class="lineNum">     298 </span>                :            : 
+<span class="lineNum">     299 </span>                :            : //! Interface to let node manage chain clients (wallets, or maybe tools for
+<span class="lineNum">     300 </span>                :            : //! monitoring and analysis in the future).
+<span class="lineNum">     301 </span>                :            : class ChainClient
+<span class="lineNum">     302 </span>                :            : {
+<span class="lineNum">     303 </span>                :            : public:
+<span class="lineNum">     304 </span>                :            :     virtual ~ChainClient() {}
+<span class="lineNum">     305 </span>                :            : 
+<span class="lineNum">     306 </span>                :            :     //! Register rpcs.
+<span class="lineNum">     307 </span>                :            :     virtual void registerRpcs() = 0;
+<span class="lineNum">     308 </span>                :            : 
+<span class="lineNum">     309 </span>                :            :     //! Check for errors before loading.
+<span class="lineNum">     310 </span>                :            :     virtual bool verify() = 0;
+<span class="lineNum">     311 </span>                :            : 
+<span class="lineNum">     312 </span>                :            :     //! Load saved state.
+<span class="lineNum">     313 </span>                :            :     virtual bool load() = 0;
+<span class="lineNum">     314 </span>                :            : 
+<span class="lineNum">     315 </span>                :            :     //! Start client execution and provide a scheduler.
+<span class="lineNum">     316 </span>                :            :     virtual void start(CScheduler&amp; scheduler) = 0;
+<span class="lineNum">     317 </span>                :            : 
+<span class="lineNum">     318 </span>                :            :     //! Save state to disk.
+<span class="lineNum">     319 </span>                :            :     virtual void flush() = 0;
+<span class="lineNum">     320 </span>                :            : 
+<span class="lineNum">     321 </span>                :            :     //! Shut down client.
+<span class="lineNum">     322 </span>                :            :     virtual void stop() = 0;
+<span class="lineNum">     323 </span>                :            : };
+<span class="lineNum">     324 </span>                :            : 
+<span class="lineNum">     325 </span>                :            : //! Return implementation of Chain interface.
+<span class="lineNum">     326 </span>                :            : std::unique_ptr&lt;Chain&gt; MakeChain();
+<span class="lineNum">     327 </span>                :            : 
+<span class="lineNum">     328 </span>                :            : //! Return implementation of ChainClient interface for a wallet client. This
+<span class="lineNum">     329 </span>                :            : //! function will be undefined in builds where ENABLE_WALLET is false.
+<span class="lineNum">     330 </span>                :            : //!
+<span class="lineNum">     331 </span>                :            : //! Currently, wallets are the only chain clients. But in the future, other
+<span class="lineNum">     332 </span>                :            : //! types of chain clients could be added, such as tools for monitoring,
+<span class="lineNum">     333 </span>                :            : //! analysis, or fee estimation. These clients need to expose their own
+<span class="lineNum">     334 </span>                :            : //! MakeXXXClient functions returning their implementations of the ChainClient
+<span class="lineNum">     335 </span>                :            : //! interface.
+<span class="lineNum">     336 </span>                :            : std::unique_ptr&lt;ChainClient&gt; MakeWalletClient(Chain&amp; chain, std::vector&lt;std::string&gt; wallet_filenames);
+<span class="lineNum">     337 </span>                :            : 
+<span class="lineNum">     338 </span>                :            : } // namespace interfaces
+<span class="lineNum">     339 </span>                :            : 
+<span class="lineNum">     340 </span>                :            : #endif // BITCOIN_INTERFACES_CHAIN_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

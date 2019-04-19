@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/node/transaction.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/node</a> - transaction.cpp<span style="font-size: 80%;"> (source / <a href="transaction.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">30</td>
+            <td class="headerCovTableEntryLo">3.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntryLo">66.7 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">44</td>
+            <td class="headerCovTableEntryLo">4.5 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #include &lt;consensus/validation.h&gt;
+<span class="lineNum">       7 </span>                :            : #include &lt;net.h&gt;
+<span class="lineNum">       8 </span>                :            : #include &lt;txmempool.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;util/validation.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;validation.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;validationinterface.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;node/transaction.h&gt;
+<span class="lineNum">      13 </span>                :            : 
+<span class="lineNum">      14 </span>                :            : #include &lt;future&gt;
+<span class="lineNum">      15 </span>                :            : 
+<span class="lineNum">      16 </span>                :<span class="lineNoCov">          0 : TransactionError BroadcastTransaction(const CTransactionRef tx, uint256&amp; hashTx, std::string&amp; err_string, const CAmount&amp; highfee)</span>
+<span class="lineNum">      17 </span>                :            : {
+<span class="lineNum">      18 </span>                :<span class="lineNoCov">          0 :     std::promise&lt;void&gt; promise;</span>
+<span class="lineNum">      19 </span>                :<span class="lineNoCov">          0 :     hashTx = tx-&gt;GetHash();</span>
+<span class="lineNum">      20 </span>                :            : 
+<span class="lineNum">      21 </span>                :            :     { // cs_main scope
+<span class="lineNum">      22 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     LOCK(cs_main);</span>
+<span class="lineNum">      23 </span>                :<span class="lineNoCov">          0 :     CCoinsViewCache &amp;view = *pcoinsTip;</span>
+<span class="lineNum">      24 </span>                :<span class="lineNoCov">          0 :     bool fHaveChain = false;</span>
+<span class="lineNum">      25 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     for (size_t o = 0; !fHaveChain &amp;&amp; o &lt; tx-&gt;vout.size(); o++) {</span>
+<span class="lineNum">      26 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         const Coin&amp; existingCoin = view.AccessCoin(COutPoint(hashTx, o));</span>
+<span class="lineNum">      27 </span>                :<span class="lineNoCov">          0 :         fHaveChain = !existingCoin.IsSpent();</span>
+<span class="lineNum">      28 </span>                :            :     }
+<span class="lineNum">      29 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     bool fHaveMempool = mempool.exists(hashTx);</span>
+<span class="lineNum">      30 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (!fHaveMempool &amp;&amp; !fHaveChain) {</span>
+<span class="lineNum">      31 </span>                :            :         // push to local node and sync with wallets
+<span class="lineNum">      32 </span>                :<span class="lineNoCov">          0 :         CValidationState state;</span>
+<span class="lineNum">      33 </span>                :            :         bool fMissingInputs;
+<span class="lineNum">      34 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!AcceptToMemoryPool(mempool, state, std::move(tx), &amp;fMissingInputs,</span>
+<span class="lineNum">      35 </span>                :            :                                 nullptr /* plTxnReplaced */, false /* bypass_limits */, highfee)) {
+<span class="lineNum">      36 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (state.IsInvalid()) {</span>
+<span class="lineNum">      37 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 err_string = FormatStateMessage(state);</span>
+<span class="lineNum">      38 </span>                :<span class="lineNoCov">          0 :                 return TransactionError::MEMPOOL_REJECTED;</span>
+<span class="lineNum">      39 </span>                :            :             } else {
+<span class="lineNum">      40 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 if (fMissingInputs) {</span>
+<span class="lineNum">      41 </span>                :            :                     return TransactionError::MISSING_INPUTS;
+<span class="lineNum">      42 </span>                :            :                 }
+<span class="lineNum">      43 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 err_string = FormatStateMessage(state);</span>
+<span class="lineNum">      44 </span>                :<span class="lineNoCov">          0 :                 return TransactionError::MEMPOOL_ERROR;</span>
+<span class="lineNum">      45 </span>                :            :             }
+<span class="lineNum">      46 </span>                :            :         } else {
+<span class="lineNum">      47 </span>                :            :             // If wallet is enabled, ensure that the wallet has been made aware
+<span class="lineNum">      48 </span>                :            :             // of the new transaction prior to returning. This prevents a race
+<span class="lineNum">      49 </span>                :            :             // where a user might call sendrawtransaction with a transaction
+<span class="lineNum">      50 </span>                :            :             // to/from their wallet, immediately call some wallet RPC, and get
+<span class="lineNum">      51 </span>                :            :             // a stale result because callbacks have not yet been processed.
+<span class="lineNum">      52 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             CallFunctionInValidationInterfaceQueue([&amp;promise] {</span>
+<span class="lineNum">      53 </span>                :<span class="lineNoCov">          0 :                 promise.set_value();</span>
+<span class="lineNum">      54 </span>                :            :             });
+<span class="lineNum">      55 </span>                :            :         }
+<span class="lineNum">      56 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     } else if (fHaveChain) {</span>
+<span class="lineNum">      57 </span>                :            :         return TransactionError::ALREADY_IN_CHAIN;
+<span class="lineNum">      58 </span>                :            :     } else {
+<span class="lineNum">      59 </span>                :            :         // Make sure we don't block forever if re-sending
+<span class="lineNum">      60 </span>                :            :         // a transaction already in mempool.
+<span class="lineNum">      61 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         promise.set_value();</span>
+<span class="lineNum">      62 </span>                :            :     }
+<span class="lineNum">      63 </span>                :            : 
+<span class="lineNum">      64 </span>                :            :     } // cs_main
+<span class="lineNum">      65 </span>                :            : 
+<span class="lineNum">      66 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     promise.get_future().wait();</span>
+<span class="lineNum">      67 </span>                :            : 
+<span class="lineNum">      68 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (!g_connman) {</span>
+<span class="lineNum">      69 </span>                :            :         return TransactionError::P2P_DISABLED;
+<span class="lineNum">      70 </span>                :            :     }
+<span class="lineNum">      71 </span>                :            : 
+<span class="lineNum">      72 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     CInv inv(MSG_TX, hashTx);</span>
+<span class="lineNum">      73 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     g_connman-&gt;ForEachNode([&amp;inv](CNode* pnode) {</span>
+<span class="lineNum">      74 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :         pnode-&gt;PushInventory(inv);</span>
+<span class="lineNum">      75 </span>                :            :     });
+<a name="76"><span class="lineNum">      76 </span>                :            : </a>
+<span class="lineNum">      77 </span>                :<span class="lineNoCov">          0 :     return TransactionError::OK;</span>
+<span class="lineNum">      78 </span>[<span class="branchCov" title="Branch 1 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 75 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">        300 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

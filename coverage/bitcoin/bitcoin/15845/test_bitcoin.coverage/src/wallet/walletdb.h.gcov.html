@@ -1,0 +1,363 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - test_bitcoin_coverage.info - src/wallet/walletdb.h</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/wallet</a> - walletdb.h<span style="font-size: 80%;"> (source / <a href="walletdb.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">test_bitcoin_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">52</td>
+            <td class="headerCovTableEntry">53</td>
+            <td class="headerCovTableEntryHi">98.1 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">21</td>
+            <td class="headerCovTableEntry">33</td>
+            <td class="headerCovTableEntryLo">63.6 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">28</td>
+            <td class="headerCovTableEntry">118</td>
+            <td class="headerCovTableEntryLo">23.7 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #ifndef BITCOIN_WALLET_WALLETDB_H
+<span class="lineNum">       7 </span>                :            : #define BITCOIN_WALLET_WALLETDB_H
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : #include &lt;amount.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;primitives/transaction.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;script/sign.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;wallet/db.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;key.h&gt;
+<span class="lineNum">      14 </span>                :            : 
+<span class="lineNum">      15 </span>                :            : #include &lt;list&gt;
+<span class="lineNum">      16 </span>                :            : #include &lt;stdint.h&gt;
+<span class="lineNum">      17 </span>                :            : #include &lt;string&gt;
+<span class="lineNum">      18 </span>                :            : #include &lt;utility&gt;
+<span class="lineNum">      19 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">      20 </span>                :            : 
+<span class="lineNum">      21 </span>                :            : /**
+<span class="lineNum">      22 </span>                :            :  * Overview of wallet database classes:
+<span class="lineNum">      23 </span>                :            :  *
+<span class="lineNum">      24 </span>                :            :  * - WalletBatch is an abstract modifier object for the wallet database, and encapsulates a database
+<span class="lineNum">      25 </span>                :            :  *   batch update as well as methods to act on the database. It should be agnostic to the database implementation.
+<span class="lineNum">      26 </span>                :            :  *
+<span class="lineNum">      27 </span>                :            :  * The following classes are implementation specific:
+<span class="lineNum">      28 </span>                :            :  * - BerkeleyEnvironment is an environment in which the database exists.
+<span class="lineNum">      29 </span>                :            :  * - BerkeleyDatabase represents a wallet database.
+<span class="lineNum">      30 </span>                :            :  * - BerkeleyBatch is a low-level database batch update.
+<span class="lineNum">      31 </span>                :            :  */
+<span class="lineNum">      32 </span>                :            : 
+<span class="lineNum">      33 </span>                :            : static const bool DEFAULT_FLUSHWALLET = true;
+<span class="lineNum">      34 </span>                :            : 
+<span class="lineNum">      35 </span>                :            : struct CBlockLocator;
+<span class="lineNum">      36 </span>                :            : class CKeyPool;
+<span class="lineNum">      37 </span>                :            : class CMasterKey;
+<span class="lineNum">      38 </span>                :            : class CScript;
+<span class="lineNum">      39 </span>                :            : class CWallet;
+<span class="lineNum">      40 </span>                :            : class CWalletTx;
+<span class="lineNum">      41 </span>                :            : class uint160;
+<span class="lineNum">      42 </span>                :            : class uint256;
+<span class="lineNum">      43 </span>                :            : 
+<span class="lineNum">      44 </span>                :            : /** Backend-agnostic database type. */
+<span class="lineNum">      45 </span>                :            : using WalletDatabase = BerkeleyDatabase;
+<span class="lineNum">      46 </span>                :            : 
+<span class="lineNum">      47 </span>                :            : /** Error statuses for the wallet database */
+<span class="lineNum">      48 </span>                :            : enum class DBErrors
+<span class="lineNum">      49 </span>                :            : {
+<span class="lineNum">      50 </span>                :            :     LOAD_OK,
+<span class="lineNum">      51 </span>                :            :     CORRUPT,
+<span class="lineNum">      52 </span>                :            :     NONCRITICAL_ERROR,
+<span class="lineNum">      53 </span>                :            :     TOO_NEW,
+<span class="lineNum">      54 </span>                :            :     LOAD_FAIL,
+<span class="lineNum">      55 </span>                :            :     NEED_REWRITE
+<span class="lineNum">      56 </span>                :            : };
+<span class="lineNum">      57 </span>                :            : 
+<span class="lineNum">      58 </span>                :            : /* simple HD chain data model */
+<span class="lineNum">      59 </span>                :            : class CHDChain
+<span class="lineNum">      60 </span>                :            : {
+<span class="lineNum">      61 </span>                :            : public:
+<span class="lineNum">      62 </span>                :            :     uint32_t nExternalChainCounter;
+<span class="lineNum">      63 </span>                :            :     uint32_t nInternalChainCounter;
+<span class="lineNum">      64 </span>                :            :     CKeyID seed_id; //!&lt; seed hash160
+<span class="lineNum">      65 </span>                :            : 
+<span class="lineNum">      66 </span>                :            :     static const int VERSION_HD_BASE        = 1;
+<span class="lineNum">      67 </span>                :            :     static const int VERSION_HD_CHAIN_SPLIT = 2;
+<span class="lineNum">      68 </span>                :            :     static const int CURRENT_VERSION        = VERSION_HD_CHAIN_SPLIT;
+<a name="69"><span class="lineNum">      69 </span>                :            :     int nVersion;</a>
+<span class="lineNum">      70 </span>                :            : 
+<span class="lineNum">      71 </span>                :<span class="lineCov">         94 :     CHDChain() { SetNull(); }</span>
+<a name="72"><span class="lineNum">      72 </span>  [<span class="branchCov" title="Branch 1 was taken 1001 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineCov">       1001 :     ADD_SERIALIZE_METHODS;</span></a>
+<span class="lineNum">      73 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
+<span class="lineNum">      74 </span>                :<span class="lineCov">       1001 :     inline void SerializationOp(Stream&amp; s, Operation ser_action)</span>
+<span class="lineNum">      75 </span>                :            :     {
+<span class="lineNum">      76 </span>                :<span class="lineCov">       2002 :         READWRITE(this-&gt;nVersion);</span>
+<span class="lineNum">      77 </span>                :<span class="lineCov">       2002 :         READWRITE(nExternalChainCounter);</span>
+<span class="lineNum">      78 </span>                :<span class="lineCov">       2002 :         READWRITE(seed_id);</span>
+<span class="lineNum">      79 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1001 times"> + </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">       1001 :         if (this-&gt;nVersion &gt;= VERSION_HD_CHAIN_SPLIT)</span>
+<span class="lineNum">      80 </span>                :<span class="lineNoCov">          0 :             READWRITE(nInternalChainCounter);</span>
+<span class="lineNum">      81 </span>                :<span class="lineCov">       1001 :     }</span>
+<span class="lineNum">      82 </span>                :            : 
+<span class="lineNum">      83 </span>                :            :     void SetNull()
+<span class="lineNum">      84 </span>                :            :     {
+<span class="lineNum">      85 </span>                :<span class="lineCov">         94 :         nVersion = CHDChain::CURRENT_VERSION;</span>
+<span class="lineNum">      86 </span>                :<span class="lineCov">         94 :         nExternalChainCounter = 0;</span>
+<span class="lineNum">      87 </span>                :<span class="lineCov">         94 :         nInternalChainCounter = 0;</span>
+<span class="lineNum">      88 </span>                :<span class="lineCov">        188 :         seed_id.SetNull();</span>
+<span class="lineNum">      89 </span>                :            :     }
+<a name="90"><span class="lineNum">      90 </span>                :            : };</a>
+<span class="lineNum">      91 </span>                :            : 
+<span class="lineNum">      92 </span>                :<span class="lineCov">       6280 : class CKeyMetadata</span>
+<span class="lineNum">      93 </span>                :            : {
+<span class="lineNum">      94 </span>                :            : public:
+<span class="lineNum">      95 </span>                :            :     static const int VERSION_BASIC=1;
+<span class="lineNum">      96 </span>                :            :     static const int VERSION_WITH_HDDATA=10;
+<span class="lineNum">      97 </span>                :            :     static const int VERSION_WITH_KEY_ORIGIN = 12;
+<span class="lineNum">      98 </span>                :            :     static const int CURRENT_VERSION=VERSION_WITH_KEY_ORIGIN;
+<span class="lineNum">      99 </span>                :            :     int nVersion;
+<span class="lineNum">     100 </span>                :            :     int64_t nCreateTime; // 0 means unknown
+<span class="lineNum">     101 </span>                :            :     std::string hdKeypath; //optional HD/bip32 keypath. Still used to determine whether a key is a seed. Also kept for backwards compatibility
+<span class="lineNum">     102 </span>                :            :     CKeyID hd_seed_id; //id of the HD seed used to derive this key
+<span class="lineNum">     103 </span>                :            :     KeyOriginInfo key_origin; // Key origin info with path and fingerprint
+<a name="104"><span class="lineNum">     104 </span>                :            :     bool has_key_origin = false; //&lt; Whether the key_origin is useful</a>
+<span class="lineNum">     105 </span>                :            : 
+<span class="lineNum">     106 </span>                :<span class="lineCov">       2145 :     CKeyMetadata()</span>
+<span class="lineNum">     107 </span>                :<span class="lineCov">       8580 :     {</span>
+<a name="108"><span class="lineNum">     108 </span>                :<span class="lineCov">       2145 :         SetNull();</span></a>
+<span class="lineNum">     109 </span>                :<span class="lineCov">       2145 :     }</span>
+<span class="lineNum">     110 </span>                :<span class="lineCov">       2001 :     explicit CKeyMetadata(int64_t nCreateTime_)</span>
+<span class="lineNum">     111 </span>                :<span class="lineCov">       8004 :     {</span>
+<span class="lineNum">     112 </span>                :<span class="lineCov">       2001 :         SetNull();</span>
+<span class="lineNum">     113 </span>                :<span class="lineCov">       2001 :         nCreateTime = nCreateTime_;</span>
+<span class="lineNum">     114 </span>                :<span class="lineCov">       2001 :     }</span>
+<span class="lineNum">     115 </span>                :            : 
+<span class="lineNum">     116 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchCov" title="Branch 4 was taken 2002 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span> :<span class="lineCov">       2002 :     ADD_SERIALIZE_METHODS;</span>
+<span class="lineNum">         </span>   <span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<a name="117"><span class="lineNum">     117 </span>                :            : </a>
+<span class="lineNum">     118 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
+<span class="lineNum">     119 </span>                :<span class="lineCov">       2002 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">     120 </span>                :<span class="lineCov">       4004 :         READWRITE(this-&gt;nVersion);</span>
+<span class="lineNum">     121 </span>                :<span class="lineCov">       4004 :         READWRITE(nCreateTime);</span>
+<span class="lineNum">     122 </span>  [<span class="branchCov" title="Branch 0 was taken 2002 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">       2002 :         if (this-&gt;nVersion &gt;= VERSION_WITH_HDDATA)</span>
+<span class="lineNum">     123 </span>                :            :         {
+<span class="lineNum">     124 </span>                :<span class="lineCov">       4004 :             READWRITE(hdKeypath);</span>
+<span class="lineNum">     125 </span>                :<span class="lineCov">       2002 :             READWRITE(hd_seed_id);</span>
+<span class="lineNum">     126 </span>                :            :         }
+<span class="lineNum">     127 </span>[<span class="branchCov" title="Branch 0 was taken 2002 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">       2002 :         if (this-&gt;nVersion &gt;= VERSION_WITH_KEY_ORIGIN)</span>
+<span class="lineNum">     128 </span>                :            :         {
+<span class="lineNum">     129 </span>                :<span class="lineCov">       4004 :             READWRITE(key_origin);</span>
+<span class="lineNum">     130 </span>                :<span class="lineCov">       2002 :             READWRITE(has_key_origin);</span>
+<span class="lineNum">     131 </span>                :            :         }
+<a name="132"><span class="lineNum">     132 </span>                :<span class="lineCov">       2002 :     }</span></a>
+<span class="lineNum">     133 </span>                :            : 
+<span class="lineNum">     134 </span>                :<span class="lineCov">       4146 :     void SetNull()</span>
+<span class="lineNum">     135 </span>                :            :     {
+<span class="lineNum">     136 </span>                :<span class="lineCov">       4146 :         nVersion = CKeyMetadata::CURRENT_VERSION;</span>
+<span class="lineNum">     137 </span>                :<span class="lineCov">       4146 :         nCreateTime = 0;</span>
+<span class="lineNum">     138 </span>                :<span class="lineCov">       8292 :         hdKeypath.clear();</span>
+<span class="lineNum">     139 </span>                :<span class="lineCov">       8292 :         hd_seed_id.SetNull();</span>
+<span class="lineNum">     140 </span>                :<span class="lineCov">       8292 :         key_origin.clear();</span>
+<span class="lineNum">     141 </span>                :<span class="lineCov">       4146 :         has_key_origin = false;</span>
+<span class="lineNum">     142 </span>                :<span class="lineCov">       4146 :     }</span>
+<span class="lineNum">     143 </span>                :            : };
+<span class="lineNum">     144 </span>                :            : 
+<span class="lineNum">     145 </span>                :            : /** Access to the wallet database.
+<span class="lineNum">     146 </span>                :            :  * This represents a single transaction at the
+<span class="lineNum">     147 </span>                :            :  * database. It will be committed when the object goes out of scope.
+<span class="lineNum">     148 </span>                :            :  * Optionally (on by default) it will flush to disk as well.
+<span class="lineNum">     149 </span>                :            :  */
+<span class="lineNum">     150 </span>                :<span class="lineCov">     110163 : class WalletBatch</span>
+<span class="lineNum">     151 </span>                :            : {
+<a name="152"><span class="lineNum">     152 </span>                :            : private:</a>
+<span class="lineNum">     153 </span>                :            :     template &lt;typename K, typename T&gt;
+<span class="lineNum">     154 </span>                :<span class="lineCov">     227255 :     bool WriteIC(const K&amp; key, const T&amp; value, bool fOverwrite = true)</span>
+<span class="lineNum">     155 </span>                :            :     {
+<span class="lineNum">     156 </span>[<span class="branchCov" title="Branch 1 was taken 16 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1001 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     227255 :         if (!m_batch.Write(key, value, fOverwrite)) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 13 was taken 2000 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchCov" title="Branch 16 was taken 110104 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 19 was not executed"> # </span><span class="branchNoExec" title="Branch 20 was not executed"> # </span>][<span class="branchCov" title="Branch 22 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 25 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span>][<span class="branchCov" title="Branch 28 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 31 was not executed"> # </span><span class="branchNoExec" title="Branch 32 was not executed"> # </span>][<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 37 was taken 2009 times"> + </span><span class="branchNoCov" title="Branch 38 was not taken"> - </span>][<span class="branchCov" title="Branch 40 was taken 2009 times"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 43 was taken 110105 times"> + </span><span class="branchNoCov" title="Branch 44 was not taken"> - </span>][<span class="branchNoExec" title="Branch 46 was not executed"> # </span><span class="branchNoExec" title="Branch 47 was not executed"> # </span>]
+<span class="lineNum">     157 </span>                :            :             return false;
+<span class="lineNum">     158 </span>                :            :         }
+<span class="lineNum">     159 </span>                :<span class="lineCov">     227255 :         m_database.IncrementUpdateCounter();</span>
+<span class="lineNum">     160 </span>                :<span class="lineCov">     227255 :         return true;</span>
+<span class="lineNum">     161 </span>                :            :     }
+<a name="162"><span class="lineNum">     162 </span>                :            : </a>
+<span class="lineNum">     163 </span>                :            :     template &lt;typename K&gt;
+<span class="lineNum">     164 </span>                :<span class="lineCov">          1 :     bool EraseIC(const K&amp; key)</span>
+<span class="lineNum">     165 </span>                :            :     {
+<span class="lineNum">     166 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">          1 :         if (!m_batch.Erase(key)) {</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>][<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
+<span class="lineNum">     167 </span>                :            :             return false;
+<span class="lineNum">     168 </span>                :            :         }
+<span class="lineNum">     169 </span>                :<span class="lineCov">          1 :         m_database.IncrementUpdateCounter();</span>
+<span class="lineNum">     170 </span>                :<span class="lineCov">          1 :         return true;</span>
+<span class="lineNum">     171 </span>                :            :     }
+<span class="lineNum">     172 </span>                :            : 
+<span class="lineNum">     173 </span>                :            : public:
+<span class="lineNum">     174 </span>                :<span class="lineCov">     110163 :     explicit WalletBatch(WalletDatabase&amp; database, const char* pszMode = &quot;r+&quot;, bool _fFlushOnClose = true) :</span>
+<span class="lineNum">     175 </span>                :            :         m_batch(database, pszMode, _fFlushOnClose),
+<span class="lineNum">     176 </span>[<span class="branchCov" title="Branch 1 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineCov">     110163 :         m_database(database)</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>][<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 17 was not executed"> # </span><span class="branchNoExec" title="Branch 18 was not executed"> # </span>][<span class="branchCov" title="Branch 21 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 22 was not taken"> - </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 25 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span><span class="branchCov" title="Branch 28 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 31 was not executed"> # </span><span class="branchNoExec" title="Branch 32 was not executed"> # </span>][<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 42 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 43 was not taken"> - </span>][<span class="branchNoExec" title="Branch 45 was not executed"> # </span><span class="branchNoExec" title="Branch 46 was not executed"> # </span> 
+<span class="lineNum">         </span>   <span class="branchCov" title="Branch 48 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 49 was not taken"> - </span><span class="branchCov" title="Branch 51 was taken 10 times"> + </span><span class="branchNoCov" title="Branch 52 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 54 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 55 was not taken"> - </span>][<span class="branchNoExec" title="Branch 57 was not executed"> # </span><span class="branchNoExec" title="Branch 58 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 60 was not executed"> # </span><span class="branchNoExec" title="Branch 61 was not executed"> # </span><span class="branchCov" title="Branch 63 was taken 110105 times"> + </span><span class="branchNoCov" title="Branch 64 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 66 was not executed"> # </span><span class="branchNoExec" title="Branch 67 was not executed"> # </span>][<span class="branchNoExec" title="Branch 70 was not executed"> # </span><span class="branchNoExec" title="Branch 71 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 73 was not executed"> # </span><span class="branchNoExec" title="Branch 74 was not executed"> # </span>][<span class="branchCov" title="Branch 76 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 77 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 80 was not executed"> # </span><span class="branchNoExec" title="Branch 81 was not executed"> # </span>][<span class="branchNoExec" title="Branch 86 was not executed"> # </span><span class="branchNoExec" title="Branch 87 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 90 was not executed"> # </span><span class="branchNoExec" title="Branch 91 was not executed"> # </span>]
+<span class="lineNum">     177 </span>                :            :     {
+<span class="lineNum">     178 </span>                :            :     }
+<span class="lineNum">     179 </span>                :            :     WalletBatch(const WalletBatch&amp;) = delete;
+<span class="lineNum">     180 </span>                :            :     WalletBatch&amp; operator=(const WalletBatch&amp;) = delete;
+<span class="lineNum">     181 </span>                :            : 
+<span class="lineNum">     182 </span>                :            :     bool WriteName(const std::string&amp; strAddress, const std::string&amp; strName);
+<span class="lineNum">     183 </span>                :            :     bool EraseName(const std::string&amp; strAddress);
+<span class="lineNum">     184 </span>                :            : 
+<span class="lineNum">     185 </span>                :            :     bool WritePurpose(const std::string&amp; strAddress, const std::string&amp; purpose);
+<span class="lineNum">     186 </span>                :            :     bool ErasePurpose(const std::string&amp; strAddress);
+<span class="lineNum">     187 </span>                :            : 
+<span class="lineNum">     188 </span>                :            :     bool WriteTx(const CWalletTx&amp; wtx);
+<span class="lineNum">     189 </span>                :            :     bool EraseTx(uint256 hash);
+<span class="lineNum">     190 </span>                :            : 
+<span class="lineNum">     191 </span>                :            :     bool WriteKeyMetadata(const CKeyMetadata&amp; meta, const CPubKey&amp; pubkey, const bool overwrite);
+<span class="lineNum">     192 </span>                :            :     bool WriteKey(const CPubKey&amp; vchPubKey, const CPrivKey&amp; vchPrivKey, const CKeyMetadata &amp;keyMeta);
+<span class="lineNum">     193 </span>                :            :     bool WriteCryptedKey(const CPubKey&amp; vchPubKey, const std::vector&lt;unsigned char&gt;&amp; vchCryptedSecret, const CKeyMetadata &amp;keyMeta);
+<span class="lineNum">     194 </span>                :            :     bool WriteMasterKey(unsigned int nID, const CMasterKey&amp; kMasterKey);
+<span class="lineNum">     195 </span>                :            : 
+<span class="lineNum">     196 </span>                :            :     bool WriteCScript(const uint160&amp; hash, const CScript&amp; redeemScript);
+<span class="lineNum">     197 </span>                :            : 
+<span class="lineNum">     198 </span>                :            :     bool WriteWatchOnly(const CScript &amp;script, const CKeyMetadata &amp;keymeta);
+<span class="lineNum">     199 </span>                :            :     bool EraseWatchOnly(const CScript &amp;script);
+<span class="lineNum">     200 </span>                :            : 
+<span class="lineNum">     201 </span>                :            :     bool WriteBestBlock(const CBlockLocator&amp; locator);
+<span class="lineNum">     202 </span>                :            :     bool ReadBestBlock(CBlockLocator&amp; locator);
+<span class="lineNum">     203 </span>                :            : 
+<span class="lineNum">     204 </span>                :            :     bool WriteOrderPosNext(int64_t nOrderPosNext);
+<span class="lineNum">     205 </span>                :            : 
+<span class="lineNum">     206 </span>                :            :     bool ReadPool(int64_t nPool, CKeyPool&amp; keypool);
+<span class="lineNum">     207 </span>                :            :     bool WritePool(int64_t nPool, const CKeyPool&amp; keypool);
+<span class="lineNum">     208 </span>                :            :     bool ErasePool(int64_t nPool);
+<span class="lineNum">     209 </span>                :            : 
+<span class="lineNum">     210 </span>                :            :     bool WriteMinVersion(int nVersion);
+<span class="lineNum">     211 </span>                :            : 
+<span class="lineNum">     212 </span>                :            :     /// Write destination data key,value tuple to database
+<span class="lineNum">     213 </span>                :            :     bool WriteDestData(const std::string &amp;address, const std::string &amp;key, const std::string &amp;value);
+<span class="lineNum">     214 </span>                :            :     /// Erase destination data tuple from wallet database
+<span class="lineNum">     215 </span>                :            :     bool EraseDestData(const std::string &amp;address, const std::string &amp;key);
+<span class="lineNum">     216 </span>                :            : 
+<span class="lineNum">     217 </span>                :            :     DBErrors LoadWallet(CWallet* pwallet);
+<span class="lineNum">     218 </span>                :            :     DBErrors FindWalletTx(std::vector&lt;uint256&gt;&amp; vTxHash, std::vector&lt;CWalletTx&gt;&amp; vWtx);
+<span class="lineNum">     219 </span>                :            :     DBErrors ZapWalletTx(std::vector&lt;CWalletTx&gt;&amp; vWtx);
+<span class="lineNum">     220 </span>                :            :     DBErrors ZapSelectTx(std::vector&lt;uint256&gt;&amp; vHashIn, std::vector&lt;uint256&gt;&amp; vHashOut);
+<span class="lineNum">     221 </span>                :            :     /* Try to (very carefully!) recover wallet database (with a possible key type filter) */
+<span class="lineNum">     222 </span>                :            :     static bool Recover(const fs::path&amp; wallet_path, void *callbackDataIn, bool (*recoverKVcallback)(void* callbackData, CDataStream ssKey, CDataStream ssValue), std::string&amp; out_backup_filename);
+<span class="lineNum">     223 </span>                :            :     /* Recover convenience-function to bypass the key filter callback, called when verify fails, recovers everything */
+<span class="lineNum">     224 </span>                :            :     static bool Recover(const fs::path&amp; wallet_path, std::string&amp; out_backup_filename);
+<span class="lineNum">     225 </span>                :            :     /* Recover filter (used as callback), will only let keys (cryptographical keys) as KV/key-type pass through */
+<span class="lineNum">     226 </span>                :            :     static bool RecoverKeysOnlyFilter(void *callbackData, CDataStream ssKey, CDataStream ssValue);
+<span class="lineNum">     227 </span>                :            :     /* Function to determine if a certain KV/key-type is a key (cryptographical key) type */
+<span class="lineNum">     228 </span>                :            :     static bool IsKeyType(const std::string&amp; strType);
+<span class="lineNum">     229 </span>                :            :     /* verifies the database environment */
+<span class="lineNum">     230 </span>                :            :     static bool VerifyEnvironment(const fs::path&amp; wallet_path, std::string&amp; errorStr);
+<span class="lineNum">     231 </span>                :            :     /* verifies the database file */
+<span class="lineNum">     232 </span>                :            :     static bool VerifyDatabaseFile(const fs::path&amp; wallet_path, std::string&amp; warningStr, std::string&amp; errorStr);
+<span class="lineNum">     233 </span>                :            : 
+<span class="lineNum">     234 </span>                :            :     //! write the hdchain model (external chain child index counter)
+<span class="lineNum">     235 </span>                :            :     bool WriteHDChain(const CHDChain&amp; chain);
+<span class="lineNum">     236 </span>                :            : 
+<span class="lineNum">     237 </span>                :            :     bool WriteWalletFlags(const uint64_t flags);
+<span class="lineNum">     238 </span>                :            :     //! Begin a new transaction
+<span class="lineNum">     239 </span>                :            :     bool TxnBegin();
+<span class="lineNum">     240 </span>                :            :     //! Commit current transaction
+<span class="lineNum">     241 </span>                :            :     bool TxnCommit();
+<span class="lineNum">     242 </span>                :            :     //! Abort current transaction
+<span class="lineNum">     243 </span>                :            :     bool TxnAbort();
+<span class="lineNum">     244 </span>                :            :     //! Read wallet version
+<span class="lineNum">     245 </span>                :            :     bool ReadVersion(int&amp; nVersion);
+<span class="lineNum">     246 </span>                :            :     //! Write wallet version
+<span class="lineNum">     247 </span>                :            :     bool WriteVersion(int nVersion);
+<span class="lineNum">     248 </span>                :            : private:
+<span class="lineNum">     249 </span>                :            :     BerkeleyBatch m_batch;
+<span class="lineNum">     250 </span>                :            :     WalletDatabase&amp; m_database;
+<span class="lineNum">     251 </span>                :            : };
+<span class="lineNum">     252 </span>                :            : 
+<span class="lineNum">     253 </span>                :            : //! Compacts BDB state so that wallet.dat is self-contained (if there are changes)
+<span class="lineNum">     254 </span>                :            : void MaybeCompactWalletDB();
+<span class="lineNum">     255 </span>                :            : 
+<span class="lineNum">     256 </span>                :            : #endif // BITCOIN_WALLET_WALLETDB_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

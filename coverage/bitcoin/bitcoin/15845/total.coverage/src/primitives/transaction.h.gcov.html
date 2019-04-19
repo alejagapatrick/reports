@@ -1,0 +1,548 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/primitives/transaction.h</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/primitives</a> - transaction.h<span style="font-size: 80%;"> (source / <a href="transaction.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">100</td>
+            <td class="headerCovTableEntry">102</td>
+            <td class="headerCovTableEntryHi">98.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2000-01-01 12:00:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">58</td>
+            <td class="headerCovTableEntry">58</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">226</td>
+            <td class="headerCovTableEntry">302</td>
+            <td class="headerCovTableEntryLo">74.8 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #ifndef BITCOIN_PRIMITIVES_TRANSACTION_H
+<span class="lineNum">       7 </span>                :            : #define BITCOIN_PRIMITIVES_TRANSACTION_H
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : #include &lt;stdint.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;amount.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;script/script.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;serialize.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;uint256.h&gt;
+<span class="lineNum">      14 </span>                :            : 
+<span class="lineNum">      15 </span>                :            : static const int SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
+<span class="lineNum">      16 </span>                :            : 
+<span class="lineNum">      17 </span>                :            : /** An outpoint - a combination of a transaction hash and an index n into its vout */
+<span class="lineNum">      18 </span>                :            : class COutPoint
+<span class="lineNum">      19 </span>                :            : {
+<span class="lineNum">      20 </span>                :            : public:
+<span class="lineNum">      21 </span>                :            :     uint256 hash;
+<span class="lineNum">      22 </span>                :            :     uint32_t n;
+<span class="lineNum">      23 </span>                :            : 
+<span class="lineNum">      24 </span>                :            :     static constexpr uint32_t NULL_INDEX = std::numeric_limits&lt;uint32_t&gt;::max();
+<span class="lineNum">      25 </span>                :            : 
+<span class="lineNum">      26 </span>                :<span class="lineCov">    8313640 :     COutPoint(): n(NULL_INDEX) { }</span>
+<span class="lineNum">      27 </span>                :<span class="lineCov">    8190050 :     COutPoint(const uint256&amp; hashIn, uint32_t nIn): hash(hashIn), n(nIn) { }</span>
+<span class="lineNum">      28 </span>                :            : 
+<span class="lineNum">      29 </span>                :<span class="lineCov">   47141944 :     ADD_SERIALIZE_METHODS;</span>
+<a name="30"><span class="lineNum">      30 </span>                :            : </a>
+<span class="lineNum">      31 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
+<span class="lineNum">      32 </span>                :<span class="lineCov">     238568 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">      33 </span>                :<span class="lineCov">   47803839 :         READWRITE(hash);</span>
+<span class="lineNum">      34 </span>                :<span class="lineCov">   47803838 :         READWRITE(n);</span>
+<span class="lineNum">      35 </span>                :<span class="lineCov">     238567 :     }</span>
+<span class="lineNum">      36 </span>                :            : 
+<span class="lineNum">      37 </span>                :<span class="lineCov">      28752 :     void SetNull() { hash.SetNull(); n = NULL_INDEX; }</span>
+<a name="38"><span class="lineNum">      38 </span>[<span class="branchCov" title="Branch 0 was taken 472781 times"> + </span><span class="branchCov" title="Branch 1 was taken 8176100 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 425921 times"> + </span><span class="branchCov" title="Branch 3 was taken 46860 times"> + </span>]:<span class="lineCov">   19909631 :     bool IsNull() const { return (hash.IsNull() &amp;&amp; n == NULL_INDEX); }</span></a>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 69037 times"> + </span><span class="branchCov" title="Branch 5 was taken 201676 times"> + </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 6 was taken 17 times"> + </span><span class="branchCov" title="Branch 7 was taken 69020 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 32 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>][<span class="branchCov" title="Branch 8 was taken 51113 times"> + </span><span class="branchCov" title="Branch 9 was taken 4053455 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 10 was not taken"> - </span><span class="branchCov" title="Branch 11 was taken 51113 times"> + </span>][<span class="branchCov" title="Branch 8 was taken 18155 times"> + </span><span class="branchCov" title="Branch 9 was taken 50364 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 10 was taken 2 times"> + </span><span class="branchCov" title="Branch 11 was taken 18153 times"> + </span>][<span class="branchCov" title="Branch 12 was taken 68067 times"> + </span><span class="branchCov" title="Branch 13 was taken 74633 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 14 was taken 20500 times"> + </span><span class="branchCov" title="Branch 15 was taken 47567 times"> + </span>][<span class="branchCov" title="Branch 16 was taken 52090 times"> + </span><span class="branchCov" title="Branch 17 was taken 74392 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 18 was taken 985 times"> + </span><span class="branchCov" title="Branch 19 was taken 51105 times"> + </span>][<span class="branchCov" title="Branch 20 was taken 4105 times"> + </span><span class="branchCov" title="Branch 21 was taken 3064 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 22 was not taken"> - </span><span class="branchCov" title="Branch 23 was taken 4105 times"> + </span>][<span class="branchCov" title="Branch 24 was taken 234 times"> + </span><span class="branchCov" title="Branch 25 was taken 289394 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 26 was not taken"> - </span><span class="branchCov" title="Branch 27 was taken 234 times"> + </span>][<span class="branchCov" title="Branch 28 was taken 51339 times"> + </span><span class="branchCov" title="Branch 29 was taken 4055199 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 30 was not taken"> - </span><span class="branchCov" title="Branch 31 was taken 51339 times"> + </span>][<span class="branchCov" title="Branch 32 was taken 2 times"> + </span><span class="branchCov" title="Branch 33 was taken 13771 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 34 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 35 was not taken"> - </span>][<span class="branchNoCov" title="Branch 36 was not taken"> - </span><span class="branchCov" title="Branch 37 was taken 12877 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>][<span class="branchCov" title="Branch 40 was taken 1392 times"> + </span><span class="branchCov" title="Branch 41 was taken 524 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 42 was not taken"> - </span><span class="branchCov" title="Branch 43 was taken 1392 times"> + </span>][<span class="branchCov" title="Branch 20 was taken 234 times"> + </span><span class="branchCov" title="Branch 21 was taken 1744 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchNoCov" title="Branch 22 was not taken"> - </span><span class="branchCov" title="Branch 23 was taken 234 times"> + </span>]
+<span class="lineNum">      39 </span>                :            : 
+<span class="lineNum">      40 </span>                :<span class="lineCov">  265852022 :     friend bool operator&lt;(const COutPoint&amp; a, const COutPoint&amp; b)</span>
+<span class="lineNum">      41 </span>                :            :     {
+<span class="lineNum">      42 </span>                :<span class="lineCov">  531704044 :         int cmp = a.hash.Compare(b.hash);</span>
+<span class="lineNum">      43 </span>[<span class="branchCov" title="Branch 0 was taken 136581802 times"> + </span><span class="branchCov" title="Branch 1 was taken 129270220 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 24687341 times"> + </span><span class="branchCov" title="Branch 3 was taken 111894461 times"> + </span>]:<span class="lineCov">  265852022 :         return cmp &lt; 0 || (cmp == 0 &amp;&amp; a.n &lt; b.n);</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 19275254 times"> + </span><span class="branchCov" title="Branch 5 was taken 5412087 times"> + </span>]
+<span class="lineNum">      44 </span>                :            :     }
+<span class="lineNum">      45 </span>                :            : 
+<span class="lineNum">      46 </span>                :            :     friend bool operator==(const COutPoint&amp; a, const COutPoint&amp; b)
+<span class="lineNum">      47 </span>                :            :     {
+<span class="lineNum">      48 </span>[<span class="branchCov" title="Branch 0 was taken 34428351 times"> + </span><span class="branchCov" title="Branch 1 was taken 1098 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 52 times"> + </span><span class="branchCov" title="Branch 3 was taken 34428299 times"> + </span>]:<span class="lineCov">   34429449 :         return (a.hash == b.hash &amp;&amp; a.n == b.n);</span>
+<span class="lineNum">      49 </span>                :            :     }
+<span class="lineNum">      50 </span>                :            : 
+<span class="lineNum">      51 </span>                :            :     friend bool operator!=(const COutPoint&amp; a, const COutPoint&amp; b)
+<span class="lineNum">      52 </span>                :            :     {
+<span class="lineNum">      53 </span>                :<span class="lineNoCov">          0 :         return !(a == b);</span>
+<span class="lineNum">      54 </span>                :            :     }
+<span class="lineNum">      55 </span>                :            : 
+<span class="lineNum">      56 </span>                :            :     std::string ToString() const;
+<span class="lineNum">      57 </span>                :            : };
+<span class="lineNum">      58 </span>                :            : 
+<span class="lineNum">      59 </span>                :            : /** An input of a transaction.  It contains the location of the previous
+<span class="lineNum">      60 </span>                :            :  * transaction's output that it claims and a signature that matches the
+<a name="61"><span class="lineNum">      61 </span>                :            :  * output's public key.</a>
+<span class="lineNum">      62 </span>                :            :  */
+<span class="lineNum">      63 </span>                :<span class="lineCov">    5001438 : class CTxIn</span>
+<span class="lineNum">      64 </span>                :            : {
+<span class="lineNum">      65 </span>                :            : public:
+<span class="lineNum">      66 </span>                :            :     COutPoint prevout;
+<span class="lineNum">      67 </span>                :            :     CScript scriptSig;
+<span class="lineNum">      68 </span>                :            :     uint32_t nSequence;
+<span class="lineNum">      69 </span>                :            :     CScriptWitness scriptWitness; //!&lt; Only serialized through CTransaction
+<span class="lineNum">      70 </span>                :            : 
+<span class="lineNum">      71 </span>                :            :     /* Setting nSequence to this value for every input in a transaction
+<span class="lineNum">      72 </span>                :            :      * disables nLockTime. */
+<span class="lineNum">      73 </span>                :            :     static const uint32_t SEQUENCE_FINAL = 0xffffffff;
+<span class="lineNum">      74 </span>                :            : 
+<span class="lineNum">      75 </span>                :            :     /* Below flags apply in the context of BIP 68*/
+<span class="lineNum">      76 </span>                :            :     /* If this flag set, CTxIn::nSequence is NOT interpreted as a
+<span class="lineNum">      77 </span>                :            :      * relative lock-time. */
+<span class="lineNum">      78 </span>                :            :     static const uint32_t SEQUENCE_LOCKTIME_DISABLE_FLAG = (1U &lt;&lt; 31);
+<span class="lineNum">      79 </span>                :            : 
+<span class="lineNum">      80 </span>                :            :     /* If CTxIn::nSequence encodes a relative lock-time and this flag
+<span class="lineNum">      81 </span>                :            :      * is set, the relative lock-time has units of 512 seconds,
+<span class="lineNum">      82 </span>                :            :      * otherwise it specifies blocks with a granularity of 1. */
+<span class="lineNum">      83 </span>                :            :     static const uint32_t SEQUENCE_LOCKTIME_TYPE_FLAG = (1 &lt;&lt; 22);
+<span class="lineNum">      84 </span>                :            : 
+<span class="lineNum">      85 </span>                :            :     /* If CTxIn::nSequence encodes a relative lock-time, this mask is
+<span class="lineNum">      86 </span>                :            :      * applied to extract that lock-time from the sequence field. */
+<span class="lineNum">      87 </span>                :            :     static const uint32_t SEQUENCE_LOCKTIME_MASK = 0x0000ffff;
+<span class="lineNum">      88 </span>                :            : 
+<span class="lineNum">      89 </span>                :            :     /* In order to use the same number of bits to encode roughly the
+<span class="lineNum">      90 </span>                :            :      * same wall-clock duration, and because blocks are naturally
+<span class="lineNum">      91 </span>                :            :      * limited to occur every 600s on average, the minimum granularity
+<span class="lineNum">      92 </span>                :            :      * for time-based relative lock-time is fixed at 512 seconds.
+<span class="lineNum">      93 </span>                :            :      * Converting from CTxIn::nSequence to seconds is performed by
+<span class="lineNum">      94 </span>                :            :      * multiplying by 512 = 2^9, or equivalently shifting up by
+<span class="lineNum">      95 </span>                :            :      * 9 bits. */
+<a name="96"><span class="lineNum">      96 </span>                :            :     static const int SEQUENCE_LOCKTIME_GRANULARITY = 9;</a>
+<span class="lineNum">      97 </span>                :            : 
+<span class="lineNum">      98 </span>                :<span class="lineCov">    2921172 :     CTxIn()</span>
+<span class="lineNum">      99 </span>                :<span class="lineCov">   11684688 :     {</span>
+<span class="lineNum">     100 </span>                :<span class="lineCov">    2921172 :         nSequence = SEQUENCE_FINAL;</span>
+<span class="lineNum">     101 </span>                :<span class="lineCov">    2921172 :     }</span>
+<span class="lineNum">     102 </span>                :            : 
+<span class="lineNum">     103 </span>                :            :     explicit CTxIn(COutPoint prevoutIn, CScript scriptSigIn=CScript(), uint32_t nSequenceIn=SEQUENCE_FINAL);
+<span class="lineNum">     104 </span>                :            :     CTxIn(uint256 hashPrevTx, uint32_t nOut, CScript scriptSigIn=CScript(), uint32_t nSequenceIn=SEQUENCE_FINAL);
+<span class="lineNum">     105 </span>                :            : 
+<span class="lineNum">     106 </span>                :<span class="lineCov">    2799147 :     ADD_SERIALIZE_METHODS;</span>
+<a name="107"><span class="lineNum">     107 </span>                :            : </a>
+<span class="lineNum">     108 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
+<span class="lineNum">     109 </span>                :<span class="lineCov">    2799147 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">     110 </span>                :<span class="lineCov">    5598294 :         READWRITE(prevout);</span>
+<span class="lineNum">     111 </span>                :<span class="lineCov">    5598294 :         READWRITE(scriptSig);</span>
+<span class="lineNum">     112 </span>                :<span class="lineCov">    5598294 :         READWRITE(nSequence);</span>
+<a name="113"><span class="lineNum">     113 </span>                :<span class="lineCov">    2799147 :     }</span></a>
+<span class="lineNum">     114 </span>                :            : 
+<span class="lineNum">     115 </span>                :<span class="lineCov">         55 :     friend bool operator==(const CTxIn&amp; a, const CTxIn&amp; b)</span>
+<span class="lineNum">     116 </span>                :            :     {
+<span class="lineNum">     117 </span>        [<span class="branchCov" title="Branch 0 was taken 49 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         49 :         return (a.prevout   == b.prevout &amp;&amp;</span>
+<span class="lineNum">     118 </span>        [<span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 49 times"> + </span>]:<span class="lineCov">         98 :                 a.scriptSig == b.scriptSig &amp;&amp;</span>
+<span class="lineNum">     119 </span>                :<span class="lineCov">        104 :                 a.nSequence == b.nSequence);</span>
+<span class="lineNum">     120 </span>                :            :     }
+<span class="lineNum">     121 </span>                :            : 
+<span class="lineNum">     122 </span>                :            :     friend bool operator!=(const CTxIn&amp; a, const CTxIn&amp; b)
+<span class="lineNum">     123 </span>                :            :     {
+<span class="lineNum">     124 </span>                :            :         return !(a == b);
+<span class="lineNum">     125 </span>                :            :     }
+<span class="lineNum">     126 </span>                :            : 
+<span class="lineNum">     127 </span>                :            :     std::string ToString() const;
+<span class="lineNum">     128 </span>                :            : };
+<span class="lineNum">     129 </span>                :            : 
+<span class="lineNum">     130 </span>                :            : /** An output of a transaction.  It contains the public key that the next input
+<span class="lineNum">     131 </span>                :            :  * must be able to sign with to claim it.
+<span class="lineNum">     132 </span>                :            :  */
+<span class="lineNum">     133 </span>                :<span class="lineCov">  234124101 : class CTxOut</span>
+<span class="lineNum">     134 </span>                :            : {
+<span class="lineNum">     135 </span>                :            : public:
+<span class="lineNum">     136 </span>                :            :     CAmount nValue;
+<span class="lineNum">     137 </span>                :            :     CScript scriptPubKey;
+<span class="lineNum">     138 </span>                :            : 
+<span class="lineNum">     139 </span>                :            :     CTxOut()
+<span class="lineNum">     140 </span>                :<span class="lineCov">  106580520 :     {</span>
+<span class="lineNum">     141 </span>                :<span class="lineCov">   43169707 :         SetNull();</span>
+<span class="lineNum">     142 </span>                :            :     }
+<span class="lineNum">     143 </span>                :            : 
+<span class="lineNum">     144 </span>                :            :     CTxOut(const CAmount&amp; nValueIn, CScript scriptPubKeyIn);
+<span class="lineNum">     145 </span>                :            : 
+<span class="lineNum">     146 </span>                :<span class="lineCov">   34957387 :     ADD_SERIALIZE_METHODS;</span>
+<a name="147"><span class="lineNum">     147 </span>                :            : </a>
+<span class="lineNum">     148 </span>                :            :     template &lt;typename Stream, typename Operation&gt;
+<span class="lineNum">     149 </span>                :<span class="lineCov">     994781 :     inline void SerializationOp(Stream&amp; s, Operation ser_action) {</span>
+<span class="lineNum">     150 </span>                :<span class="lineCov">   45761812 :         READWRITE(nValue);</span>
+<span class="lineNum">     151 </span>                :<span class="lineCov">   45761810 :         READWRITE(scriptPubKey);</span>
+<span class="lineNum">     152 </span>                :<span class="lineCov">     994779 :     }</span>
+<span class="lineNum">     153 </span>                :            : 
+<span class="lineNum">     154 </span>                :            :     void SetNull()
+<span class="lineNum">     155 </span>                :            :     {
+<span class="lineNum">     156 </span>                :<span class="lineCov">   61576940 :         nValue = -1;</span>
+<span class="lineNum">     157 </span>                :<span class="lineCov">   60009801 :         scriptPubKey.clear();</span>
+<span class="lineNum">     158 </span>                :            :     }
+<span class="lineNum">     159 </span>                :            : 
+<span class="lineNum">     160 </span>                :            :     bool IsNull() const
+<span class="lineNum">     161 </span>                :            :     {
+<span class="lineNum">     162 </span>                :<span class="lineCov">   79126816 :         return (nValue == -1);</span>
+<span class="lineNum">     163 </span>                :            :     }
+<span class="lineNum">     164 </span>                :            : 
+<span class="lineNum">     165 </span>                :            :     friend bool operator==(const CTxOut&amp; a, const CTxOut&amp; b)
+<span class="lineNum">     166 </span>                :            :     {
+<span class="lineNum">     167 </span>  [<span class="branchCov" title="Branch 0 was taken 213410 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 13655 times"> + </span><span class="branchCov" title="Branch 3 was taken 199755 times"> + </span>]:<span class="lineCov">     479806 :         return (a.nValue       == b.nValue &amp;&amp;</span>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 4 was taken 1108 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchCov" title="Branch 6 was taken 24 times"> + </span><span class="branchCov" title="Branch 7 was taken 1084 times"> + </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 8 was taken 25385 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span><span class="branchCov" title="Branch 11 was taken 25385 times"> + </span>]
+<span class="lineNum">     168 </span>                :<span class="lineCov">     239903 :                 a.scriptPubKey == b.scriptPubKey);</span>
+<span class="lineNum">     169 </span>                :            :     }
+<span class="lineNum">     170 </span>                :            : 
+<span class="lineNum">     171 </span>                :            :     friend bool operator!=(const CTxOut&amp; a, const CTxOut&amp; b)
+<span class="lineNum">     172 </span>                :            :     {
+<span class="lineNum">     173 </span>                :<span class="lineCov">      13631 :         return !(a == b);</span>
+<span class="lineNum">     174 </span>                :            :     }
+<span class="lineNum">     175 </span>                :            : 
+<span class="lineNum">     176 </span>                :            :     std::string ToString() const;
+<span class="lineNum">     177 </span>                :            : };
+<span class="lineNum">     178 </span>                :            : 
+<span class="lineNum">     179 </span>                :            : struct CMutableTransaction;
+<span class="lineNum">     180 </span>                :            : 
+<span class="lineNum">     181 </span>                :            : /**
+<span class="lineNum">     182 </span>                :            :  * Basic transaction serialization format:
+<span class="lineNum">     183 </span>                :            :  * - int32_t nVersion
+<span class="lineNum">     184 </span>                :            :  * - std::vector&lt;CTxIn&gt; vin
+<span class="lineNum">     185 </span>                :            :  * - std::vector&lt;CTxOut&gt; vout
+<span class="lineNum">     186 </span>                :            :  * - uint32_t nLockTime
+<span class="lineNum">     187 </span>                :            :  *
+<span class="lineNum">     188 </span>                :            :  * Extended transaction serialization format:
+<span class="lineNum">     189 </span>                :            :  * - int32_t nVersion
+<span class="lineNum">     190 </span>                :            :  * - unsigned char dummy = 0x00
+<span class="lineNum">     191 </span>                :            :  * - unsigned char flags (!= 0)
+<span class="lineNum">     192 </span>                :            :  * - std::vector&lt;CTxIn&gt; vin
+<span class="lineNum">     193 </span>                :            :  * - std::vector&lt;CTxOut&gt; vout
+<span class="lineNum">     194 </span>                :            :  * - if (flags &amp; 1):
+<span class="lineNum">     195 </span>                :            :  *   - CTxWitness wit;
+<span class="lineNum">     196 </span>                :            :  * - uint32_t nLockTime
+<a name="197"><span class="lineNum">     197 </span>                :            :  */</a>
+<span class="lineNum">     198 </span>                :            : template&lt;typename Stream, typename TxType&gt;
+<span class="lineNum">     199 </span>                :<span class="lineCov">     162597 : inline void UnserializeTransaction(TxType&amp; tx, Stream&amp; s) {</span>
+<span class="lineNum">     200 </span>                :<span class="lineCov">     162597 :     const bool fAllowWitness = !(s.GetVersion() &amp; SERIALIZE_TRANSACTION_NO_WITNESS);</span>
+<span class="lineNum">     201 </span>                :            : 
+<span class="lineNum">     202 </span>                :<span class="lineCov">     239412 :     s &gt;&gt; tx.nVersion;</span>
+<span class="lineNum">     203 </span>                :<span class="lineCov">     162596 :     unsigned char flags = 0;</span>
+<span class="lineNum">     204 </span>                :<span class="lineCov">     325192 :     tx.vin.clear();</span>
+<span class="lineNum">     205 </span>                :<span class="lineCov">     162596 :     tx.vout.clear();</span>
+<span class="lineNum">     206 </span>                :            :     /* Try to read the vin. In case the dummy is there, this will be read as an empty vector. */
+<span class="lineNum">     207 </span>                :<span class="lineCov">     239407 :     s &gt;&gt; tx.vin;</span>
+<span class="lineNum">     208 </span>        [<span class="branchCov" title="Branch 0 was taken 22065 times"> + </span><span class="branchCov" title="Branch 1 was taken 56860 times"> + </span>]:<span class="lineCov">     162592 :     if (tx.vin.size() == 0 &amp;&amp; fAllowWitness) {</span>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 2 was taken 21979 times"> + </span><span class="branchCov" title="Branch 3 was taken 86 times"> + </span><span class="branchCov" title="Branch 4 was taken 50750 times"> + </span><span class="branchCov" title="Branch 5 was taken 32917 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 6 was taken 50750 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">     209 </span>                :            :         /* We read a dummy or an empty vin. */
+<span class="lineNum">     210 </span>                :<span class="lineCov">      72033 :         s &gt;&gt; flags;</span>
+<span class="lineNum">     211 </span>  [<span class="branchCov" title="Branch 0 was taken 21966 times"> + </span><span class="branchCov" title="Branch 1 was taken 13 times"> + </span><span class="branchCov" title="Branch 2 was taken 50750 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">      72729 :         if (flags != 0) {</span>
+<span class="lineNum">     212 </span>                :<span class="lineCov">      93290 :             s &gt;&gt; tx.vin;</span>
+<span class="lineNum">     213 </span>                :<span class="lineCov">      72020 :             s &gt;&gt; tx.vout;</span>
+<span class="lineNum">     214 </span>                :            :         }
+<span class="lineNum">     215 </span>                :            :     } else {
+<span class="lineNum">     216 </span>                :            :         /* We read a non-empty vin. Assume a normal vout follows. */
+<span class="lineNum">     217 </span>                :<span class="lineCov">      89846 :         s &gt;&gt; tx.vout;</span>
+<span class="lineNum">     218 </span>                :            :     }
+<span class="lineNum">     219 </span>[<span class="branchCov" title="Branch 0 was taken 21966 times"> + </span><span class="branchCov" title="Branch 1 was taken 56956 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 21966 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     162589 :     if ((flags &amp; 1) &amp;&amp; fAllowWitness) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 50750 times"> + </span><span class="branchCov" title="Branch 5 was taken 32917 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 50750 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<span class="lineNum">     220 </span>                :            :         /* The witness flag is present, and we support witnesses. */
+<span class="lineNum">     221 </span>                :<span class="lineCov">      72716 :         flags ^= 1;</span>
+<span class="lineNum">     222 </span>[<span class="branchCov" title="Branch 0 was taken 59035 times"> + </span><span class="branchCov" title="Branch 1 was taken 21966 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 62587 times"> + </span><span class="branchCov" title="Branch 3 was taken 50750 times"> + </span>]:<span class="lineCov">     194338 :         for (size_t i = 0; i &lt; tx.vin.size(); i++) {</span>
+<span class="lineNum">     223 </span>                :<span class="lineCov">     237604 :             s &gt;&gt; tx.vin[i].scriptWitness.stack;</span>
+<span class="lineNum">     224 </span>                :            :         }
+<span class="lineNum">     225 </span>                :            :     }
+<span class="lineNum">     226 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 78922 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 83667 times"> + </span>]:<span class="lineCov">     162589 :     if (flags) {</span>
+<span class="lineNum">     227 </span>                :            :         /* Unknown flag in the serialization */
+<span class="lineNum">     228 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw std::ios_base::failure(&quot;Unknown transaction optional data&quot;);</span>
+<span class="lineNum">     229 </span>                :            :     }
+<span class="lineNum">     230 </span>                :<span class="lineCov">     239394 :     s &gt;&gt; tx.nLockTime;</span>
+<span class="lineNum">     231 </span>                :<span class="lineCov">     162586 : }</span>
+<a name="232"><span class="lineNum">     232 </span>                :            : </a>
+<span class="lineNum">     233 </span>                :            : template&lt;typename Stream, typename TxType&gt;
+<span class="lineNum">     234 </span>                :<span class="lineCov">    1975518 : inline void SerializeTransaction(const TxType&amp; tx, Stream&amp; s) {</span>
+<span class="lineNum">     235 </span>                :<span class="lineCov">    1975518 :     const bool fAllowWitness = !(s.GetVersion() &amp; SERIALIZE_TRANSACTION_NO_WITNESS);</span>
+<span class="lineNum">     236 </span>                :            : 
+<span class="lineNum">     237 </span>                :<span class="lineCov">    3873866 :     s &lt;&lt; tx.nVersion;</span>
+<span class="lineNum">     238 </span>                :<span class="lineCov">    1975518 :     unsigned char flags = 0;</span>
+<span class="lineNum">     239 </span>                :            :     // Consistency check
+<span class="lineNum">     240 </span>[<span class="branchCov" title="Branch 0 was taken 38418 times"> + </span><span class="branchCov" title="Branch 1 was taken 51222 times"> + </span>][<span class="branchCov" title="Branch 0 was taken 19501 times"> + </span><span class="branchCov" title="Branch 1 was taken 50038 times"> + </span>]:<span class="lineCov">    1975518 :     if (fAllowWitness) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 2 was taken 466407 times"> + </span><span class="branchCov" title="Branch 3 was taken 1006118 times"> + </span>][<span class="branchCov" title="Branch 4 was taken 29355 times"> + </span><span class="branchCov" title="Branch 5 was taken 272980 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 6 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 1 time"> + </span>][<span class="branchCov" title="Branch 2 was taken 20988 times"> + </span><span class="branchCov" title="Branch 3 was taken 20483 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>][<span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 1 time"> + </span>]
+<span class="lineNum">     241 </span>                :            :         /* Check whether witnesses need to be serialized. */
+<span class="lineNum">     242 </span>[<span class="branchCov" title="Branch 0 was taken 16921 times"> + </span><span class="branchCov" title="Branch 1 was taken 40998 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 233821 times"> + </span><span class="branchCov" title="Branch 3 was taken 253574 times"> + </span>]:<span class="lineCov">     574675 :         if (tx.HasWitness()) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 3932 times"> + </span><span class="branchCov" title="Branch 5 was taken 25423 times"> + </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 5 times"> + </span><span class="branchCov" title="Branch 9 was taken 1 time"> + </span>]
+<span class="lineNum">     243 </span>                :<span class="lineCov">     254679 :             flags |= 1;</span>
+<span class="lineNum">     244 </span>                :            :         }
+<span class="lineNum">     245 </span>                :            :     }
+<span class="lineNum">     246 </span>        [<span class="branchCov" title="Branch 0 was taken 23871 times"> + </span><span class="branchCov" title="Branch 1 was taken 53299 times"> + </span>]:<span class="lineCov">      77170 :     if (flags) {</span>
+<span class="lineNum">     247 </span>                :            :         /* Use extended format in case witnesses are to be serialized. */
+<span class="lineNum">     248 </span>                :<span class="lineCov">     254679 :         std::vector&lt;CTxIn&gt; vinDummy;</span>
+<span class="lineNum">     249 </span>        [<span class="branchCov" title="Branch 1 was taken 23871 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     254679 :         s &lt;&lt; vinDummy;</span>
+<span class="lineNum">     250 </span>        [<span class="branchCov" title="Branch 1 was taken 23871 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">     254679 :         s &lt;&lt; flags;</span>
+<span class="lineNum">     251 </span>                :            :     }
+<span class="lineNum">     252 </span>                :<span class="lineCov">    3873866 :     s &lt;&lt; tx.vin;</span>
+<span class="lineNum">     253 </span>                :<span class="lineCov">    3873866 :     s &lt;&lt; tx.vout;</span>
+<span class="lineNum">     254 </span>[<span class="branchCov" title="Branch 0 was taken 16921 times"> + </span><span class="branchCov" title="Branch 1 was taken 142258 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 233821 times"> + </span><span class="branchCov" title="Branch 3 was taken 1280175 times"> + </span>]:<span class="lineCov">    1975518 :     if (flags &amp; 1) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 3932 times"> + </span><span class="branchCov" title="Branch 5 was taken 298404 times"> + </span>][<span class="branchNoCov" title="Branch 6 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 1 time"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 5 times"> + </span><span class="branchCov" title="Branch 9 was taken 1 time"> + </span>]
+<span class="lineNum">     255 </span>[<span class="branchCov" title="Branch 0 was taken 26136 times"> + </span><span class="branchCov" title="Branch 1 was taken 16921 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 380392 times"> + </span><span class="branchCov" title="Branch 3 was taken 233821 times"> + </span>]:<span class="lineCov">     673670 :         for (size_t i = 0; i &lt; tx.vin.size(); i++) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 12452 times"> + </span><span class="branchCov" title="Branch 5 was taken 3932 times"> + </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 11 times"> + </span><span class="branchCov" title="Branch 9 was taken 5 times"> + </span>]
+<span class="lineNum">     256 </span>                :<span class="lineCov">    1176039 :             s &lt;&lt; tx.vin[i].scriptWitness.stack;</span>
+<span class="lineNum">     257 </span>                :            :         }
+<span class="lineNum">     258 </span>                :            :     }
+<span class="lineNum">     259 </span>                :<span class="lineCov">    3873866 :     s &lt;&lt; tx.nLockTime;</span>
+<span class="lineNum">     260 </span>                :<span class="lineCov">    1168946 : }</span>
+<span class="lineNum">     261 </span>                :            : 
+<span class="lineNum">     262 </span>                :            : 
+<span class="lineNum">     263 </span>                :            : /** The basic transaction that is broadcasted on the network and contained in
+<a name="264"><span class="lineNum">     264 </span>                :            :  * blocks.  A transaction can contain multiple inputs and outputs.</a>
+<span class="lineNum">     265 </span>                :            :  */
+<span class="lineNum">     266 </span>        [<span class="branchCov" title="Branch 4 was taken 26 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     777033 : class CTransaction</span>
+<span class="lineNum">     267 </span>                :            : {
+<span class="lineNum">     268 </span>                :            : public:
+<span class="lineNum">     269 </span>                :            :     // Default transaction version.
+<span class="lineNum">     270 </span>                :            :     static const int32_t CURRENT_VERSION=2;
+<span class="lineNum">     271 </span>                :            : 
+<span class="lineNum">     272 </span>                :            :     // Changing the default transaction version requires a two step process: first
+<span class="lineNum">     273 </span>                :            :     // adapting relay policy by bumping MAX_STANDARD_VERSION, and then later date
+<span class="lineNum">     274 </span>                :            :     // bumping the default CURRENT_VERSION at which point both CURRENT_VERSION and
+<span class="lineNum">     275 </span>                :            :     // MAX_STANDARD_VERSION will be equal.
+<span class="lineNum">     276 </span>                :            :     static const int32_t MAX_STANDARD_VERSION=2;
+<span class="lineNum">     277 </span>                :            : 
+<span class="lineNum">     278 </span>                :            :     // The local variables are made const to prevent unintended modification
+<span class="lineNum">     279 </span>                :            :     // without updating the cached hash value. However, CTransaction is not
+<span class="lineNum">     280 </span>                :            :     // actually immutable; deserialization and assignment are implemented,
+<span class="lineNum">     281 </span>                :            :     // and bypass the constness. This is safe, as they update the entire
+<span class="lineNum">     282 </span>                :            :     // structure, including the hash.
+<span class="lineNum">     283 </span>                :            :     const std::vector&lt;CTxIn&gt; vin;
+<span class="lineNum">     284 </span>                :            :     const std::vector&lt;CTxOut&gt; vout;
+<span class="lineNum">     285 </span>                :            :     const int32_t nVersion;
+<span class="lineNum">     286 </span>                :            :     const uint32_t nLockTime;
+<span class="lineNum">     287 </span>                :            : 
+<span class="lineNum">     288 </span>                :            : private:
+<span class="lineNum">     289 </span>                :            :     /** Memory only. */
+<span class="lineNum">     290 </span>                :            :     const uint256 hash;
+<span class="lineNum">     291 </span>                :            :     const uint256 m_witness_hash;
+<span class="lineNum">     292 </span>                :            : 
+<span class="lineNum">     293 </span>                :            :     uint256 ComputeHash() const;
+<span class="lineNum">     294 </span>                :            :     uint256 ComputeWitnessHash() const;
+<span class="lineNum">     295 </span>                :            : 
+<span class="lineNum">     296 </span>                :            : public:
+<span class="lineNum">     297 </span>                :            :     /** Construct a CTransaction that qualifies as IsNull() */
+<span class="lineNum">     298 </span>                :            :     CTransaction();
+<span class="lineNum">     299 </span>                :            : 
+<span class="lineNum">     300 </span>                :            :     /** Convert a CMutableTransaction into a CTransaction. */
+<span class="lineNum">     301 </span>                :            :     explicit CTransaction(const CMutableTransaction &amp;tx);
+<span class="lineNum">     302 </span>                :            :     CTransaction(CMutableTransaction &amp;&amp;tx);
+<span class="lineNum">     303 </span>                :            : 
+<span class="lineNum">     304 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">     305 </span>                :            :     inline void Serialize(Stream&amp; s) const {
+<span class="lineNum">     306 </span>[<span class="branchCov" title="Branch 2 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 3217 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">    1855534 :         SerializeTransaction(*this, s);</span>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span> 
+<span class="lineNum">         </span><span class="branchCov" title="Branch 7 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span><span class="branchCov" title="Branch 10 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span><span class="branchCov" title="Branch 13 was taken 1 time"> + </span> 
+<span class="lineNum">         </span>            <span class="branchNoCov" title="Branch 14 was not taken"> - </span>]
+<span class="lineNum">     307 </span>                :            :     }
+<span class="lineNum">     308 </span>                :            : 
+<span class="lineNum">     309 </span>                :            :     /** This deserializing constructor is provided instead of an Unserialize method.
+<a name="310"><span class="lineNum">     310 </span>                :            :      *  Unserialize is not possible, since it would require overwriting const fields. */</a>
+<span class="lineNum">     311 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">     312 </span>[<span class="branchCov" title="Branch 2 was taken 68802 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 6 was taken 83666 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]:<span class="lineCov">     304941 :     CTransaction(deserialize_type, Stream&amp; s) : CTransaction(CMutableTransaction(deserialize, s)) {}</span>
+<span class="lineNum">     313 </span>                :            : 
+<span class="lineNum">     314 </span>                :            :     bool IsNull() const {
+<span class="lineNum">     315 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 4339 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">       4339 :         return vin.empty() &amp;&amp; vout.empty();</span>
+<span class="lineNum">     316 </span>                :            :     }
+<span class="lineNum">     317 </span>                :            : 
+<span class="lineNum">     318 </span>                :<span class="lineCov">   11455579 :     const uint256&amp; GetHash() const { return hash; }</span>
+<span class="lineNum">     319 </span>                :<span class="lineCov">      89543 :     const uint256&amp; GetWitnessHash() const { return m_witness_hash; };</span>
+<span class="lineNum">     320 </span>                :            : 
+<span class="lineNum">     321 </span>                :            :     // Return sum of txouts.
+<span class="lineNum">     322 </span>                :            :     CAmount GetValueOut() const;
+<span class="lineNum">     323 </span>                :            :     // GetValueIn() is a method on CCoinsViewCache, because
+<span class="lineNum">     324 </span>                :            :     // inputs must be known to compute value in.
+<span class="lineNum">     325 </span>                :            : 
+<span class="lineNum">     326 </span>                :            :     /**
+<span class="lineNum">     327 </span>                :            :      * Get the total transaction size in bytes, including witness data.
+<span class="lineNum">     328 </span>                :            :      * &quot;Total Size&quot; defined in BIP141 and BIP144.
+<span class="lineNum">     329 </span>                :            :      * @return Total transaction size in bytes
+<span class="lineNum">     330 </span>                :            :      */
+<span class="lineNum">     331 </span>                :            :     unsigned int GetTotalSize() const;
+<span class="lineNum">     332 </span>                :            : 
+<span class="lineNum">     333 </span>                :            :     bool IsCoinBase() const
+<span class="lineNum">     334 </span>                :            :     {
+<span class="lineNum">     335 </span>[<span class="branchCov" title="Branch 0 was taken 8544911 times"> + </span><span class="branchCov" title="Branch 1 was taken 4211283 times"> + </span>][<span class="branchCov" title="Branch 0 was taken 101729 times"> + </span><span class="branchCov" title="Branch 1 was taken 21106 times"> + </span>]:<span class="lineCov">   26319685 :         return (vin.size() == 1 &amp;&amp; vin[0].prevout.IsNull());</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 2 was taken 56739 times"> + </span><span class="branchCov" title="Branch 3 was taken 20656 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 2 was taken 68255 times"> + </span><span class="branchCov" title="Branch 3 was taken 207 times"> + </span>][<span class="branchCov" title="Branch 4 was taken 4104568 times"> + </span><span class="branchCov" title="Branch 5 was taken 2088040 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 67129 times"> + </span><span class="branchCov" title="Branch 5 was taken 17409 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 109937 times"> + </span><span class="branchCov" title="Branch 7 was taken 125652 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 1390 times"> + </span><span class="branchCov" title="Branch 5 was taken 55 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 32763 times"> + </span><span class="branchCov" title="Branch 7 was taken 20 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 39110 times"> + </span><span class="branchCov" title="Branch 9 was taken 27 times"> + </span>][<span class="branchCov" title="Branch 8 was taken 87372 times"> + </span><span class="branchCov" title="Branch 9 was taken 15500 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 10 was taken 7169 times"> + </span><span class="branchCov" title="Branch 11 was taken 3859 times"> + </span>][<span class="branchCov" title="Branch 12 was taken 287650 times"> + </span><span class="branchCov" title="Branch 13 was taken 62645 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 14 was taken 4104560 times"> + </span><span class="branchCov" title="Branch 15 was taken 2088035 times"> + </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 16 was taken 13773 times"> + </span><span class="branchCov" title="Branch 17 was taken 8901 times"> + </span><span class="branchCov" title="Branch 18 was taken 12877 times"> + </span><span class="branchCov" title="Branch 19 was taken 5139 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 20 was taken 1916 times"> + </span><span class="branchCov" title="Branch 21 was taken 3369 times"> + </span>][<span class="branchCov" title="Branch 10 was taken 1978 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 12 was taken 1978 times"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span><span class="branchCov" title="Branch 14 was taken 1978 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>]
+<span class="lineNum">     336 </span>                :            :     }
+<span class="lineNum">     337 </span>                :            : 
+<span class="lineNum">     338 </span>                :            :     friend bool operator==(const CTransaction&amp; a, const CTransaction&amp; b)
+<span class="lineNum">     339 </span>                :            :     {
+<span class="lineNum">     340 </span>                :<span class="lineCov">       3592 :         return a.hash == b.hash;</span>
+<span class="lineNum">     341 </span>                :            :     }
+<span class="lineNum">     342 </span>                :            : 
+<span class="lineNum">     343 </span>                :            :     friend bool operator!=(const CTransaction&amp; a, const CTransaction&amp; b)
+<span class="lineNum">     344 </span>                :            :     {
+<span class="lineNum">     345 </span>                :<span class="lineCov">        212 :         return a.hash != b.hash;</span>
+<span class="lineNum">     346 </span>                :            :     }
+<span class="lineNum">     347 </span>                :            : 
+<span class="lineNum">     348 </span>                :            :     std::string ToString() const;
+<span class="lineNum">     349 </span>                :            : 
+<span class="lineNum">     350 </span>                :            :     bool HasWitness() const
+<span class="lineNum">     351 </span>                :            :     {
+<span class="lineNum">     352 </span>[<span class="branchCov" title="Branch 0 was taken 232946 times"> + </span><span class="branchCov" title="Branch 1 was taken 125672 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 588102 times"> + </span><span class="branchCov" title="Branch 3 was taken 264376 times"> + </span>]:<span class="lineCov">    2672298 :         for (size_t i = 0; i &lt; vin.size(); i++) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 96331 times"> + </span><span class="branchCov" title="Branch 5 was taken 61214 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 10823 times"> + </span><span class="branchCov" title="Branch 7 was taken 10504 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 24496 times"> + </span><span class="branchCov" title="Branch 9 was taken 17106 times"> + </span>][<span class="branchCov" title="Branch 10 was taken 114 times"> + </span><span class="branchCov" title="Branch 11 was taken 89 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 590855 times"> + </span><span class="branchCov" title="Branch 5 was taken 649670 times"> + </span>]
+<span class="lineNum">     353 </span>[<span class="branchCov" title="Branch 0 was taken 178975 times"> + </span><span class="branchCov" title="Branch 1 was taken 53971 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 342898 times"> + </span><span class="branchCov" title="Branch 3 was taken 245204 times"> + </span>]:<span class="lineCov">    1543667 :             if (!vin[i].scriptWitness.IsNull()) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 573581 times"> + </span><span class="branchCov" title="Branch 5 was taken 113605 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 10566 times"> + </span><span class="branchCov" title="Branch 7 was taken 257 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 23203 times"> + </span><span class="branchCov" title="Branch 9 was taken 1293 times"> + </span>][<span class="branchCov" title="Branch 10 was taken 105 times"> + </span><span class="branchCov" title="Branch 11 was taken 9 times"> + </span>]
+<span class="lineNum">     354 </span>                :            :                 return true;
+<span class="lineNum">     355 </span>                :            :             }
+<span class="lineNum">     356 </span>                :            :         }
+<span class="lineNum">     357 </span>                :            :         return false;
+<span class="lineNum">     358 </span>                :            :     }
+<span class="lineNum">     359 </span>                :            : };
+<a name="360"><span class="lineNum">     360 </span>                :            : </a>
+<span class="lineNum">     361 </span>                :            : /** A mutable version of CTransaction. */
+<span class="lineNum">     362 </span>[<span class="branchCov" title="Branch 6 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 9 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]:<span class="lineCov">     913794 : struct CMutableTransaction</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 40 was taken 96 times"> + </span><span class="branchNoCov" title="Branch 41 was not taken"> - </span>][<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 2 was taken 37726 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 101 was taken 1865 times"> + </span><span class="branchNoCov" title="Branch 102 was not taken"> - </span>][<span class="branchCov" title="Branch 16 was taken 14 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span>]
+<span class="lineNum">     363 </span>                :            : {
+<span class="lineNum">     364 </span>                :            :     std::vector&lt;CTxIn&gt; vin;
+<span class="lineNum">     365 </span>                :            :     std::vector&lt;CTxOut&gt; vout;
+<span class="lineNum">     366 </span>                :            :     int32_t nVersion;
+<span class="lineNum">     367 </span>                :            :     uint32_t nLockTime;
+<span class="lineNum">     368 </span>                :            : 
+<span class="lineNum">     369 </span>                :            :     CMutableTransaction();
+<span class="lineNum">     370 </span>                :            :     explicit CMutableTransaction(const CTransaction&amp; tx);
+<span class="lineNum">     371 </span>                :            : 
+<span class="lineNum">     372 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">     373 </span>                :            :     inline void Serialize(Stream&amp; s) const {
+<span class="lineNum">     374 </span>        [<span class="branchCov" title="Branch 3 was taken 6 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">     119984 :         SerializeTransaction(*this, s);</span>
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 1 was taken 51338 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 4 was taken 24 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 24 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]
+<span class="lineNum">     375 </span>                :            :     }
+<span class="lineNum">     376 </span>                :            : 
+<span class="lineNum">     377 </span>                :            : 
+<span class="lineNum">     378 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">     379 </span>                :            :     inline void Unserialize(Stream&amp; s) {
+<span class="lineNum">     380 </span>[<span class="branchCov" title="Branch 1 was taken 68802 times"> + </span><span class="branchCov" title="Branch 2 was taken 5 times"> + </span>][<span class="branchCov" title="Branch 4 was taken 85370 times"> + </span><span class="branchCov" title="Branch 5 was taken 4 times"> + </span>]:<span class="lineCov">     162597 :         UnserializeTransaction(*this, s);</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 7 was taken 8207 times"> + </span><span class="branchCov" title="Branch 8 was taken 2 times"> + </span>]
+<span class="lineNum">     381 </span>                :            :     }
+<a name="382"><span class="lineNum">     382 </span>                :            : </a>
+<span class="lineNum">     383 </span>                :            :     template &lt;typename Stream&gt;
+<span class="lineNum">     384 </span>                :<span class="lineCov">     152478 :     CMutableTransaction(deserialize_type, Stream&amp; s) {</span>
+<span class="lineNum">     385 </span>                :<span class="lineCov">     152468 :         Unserialize(s);</span>
+<span class="lineNum">     386 </span>                :<span class="lineCov">     152468 :     }</span>
+<span class="lineNum">     387 </span>                :            : 
+<span class="lineNum">     388 </span>                :            :     /** Compute the hash of this CMutableTransaction. This is computed on the
+<span class="lineNum">     389 </span>                :            :      * fly, as opposed to GetHash() in CTransaction, which uses a cached result.
+<span class="lineNum">     390 </span>                :            :      */
+<span class="lineNum">     391 </span>                :            :     uint256 GetHash() const;
+<span class="lineNum">     392 </span>                :            : 
+<span class="lineNum">     393 </span>                :            :     bool HasWitness() const
+<span class="lineNum">     394 </span>                :            :     {
+<span class="lineNum">     395 </span>[<span class="branchCov" title="Branch 0 was taken 1400 times"> + </span><span class="branchCov" title="Branch 1 was taken 1238 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">       2646 :         for (size_t i = 0; i &lt; vin.size(); i++) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 7 times"> + </span><span class="branchCov" title="Branch 5 was taken 1 time"> + </span>]
+<span class="lineNum">     396 </span>[<span class="branchCov" title="Branch 0 was taken 1237 times"> + </span><span class="branchCov" title="Branch 1 was taken 163 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">       1407 :             if (!vin[i].scriptWitness.IsNull()) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchCov" title="Branch 5 was taken 5 times"> + </span>]
+<span class="lineNum">     397 </span>                :            :                 return true;
+<span class="lineNum">     398 </span>                :            :             }
+<span class="lineNum">     399 </span>                :            :         }
+<span class="lineNum">     400 </span>                :            :         return false;
+<span class="lineNum">     401 </span>                :            :     }
+<span class="lineNum">     402 </span>                :            : };
+<span class="lineNum">     403 </span>                :            : 
+<span class="lineNum">     404 </span>                :            : typedef std::shared_ptr&lt;const CTransaction&gt; CTransactionRef;
+<span class="lineNum">     405 </span>                :            : static inline CTransactionRef MakeTransactionRef() { return std::make_shared&lt;const CTransaction&gt;(); }
+<span class="lineNum">     406 </span>                :<span class="lineCov">     763186 : template &lt;typename Tx&gt; static inline CTransactionRef MakeTransactionRef(Tx&amp;&amp; txIn) { return std::make_shared&lt;const CTransaction&gt;(std::forward&lt;Tx&gt;(txIn)); }</span>
+<span class="lineNum">     407 </span>                :            : 
+<span class="lineNum">     408 </span>                :            : #endif // BITCOIN_PRIMITIVES_TRANSACTION_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
