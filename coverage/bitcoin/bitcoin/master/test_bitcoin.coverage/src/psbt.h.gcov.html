@@ -693,38 +693,44 @@
 <a name="565"><span class="lineNum">     565 </span>                :            : /** Signs a PSBTInput, verifying that all provided data matches what is being signed. */</a>
 <a name="566"><span class="lineNum">     566 </span>                :            : bool SignPSBTInput(const SigningProvider&amp; provider, PartiallySignedTransaction&amp; psbt, int index, int sighash = SIGHASH_ALL, SignatureData* out_sigdata = nullptr, bool use_dummy = false);</a>
 <a name="567"><span class="lineNum">     567 </span>                :            : </a>
-<a name="568"><span class="lineNum">     568 </span>                :            : /**</a>
-<a name="569"><span class="lineNum">     569 </span>                :            :  * Finalizes a PSBT if possible, combining partial signatures.</a>
-<a name="570"><span class="lineNum">     570 </span>                :            :  *</a>
-<a name="571"><span class="lineNum">     571 </span>                :            :  * @param[in,out] &amp;psbtx reference to PartiallySignedTransaction to finalize</a>
-<a name="572"><span class="lineNum">     572 </span>                :            :  * return True if the PSBT is now complete, false otherwise</a>
-<a name="573"><span class="lineNum">     573 </span>                :            :  */</a>
-<a name="574"><span class="lineNum">     574 </span>                :            : bool FinalizePSBT(PartiallySignedTransaction&amp; psbtx);</a>
-<a name="575"><span class="lineNum">     575 </span>                :            : </a>
-<a name="576"><span class="lineNum">     576 </span>                :            : /**</a>
-<a name="577"><span class="lineNum">     577 </span>                :            :  * Finalizes a PSBT if possible, and extracts it to a CMutableTransaction if it could be finalized.</a>
-<a name="578"><span class="lineNum">     578 </span>                :            :  *</a>
-<a name="579"><span class="lineNum">     579 </span>                :            :  * @param[in]  &amp;psbtx reference to PartiallySignedTransaction</a>
-<a name="580"><span class="lineNum">     580 </span>                :            :  * @param[out] result CMutableTransaction representing the complete transaction, if successful</a>
-<a name="581"><span class="lineNum">     581 </span>                :            :  * @return True if we successfully extracted the transaction, false otherwise</a>
-<a name="582"><span class="lineNum">     582 </span>                :            :  */</a>
-<a name="583"><span class="lineNum">     583 </span>                :            : bool FinalizeAndExtractPSBT(PartiallySignedTransaction&amp; psbtx, CMutableTransaction&amp; result);</a>
-<a name="584"><span class="lineNum">     584 </span>                :            : </a>
-<a name="585"><span class="lineNum">     585 </span>                :            : /**</a>
-<a name="586"><span class="lineNum">     586 </span>                :            :  * Combines PSBTs with the same underlying transaction, resulting in a single PSBT with all partial signatures from each input.</a>
-<a name="587"><span class="lineNum">     587 </span>                :            :  *</a>
-<a name="588"><span class="lineNum">     588 </span>                :            :  * @param[out] &amp;out   the combined PSBT, if successful</a>
-<a name="589"><span class="lineNum">     589 </span>                :            :  * @param[in]  psbtxs the PSBTs to combine</a>
-<a name="590"><span class="lineNum">     590 </span>                :            :  * @return error (OK if we successfully combined the transactions, other error if they were not compatible)</a>
-<a name="591"><span class="lineNum">     591 </span>                :            :  */</a>
-<a name="592"><span class="lineNum">     592 </span>                :            : NODISCARD TransactionError CombinePSBTs(PartiallySignedTransaction&amp; out, const std::vector&lt;PartiallySignedTransaction&gt;&amp; psbtxs);</a>
-<a name="593"><span class="lineNum">     593 </span>                :            : </a>
-<a name="594"><span class="lineNum">     594 </span>                :            : //! Decode a base64ed PSBT into a PartiallySignedTransaction</a>
-<a name="595"><span class="lineNum">     595 </span>                :            : NODISCARD bool DecodeBase64PSBT(PartiallySignedTransaction&amp; decoded_psbt, const std::string&amp; base64_psbt, std::string&amp; error);</a>
-<a name="596"><span class="lineNum">     596 </span>                :            : //! Decode a raw (binary blob) PSBT into a PartiallySignedTransaction</a>
-<a name="597"><span class="lineNum">     597 </span>                :            : NODISCARD bool DecodeRawPSBT(PartiallySignedTransaction&amp; decoded_psbt, const std::string&amp; raw_psbt, std::string&amp; error);</a>
-<a name="598"><span class="lineNum">     598 </span>                :            : </a>
-<a name="599"><span class="lineNum">     599 </span>                :            : #endif // BITCOIN_PSBT_H</a>
+<a name="568"><span class="lineNum">     568 </span>                :            : /** Updates a PSBTOutput with information from provider.</a>
+<a name="569"><span class="lineNum">     569 </span>                :            :  *</a>
+<a name="570"><span class="lineNum">     570 </span>                :            :  * This fills in the redeem_script, witness_script, and hd_keypaths where possible.</a>
+<a name="571"><span class="lineNum">     571 </span>                :            :  */</a>
+<a name="572"><span class="lineNum">     572 </span>                :            : void UpdatePSBTOutput(const SigningProvider&amp; provider, PartiallySignedTransaction&amp; psbt, int index);</a>
+<a name="573"><span class="lineNum">     573 </span>                :            : </a>
+<a name="574"><span class="lineNum">     574 </span>                :            : /**</a>
+<a name="575"><span class="lineNum">     575 </span>                :            :  * Finalizes a PSBT if possible, combining partial signatures.</a>
+<a name="576"><span class="lineNum">     576 </span>                :            :  *</a>
+<a name="577"><span class="lineNum">     577 </span>                :            :  * @param[in,out] &amp;psbtx reference to PartiallySignedTransaction to finalize</a>
+<a name="578"><span class="lineNum">     578 </span>                :            :  * return True if the PSBT is now complete, false otherwise</a>
+<a name="579"><span class="lineNum">     579 </span>                :            :  */</a>
+<a name="580"><span class="lineNum">     580 </span>                :            : bool FinalizePSBT(PartiallySignedTransaction&amp; psbtx);</a>
+<a name="581"><span class="lineNum">     581 </span>                :            : </a>
+<a name="582"><span class="lineNum">     582 </span>                :            : /**</a>
+<a name="583"><span class="lineNum">     583 </span>                :            :  * Finalizes a PSBT if possible, and extracts it to a CMutableTransaction if it could be finalized.</a>
+<a name="584"><span class="lineNum">     584 </span>                :            :  *</a>
+<a name="585"><span class="lineNum">     585 </span>                :            :  * @param[in]  &amp;psbtx reference to PartiallySignedTransaction</a>
+<a name="586"><span class="lineNum">     586 </span>                :            :  * @param[out] result CMutableTransaction representing the complete transaction, if successful</a>
+<a name="587"><span class="lineNum">     587 </span>                :            :  * @return True if we successfully extracted the transaction, false otherwise</a>
+<a name="588"><span class="lineNum">     588 </span>                :            :  */</a>
+<a name="589"><span class="lineNum">     589 </span>                :            : bool FinalizeAndExtractPSBT(PartiallySignedTransaction&amp; psbtx, CMutableTransaction&amp; result);</a>
+<a name="590"><span class="lineNum">     590 </span>                :            : </a>
+<a name="591"><span class="lineNum">     591 </span>                :            : /**</a>
+<a name="592"><span class="lineNum">     592 </span>                :            :  * Combines PSBTs with the same underlying transaction, resulting in a single PSBT with all partial signatures from each input.</a>
+<a name="593"><span class="lineNum">     593 </span>                :            :  *</a>
+<a name="594"><span class="lineNum">     594 </span>                :            :  * @param[out] &amp;out   the combined PSBT, if successful</a>
+<a name="595"><span class="lineNum">     595 </span>                :            :  * @param[in]  psbtxs the PSBTs to combine</a>
+<a name="596"><span class="lineNum">     596 </span>                :            :  * @return error (OK if we successfully combined the transactions, other error if they were not compatible)</a>
+<a name="597"><span class="lineNum">     597 </span>                :            :  */</a>
+<a name="598"><span class="lineNum">     598 </span>                :            : NODISCARD TransactionError CombinePSBTs(PartiallySignedTransaction&amp; out, const std::vector&lt;PartiallySignedTransaction&gt;&amp; psbtxs);</a>
+<a name="599"><span class="lineNum">     599 </span>                :            : </a>
+<a name="600"><span class="lineNum">     600 </span>                :            : //! Decode a base64ed PSBT into a PartiallySignedTransaction</a>
+<a name="601"><span class="lineNum">     601 </span>                :            : NODISCARD bool DecodeBase64PSBT(PartiallySignedTransaction&amp; decoded_psbt, const std::string&amp; base64_psbt, std::string&amp; error);</a>
+<a name="602"><span class="lineNum">     602 </span>                :            : //! Decode a raw (binary blob) PSBT into a PartiallySignedTransaction</a>
+<a name="603"><span class="lineNum">     603 </span>                :            : NODISCARD bool DecodeRawPSBT(PartiallySignedTransaction&amp; decoded_psbt, const std::string&amp; raw_psbt, std::string&amp; error);</a>
+<a name="604"><span class="lineNum">     604 </span>                :            : </a>
+<a name="605"><span class="lineNum">     605 </span>                :            : #endif // BITCOIN_PSBT_H</a>
 </pre>
       </td>
     </tr>
