@@ -70,7 +70,7 @@
 <pre class="sourceHeading">           Branch data     Line data    Source code</pre>
 <pre class="source">
 <a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
-<a name="2"><span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers</a>
+<a name="2"><span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2019 The Bitcoin Core developers</a>
 <a name="3"><span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying</a>
 <a name="4"><span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.</a>
 <a name="5"><span class="lineNum">       5 </span>                :            : </a>
@@ -332,157 +332,154 @@
 <a name="261"><span class="lineNum">     261 </span>                :            :     // NODE_WITNESS indicates that a node can be asked for blocks and transactions including</a>
 <a name="262"><span class="lineNum">     262 </span>                :            :     // witness data.</a>
 <a name="263"><span class="lineNum">     263 </span>                :            :     NODE_WITNESS = (1 &lt;&lt; 3),</a>
-<a name="264"><span class="lineNum">     264 </span>                :            :     // NODE_XTHIN means the node supports Xtreme Thinblocks</a>
-<a name="265"><span class="lineNum">     265 </span>                :            :     // If this is turned off then the node will not service nor make xthin requests</a>
-<a name="266"><span class="lineNum">     266 </span>                :            :     NODE_XTHIN = (1 &lt;&lt; 4),</a>
-<a name="267"><span class="lineNum">     267 </span>                :            :     // NODE_NETWORK_LIMITED means the same as NODE_NETWORK with the limitation of only</a>
-<a name="268"><span class="lineNum">     268 </span>                :            :     // serving the last 288 (2 day) blocks</a>
-<a name="269"><span class="lineNum">     269 </span>                :            :     // See BIP159 for details on how this is implemented.</a>
-<a name="270"><span class="lineNum">     270 </span>                :            :     NODE_NETWORK_LIMITED = (1 &lt;&lt; 10),</a>
-<a name="271"><span class="lineNum">     271 </span>                :            : </a>
-<a name="272"><span class="lineNum">     272 </span>                :            :     // Bits 24-31 are reserved for temporary experiments. Just pick a bit that</a>
-<a name="273"><span class="lineNum">     273 </span>                :            :     // isn't getting used, or one not being used much, and notify the</a>
-<a name="274"><span class="lineNum">     274 </span>                :            :     // bitcoin-development mailing list. Remember that service bits are just</a>
-<a name="275"><span class="lineNum">     275 </span>                :            :     // unauthenticated advertisements, so your code must be robust against</a>
-<a name="276"><span class="lineNum">     276 </span>                :            :     // collisions and other cases where nodes may be advertising a service they</a>
-<a name="277"><span class="lineNum">     277 </span>                :            :     // do not actually support. Other service bits should be allocated via the</a>
-<a name="278"><span class="lineNum">     278 </span>                :            :     // BIP process.</a>
-<a name="279"><span class="lineNum">     279 </span>                :            : };</a>
-<a name="280"><span class="lineNum">     280 </span>                :            : </a>
-<a name="281"><span class="lineNum">     281 </span>                :            : /**</a>
-<a name="282"><span class="lineNum">     282 </span>                :            :  * Gets the set of service flags which are &quot;desirable&quot; for a given peer.</a>
-<a name="283"><span class="lineNum">     283 </span>                :            :  *</a>
-<a name="284"><span class="lineNum">     284 </span>                :            :  * These are the flags which are required for a peer to support for them</a>
-<a name="285"><span class="lineNum">     285 </span>                :            :  * to be &quot;interesting&quot; to us, ie for us to wish to use one of our few</a>
-<a name="286"><span class="lineNum">     286 </span>                :            :  * outbound connection slots for or for us to wish to prioritize keeping</a>
-<a name="287"><span class="lineNum">     287 </span>                :            :  * their connection around.</a>
-<a name="288"><span class="lineNum">     288 </span>                :            :  *</a>
-<a name="289"><span class="lineNum">     289 </span>                :            :  * Relevant service flags may be peer- and state-specific in that the</a>
-<a name="290"><span class="lineNum">     290 </span>                :            :  * version of the peer may determine which flags are required (eg in the</a>
-<a name="291"><span class="lineNum">     291 </span>                :            :  * case of NODE_NETWORK_LIMITED where we seek out NODE_NETWORK peers</a>
-<a name="292"><span class="lineNum">     292 </span>                :            :  * unless they set NODE_NETWORK_LIMITED and we are out of IBD, in which</a>
-<a name="293"><span class="lineNum">     293 </span>                :            :  * case NODE_NETWORK_LIMITED suffices).</a>
-<a name="294"><span class="lineNum">     294 </span>                :            :  *</a>
-<a name="295"><span class="lineNum">     295 </span>                :            :  * Thus, generally, avoid calling with peerServices == NODE_NONE, unless</a>
-<a name="296"><span class="lineNum">     296 </span>                :            :  * state-specific flags must absolutely be avoided. When called with</a>
-<a name="297"><span class="lineNum">     297 </span>                :            :  * peerServices == NODE_NONE, the returned desirable service flags are</a>
-<a name="298"><span class="lineNum">     298 </span>                :            :  * guaranteed to not change dependent on state - ie they are suitable for</a>
-<a name="299"><span class="lineNum">     299 </span>                :            :  * use when describing peers which we know to be desirable, but for which</a>
-<a name="300"><span class="lineNum">     300 </span>                :            :  * we do not have a confirmed set of service flags.</a>
-<a name="301"><span class="lineNum">     301 </span>                :            :  *</a>
-<a name="302"><span class="lineNum">     302 </span>                :            :  * If the NODE_NONE return value is changed, contrib/seeds/makeseeds.py</a>
-<a name="303"><span class="lineNum">     303 </span>                :            :  * should be updated appropriately to filter for the same nodes.</a>
-<a name="304"><span class="lineNum">     304 </span>                :            :  */</a>
-<a name="305"><span class="lineNum">     305 </span>                :            : ServiceFlags GetDesirableServiceFlags(ServiceFlags services);</a>
+<a name="264"><span class="lineNum">     264 </span>                :            :     // NODE_NETWORK_LIMITED means the same as NODE_NETWORK with the limitation of only</a>
+<a name="265"><span class="lineNum">     265 </span>                :            :     // serving the last 288 (2 day) blocks</a>
+<a name="266"><span class="lineNum">     266 </span>                :            :     // See BIP159 for details on how this is implemented.</a>
+<a name="267"><span class="lineNum">     267 </span>                :            :     NODE_NETWORK_LIMITED = (1 &lt;&lt; 10),</a>
+<a name="268"><span class="lineNum">     268 </span>                :            : </a>
+<a name="269"><span class="lineNum">     269 </span>                :            :     // Bits 24-31 are reserved for temporary experiments. Just pick a bit that</a>
+<a name="270"><span class="lineNum">     270 </span>                :            :     // isn't getting used, or one not being used much, and notify the</a>
+<a name="271"><span class="lineNum">     271 </span>                :            :     // bitcoin-development mailing list. Remember that service bits are just</a>
+<a name="272"><span class="lineNum">     272 </span>                :            :     // unauthenticated advertisements, so your code must be robust against</a>
+<a name="273"><span class="lineNum">     273 </span>                :            :     // collisions and other cases where nodes may be advertising a service they</a>
+<a name="274"><span class="lineNum">     274 </span>                :            :     // do not actually support. Other service bits should be allocated via the</a>
+<a name="275"><span class="lineNum">     275 </span>                :            :     // BIP process.</a>
+<a name="276"><span class="lineNum">     276 </span>                :            : };</a>
+<a name="277"><span class="lineNum">     277 </span>                :            : </a>
+<a name="278"><span class="lineNum">     278 </span>                :            : /**</a>
+<a name="279"><span class="lineNum">     279 </span>                :            :  * Gets the set of service flags which are &quot;desirable&quot; for a given peer.</a>
+<a name="280"><span class="lineNum">     280 </span>                :            :  *</a>
+<a name="281"><span class="lineNum">     281 </span>                :            :  * These are the flags which are required for a peer to support for them</a>
+<a name="282"><span class="lineNum">     282 </span>                :            :  * to be &quot;interesting&quot; to us, ie for us to wish to use one of our few</a>
+<a name="283"><span class="lineNum">     283 </span>                :            :  * outbound connection slots for or for us to wish to prioritize keeping</a>
+<a name="284"><span class="lineNum">     284 </span>                :            :  * their connection around.</a>
+<a name="285"><span class="lineNum">     285 </span>                :            :  *</a>
+<a name="286"><span class="lineNum">     286 </span>                :            :  * Relevant service flags may be peer- and state-specific in that the</a>
+<a name="287"><span class="lineNum">     287 </span>                :            :  * version of the peer may determine which flags are required (eg in the</a>
+<a name="288"><span class="lineNum">     288 </span>                :            :  * case of NODE_NETWORK_LIMITED where we seek out NODE_NETWORK peers</a>
+<a name="289"><span class="lineNum">     289 </span>                :            :  * unless they set NODE_NETWORK_LIMITED and we are out of IBD, in which</a>
+<a name="290"><span class="lineNum">     290 </span>                :            :  * case NODE_NETWORK_LIMITED suffices).</a>
+<a name="291"><span class="lineNum">     291 </span>                :            :  *</a>
+<a name="292"><span class="lineNum">     292 </span>                :            :  * Thus, generally, avoid calling with peerServices == NODE_NONE, unless</a>
+<a name="293"><span class="lineNum">     293 </span>                :            :  * state-specific flags must absolutely be avoided. When called with</a>
+<a name="294"><span class="lineNum">     294 </span>                :            :  * peerServices == NODE_NONE, the returned desirable service flags are</a>
+<a name="295"><span class="lineNum">     295 </span>                :            :  * guaranteed to not change dependent on state - ie they are suitable for</a>
+<a name="296"><span class="lineNum">     296 </span>                :            :  * use when describing peers which we know to be desirable, but for which</a>
+<a name="297"><span class="lineNum">     297 </span>                :            :  * we do not have a confirmed set of service flags.</a>
+<a name="298"><span class="lineNum">     298 </span>                :            :  *</a>
+<a name="299"><span class="lineNum">     299 </span>                :            :  * If the NODE_NONE return value is changed, contrib/seeds/makeseeds.py</a>
+<a name="300"><span class="lineNum">     300 </span>                :            :  * should be updated appropriately to filter for the same nodes.</a>
+<a name="301"><span class="lineNum">     301 </span>                :            :  */</a>
+<a name="302"><span class="lineNum">     302 </span>                :            : ServiceFlags GetDesirableServiceFlags(ServiceFlags services);</a>
+<a name="303"><span class="lineNum">     303 </span>                :            : </a>
+<a name="304"><span class="lineNum">     304 </span>                :            : /** Set the current IBD status in order to figure out the desirable service flags */</a>
+<a name="305"><span class="lineNum">     305 </span>                :            : void SetServiceFlagsIBDCache(bool status);</a>
 <a name="306"><span class="lineNum">     306 </span>                :            : </a>
-<a name="307"><span class="lineNum">     307 </span>                :            : /** Set the current IBD status in order to figure out the desirable service flags */</a>
-<a name="308"><span class="lineNum">     308 </span>                :            : void SetServiceFlagsIBDCache(bool status);</a>
-<a name="309"><span class="lineNum">     309 </span>                :            : </a>
-<a name="310"><span class="lineNum">     310 </span>                :            : /**</a>
-<a name="311"><span class="lineNum">     311 </span>                :            :  * A shortcut for (services &amp; GetDesirableServiceFlags(services))</a>
-<a name="312"><span class="lineNum">     312 </span>                :            :  * == GetDesirableServiceFlags(services), ie determines whether the given</a>
-<a name="313"><span class="lineNum">     313 </span>                :            :  * set of service flags are sufficient for a peer to be &quot;relevant&quot;.</a>
-<a name="314"><span class="lineNum">     314 </span>                :            :  */</a>
-<a name="315"><span class="lineNum">     315 </span>                :            : static inline bool HasAllDesirableServiceFlags(ServiceFlags services) {</a>
-<a name="316"><span class="lineNum">     316 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return !(GetDesirableServiceFlags(services) &amp; (~services));</span></a>
+<a name="307"><span class="lineNum">     307 </span>                :            : /**</a>
+<a name="308"><span class="lineNum">     308 </span>                :            :  * A shortcut for (services &amp; GetDesirableServiceFlags(services))</a>
+<a name="309"><span class="lineNum">     309 </span>                :            :  * == GetDesirableServiceFlags(services), ie determines whether the given</a>
+<a name="310"><span class="lineNum">     310 </span>                :            :  * set of service flags are sufficient for a peer to be &quot;relevant&quot;.</a>
+<a name="311"><span class="lineNum">     311 </span>                :            :  */</a>
+<a name="312"><span class="lineNum">     312 </span>                :            : static inline bool HasAllDesirableServiceFlags(ServiceFlags services) {</a>
+<a name="313"><span class="lineNum">     313 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return !(GetDesirableServiceFlags(services) &amp; (~services));</span></a>
 <span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
 <span class="lineNum">         </span>     [<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span>]
-<a name="317"><span class="lineNum">     317 </span>                :            : }</a>
-<a name="318"><span class="lineNum">     318 </span>                :            : </a>
-<a name="319"><span class="lineNum">     319 </span>                :            : /**</a>
-<a name="320"><span class="lineNum">     320 </span>                :            :  * Checks if a peer with the given service flags may be capable of having a</a>
-<a name="321"><span class="lineNum">     321 </span>                :            :  * robust address-storage DB.</a>
-<a name="322"><span class="lineNum">     322 </span>                :            :  */</a>
-<a name="323"><span class="lineNum">     323 </span>                :            : static inline bool MayHaveUsefulAddressDB(ServiceFlags services) {</a>
-<a name="324"><span class="lineNum">     324 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return (services &amp; NODE_NETWORK) || (services &amp; NODE_NETWORK_LIMITED);</span></a>
-<a name="325"><span class="lineNum">     325 </span>                :            : }</a>
-<a name="326"><span class="lineNum">     326 </span>                :            : </a>
-<a name="327"><span class="lineNum">     327 </span>                :            : /** A CService with information about it as peer */</a>
-<a name="328"><span class="lineNum">     328 </span>                :            : class CAddress : public CService</a>
-<a name="329"><span class="lineNum">     329 </span>                :            : {</a>
-<a name="330"><span class="lineNum">     330 </span>                :            : public:</a>
-<a name="331"><span class="lineNum">     331 </span>                :            :     CAddress();</a>
-<a name="332"><span class="lineNum">     332 </span>                :            :     explicit CAddress(CService ipIn, ServiceFlags nServicesIn);</a>
-<a name="333"><span class="lineNum">     333 </span>                :            : </a>
-<a name="334"><span class="lineNum">     334 </span>                :            :     void Init();</a>
-<a name="335"><span class="lineNum">     335 </span>                :            : </a>
-<a name="336"><span class="lineNum">     336 </span>[<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>][<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]:<span class="lineCov">         38 :     ADD_SERIALIZE_METHODS;</span></a>
-<a name="337"><span class="lineNum">     337 </span>                :            : </a>
-<a name="338"><span class="lineNum">     338 </span>                :            :     template &lt;typename Stream, typename Operation&gt;</a>
-<a name="339"><span class="lineNum">     339 </span>                :<span class="lineCov">         38 :     inline void SerializationOp(Stream&amp; s, Operation ser_action)</span></a>
-<a name="340"><span class="lineNum">     340 </span>                :            :     {</a>
-<a name="341"><span class="lineNum">     341 </span>                :            :         if (ser_action.ForRead())</a>
-<a name="342"><span class="lineNum">     342 </span>  [<span class="branchCov" title="Branch 0 was taken 20 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 10 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">         10 :             Init();</span></a>
-<a name="343"><span class="lineNum">     343 </span>        [<span class="branchCov" title="Branch 0 was taken 8 times"> + </span><span class="branchCov" title="Branch 1 was taken 20 times"> + </span>]:<span class="lineCov">         38 :         int nVersion = s.GetVersion();</span></a>
-<a name="344"><span class="lineNum">     344 </span>[<span class="branchCov" title="Branch 0 was taken 8 times"> + </span><span class="branchCov" title="Branch 1 was taken 20 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 8 times"> + </span><span class="branchCov" title="Branch 3 was taken 20 times"> + </span>]:<span class="lineCov">         76 :         if (s.GetType() &amp; SER_DISK)</span></a>
-<a name="345"><span class="lineNum">     345 </span>                :<span class="lineCov">         18 :             READWRITE(nVersion);</span></a>
-<a name="346"><span class="lineNum">     346 </span>[<span class="branchCov" title="Branch 0 was taken 20 times"> + </span><span class="branchCov" title="Branch 1 was taken 16 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 20 times"> + </span><span class="branchCov" title="Branch 3 was taken 16 times"> + </span>]:<span class="lineCov">         72 :         if ((s.GetType() &amp; SER_DISK) ||</span></a>
+<a name="314"><span class="lineNum">     314 </span>                :            : }</a>
+<a name="315"><span class="lineNum">     315 </span>                :            : </a>
+<a name="316"><span class="lineNum">     316 </span>                :            : /**</a>
+<a name="317"><span class="lineNum">     317 </span>                :            :  * Checks if a peer with the given service flags may be capable of having a</a>
+<a name="318"><span class="lineNum">     318 </span>                :            :  * robust address-storage DB.</a>
+<a name="319"><span class="lineNum">     319 </span>                :            :  */</a>
+<a name="320"><span class="lineNum">     320 </span>                :            : static inline bool MayHaveUsefulAddressDB(ServiceFlags services) {</a>
+<a name="321"><span class="lineNum">     321 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return (services &amp; NODE_NETWORK) || (services &amp; NODE_NETWORK_LIMITED);</span></a>
+<a name="322"><span class="lineNum">     322 </span>                :            : }</a>
+<a name="323"><span class="lineNum">     323 </span>                :            : </a>
+<a name="324"><span class="lineNum">     324 </span>                :            : /** A CService with information about it as peer */</a>
+<a name="325"><span class="lineNum">     325 </span>                :            : class CAddress : public CService</a>
+<a name="326"><span class="lineNum">     326 </span>                :            : {</a>
+<a name="327"><span class="lineNum">     327 </span>                :            : public:</a>
+<a name="328"><span class="lineNum">     328 </span>                :            :     CAddress();</a>
+<a name="329"><span class="lineNum">     329 </span>                :            :     explicit CAddress(CService ipIn, ServiceFlags nServicesIn);</a>
+<a name="330"><span class="lineNum">     330 </span>                :            : </a>
+<a name="331"><span class="lineNum">     331 </span>                :            :     void Init();</a>
+<a name="332"><span class="lineNum">     332 </span>                :            : </a>
+<a name="333"><span class="lineNum">     333 </span>[<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>][<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]:<span class="lineCov">         38 :     ADD_SERIALIZE_METHODS;</span></a>
+<a name="334"><span class="lineNum">     334 </span>                :            : </a>
+<a name="335"><span class="lineNum">     335 </span>                :            :     template &lt;typename Stream, typename Operation&gt;</a>
+<a name="336"><span class="lineNum">     336 </span>                :<span class="lineCov">         38 :     inline void SerializationOp(Stream&amp; s, Operation ser_action)</span></a>
+<a name="337"><span class="lineNum">     337 </span>                :            :     {</a>
+<a name="338"><span class="lineNum">     338 </span>                :            :         if (ser_action.ForRead())</a>
+<a name="339"><span class="lineNum">     339 </span>  [<span class="branchCov" title="Branch 0 was taken 20 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 10 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">         10 :             Init();</span></a>
+<a name="340"><span class="lineNum">     340 </span>        [<span class="branchCov" title="Branch 0 was taken 8 times"> + </span><span class="branchCov" title="Branch 1 was taken 20 times"> + </span>]:<span class="lineCov">         38 :         int nVersion = s.GetVersion();</span></a>
+<a name="341"><span class="lineNum">     341 </span>[<span class="branchCov" title="Branch 0 was taken 8 times"> + </span><span class="branchCov" title="Branch 1 was taken 20 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 8 times"> + </span><span class="branchCov" title="Branch 3 was taken 20 times"> + </span>]:<span class="lineCov">         76 :         if (s.GetType() &amp; SER_DISK)</span></a>
+<a name="342"><span class="lineNum">     342 </span>                :<span class="lineCov">         18 :             READWRITE(nVersion);</span></a>
+<a name="343"><span class="lineNum">     343 </span>[<span class="branchCov" title="Branch 0 was taken 20 times"> + </span><span class="branchCov" title="Branch 1 was taken 16 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 20 times"> + </span><span class="branchCov" title="Branch 3 was taken 16 times"> + </span>]:<span class="lineCov">         72 :         if ((s.GetType() &amp; SER_DISK) ||</span></a>
 <span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
-<a name="347"><span class="lineNum">     347 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 20 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">         20 :             (nVersion &gt;= CADDR_TIME_VERSION &amp;&amp; !(s.GetType() &amp; SER_GETHASH)))</span></a>
+<a name="344"><span class="lineNum">     344 </span>[<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 20 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">         20 :             (nVersion &gt;= CADDR_TIME_VERSION &amp;&amp; !(s.GetType() &amp; SER_GETHASH)))</span></a>
 <span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
-<a name="348"><span class="lineNum">     348 </span>                :<span class="lineCov">         16 :             READWRITE(nTime);</span></a>
-<a name="349"><span class="lineNum">     349 </span>                :<span class="lineCov">         36 :         uint64_t nServicesInt = nServices;</span></a>
-<a name="350"><span class="lineNum">     350 </span>                :<span class="lineCov">         36 :         READWRITE(nServicesInt);</span></a>
-<a name="351"><span class="lineNum">     351 </span>                :<span class="lineCov">         36 :         nServices = static_cast&lt;ServiceFlags&gt;(nServicesInt);</span></a>
-<a name="352"><span class="lineNum">     352 </span>                :<span class="lineCov">         36 :         READWRITEAS(CService, *this);</span></a>
-<a name="353"><span class="lineNum">     353 </span>                :<span class="lineCov">         36 :     }</span></a>
-<a name="354"><span class="lineNum">     354 </span>                :            : </a>
-<a name="355"><span class="lineNum">     355 </span>                :            :     // TODO: make private (improves encapsulation)</a>
-<a name="356"><span class="lineNum">     356 </span>                :            : public:</a>
-<a name="357"><span class="lineNum">     357 </span>                :            :     ServiceFlags nServices;</a>
-<a name="358"><span class="lineNum">     358 </span>                :            : </a>
-<a name="359"><span class="lineNum">     359 </span>                :            :     // disk and network only</a>
-<a name="360"><span class="lineNum">     360 </span>                :            :     unsigned int nTime;</a>
-<a name="361"><span class="lineNum">     361 </span>                :            : };</a>
-<a name="362"><span class="lineNum">     362 </span>                :            : </a>
-<a name="363"><span class="lineNum">     363 </span>                :            : /** getdata message type flags */</a>
-<a name="364"><span class="lineNum">     364 </span>                :            : const uint32_t MSG_WITNESS_FLAG = 1 &lt;&lt; 30;</a>
-<a name="365"><span class="lineNum">     365 </span>                :            : const uint32_t MSG_TYPE_MASK    = 0xffffffff &gt;&gt; 2;</a>
-<a name="366"><span class="lineNum">     366 </span>                :            : </a>
-<a name="367"><span class="lineNum">     367 </span>                :            : /** getdata / inv message types.</a>
-<a name="368"><span class="lineNum">     368 </span>                :            :  * These numbers are defined by the protocol. When adding a new value, be sure</a>
-<a name="369"><span class="lineNum">     369 </span>                :            :  * to mention it in the respective BIP.</a>
-<a name="370"><span class="lineNum">     370 </span>                :            :  */</a>
-<a name="371"><span class="lineNum">     371 </span>                :            : enum GetDataMsg</a>
-<a name="372"><span class="lineNum">     372 </span>                :            : {</a>
-<a name="373"><span class="lineNum">     373 </span>                :            :     UNDEFINED = 0,</a>
-<a name="374"><span class="lineNum">     374 </span>                :            :     MSG_TX = 1,</a>
-<a name="375"><span class="lineNum">     375 </span>                :            :     MSG_BLOCK = 2,</a>
-<a name="376"><span class="lineNum">     376 </span>                :            :     // The following can only occur in getdata. Invs always use TX or BLOCK.</a>
-<a name="377"><span class="lineNum">     377 </span>                :            :     MSG_FILTERED_BLOCK = 3,  //!&lt; Defined in BIP37</a>
-<a name="378"><span class="lineNum">     378 </span>                :            :     MSG_CMPCT_BLOCK = 4,     //!&lt; Defined in BIP152</a>
-<a name="379"><span class="lineNum">     379 </span>                :            :     MSG_WITNESS_BLOCK = MSG_BLOCK | MSG_WITNESS_FLAG, //!&lt; Defined in BIP144</a>
-<a name="380"><span class="lineNum">     380 </span>                :            :     MSG_WITNESS_TX = MSG_TX | MSG_WITNESS_FLAG,       //!&lt; Defined in BIP144</a>
-<a name="381"><span class="lineNum">     381 </span>                :            :     MSG_FILTERED_WITNESS_BLOCK = MSG_FILTERED_BLOCK | MSG_WITNESS_FLAG,</a>
-<a name="382"><span class="lineNum">     382 </span>                :            : };</a>
-<a name="383"><span class="lineNum">     383 </span>                :            : </a>
-<a name="384"><span class="lineNum">     384 </span>                :            : /** inv message data */</a>
-<a name="385"><span class="lineNum">     385 </span>                :            : class CInv</a>
-<a name="386"><span class="lineNum">     386 </span>                :            : {</a>
-<a name="387"><span class="lineNum">     387 </span>                :            : public:</a>
-<a name="388"><span class="lineNum">     388 </span>                :            :     CInv();</a>
-<a name="389"><span class="lineNum">     389 </span>                :            :     CInv(int typeIn, const uint256&amp; hashIn);</a>
-<a name="390"><span class="lineNum">     390 </span>                :            : </a>
-<a name="391"><span class="lineNum">     391 </span>                :<span class="lineNoCov">          0 :     ADD_SERIALIZE_METHODS;</span></a>
-<a name="392"><span class="lineNum">     392 </span>                :            : </a>
-<a name="393"><span class="lineNum">     393 </span>                :            :     template &lt;typename Stream, typename Operation&gt;</a>
-<a name="394"><span class="lineNum">     394 </span>                :<span class="lineNoCov">          0 :     inline void SerializationOp(Stream&amp; s, Operation ser_action)</span></a>
-<a name="395"><span class="lineNum">     395 </span>                :            :     {</a>
-<a name="396"><span class="lineNum">     396 </span>                :<span class="lineNoCov">          0 :         READWRITE(type);</span></a>
-<a name="397"><span class="lineNum">     397 </span>                :<span class="lineNoCov">          0 :         READWRITE(hash);</span></a>
-<a name="398"><span class="lineNum">     398 </span>                :<span class="lineNoCov">          0 :     }</span></a>
-<a name="399"><span class="lineNum">     399 </span>                :            : </a>
-<a name="400"><span class="lineNum">     400 </span>                :            :     friend bool operator&lt;(const CInv&amp; a, const CInv&amp; b);</a>
+<a name="345"><span class="lineNum">     345 </span>                :<span class="lineCov">         16 :             READWRITE(nTime);</span></a>
+<a name="346"><span class="lineNum">     346 </span>                :<span class="lineCov">         36 :         uint64_t nServicesInt = nServices;</span></a>
+<a name="347"><span class="lineNum">     347 </span>                :<span class="lineCov">         36 :         READWRITE(nServicesInt);</span></a>
+<a name="348"><span class="lineNum">     348 </span>                :<span class="lineCov">         36 :         nServices = static_cast&lt;ServiceFlags&gt;(nServicesInt);</span></a>
+<a name="349"><span class="lineNum">     349 </span>                :<span class="lineCov">         36 :         READWRITEAS(CService, *this);</span></a>
+<a name="350"><span class="lineNum">     350 </span>                :<span class="lineCov">         36 :     }</span></a>
+<a name="351"><span class="lineNum">     351 </span>                :            : </a>
+<a name="352"><span class="lineNum">     352 </span>                :            :     // TODO: make private (improves encapsulation)</a>
+<a name="353"><span class="lineNum">     353 </span>                :            : public:</a>
+<a name="354"><span class="lineNum">     354 </span>                :            :     ServiceFlags nServices;</a>
+<a name="355"><span class="lineNum">     355 </span>                :            : </a>
+<a name="356"><span class="lineNum">     356 </span>                :            :     // disk and network only</a>
+<a name="357"><span class="lineNum">     357 </span>                :            :     unsigned int nTime;</a>
+<a name="358"><span class="lineNum">     358 </span>                :            : };</a>
+<a name="359"><span class="lineNum">     359 </span>                :            : </a>
+<a name="360"><span class="lineNum">     360 </span>                :            : /** getdata message type flags */</a>
+<a name="361"><span class="lineNum">     361 </span>                :            : const uint32_t MSG_WITNESS_FLAG = 1 &lt;&lt; 30;</a>
+<a name="362"><span class="lineNum">     362 </span>                :            : const uint32_t MSG_TYPE_MASK    = 0xffffffff &gt;&gt; 2;</a>
+<a name="363"><span class="lineNum">     363 </span>                :            : </a>
+<a name="364"><span class="lineNum">     364 </span>                :            : /** getdata / inv message types.</a>
+<a name="365"><span class="lineNum">     365 </span>                :            :  * These numbers are defined by the protocol. When adding a new value, be sure</a>
+<a name="366"><span class="lineNum">     366 </span>                :            :  * to mention it in the respective BIP.</a>
+<a name="367"><span class="lineNum">     367 </span>                :            :  */</a>
+<a name="368"><span class="lineNum">     368 </span>                :            : enum GetDataMsg</a>
+<a name="369"><span class="lineNum">     369 </span>                :            : {</a>
+<a name="370"><span class="lineNum">     370 </span>                :            :     UNDEFINED = 0,</a>
+<a name="371"><span class="lineNum">     371 </span>                :            :     MSG_TX = 1,</a>
+<a name="372"><span class="lineNum">     372 </span>                :            :     MSG_BLOCK = 2,</a>
+<a name="373"><span class="lineNum">     373 </span>                :            :     // The following can only occur in getdata. Invs always use TX or BLOCK.</a>
+<a name="374"><span class="lineNum">     374 </span>                :            :     MSG_FILTERED_BLOCK = 3,  //!&lt; Defined in BIP37</a>
+<a name="375"><span class="lineNum">     375 </span>                :            :     MSG_CMPCT_BLOCK = 4,     //!&lt; Defined in BIP152</a>
+<a name="376"><span class="lineNum">     376 </span>                :            :     MSG_WITNESS_BLOCK = MSG_BLOCK | MSG_WITNESS_FLAG, //!&lt; Defined in BIP144</a>
+<a name="377"><span class="lineNum">     377 </span>                :            :     MSG_WITNESS_TX = MSG_TX | MSG_WITNESS_FLAG,       //!&lt; Defined in BIP144</a>
+<a name="378"><span class="lineNum">     378 </span>                :            :     MSG_FILTERED_WITNESS_BLOCK = MSG_FILTERED_BLOCK | MSG_WITNESS_FLAG,</a>
+<a name="379"><span class="lineNum">     379 </span>                :            : };</a>
+<a name="380"><span class="lineNum">     380 </span>                :            : </a>
+<a name="381"><span class="lineNum">     381 </span>                :            : /** inv message data */</a>
+<a name="382"><span class="lineNum">     382 </span>                :            : class CInv</a>
+<a name="383"><span class="lineNum">     383 </span>                :            : {</a>
+<a name="384"><span class="lineNum">     384 </span>                :            : public:</a>
+<a name="385"><span class="lineNum">     385 </span>                :            :     CInv();</a>
+<a name="386"><span class="lineNum">     386 </span>                :            :     CInv(int typeIn, const uint256&amp; hashIn);</a>
+<a name="387"><span class="lineNum">     387 </span>                :            : </a>
+<a name="388"><span class="lineNum">     388 </span>                :<span class="lineNoCov">          0 :     ADD_SERIALIZE_METHODS;</span></a>
+<a name="389"><span class="lineNum">     389 </span>                :            : </a>
+<a name="390"><span class="lineNum">     390 </span>                :            :     template &lt;typename Stream, typename Operation&gt;</a>
+<a name="391"><span class="lineNum">     391 </span>                :<span class="lineNoCov">          0 :     inline void SerializationOp(Stream&amp; s, Operation ser_action)</span></a>
+<a name="392"><span class="lineNum">     392 </span>                :            :     {</a>
+<a name="393"><span class="lineNum">     393 </span>                :<span class="lineNoCov">          0 :         READWRITE(type);</span></a>
+<a name="394"><span class="lineNum">     394 </span>                :<span class="lineNoCov">          0 :         READWRITE(hash);</span></a>
+<a name="395"><span class="lineNum">     395 </span>                :<span class="lineNoCov">          0 :     }</span></a>
+<a name="396"><span class="lineNum">     396 </span>                :            : </a>
+<a name="397"><span class="lineNum">     397 </span>                :            :     friend bool operator&lt;(const CInv&amp; a, const CInv&amp; b);</a>
+<a name="398"><span class="lineNum">     398 </span>                :            : </a>
+<a name="399"><span class="lineNum">     399 </span>                :            :     std::string GetCommand() const;</a>
+<a name="400"><span class="lineNum">     400 </span>                :            :     std::string ToString() const;</a>
 <a name="401"><span class="lineNum">     401 </span>                :            : </a>
-<a name="402"><span class="lineNum">     402 </span>                :            :     std::string GetCommand() const;</a>
-<a name="403"><span class="lineNum">     403 </span>                :            :     std::string ToString() const;</a>
-<a name="404"><span class="lineNum">     404 </span>                :            : </a>
-<a name="405"><span class="lineNum">     405 </span>                :            : public:</a>
-<a name="406"><span class="lineNum">     406 </span>                :            :     int type;</a>
-<a name="407"><span class="lineNum">     407 </span>                :            :     uint256 hash;</a>
-<a name="408"><span class="lineNum">     408 </span>                :            : };</a>
-<a name="409"><span class="lineNum">     409 </span>                :            : </a>
-<a name="410"><span class="lineNum">     410 </span>                :            : #endif // BITCOIN_PROTOCOL_H</a>
+<a name="402"><span class="lineNum">     402 </span>                :            : public:</a>
+<a name="403"><span class="lineNum">     403 </span>                :            :     int type;</a>
+<a name="404"><span class="lineNum">     404 </span>                :            :     uint256 hash;</a>
+<a name="405"><span class="lineNum">     405 </span>                :            : };</a>
+<a name="406"><span class="lineNum">     406 </span>                :            : </a>
+<a name="407"><span class="lineNum">     407 </span>                :            : #endif // BITCOIN_PROTOCOL_H</a>
 </pre>
       </td>
     </tr>

@@ -31,27 +31,27 @@
             <td class="headerValue">test_bitcoin_coverage.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">18</td>
-            <td class="headerCovTableEntry">32</td>
-            <td class="headerCovTableEntryLo">56.2 %</td>
+            <td class="headerCovTableEntry">15</td>
+            <td class="headerCovTableEntry">29</td>
+            <td class="headerCovTableEntryLo">51.7 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
             <td class="headerValue">2000-01-01 12:00:00</td>
             <td></td>
             <td class="headerItem">Functions:</td>
-            <td class="headerCovTableEntry">4</td>
-            <td class="headerCovTableEntry">7</td>
-            <td class="headerCovTableEntryLo">57.1 %</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntryLo">50.0 %</td>
           </tr>
           <tr>
             <td></td>
             <td></td>
             <td></td>
             <td class="headerItem">Branches:</td>
-            <td class="headerCovTableEntry">25</td>
-            <td class="headerCovTableEntry">82</td>
-            <td class="headerCovTableEntryLo">30.5 %</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntry">22</td>
+            <td class="headerCovTableEntryLo">27.3 %</td>
           </tr>
           <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
         </table>
@@ -76,9 +76,9 @@
 <a name="5"><span class="lineNum">       5 </span>                :            : #ifndef BITCOIN_WALLET_CRYPTER_H</a>
 <a name="6"><span class="lineNum">       6 </span>                :            : #define BITCOIN_WALLET_CRYPTER_H</a>
 <a name="7"><span class="lineNum">       7 </span>                :            : </a>
-<a name="8"><span class="lineNum">       8 </span>                :            : #include &lt;keystore.h&gt;</a>
-<a name="9"><span class="lineNum">       9 </span>                :            : #include &lt;serialize.h&gt;</a>
-<a name="10"><span class="lineNum">      10 </span>                :            : #include &lt;support/allocators/secure.h&gt;</a>
+<a name="8"><span class="lineNum">       8 </span>                :            : #include &lt;serialize.h&gt;</a>
+<a name="9"><span class="lineNum">       9 </span>                :            : #include &lt;support/allocators/secure.h&gt;</a>
+<a name="10"><span class="lineNum">      10 </span>                :            : #include &lt;script/signingprovider.h&gt;</a>
 <a name="11"><span class="lineNum">      11 </span>                :            : </a>
 <a name="12"><span class="lineNum">      12 </span>                :            : #include &lt;atomic&gt;</a>
 <a name="13"><span class="lineNum">      13 </span>                :            : </a>
@@ -181,70 +181,11 @@
 <a name="109"><span class="lineNum">     109 </span>                :<span class="lineCov">         72 :     }</span></a>
 <a name="110"><span class="lineNum">     110 </span>                :            : };</a>
 <a name="111"><span class="lineNum">     111 </span>                :            : </a>
-<a name="112"><span class="lineNum">     112 </span>                :            : /** Keystore which keeps the private keys encrypted.</a>
-<a name="113"><span class="lineNum">     113 </span>                :            :  * It derives from the basic key store, which is used if no encryption is active.</a>
-<a name="114"><span class="lineNum">     114 </span>                :            :  */</a>
-<a name="115"><span class="lineNum">     115 </span>                :            : class CCryptoKeyStore : public CBasicKeyStore</a>
-<a name="116"><span class="lineNum">     116 </span>                :            : {</a>
-<a name="117"><span class="lineNum">     117 </span>                :            : private:</a>
-<a name="118"><span class="lineNum">     118 </span>                :            : </a>
-<a name="119"><span class="lineNum">     119 </span>                :            :     CKeyingMaterial vMasterKey GUARDED_BY(cs_KeyStore);</a>
-<a name="120"><span class="lineNum">     120 </span>                :            : </a>
-<a name="121"><span class="lineNum">     121 </span>                :            :     //! if fUseCrypto is true, mapKeys must be empty</a>
-<a name="122"><span class="lineNum">     122 </span>                :            :     //! if fUseCrypto is false, vMasterKey must be empty</a>
-<a name="123"><span class="lineNum">     123 </span>                :            :     std::atomic&lt;bool&gt; fUseCrypto;</a>
-<a name="124"><span class="lineNum">     124 </span>                :            : </a>
-<a name="125"><span class="lineNum">     125 </span>                :            :     //! keeps track of whether Unlock has run a thorough check before</a>
-<a name="126"><span class="lineNum">     126 </span>                :            :     bool fDecryptionThoroughlyChecked;</a>
-<a name="127"><span class="lineNum">     127 </span>                :            : </a>
-<a name="128"><span class="lineNum">     128 </span>                :            : protected:</a>
-<a name="129"><span class="lineNum">     129 </span>                :            :     using CryptedKeyMap = std::map&lt;CKeyID, std::pair&lt;CPubKey, std::vector&lt;unsigned char&gt;&gt;&gt;;</a>
-<a name="130"><span class="lineNum">     130 </span>                :            : </a>
-<a name="131"><span class="lineNum">     131 </span>                :            :     bool SetCrypted();</a>
-<a name="132"><span class="lineNum">     132 </span>                :            : </a>
-<a name="133"><span class="lineNum">     133 </span>                :            :     //! will encrypt previously unencrypted keys</a>
-<a name="134"><span class="lineNum">     134 </span>                :            :     bool EncryptKeys(CKeyingMaterial&amp; vMasterKeyIn);</a>
-<a name="135"><span class="lineNum">     135 </span>                :            : </a>
-<a name="136"><span class="lineNum">     136 </span>                :            :     bool Unlock(const CKeyingMaterial&amp; vMasterKeyIn, bool accept_no_keys = false);</a>
-<a name="137"><span class="lineNum">     137 </span>                :            :     CryptedKeyMap mapCryptedKeys GUARDED_BY(cs_KeyStore);</a>
-<a name="138"><span class="lineNum">     138 </span>                :            : </a>
-<a name="139"><span class="lineNum">     139 </span>                :            : public:</a>
-<a name="140"><span class="lineNum">     140 </span>[<span class="branchCov" title="Branch 1 was taken 116 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 116 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">        580 :     CCryptoKeyStore() : fUseCrypto(false), fDecryptionThoroughlyChecked(false)</span></a>
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 7 was taken 116 times"> + </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span>][<span class="branchCov" title="Branch 10 was taken 116 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
-<span class="lineNum">         </span>[<span class="branchCov" title="Branch 13 was taken 116 times"> + </span><span class="branchNoCov" title="Branch 14 was not taken"> - </span>][<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
-<a name="141"><span class="lineNum">     141 </span>                :            :     {</a>
-<a name="142"><span class="lineNum">     142 </span>                :<span class="lineCov">        116 :     }</span></a>
-<a name="143"><span class="lineNum">     143 </span>                :            : </a>
-<a name="144"><span class="lineNum">     144 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineCov">      16606 :     bool IsCrypted() const { return fUseCrypto; }</span></a>
-<span class="lineNum">         </span><span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchCov" title="Branch 6 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span><span class="branchCov" title="Branch 8 was taken 12 times"> + </span> 
-<span class="lineNum">         </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span><span class="branchCov" title="Branch 10 was taken 12 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span><span class="branchCov" title="Branch 12 was taken 1015 times"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span> 
-<span class="lineNum">         </span><span class="branchCov" title="Branch 14 was taken 1015 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span><span class="branchCov" title="Branch 16 was taken 3192 times"> + </span><span class="branchNoCov" title="Branch 17 was not taken"> - </span><span class="branchCov" title="Branch 18 was taken 3192 times"> + </span> 
-<span class="lineNum">         </span>   <span class="branchNoCov" title="Branch 19 was not taken"> - </span><span class="branchCov" title="Branch 20 was taken 2034 times"> + </span><span class="branchNoCov" title="Branch 21 was not taken"> - </span><span class="branchCov" title="Branch 22 was taken 2034 times"> + </span> 
-<span class="lineNum">         </span>            <span class="branchNoCov" title="Branch 23 was not taken"> - </span>]
-<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 4 was taken 2034 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchNoCov" title="Branch 24 was not taken"> - </span><span class="branchCov" title="Branch 25 was taken 15 times"> + </span>]
-<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 6 was taken 2034 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span><span class="branchNoCov" title="Branch 26 was not taken"> - </span><span class="branchCov" title="Branch 27 was taken 15 times"> + </span>]
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>][<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>]
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>][<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>]
-<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>][<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>]
-<a name="145"><span class="lineNum">     145 </span>                :            :     bool IsLocked() const;</a>
-<a name="146"><span class="lineNum">     146 </span>                :            :     bool Lock();</a>
-<a name="147"><span class="lineNum">     147 </span>                :            : </a>
-<a name="148"><span class="lineNum">     148 </span>                :            :     virtual bool AddCryptedKey(const CPubKey &amp;vchPubKey, const std::vector&lt;unsigned char&gt; &amp;vchCryptedSecret);</a>
-<a name="149"><span class="lineNum">     149 </span>                :            :     bool AddKeyPubKey(const CKey&amp; key, const CPubKey &amp;pubkey) override;</a>
-<a name="150"><span class="lineNum">     150 </span>                :            :     bool HaveKey(const CKeyID &amp;address) const override;</a>
-<a name="151"><span class="lineNum">     151 </span>                :            :     bool GetKey(const CKeyID &amp;address, CKey&amp; keyOut) const override;</a>
-<a name="152"><span class="lineNum">     152 </span>                :            :     bool GetPubKey(const CKeyID &amp;address, CPubKey&amp; vchPubKeyOut) const override;</a>
-<a name="153"><span class="lineNum">     153 </span>                :            :     std::set&lt;CKeyID&gt; GetKeys() const override;</a>
-<a name="154"><span class="lineNum">     154 </span>                :            : </a>
-<a name="155"><span class="lineNum">     155 </span>                :            :     /**</a>
-<a name="156"><span class="lineNum">     156 </span>                :            :      * Wallet status (encrypted, locked) changed.</a>
-<a name="157"><span class="lineNum">     157 </span>                :            :      * Note: Called without locks held.</a>
-<a name="158"><span class="lineNum">     158 </span>                :            :      */</a>
-<a name="159"><span class="lineNum">     159 </span>                :            :     boost::signals2::signal&lt;void (CCryptoKeyStore* wallet)&gt; NotifyStatusChanged;</a>
-<a name="160"><span class="lineNum">     160 </span>                :            : };</a>
-<a name="161"><span class="lineNum">     161 </span>                :            : </a>
-<a name="162"><span class="lineNum">     162 </span>                :            : #endif // BITCOIN_WALLET_CRYPTER_H</a>
+<a name="112"><span class="lineNum">     112 </span>                :            : bool EncryptSecret(const CKeyingMaterial&amp; vMasterKey, const CKeyingMaterial &amp;vchPlaintext, const uint256&amp; nIV, std::vector&lt;unsigned char&gt; &amp;vchCiphertext);</a>
+<a name="113"><span class="lineNum">     113 </span>                :            : bool DecryptSecret(const CKeyingMaterial&amp; vMasterKey, const std::vector&lt;unsigned char&gt;&amp; vchCiphertext, const uint256&amp; nIV, CKeyingMaterial&amp; vchPlaintext);</a>
+<a name="114"><span class="lineNum">     114 </span>                :            : bool DecryptKey(const CKeyingMaterial&amp; vMasterKey, const std::vector&lt;unsigned char&gt;&amp; vchCryptedSecret, const CPubKey&amp; vchPubKey, CKey&amp; key);</a>
+<a name="115"><span class="lineNum">     115 </span>                :            : </a>
+<a name="116"><span class="lineNum">     116 </span>                :            : #endif // BITCOIN_WALLET_CRYPTER_H</a>
 </pre>
       </td>
     </tr>
