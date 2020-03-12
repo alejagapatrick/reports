@@ -31,17 +31,17 @@
             <td class="headerValue">test_bitcoin_coverage.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">136</td>
-            <td class="headerCovTableEntry">180</td>
-            <td class="headerCovTableEntryMed">75.6 %</td>
+            <td class="headerCovTableEntry">124</td>
+            <td class="headerCovTableEntry">165</td>
+            <td class="headerCovTableEntryMed">75.2 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
             <td class="headerValue">2000-01-01 12:00:00</td>
             <td></td>
             <td class="headerItem">Functions:</td>
-            <td class="headerCovTableEntry">4</td>
-            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntry">5</td>
             <td class="headerCovTableEntryHi">100.0 %</td>
           </tr>
           <tr>
@@ -49,9 +49,9 @@
             <td></td>
             <td></td>
             <td class="headerItem">Branches:</td>
-            <td class="headerCovTableEntry">204</td>
-            <td class="headerCovTableEntry">604</td>
-            <td class="headerCovTableEntryLo">33.8 %</td>
+            <td class="headerCovTableEntry">190</td>
+            <td class="headerCovTableEntry">568</td>
+            <td class="headerCovTableEntryLo">33.5 %</td>
           </tr>
           <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
         </table>
@@ -381,69 +381,41 @@
 <a name="272"><span class="lineNum">     272 </span>                :            : {</a>
 <a name="273"><span class="lineNum">     273 </span>                :<span class="lineCov">          2 :     int nHashType = ParseSighashString(hashType);</span></a>
 <a name="274"><span class="lineNum">     274 </span>                :            : </a>
-<a name="275"><span class="lineNum">     275 </span>                :<span class="lineCov">          2 :     bool fHashSingle = ((nHashType &amp; ~SIGHASH_ANYONECANPAY) == SIGHASH_SINGLE);</span></a>
-<a name="276"><span class="lineNum">     276 </span>                :            : </a>
-<a name="277"><span class="lineNum">     277 </span>                :            :     // Script verification errors</a>
-<a name="278"><span class="lineNum">     278 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :     UniValue vErrors(UniValue::VARR);</span></a>
-<a name="279"><span class="lineNum">     279 </span>                :            : </a>
-<a name="280"><span class="lineNum">     280 </span>                :            :     // Use CTransaction for the constant parts of the</a>
-<a name="281"><span class="lineNum">     281 </span>                :            :     // transaction to avoid rehashing.</a>
-<a name="282"><span class="lineNum">     282 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          4 :     const CTransaction txConst(mtx);</span></a>
-<a name="283"><span class="lineNum">     283 </span>                :            :     // Sign what we can:</a>
-<a name="284"><span class="lineNum">     284 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          4 :     for (unsigned int i = 0; i &lt; mtx.vin.size(); i++) {</span></a>
-<a name="285"><span class="lineNum">     285 </span>                :<span class="lineCov">          2 :         CTxIn&amp; txin = mtx.vin[i];</span></a>
-<a name="286"><span class="lineNum">     286 </span>                :<span class="lineCov">          2 :         auto coin = coins.find(txin.prevout);</span></a>
-<a name="287"><span class="lineNum">     287 </span>  [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">          2 :         if (coin == coins.end() || coin-&gt;second.IsSpent()) {</span></a>
-<a name="288"><span class="lineNum">     288 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             TxInErrorToJSON(txin, vErrors, &quot;Input not found or already spent&quot;);</span></a>
-<a name="289"><span class="lineNum">     289 </span>                :<span class="lineNoCov">          0 :             continue;</span></a>
+<a name="275"><span class="lineNum">     275 </span>                :            :     // Script verification errors</a>
+<a name="276"><span class="lineNum">     276 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :     std::map&lt;int, std::string&gt; input_errors;</span></a>
+<a name="277"><span class="lineNum">     277 </span>                :            : </a>
+<a name="278"><span class="lineNum">     278 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :     bool complete = SignTransaction(mtx, keystore, coins, nHashType, input_errors);</span></a>
+<a name="279"><span class="lineNum">     279 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :     SignTransactionResultToJSON(mtx, complete, coins, input_errors, result);</span></a>
+<a name="280"><span class="lineNum">     280 </span>                :<span class="lineCov">          2 : }</span></a>
+<a name="281"><span class="lineNum">     281 </span>                :            : </a>
+<a name="282"><span class="lineNum">     282 </span>                :<span class="lineCov">          2 : void SignTransactionResultToJSON(CMutableTransaction&amp; mtx, bool complete, const std::map&lt;COutPoint, Coin&gt;&amp; coins, std::map&lt;int, std::string&gt;&amp; input_errors, UniValue&amp; result)</span></a>
+<a name="283"><span class="lineNum">     283 </span>                :            : {</a>
+<a name="284"><span class="lineNum">     284 </span>                :            :     // Make errors UniValue</a>
+<a name="285"><span class="lineNum">     285 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          4 :     UniValue vErrors(UniValue::VARR);</span></a>
+<a name="286"><span class="lineNum">     286 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          3 :     for (const auto&amp; err_pair : input_errors) {</span></a>
+<a name="287"><span class="lineNum">     287 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :         if (err_pair.second == &quot;Missing amount&quot;) {</span></a>
+<a name="288"><span class="lineNum">     288 </span>                :            :             // This particular error needs to be an exception for some reason</a>
+<a name="289"><span class="lineNum">     289 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :             throw JSONRPCError(RPC_TYPE_ERROR, strprintf(&quot;Missing amount for %s&quot;, coins.at(mtx.vin.at(err_pair.first).prevout).out.ToString()));</span></a>
+<span class="lineNum">         </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span> 
+<span class="lineNum">         </span>      <span class="branchNoExec" title="Branch 9 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
 <a name="290"><span class="lineNum">     290 </span>                :            :         }</a>
-<a name="291"><span class="lineNum">     291 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :         const CScript&amp; prevPubKey = coin-&gt;second.out.scriptPubKey;</span></a>
-<a name="292"><span class="lineNum">     292 </span>                :<span class="lineCov">          2 :         const CAmount&amp; amount = coin-&gt;second.out.nValue;</span></a>
+<a name="291"><span class="lineNum">     291 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          1 :         TxInErrorToJSON(mtx.vin.at(err_pair.first), vErrors, err_pair.second);</span></a>
+<a name="292"><span class="lineNum">     292 </span>                :            :     }</a>
 <a name="293"><span class="lineNum">     293 </span>                :            : </a>
-<a name="294"><span class="lineNum">     294 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :         SignatureData sigdata = DataFromTransaction(mtx, i, coin-&gt;second.out);</span></a>
-<a name="295"><span class="lineNum">     295 </span>                :            :         // Only sign SIGHASH_SINGLE if there's a corresponding output:</a>
-<a name="296"><span class="lineNum">     296 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          2 :         if (!fHashSingle || (i &lt; mtx.vout.size())) {</span></a>
-<a name="297"><span class="lineNum">     297 </span>  [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          2 :             ProduceSignature(*keystore, MutableTransactionSignatureCreator(&amp;mtx, i, amount, nHashType), prevPubKey, sigdata);</span></a>
-<a name="298"><span class="lineNum">     298 </span>                :            :         }</a>
-<a name="299"><span class="lineNum">     299 </span>                :            : </a>
-<a name="300"><span class="lineNum">     300 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :         UpdateInput(txin, sigdata);</span></a>
-<a name="301"><span class="lineNum">     301 </span>                :            : </a>
-<a name="302"><span class="lineNum">     302 </span>                :            :         // amount must be specified for valid segwit signature</a>
-<a name="303"><span class="lineNum">     303 </span>  [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          2 :         if (amount == MAX_MONEY &amp;&amp; !txin.scriptWitness.IsNull()) {</span></a>
-<a name="304"><span class="lineNum">     304 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :             throw JSONRPCError(RPC_TYPE_ERROR, strprintf(&quot;Missing amount for %s&quot;, coin-&gt;second.out.ToString()));</span></a>
-<span class="lineNum">         </span>   <span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
-<a name="305"><span class="lineNum">     305 </span>                :            :         }</a>
-<a name="306"><span class="lineNum">     306 </span>                :            : </a>
-<a name="307"><span class="lineNum">     307 </span>                :<span class="lineCov">          2 :         ScriptError serror = SCRIPT_ERR_OK;</span></a>
-<a name="308"><span class="lineNum">     308 </span>  [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">          2 :         if (!VerifyScript(txin.scriptSig, prevPubKey, &amp;txin.scriptWitness, STANDARD_SCRIPT_VERIFY_FLAGS, TransactionSignatureChecker(&amp;txConst, i, amount), &amp;serror)) {</span></a>
-<a name="309"><span class="lineNum">     309 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :             if (serror == SCRIPT_ERR_INVALID_STACK_OPERATION) {</span></a>
-<a name="310"><span class="lineNum">     310 </span>                :            :                 // Unable to sign input and verification failed (possible attempt to partially sign).</a>
-<a name="311"><span class="lineNum">     311 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 TxInErrorToJSON(txin, vErrors, &quot;Unable to sign input, invalid stack size (possibly missing key)&quot;);</span></a>
-<a name="312"><span class="lineNum">     312 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          1 :             } else if (serror == SCRIPT_ERR_SIG_NULLFAIL) {</span></a>
-<a name="313"><span class="lineNum">     313 </span>                :            :                 // Verification failed (possibly due to insufficient signatures).</a>
-<a name="314"><span class="lineNum">     314 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          2 :                 TxInErrorToJSON(txin, vErrors, &quot;CHECK(MULTI)SIG failing with non-zero signature (possibly need more signatures)&quot;);</span></a>
-<a name="315"><span class="lineNum">     315 </span>                :            :             } else {</a>
-<a name="316"><span class="lineNum">     316 </span>  [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">          3 :                 TxInErrorToJSON(txin, vErrors, ScriptErrorString(serror));</span></a>
-<span class="lineNum">         </span>         <span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
-<a name="317"><span class="lineNum">     317 </span>                :            :             }</a>
-<a name="318"><span class="lineNum">     318 </span>                :            :         }</a>
-<a name="319"><span class="lineNum">     319 </span>                :            :     }</a>
-<a name="320"><span class="lineNum">     320 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :     bool fComplete = vErrors.empty();</span></a>
-<a name="321"><span class="lineNum">     321 </span>                :            : </a>
-<a name="322"><span class="lineNum">     322 </span>  [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">          6 :     result.pushKV(&quot;hex&quot;, EncodeHexTx(CTransaction(mtx)));</span></a>
+<a name="294"><span class="lineNum">     294 </span>  [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">          6 :     result.pushKV(&quot;hex&quot;, EncodeHexTx(CTransaction(mtx)));</span></a>
 <span class="lineNum">         </span><span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchCov" title="Branch 6 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span><span class="branchCov" title="Branch 8 was taken 2 times"> + </span> 
 <span class="lineNum">         </span>      <span class="branchNoCov" title="Branch 9 was not taken"> - </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
-<a name="323"><span class="lineNum">     323 </span>  [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          2 :     result.pushKV(&quot;complete&quot;, fComplete);</span></a>
-<a name="324"><span class="lineNum">     324 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          2 :     if (!vErrors.empty()) {</span></a>
-<a name="325"><span class="lineNum">     325 </span>  [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span> :<span class="lineCov">          2 :         if (result.exists(&quot;errors&quot;)) {</span></a>
+<a name="295"><span class="lineNum">     295 </span>  [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          2 :     result.pushKV(&quot;complete&quot;, complete);</span></a>
+<a name="296"><span class="lineNum">     296 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          2 :     if (!vErrors.empty()) {</span></a>
+<a name="297"><span class="lineNum">     297 </span>  [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span> :<span class="lineCov">          2 :         if (result.exists(&quot;errors&quot;)) {</span></a>
 <span class="lineNum">         </span>         <span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 1 time"> + </span>]
-<a name="326"><span class="lineNum">     326 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">          1 :             vErrors.push_backV(result[&quot;errors&quot;].getValues());</span></a>
+<a name="298"><span class="lineNum">     298 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">          1 :             vErrors.push_backV(result[&quot;errors&quot;].getValues());</span></a>
 <span class="lineNum">         </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span><span class="branchCov" title="Branch 8 was taken 1 time"> + </span> 
 <span class="lineNum">         </span>            <span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
-<a name="327"><span class="lineNum">     327 </span>                :            :         }</a>
-<a name="328"><span class="lineNum">     328 </span>  [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          3 :         result.pushKV(&quot;errors&quot;, vErrors);</span></a>
-<a name="329"><span class="lineNum">     329 </span>                :            :     }</a>
-<a name="330"><span class="lineNum">     330 </span>                :<span class="lineCov">          2 : }</span></a>
+<a name="299"><span class="lineNum">     299 </span>                :            :         }</a>
+<a name="300"><span class="lineNum">     300 </span>  [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          3 :         result.pushKV(&quot;errors&quot;, vErrors);</span></a>
+<a name="301"><span class="lineNum">     301 </span>                :            :     }</a>
+<a name="302"><span class="lineNum">     302 </span>                :<span class="lineCov">          2 : }</span></a>
 </pre>
       </td>
     </tr>
