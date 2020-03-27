@@ -225,150 +225,153 @@
 <a name="154"><span class="lineNum">     154 </span>                :            :     //! Transaction is added to memory pool, if the transaction fee is below the</a>
 <a name="155"><span class="lineNum">     155 </span>                :            :     //! amount specified by max_tx_fee, and broadcast to all peers if relay is set to true.</a>
 <a name="156"><span class="lineNum">     156 </span>                :            :     //! Return false if the transaction could not be added due to the fee or for another reason.</a>
-<a name="157"><span class="lineNum">     157 </span>                :            :     virtual bool broadcastTransaction(const CTransactionRef&amp; tx, std::string&amp; err_string, const CAmount&amp; max_tx_fee, bool relay) = 0;</a>
-<a name="158"><span class="lineNum">     158 </span>                :            : </a>
-<a name="159"><span class="lineNum">     159 </span>                :            :     //! Calculate mempool ancestor and descendant counts for the given transaction.</a>
-<a name="160"><span class="lineNum">     160 </span>                :            :     virtual void getTransactionAncestry(const uint256&amp; txid, size_t&amp; ancestors, size_t&amp; descendants) = 0;</a>
+<a name="157"><span class="lineNum">     157 </span>                :            :     virtual bool broadcastTransaction(const CTransactionRef&amp; tx,</a>
+<a name="158"><span class="lineNum">     158 </span>                :            :         const CAmount&amp; max_tx_fee,</a>
+<a name="159"><span class="lineNum">     159 </span>                :            :         bool relay,</a>
+<a name="160"><span class="lineNum">     160 </span>                :            :         std::string&amp; err_string) = 0;</a>
 <a name="161"><span class="lineNum">     161 </span>                :            : </a>
-<a name="162"><span class="lineNum">     162 </span>                :            :     //! Get the node's package limits.</a>
-<a name="163"><span class="lineNum">     163 </span>                :            :     //! Currently only returns the ancestor and descendant count limits, but could be enhanced to</a>
-<a name="164"><span class="lineNum">     164 </span>                :            :     //! return more policy settings.</a>
-<a name="165"><span class="lineNum">     165 </span>                :            :     virtual void getPackageLimits(unsigned int&amp; limit_ancestor_count, unsigned int&amp; limit_descendant_count) = 0;</a>
-<a name="166"><span class="lineNum">     166 </span>                :            : </a>
-<a name="167"><span class="lineNum">     167 </span>                :            :     //! Check if transaction will pass the mempool's chain limits.</a>
-<a name="168"><span class="lineNum">     168 </span>                :            :     virtual bool checkChainLimits(const CTransactionRef&amp; tx) = 0;</a>
+<a name="162"><span class="lineNum">     162 </span>                :            :     //! Calculate mempool ancestor and descendant counts for the given transaction.</a>
+<a name="163"><span class="lineNum">     163 </span>                :            :     virtual void getTransactionAncestry(const uint256&amp; txid, size_t&amp; ancestors, size_t&amp; descendants) = 0;</a>
+<a name="164"><span class="lineNum">     164 </span>                :            : </a>
+<a name="165"><span class="lineNum">     165 </span>                :            :     //! Get the node's package limits.</a>
+<a name="166"><span class="lineNum">     166 </span>                :            :     //! Currently only returns the ancestor and descendant count limits, but could be enhanced to</a>
+<a name="167"><span class="lineNum">     167 </span>                :            :     //! return more policy settings.</a>
+<a name="168"><span class="lineNum">     168 </span>                :            :     virtual void getPackageLimits(unsigned int&amp; limit_ancestor_count, unsigned int&amp; limit_descendant_count) = 0;</a>
 <a name="169"><span class="lineNum">     169 </span>                :            : </a>
-<a name="170"><span class="lineNum">     170 </span>                :            :     //! Estimate smart fee.</a>
-<a name="171"><span class="lineNum">     171 </span>                :            :     virtual CFeeRate estimateSmartFee(int num_blocks, bool conservative, FeeCalculation* calc = nullptr) = 0;</a>
+<a name="170"><span class="lineNum">     170 </span>                :            :     //! Check if transaction will pass the mempool's chain limits.</a>
+<a name="171"><span class="lineNum">     171 </span>                :            :     virtual bool checkChainLimits(const CTransactionRef&amp; tx) = 0;</a>
 <a name="172"><span class="lineNum">     172 </span>                :            : </a>
-<a name="173"><span class="lineNum">     173 </span>                :            :     //! Fee estimator max target.</a>
-<a name="174"><span class="lineNum">     174 </span>                :            :     virtual unsigned int estimateMaxBlocks() = 0;</a>
+<a name="173"><span class="lineNum">     173 </span>                :            :     //! Estimate smart fee.</a>
+<a name="174"><span class="lineNum">     174 </span>                :            :     virtual CFeeRate estimateSmartFee(int num_blocks, bool conservative, FeeCalculation* calc = nullptr) = 0;</a>
 <a name="175"><span class="lineNum">     175 </span>                :            : </a>
-<a name="176"><span class="lineNum">     176 </span>                :            :     //! Mempool minimum fee.</a>
-<a name="177"><span class="lineNum">     177 </span>                :            :     virtual CFeeRate mempoolMinFee() = 0;</a>
+<a name="176"><span class="lineNum">     176 </span>                :            :     //! Fee estimator max target.</a>
+<a name="177"><span class="lineNum">     177 </span>                :            :     virtual unsigned int estimateMaxBlocks() = 0;</a>
 <a name="178"><span class="lineNum">     178 </span>                :            : </a>
-<a name="179"><span class="lineNum">     179 </span>                :            :     //! Relay current minimum fee (from -minrelaytxfee and -incrementalrelayfee settings).</a>
-<a name="180"><span class="lineNum">     180 </span>                :            :     virtual CFeeRate relayMinFee() = 0;</a>
+<a name="179"><span class="lineNum">     179 </span>                :            :     //! Mempool minimum fee.</a>
+<a name="180"><span class="lineNum">     180 </span>                :            :     virtual CFeeRate mempoolMinFee() = 0;</a>
 <a name="181"><span class="lineNum">     181 </span>                :            : </a>
-<a name="182"><span class="lineNum">     182 </span>                :            :     //! Relay incremental fee setting (-incrementalrelayfee), reflecting cost of relay.</a>
-<a name="183"><span class="lineNum">     183 </span>                :            :     virtual CFeeRate relayIncrementalFee() = 0;</a>
+<a name="182"><span class="lineNum">     182 </span>                :            :     //! Relay current minimum fee (from -minrelaytxfee and -incrementalrelayfee settings).</a>
+<a name="183"><span class="lineNum">     183 </span>                :            :     virtual CFeeRate relayMinFee() = 0;</a>
 <a name="184"><span class="lineNum">     184 </span>                :            : </a>
-<a name="185"><span class="lineNum">     185 </span>                :            :     //! Relay dust fee setting (-dustrelayfee), reflecting lowest rate it's economical to spend.</a>
-<a name="186"><span class="lineNum">     186 </span>                :            :     virtual CFeeRate relayDustFee() = 0;</a>
+<a name="185"><span class="lineNum">     185 </span>                :            :     //! Relay incremental fee setting (-incrementalrelayfee), reflecting cost of relay.</a>
+<a name="186"><span class="lineNum">     186 </span>                :            :     virtual CFeeRate relayIncrementalFee() = 0;</a>
 <a name="187"><span class="lineNum">     187 </span>                :            : </a>
-<a name="188"><span class="lineNum">     188 </span>                :            :     //! Check if any block has been pruned.</a>
-<a name="189"><span class="lineNum">     189 </span>                :            :     virtual bool havePruned() = 0;</a>
+<a name="188"><span class="lineNum">     188 </span>                :            :     //! Relay dust fee setting (-dustrelayfee), reflecting lowest rate it's economical to spend.</a>
+<a name="189"><span class="lineNum">     189 </span>                :            :     virtual CFeeRate relayDustFee() = 0;</a>
 <a name="190"><span class="lineNum">     190 </span>                :            : </a>
-<a name="191"><span class="lineNum">     191 </span>                :            :     //! Check if the node is ready to broadcast transactions.</a>
-<a name="192"><span class="lineNum">     192 </span>                :            :     virtual bool isReadyToBroadcast() = 0;</a>
+<a name="191"><span class="lineNum">     191 </span>                :            :     //! Check if any block has been pruned.</a>
+<a name="192"><span class="lineNum">     192 </span>                :            :     virtual bool havePruned() = 0;</a>
 <a name="193"><span class="lineNum">     193 </span>                :            : </a>
-<a name="194"><span class="lineNum">     194 </span>                :            :     //! Check if in IBD.</a>
-<a name="195"><span class="lineNum">     195 </span>                :            :     virtual bool isInitialBlockDownload() = 0;</a>
+<a name="194"><span class="lineNum">     194 </span>                :            :     //! Check if the node is ready to broadcast transactions.</a>
+<a name="195"><span class="lineNum">     195 </span>                :            :     virtual bool isReadyToBroadcast() = 0;</a>
 <a name="196"><span class="lineNum">     196 </span>                :            : </a>
-<a name="197"><span class="lineNum">     197 </span>                :            :     //! Check if shutdown requested.</a>
-<a name="198"><span class="lineNum">     198 </span>                :            :     virtual bool shutdownRequested() = 0;</a>
+<a name="197"><span class="lineNum">     197 </span>                :            :     //! Check if in IBD.</a>
+<a name="198"><span class="lineNum">     198 </span>                :            :     virtual bool isInitialBlockDownload() = 0;</a>
 <a name="199"><span class="lineNum">     199 </span>                :            : </a>
-<a name="200"><span class="lineNum">     200 </span>                :            :     //! Get adjusted time.</a>
-<a name="201"><span class="lineNum">     201 </span>                :            :     virtual int64_t getAdjustedTime() = 0;</a>
+<a name="200"><span class="lineNum">     200 </span>                :            :     //! Check if shutdown requested.</a>
+<a name="201"><span class="lineNum">     201 </span>                :            :     virtual bool shutdownRequested() = 0;</a>
 <a name="202"><span class="lineNum">     202 </span>                :            : </a>
-<a name="203"><span class="lineNum">     203 </span>                :            :     //! Send init message.</a>
-<a name="204"><span class="lineNum">     204 </span>                :            :     virtual void initMessage(const std::string&amp; message) = 0;</a>
+<a name="203"><span class="lineNum">     203 </span>                :            :     //! Get adjusted time.</a>
+<a name="204"><span class="lineNum">     204 </span>                :            :     virtual int64_t getAdjustedTime() = 0;</a>
 <a name="205"><span class="lineNum">     205 </span>                :            : </a>
-<a name="206"><span class="lineNum">     206 </span>                :            :     //! Send init warning.</a>
-<a name="207"><span class="lineNum">     207 </span>                :            :     virtual void initWarning(const std::string&amp; message) = 0;</a>
+<a name="206"><span class="lineNum">     206 </span>                :            :     //! Send init message.</a>
+<a name="207"><span class="lineNum">     207 </span>                :            :     virtual void initMessage(const std::string&amp; message) = 0;</a>
 <a name="208"><span class="lineNum">     208 </span>                :            : </a>
-<a name="209"><span class="lineNum">     209 </span>                :            :     //! Send init error.</a>
-<a name="210"><span class="lineNum">     210 </span>                :            :     virtual void initError(const std::string&amp; message) = 0;</a>
+<a name="209"><span class="lineNum">     209 </span>                :            :     //! Send init warning.</a>
+<a name="210"><span class="lineNum">     210 </span>                :            :     virtual void initWarning(const std::string&amp; message) = 0;</a>
 <a name="211"><span class="lineNum">     211 </span>                :            : </a>
-<a name="212"><span class="lineNum">     212 </span>                :            :     //! Send progress indicator.</a>
-<a name="213"><span class="lineNum">     213 </span>                :            :     virtual void showProgress(const std::string&amp; title, int progress, bool resume_possible) = 0;</a>
+<a name="212"><span class="lineNum">     212 </span>                :            :     //! Send init error.</a>
+<a name="213"><span class="lineNum">     213 </span>                :            :     virtual void initError(const std::string&amp; message) = 0;</a>
 <a name="214"><span class="lineNum">     214 </span>                :            : </a>
-<a name="215"><span class="lineNum">     215 </span>                :            :     //! Chain notifications.</a>
-<a name="216"><span class="lineNum">     216 </span>        [<span class="branchCov" title="Branch 0 was taken 123 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        123 :     class Notifications</span></a>
-<a name="217"><span class="lineNum">     217 </span>                :            :     {</a>
-<a name="218"><span class="lineNum">     218 </span>                :            :     public:</a>
-<a name="219"><span class="lineNum">     219 </span>                :<span class="lineCov">        123 :         virtual ~Notifications() {}</span></a>
-<a name="220"><span class="lineNum">     220 </span>                :            :         virtual void TransactionAddedToMempool(const CTransactionRef&amp; tx) {}</a>
-<a name="221"><span class="lineNum">     221 </span>                :            :         virtual void TransactionRemovedFromMempool(const CTransactionRef&amp; ptx) {}</a>
-<a name="222"><span class="lineNum">     222 </span>                :            :         virtual void BlockConnected(const CBlock&amp; block, const std::vector&lt;CTransactionRef&gt;&amp; tx_conflicted, int height) {}</a>
-<a name="223"><span class="lineNum">     223 </span>                :            :         virtual void BlockDisconnected(const CBlock&amp; block, int height) {}</a>
-<a name="224"><span class="lineNum">     224 </span>                :            :         virtual void UpdatedBlockTip() {}</a>
-<a name="225"><span class="lineNum">     225 </span>                :            :         virtual void ChainStateFlushed(const CBlockLocator&amp; locator) {}</a>
-<a name="226"><span class="lineNum">     226 </span>                :            :     };</a>
-<a name="227"><span class="lineNum">     227 </span>                :            : </a>
-<a name="228"><span class="lineNum">     228 </span>                :            :     //! Register handler for notifications.</a>
-<a name="229"><span class="lineNum">     229 </span>                :            :     virtual std::unique_ptr&lt;Handler&gt; handleNotifications(Notifications&amp; notifications) = 0;</a>
+<a name="215"><span class="lineNum">     215 </span>                :            :     //! Send progress indicator.</a>
+<a name="216"><span class="lineNum">     216 </span>                :            :     virtual void showProgress(const std::string&amp; title, int progress, bool resume_possible) = 0;</a>
+<a name="217"><span class="lineNum">     217 </span>                :            : </a>
+<a name="218"><span class="lineNum">     218 </span>                :            :     //! Chain notifications.</a>
+<a name="219"><span class="lineNum">     219 </span>        [<span class="branchCov" title="Branch 0 was taken 123 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        123 :     class Notifications</span></a>
+<a name="220"><span class="lineNum">     220 </span>                :            :     {</a>
+<a name="221"><span class="lineNum">     221 </span>                :            :     public:</a>
+<a name="222"><span class="lineNum">     222 </span>                :<span class="lineCov">        123 :         virtual ~Notifications() {}</span></a>
+<a name="223"><span class="lineNum">     223 </span>                :            :         virtual void transactionAddedToMempool(const CTransactionRef&amp; tx) {}</a>
+<a name="224"><span class="lineNum">     224 </span>                :            :         virtual void transactionRemovedFromMempool(const CTransactionRef&amp; ptx) {}</a>
+<a name="225"><span class="lineNum">     225 </span>                :            :         virtual void blockConnected(const CBlock&amp; block, int height) {}</a>
+<a name="226"><span class="lineNum">     226 </span>                :            :         virtual void blockDisconnected(const CBlock&amp; block, int height) {}</a>
+<a name="227"><span class="lineNum">     227 </span>                :            :         virtual void updatedBlockTip() {}</a>
+<a name="228"><span class="lineNum">     228 </span>                :            :         virtual void chainStateFlushed(const CBlockLocator&amp; locator) {}</a>
+<a name="229"><span class="lineNum">     229 </span>                :            :     };</a>
 <a name="230"><span class="lineNum">     230 </span>                :            : </a>
-<a name="231"><span class="lineNum">     231 </span>                :            :     //! Wait for pending notifications to be processed unless block hash points to the current</a>
-<a name="232"><span class="lineNum">     232 </span>                :            :     //! chain tip.</a>
-<a name="233"><span class="lineNum">     233 </span>                :            :     virtual void waitForNotificationsIfTipChanged(const uint256&amp; old_tip) = 0;</a>
-<a name="234"><span class="lineNum">     234 </span>                :            : </a>
-<a name="235"><span class="lineNum">     235 </span>                :            :     //! Register handler for RPC. Command is not copied, so reference</a>
-<a name="236"><span class="lineNum">     236 </span>                :            :     //! needs to remain valid until Handler is disconnected.</a>
-<a name="237"><span class="lineNum">     237 </span>                :            :     virtual std::unique_ptr&lt;Handler&gt; handleRpc(const CRPCCommand&amp; command) = 0;</a>
-<a name="238"><span class="lineNum">     238 </span>                :            : </a>
-<a name="239"><span class="lineNum">     239 </span>                :            :     //! Check if deprecated RPC is enabled.</a>
-<a name="240"><span class="lineNum">     240 </span>                :            :     virtual bool rpcEnableDeprecated(const std::string&amp; method) = 0;</a>
+<a name="231"><span class="lineNum">     231 </span>                :            :     //! Register handler for notifications.</a>
+<a name="232"><span class="lineNum">     232 </span>                :            :     virtual std::unique_ptr&lt;Handler&gt; handleNotifications(Notifications&amp; notifications) = 0;</a>
+<a name="233"><span class="lineNum">     233 </span>                :            : </a>
+<a name="234"><span class="lineNum">     234 </span>                :            :     //! Wait for pending notifications to be processed unless block hash points to the current</a>
+<a name="235"><span class="lineNum">     235 </span>                :            :     //! chain tip.</a>
+<a name="236"><span class="lineNum">     236 </span>                :            :     virtual void waitForNotificationsIfTipChanged(const uint256&amp; old_tip) = 0;</a>
+<a name="237"><span class="lineNum">     237 </span>                :            : </a>
+<a name="238"><span class="lineNum">     238 </span>                :            :     //! Register handler for RPC. Command is not copied, so reference</a>
+<a name="239"><span class="lineNum">     239 </span>                :            :     //! needs to remain valid until Handler is disconnected.</a>
+<a name="240"><span class="lineNum">     240 </span>                :            :     virtual std::unique_ptr&lt;Handler&gt; handleRpc(const CRPCCommand&amp; command) = 0;</a>
 <a name="241"><span class="lineNum">     241 </span>                :            : </a>
-<a name="242"><span class="lineNum">     242 </span>                :            :     //! Run function after given number of seconds. Cancel any previous calls with same name.</a>
-<a name="243"><span class="lineNum">     243 </span>                :            :     virtual void rpcRunLater(const std::string&amp; name, std::function&lt;void()&gt; fn, int64_t seconds) = 0;</a>
+<a name="242"><span class="lineNum">     242 </span>                :            :     //! Check if deprecated RPC is enabled.</a>
+<a name="243"><span class="lineNum">     243 </span>                :            :     virtual bool rpcEnableDeprecated(const std::string&amp; method) = 0;</a>
 <a name="244"><span class="lineNum">     244 </span>                :            : </a>
-<a name="245"><span class="lineNum">     245 </span>                :            :     //! Current RPC serialization flags.</a>
-<a name="246"><span class="lineNum">     246 </span>                :            :     virtual int rpcSerializationFlags() = 0;</a>
+<a name="245"><span class="lineNum">     245 </span>                :            :     //! Run function after given number of seconds. Cancel any previous calls with same name.</a>
+<a name="246"><span class="lineNum">     246 </span>                :            :     virtual void rpcRunLater(const std::string&amp; name, std::function&lt;void()&gt; fn, int64_t seconds) = 0;</a>
 <a name="247"><span class="lineNum">     247 </span>                :            : </a>
-<a name="248"><span class="lineNum">     248 </span>                :            :     //! Synchronously send TransactionAddedToMempool notifications about all</a>
-<a name="249"><span class="lineNum">     249 </span>                :            :     //! current mempool transactions to the specified handler and return after</a>
-<a name="250"><span class="lineNum">     250 </span>                :            :     //! the last one is sent. These notifications aren't coordinated with async</a>
-<a name="251"><span class="lineNum">     251 </span>                :            :     //! notifications sent by handleNotifications, so out of date async</a>
-<a name="252"><span class="lineNum">     252 </span>                :            :     //! notifications from handleNotifications can arrive during and after</a>
-<a name="253"><span class="lineNum">     253 </span>                :            :     //! synchronous notifications from requestMempoolTransactions. Clients need</a>
-<a name="254"><span class="lineNum">     254 </span>                :            :     //! to be prepared to handle this by ignoring notifications about unknown</a>
-<a name="255"><span class="lineNum">     255 </span>                :            :     //! removed transactions and already added new transactions.</a>
-<a name="256"><span class="lineNum">     256 </span>                :            :     virtual void requestMempoolTransactions(Notifications&amp; notifications) = 0;</a>
-<a name="257"><span class="lineNum">     257 </span>                :            : };</a>
-<a name="258"><span class="lineNum">     258 </span>                :            : </a>
-<a name="259"><span class="lineNum">     259 </span>                :            : //! Interface to let node manage chain clients (wallets, or maybe tools for</a>
-<a name="260"><span class="lineNum">     260 </span>                :            : //! monitoring and analysis in the future).</a>
-<a name="261"><span class="lineNum">     261 </span>                :<span class="lineCov">         16 : class ChainClient</span></a>
-<a name="262"><span class="lineNum">     262 </span>                :            : {</a>
-<a name="263"><span class="lineNum">     263 </span>                :            : public:</a>
-<a name="264"><span class="lineNum">     264 </span>                :<span class="lineCov">         16 :     virtual ~ChainClient() {}</span></a>
-<a name="265"><span class="lineNum">     265 </span>                :            : </a>
-<a name="266"><span class="lineNum">     266 </span>                :            :     //! Register rpcs.</a>
-<a name="267"><span class="lineNum">     267 </span>                :            :     virtual void registerRpcs() = 0;</a>
+<a name="248"><span class="lineNum">     248 </span>                :            :     //! Current RPC serialization flags.</a>
+<a name="249"><span class="lineNum">     249 </span>                :            :     virtual int rpcSerializationFlags() = 0;</a>
+<a name="250"><span class="lineNum">     250 </span>                :            : </a>
+<a name="251"><span class="lineNum">     251 </span>                :            :     //! Synchronously send transactionAddedToMempool notifications about all</a>
+<a name="252"><span class="lineNum">     252 </span>                :            :     //! current mempool transactions to the specified handler and return after</a>
+<a name="253"><span class="lineNum">     253 </span>                :            :     //! the last one is sent. These notifications aren't coordinated with async</a>
+<a name="254"><span class="lineNum">     254 </span>                :            :     //! notifications sent by handleNotifications, so out of date async</a>
+<a name="255"><span class="lineNum">     255 </span>                :            :     //! notifications from handleNotifications can arrive during and after</a>
+<a name="256"><span class="lineNum">     256 </span>                :            :     //! synchronous notifications from requestMempoolTransactions. Clients need</a>
+<a name="257"><span class="lineNum">     257 </span>                :            :     //! to be prepared to handle this by ignoring notifications about unknown</a>
+<a name="258"><span class="lineNum">     258 </span>                :            :     //! removed transactions and already added new transactions.</a>
+<a name="259"><span class="lineNum">     259 </span>                :            :     virtual void requestMempoolTransactions(Notifications&amp; notifications) = 0;</a>
+<a name="260"><span class="lineNum">     260 </span>                :            : };</a>
+<a name="261"><span class="lineNum">     261 </span>                :            : </a>
+<a name="262"><span class="lineNum">     262 </span>                :            : //! Interface to let node manage chain clients (wallets, or maybe tools for</a>
+<a name="263"><span class="lineNum">     263 </span>                :            : //! monitoring and analysis in the future).</a>
+<a name="264"><span class="lineNum">     264 </span>                :<span class="lineCov">         16 : class ChainClient</span></a>
+<a name="265"><span class="lineNum">     265 </span>                :            : {</a>
+<a name="266"><span class="lineNum">     266 </span>                :            : public:</a>
+<a name="267"><span class="lineNum">     267 </span>                :<span class="lineCov">         16 :     virtual ~ChainClient() {}</span></a>
 <a name="268"><span class="lineNum">     268 </span>                :            : </a>
-<a name="269"><span class="lineNum">     269 </span>                :            :     //! Check for errors before loading.</a>
-<a name="270"><span class="lineNum">     270 </span>                :            :     virtual bool verify() = 0;</a>
+<a name="269"><span class="lineNum">     269 </span>                :            :     //! Register rpcs.</a>
+<a name="270"><span class="lineNum">     270 </span>                :            :     virtual void registerRpcs() = 0;</a>
 <a name="271"><span class="lineNum">     271 </span>                :            : </a>
-<a name="272"><span class="lineNum">     272 </span>                :            :     //! Load saved state.</a>
-<a name="273"><span class="lineNum">     273 </span>                :            :     virtual bool load() = 0;</a>
+<a name="272"><span class="lineNum">     272 </span>                :            :     //! Check for errors before loading.</a>
+<a name="273"><span class="lineNum">     273 </span>                :            :     virtual bool verify() = 0;</a>
 <a name="274"><span class="lineNum">     274 </span>                :            : </a>
-<a name="275"><span class="lineNum">     275 </span>                :            :     //! Start client execution and provide a scheduler.</a>
-<a name="276"><span class="lineNum">     276 </span>                :            :     virtual void start(CScheduler&amp; scheduler) = 0;</a>
+<a name="275"><span class="lineNum">     275 </span>                :            :     //! Load saved state.</a>
+<a name="276"><span class="lineNum">     276 </span>                :            :     virtual bool load() = 0;</a>
 <a name="277"><span class="lineNum">     277 </span>                :            : </a>
-<a name="278"><span class="lineNum">     278 </span>                :            :     //! Save state to disk.</a>
-<a name="279"><span class="lineNum">     279 </span>                :            :     virtual void flush() = 0;</a>
+<a name="278"><span class="lineNum">     278 </span>                :            :     //! Start client execution and provide a scheduler.</a>
+<a name="279"><span class="lineNum">     279 </span>                :            :     virtual void start(CScheduler&amp; scheduler) = 0;</a>
 <a name="280"><span class="lineNum">     280 </span>                :            : </a>
-<a name="281"><span class="lineNum">     281 </span>                :            :     //! Shut down client.</a>
-<a name="282"><span class="lineNum">     282 </span>                :            :     virtual void stop() = 0;</a>
-<a name="283"><span class="lineNum">     283 </span>                :            : };</a>
-<a name="284"><span class="lineNum">     284 </span>                :            : </a>
-<a name="285"><span class="lineNum">     285 </span>                :            : //! Return implementation of Chain interface.</a>
-<a name="286"><span class="lineNum">     286 </span>                :            : std::unique_ptr&lt;Chain&gt; MakeChain(NodeContext&amp; node);</a>
+<a name="281"><span class="lineNum">     281 </span>                :            :     //! Save state to disk.</a>
+<a name="282"><span class="lineNum">     282 </span>                :            :     virtual void flush() = 0;</a>
+<a name="283"><span class="lineNum">     283 </span>                :            : </a>
+<a name="284"><span class="lineNum">     284 </span>                :            :     //! Shut down client.</a>
+<a name="285"><span class="lineNum">     285 </span>                :            :     virtual void stop() = 0;</a>
+<a name="286"><span class="lineNum">     286 </span>                :            : };</a>
 <a name="287"><span class="lineNum">     287 </span>                :            : </a>
-<a name="288"><span class="lineNum">     288 </span>                :            : //! Return implementation of ChainClient interface for a wallet client. This</a>
-<a name="289"><span class="lineNum">     289 </span>                :            : //! function will be undefined in builds where ENABLE_WALLET is false.</a>
-<a name="290"><span class="lineNum">     290 </span>                :            : //!</a>
-<a name="291"><span class="lineNum">     291 </span>                :            : //! Currently, wallets are the only chain clients. But in the future, other</a>
-<a name="292"><span class="lineNum">     292 </span>                :            : //! types of chain clients could be added, such as tools for monitoring,</a>
-<a name="293"><span class="lineNum">     293 </span>                :            : //! analysis, or fee estimation. These clients need to expose their own</a>
-<a name="294"><span class="lineNum">     294 </span>                :            : //! MakeXXXClient functions returning their implementations of the ChainClient</a>
-<a name="295"><span class="lineNum">     295 </span>                :            : //! interface.</a>
-<a name="296"><span class="lineNum">     296 </span>                :            : std::unique_ptr&lt;ChainClient&gt; MakeWalletClient(Chain&amp; chain, std::vector&lt;std::string&gt; wallet_filenames);</a>
-<a name="297"><span class="lineNum">     297 </span>                :            : </a>
-<a name="298"><span class="lineNum">     298 </span>                :            : } // namespace interfaces</a>
-<a name="299"><span class="lineNum">     299 </span>                :            : </a>
-<a name="300"><span class="lineNum">     300 </span>                :            : #endif // BITCOIN_INTERFACES_CHAIN_H</a>
+<a name="288"><span class="lineNum">     288 </span>                :            : //! Return implementation of Chain interface.</a>
+<a name="289"><span class="lineNum">     289 </span>                :            : std::unique_ptr&lt;Chain&gt; MakeChain(NodeContext&amp; node);</a>
+<a name="290"><span class="lineNum">     290 </span>                :            : </a>
+<a name="291"><span class="lineNum">     291 </span>                :            : //! Return implementation of ChainClient interface for a wallet client. This</a>
+<a name="292"><span class="lineNum">     292 </span>                :            : //! function will be undefined in builds where ENABLE_WALLET is false.</a>
+<a name="293"><span class="lineNum">     293 </span>                :            : //!</a>
+<a name="294"><span class="lineNum">     294 </span>                :            : //! Currently, wallets are the only chain clients. But in the future, other</a>
+<a name="295"><span class="lineNum">     295 </span>                :            : //! types of chain clients could be added, such as tools for monitoring,</a>
+<a name="296"><span class="lineNum">     296 </span>                :            : //! analysis, or fee estimation. These clients need to expose their own</a>
+<a name="297"><span class="lineNum">     297 </span>                :            : //! MakeXXXClient functions returning their implementations of the ChainClient</a>
+<a name="298"><span class="lineNum">     298 </span>                :            : //! interface.</a>
+<a name="299"><span class="lineNum">     299 </span>                :            : std::unique_ptr&lt;ChainClient&gt; MakeWalletClient(Chain&amp; chain, std::vector&lt;std::string&gt; wallet_filenames);</a>
+<a name="300"><span class="lineNum">     300 </span>                :            : </a>
+<a name="301"><span class="lineNum">     301 </span>                :            : } // namespace interfaces</a>
+<a name="302"><span class="lineNum">     302 </span>                :            : </a>
+<a name="303"><span class="lineNum">     303 </span>                :            : #endif // BITCOIN_INTERFACES_CHAIN_H</a>
 </pre>
       </td>
     </tr>

@@ -241,229 +241,230 @@
 <a name="166"><span class="lineNum">     166 </span>                :<span class="lineNoCov">          0 :     }</span></a>
 <a name="167"><span class="lineNum">     167 </span>                :<span class="lineNoCov">          0 :     void TransactionAddedToMempool(const CTransactionRef&amp; tx) override</span></a>
 <a name="168"><span class="lineNum">     168 </span>                :            :     {</a>
-<a name="169"><span class="lineNum">     169 </span>                :<span class="lineNoCov">          0 :         m_notifications-&gt;TransactionAddedToMempool(tx);</span></a>
+<a name="169"><span class="lineNum">     169 </span>                :<span class="lineNoCov">          0 :         m_notifications-&gt;transactionAddedToMempool(tx);</span></a>
 <a name="170"><span class="lineNum">     170 </span>                :<span class="lineNoCov">          0 :     }</span></a>
 <a name="171"><span class="lineNum">     171 </span>                :<span class="lineNoCov">          0 :     void TransactionRemovedFromMempool(const CTransactionRef&amp; tx) override</span></a>
 <a name="172"><span class="lineNum">     172 </span>                :            :     {</a>
-<a name="173"><span class="lineNum">     173 </span>                :<span class="lineNoCov">          0 :         m_notifications-&gt;TransactionRemovedFromMempool(tx);</span></a>
+<a name="173"><span class="lineNum">     173 </span>                :<span class="lineNoCov">          0 :         m_notifications-&gt;transactionRemovedFromMempool(tx);</span></a>
 <a name="174"><span class="lineNum">     174 </span>                :<span class="lineNoCov">          0 :     }</span></a>
-<a name="175"><span class="lineNum">     175 </span>                :<span class="lineNoCov">          0 :     void BlockConnected(const std::shared_ptr&lt;const CBlock&gt;&amp; block,</span></a>
-<a name="176"><span class="lineNum">     176 </span>                :            :         const CBlockIndex* index,</a>
-<a name="177"><span class="lineNum">     177 </span>                :            :         const std::vector&lt;CTransactionRef&gt;&amp; tx_conflicted) override</a>
-<a name="178"><span class="lineNum">     178 </span>                :            :     {</a>
-<a name="179"><span class="lineNum">     179 </span>                :<span class="lineNoCov">          0 :         m_notifications-&gt;BlockConnected(*block, tx_conflicted, index-&gt;nHeight);</span></a>
-<a name="180"><span class="lineNum">     180 </span>                :<span class="lineNoCov">          0 :     }</span></a>
-<a name="181"><span class="lineNum">     181 </span>                :<span class="lineNoCov">          0 :     void BlockDisconnected(const std::shared_ptr&lt;const CBlock&gt;&amp; block, const CBlockIndex* index) override</span></a>
-<a name="182"><span class="lineNum">     182 </span>                :            :     {</a>
-<a name="183"><span class="lineNum">     183 </span>                :<span class="lineNoCov">          0 :         m_notifications-&gt;BlockDisconnected(*block, index-&gt;nHeight);</span></a>
-<a name="184"><span class="lineNum">     184 </span>                :<span class="lineNoCov">          0 :     }</span></a>
-<a name="185"><span class="lineNum">     185 </span>                :<span class="lineNoCov">          0 :     void UpdatedBlockTip(const CBlockIndex* index, const CBlockIndex* fork_index, bool is_ibd) override</span></a>
-<a name="186"><span class="lineNum">     186 </span>                :            :     {</a>
-<a name="187"><span class="lineNum">     187 </span>                :<span class="lineNoCov">          0 :         m_notifications-&gt;UpdatedBlockTip();</span></a>
-<a name="188"><span class="lineNum">     188 </span>                :<span class="lineNoCov">          0 :     }</span></a>
-<a name="189"><span class="lineNum">     189 </span>                :<span class="lineNoCov">          0 :     void ChainStateFlushed(const CBlockLocator&amp; locator) override { m_notifications-&gt;ChainStateFlushed(locator); }</span></a>
-<a name="190"><span class="lineNum">     190 </span>                :            :     Chain&amp; m_chain;</a>
-<a name="191"><span class="lineNum">     191 </span>                :            :     Chain::Notifications* m_notifications;</a>
-<a name="192"><span class="lineNum">     192 </span>                :            : };</a>
-<a name="193"><span class="lineNum">     193 </span>                :            : </a>
-<a name="194"><span class="lineNum">     194 </span>                :            : class RpcHandlerImpl : public Handler</a>
-<a name="195"><span class="lineNum">     195 </span>                :            : {</a>
-<a name="196"><span class="lineNum">     196 </span>                :            : public:</a>
-<a name="197"><span class="lineNum">     197 </span>                :<span class="lineCov">        504 :     explicit RpcHandlerImpl(const CRPCCommand&amp; command) : m_command(command), m_wrapped_command(&amp;command)</span></a>
-<a name="198"><span class="lineNum">     198 </span>                :            :     {</a>
-<a name="199"><span class="lineNum">     199 </span>                :<span class="lineCov">        504 :         m_command.actor = [this](const JSONRPCRequest&amp; request, UniValue&amp; result, bool last_handler) {</span></a>
-<a name="200"><span class="lineNum">     200 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (!m_wrapped_command) return false;</span></a>
-<a name="201"><span class="lineNum">     201 </span>                :<span class="lineNoCov">          0 :             try {</span></a>
-<a name="202"><span class="lineNum">     202 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 return m_wrapped_command-&gt;actor(request, result, last_handler);</span></a>
-<a name="203"><span class="lineNum">     203 </span>                :<span class="lineNoCov">          0 :             } catch (const UniValue&amp; e) {</span></a>
-<a name="204"><span class="lineNum">     204 </span>                :            :                 // If this is not the last handler and a wallet not found</a>
-<a name="205"><span class="lineNum">     205 </span>                :            :                 // exception was thrown, return false so the next handler can</a>
-<a name="206"><span class="lineNum">     206 </span>                :            :                 // try to handle the request. Otherwise, reraise the exception.</a>
-<a name="207"><span class="lineNum">     207 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineNoCov">          0 :                 if (!last_handler) {</span></a>
-<a name="208"><span class="lineNum">     208 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineNoCov">          0 :                     const UniValue&amp; code = e[&quot;code&quot;];</span></a>
+<a name="175"><span class="lineNum">     175 </span>                :<span class="lineNoCov">          0 :     void BlockConnected(const std::shared_ptr&lt;const CBlock&gt;&amp; block, const CBlockIndex* index) override</span></a>
+<a name="176"><span class="lineNum">     176 </span>                :            :     {</a>
+<a name="177"><span class="lineNum">     177 </span>                :<span class="lineNoCov">          0 :         m_notifications-&gt;blockConnected(*block, index-&gt;nHeight);</span></a>
+<a name="178"><span class="lineNum">     178 </span>                :<span class="lineNoCov">          0 :     }</span></a>
+<a name="179"><span class="lineNum">     179 </span>                :<span class="lineNoCov">          0 :     void BlockDisconnected(const std::shared_ptr&lt;const CBlock&gt;&amp; block, const CBlockIndex* index) override</span></a>
+<a name="180"><span class="lineNum">     180 </span>                :            :     {</a>
+<a name="181"><span class="lineNum">     181 </span>                :<span class="lineNoCov">          0 :         m_notifications-&gt;blockDisconnected(*block, index-&gt;nHeight);</span></a>
+<a name="182"><span class="lineNum">     182 </span>                :<span class="lineNoCov">          0 :     }</span></a>
+<a name="183"><span class="lineNum">     183 </span>                :<span class="lineNoCov">          0 :     void UpdatedBlockTip(const CBlockIndex* index, const CBlockIndex* fork_index, bool is_ibd) override</span></a>
+<a name="184"><span class="lineNum">     184 </span>                :            :     {</a>
+<a name="185"><span class="lineNum">     185 </span>                :<span class="lineNoCov">          0 :         m_notifications-&gt;updatedBlockTip();</span></a>
+<a name="186"><span class="lineNum">     186 </span>                :<span class="lineNoCov">          0 :     }</span></a>
+<a name="187"><span class="lineNum">     187 </span>                :<span class="lineNoCov">          0 :     void ChainStateFlushed(const CBlockLocator&amp; locator) override { m_notifications-&gt;chainStateFlushed(locator); }</span></a>
+<a name="188"><span class="lineNum">     188 </span>                :            :     Chain&amp; m_chain;</a>
+<a name="189"><span class="lineNum">     189 </span>                :            :     Chain::Notifications* m_notifications;</a>
+<a name="190"><span class="lineNum">     190 </span>                :            : };</a>
+<a name="191"><span class="lineNum">     191 </span>                :            : </a>
+<a name="192"><span class="lineNum">     192 </span>                :            : class RpcHandlerImpl : public Handler</a>
+<a name="193"><span class="lineNum">     193 </span>                :            : {</a>
+<a name="194"><span class="lineNum">     194 </span>                :            : public:</a>
+<a name="195"><span class="lineNum">     195 </span>                :<span class="lineCov">        504 :     explicit RpcHandlerImpl(const CRPCCommand&amp; command) : m_command(command), m_wrapped_command(&amp;command)</span></a>
+<a name="196"><span class="lineNum">     196 </span>                :            :     {</a>
+<a name="197"><span class="lineNum">     197 </span>                :<span class="lineCov">        504 :         m_command.actor = [this](const JSONRPCRequest&amp; request, UniValue&amp; result, bool last_handler) {</span></a>
+<a name="198"><span class="lineNum">     198 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if (!m_wrapped_command) return false;</span></a>
+<a name="199"><span class="lineNum">     199 </span>                :<span class="lineNoCov">          0 :             try {</span></a>
+<a name="200"><span class="lineNum">     200 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 return m_wrapped_command-&gt;actor(request, result, last_handler);</span></a>
+<a name="201"><span class="lineNum">     201 </span>                :<span class="lineNoCov">          0 :             } catch (const UniValue&amp; e) {</span></a>
+<a name="202"><span class="lineNum">     202 </span>                :            :                 // If this is not the last handler and a wallet not found</a>
+<a name="203"><span class="lineNum">     203 </span>                :            :                 // exception was thrown, return false so the next handler can</a>
+<a name="204"><span class="lineNum">     204 </span>                :            :                 // try to handle the request. Otherwise, reraise the exception.</a>
+<a name="205"><span class="lineNum">     205 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineNoCov">          0 :                 if (!last_handler) {</span></a>
+<a name="206"><span class="lineNum">     206 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineNoCov">          0 :                     const UniValue&amp; code = e[&quot;code&quot;];</span></a>
 <span class="lineNum">         </span>         <span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
-<a name="209"><span class="lineNum">     209 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineNoCov">          0 :                     if (code.isNum() &amp;&amp; code.get_int() == RPC_WALLET_NOT_FOUND) {</span></a>
+<a name="207"><span class="lineNum">     207 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineNoCov">          0 :                     if (code.isNum() &amp;&amp; code.get_int() == RPC_WALLET_NOT_FOUND) {</span></a>
 <span class="lineNum">         </span>         <span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
-<a name="210"><span class="lineNum">     210 </span>                :<span class="lineNoCov">          0 :                         return false;</span></a>
-<a name="211"><span class="lineNum">     211 </span>                :            :                     }</a>
-<a name="212"><span class="lineNum">     212 </span>                :            :                 }</a>
-<a name="213"><span class="lineNum">     213 </span>                :<span class="lineNoCov">          0 :                 throw;</span></a>
-<a name="214"><span class="lineNum">     214 </span>                :            :             }</a>
-<a name="215"><span class="lineNum">     215 </span>                :<span class="lineCov">        504 :         };</span></a>
-<a name="216"><span class="lineNum">     216 </span>        [<span class="branchCov" title="Branch 0 was taken 504 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        504 :         ::tableRPC.appendCommand(m_command.name, &amp;m_command);</span></a>
-<a name="217"><span class="lineNum">     217 </span>                :<span class="lineCov">        504 :     }</span></a>
-<a name="218"><span class="lineNum">     218 </span>                :            : </a>
-<a name="219"><span class="lineNum">     219 </span>                :<span class="lineCov">        504 :     void disconnect() override final</span></a>
-<a name="220"><span class="lineNum">     220 </span>                :            :     {</a>
-<a name="221"><span class="lineNum">     221 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (m_wrapped_command) {</span></a>
-<a name="222"><span class="lineNum">     222 </span>                :<span class="lineCov">        504 :             m_wrapped_command = nullptr;</span></a>
-<a name="223"><span class="lineNum">     223 </span>                :<span class="lineCov">        504 :             ::tableRPC.removeCommand(m_command.name, &amp;m_command);</span></a>
-<a name="224"><span class="lineNum">     224 </span>                :            :         }</a>
-<a name="225"><span class="lineNum">     225 </span>                :<span class="lineNoCov">          0 :     }</span></a>
+<a name="208"><span class="lineNum">     208 </span>                :<span class="lineNoCov">          0 :                         return false;</span></a>
+<a name="209"><span class="lineNum">     209 </span>                :            :                     }</a>
+<a name="210"><span class="lineNum">     210 </span>                :            :                 }</a>
+<a name="211"><span class="lineNum">     211 </span>                :<span class="lineNoCov">          0 :                 throw;</span></a>
+<a name="212"><span class="lineNum">     212 </span>                :            :             }</a>
+<a name="213"><span class="lineNum">     213 </span>                :<span class="lineCov">        504 :         };</span></a>
+<a name="214"><span class="lineNum">     214 </span>        [<span class="branchCov" title="Branch 0 was taken 504 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        504 :         ::tableRPC.appendCommand(m_command.name, &amp;m_command);</span></a>
+<a name="215"><span class="lineNum">     215 </span>                :<span class="lineCov">        504 :     }</span></a>
+<a name="216"><span class="lineNum">     216 </span>                :            : </a>
+<a name="217"><span class="lineNum">     217 </span>                :<span class="lineCov">        504 :     void disconnect() override final</span></a>
+<a name="218"><span class="lineNum">     218 </span>                :            :     {</a>
+<a name="219"><span class="lineNum">     219 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (m_wrapped_command) {</span></a>
+<a name="220"><span class="lineNum">     220 </span>                :<span class="lineCov">        504 :             m_wrapped_command = nullptr;</span></a>
+<a name="221"><span class="lineNum">     221 </span>                :<span class="lineCov">        504 :             ::tableRPC.removeCommand(m_command.name, &amp;m_command);</span></a>
+<a name="222"><span class="lineNum">     222 </span>                :            :         }</a>
+<a name="223"><span class="lineNum">     223 </span>                :<span class="lineNoCov">          0 :     }</span></a>
+<a name="224"><span class="lineNum">     224 </span>                :            : </a>
+<a name="225"><span class="lineNum">     225 </span>        [<span class="branchCov" title="Branch 0 was taken 504 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       1512 :     ~RpcHandlerImpl() override { disconnect(); }</span></a>
 <a name="226"><span class="lineNum">     226 </span>                :            : </a>
-<a name="227"><span class="lineNum">     227 </span>        [<span class="branchCov" title="Branch 0 was taken 504 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       1512 :     ~RpcHandlerImpl() override { disconnect(); }</span></a>
-<a name="228"><span class="lineNum">     228 </span>                :            : </a>
-<a name="229"><span class="lineNum">     229 </span>                :            :     CRPCCommand m_command;</a>
-<a name="230"><span class="lineNum">     230 </span>                :            :     const CRPCCommand* m_wrapped_command;</a>
-<a name="231"><span class="lineNum">     231 </span>                :            : };</a>
-<a name="232"><span class="lineNum">     232 </span>                :            : </a>
-<a name="233"><span class="lineNum">     233 </span>                :            : class ChainImpl : public Chain</a>
-<a name="234"><span class="lineNum">     234 </span>                :            : {</a>
-<a name="235"><span class="lineNum">     235 </span>                :            : public:</a>
-<a name="236"><span class="lineNum">     236 </span>                :<span class="lineCov">        106 :     explicit ChainImpl(NodeContext&amp; node) : m_node(node) {}</span></a>
-<a name="237"><span class="lineNum">     237 </span>                :<span class="lineCov">        368 :     std::unique_ptr&lt;Chain::Lock&gt; lock(bool try_lock) override</span></a>
-<a name="238"><span class="lineNum">     238 </span>                :            :     {</a>
-<a name="239"><span class="lineNum">     239 </span>                :<span class="lineCov">        368 :         auto result = MakeUnique&lt;LockImpl&gt;(::cs_main, &quot;cs_main&quot;, __FILE__, __LINE__, try_lock);</span></a>
-<a name="240"><span class="lineNum">     240 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 368 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">        368 :         if (try_lock &amp;&amp; result &amp;&amp; !*result) return {};</span></a>
+<a name="227"><span class="lineNum">     227 </span>                :            :     CRPCCommand m_command;</a>
+<a name="228"><span class="lineNum">     228 </span>                :            :     const CRPCCommand* m_wrapped_command;</a>
+<a name="229"><span class="lineNum">     229 </span>                :            : };</a>
+<a name="230"><span class="lineNum">     230 </span>                :            : </a>
+<a name="231"><span class="lineNum">     231 </span>                :            : class ChainImpl : public Chain</a>
+<a name="232"><span class="lineNum">     232 </span>                :            : {</a>
+<a name="233"><span class="lineNum">     233 </span>                :            : public:</a>
+<a name="234"><span class="lineNum">     234 </span>                :<span class="lineCov">        106 :     explicit ChainImpl(NodeContext&amp; node) : m_node(node) {}</span></a>
+<a name="235"><span class="lineNum">     235 </span>                :<span class="lineCov">        368 :     std::unique_ptr&lt;Chain::Lock&gt; lock(bool try_lock) override</span></a>
+<a name="236"><span class="lineNum">     236 </span>                :            :     {</a>
+<a name="237"><span class="lineNum">     237 </span>                :<span class="lineCov">        368 :         auto result = MakeUnique&lt;LockImpl&gt;(::cs_main, &quot;cs_main&quot;, __FILE__, __LINE__, try_lock);</span></a>
+<a name="238"><span class="lineNum">     238 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 368 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">        368 :         if (try_lock &amp;&amp; result &amp;&amp; !*result) return {};</span></a>
 <span class="lineNum">         </span>         <span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]
-<a name="241"><span class="lineNum">     241 </span>                :            :         // std::move necessary on some compilers due to conversion from</a>
-<a name="242"><span class="lineNum">     242 </span>                :            :         // LockImpl to Lock pointer</a>
-<a name="243"><span class="lineNum">     243 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 368 times"> + </span>]:<span class="lineCov">        368 :         return std::move(result);</span></a>
-<a name="244"><span class="lineNum">     244 </span>                :            :     }</a>
-<a name="245"><span class="lineNum">     245 </span>                :<span class="lineCov">        326 :     bool findBlock(const uint256&amp; hash, CBlock* block, int64_t* time, int64_t* time_max) override</span></a>
-<a name="246"><span class="lineNum">     246 </span>                :            :     {</a>
-<a name="247"><span class="lineNum">     247 </span>                :<span class="lineCov">        326 :         CBlockIndex* index;</span></a>
-<a name="248"><span class="lineNum">     248 </span>                :<span class="lineCov">        326 :         {</span></a>
-<a name="249"><span class="lineNum">     249 </span>                :<span class="lineCov">        326 :             LOCK(cs_main);</span></a>
-<a name="250"><span class="lineNum">     250 </span>        [<span class="branchCov" title="Branch 0 was taken 326 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        326 :             index = LookupBlockIndex(hash);</span></a>
-<a name="251"><span class="lineNum">     251 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 326 times"> + </span>]:<span class="lineCov">        326 :             if (!index) {</span></a>
-<a name="252"><span class="lineNum">     252 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 return false;</span></a>
-<a name="253"><span class="lineNum">     253 </span>                :            :             }</a>
-<a name="254"><span class="lineNum">     254 </span>        [<span class="branchCov" title="Branch 0 was taken 112 times"> + </span><span class="branchCov" title="Branch 1 was taken 214 times"> + </span>]:<span class="lineCov">        326 :             if (time) {</span></a>
-<a name="255"><span class="lineNum">     255 </span>                :<span class="lineCov">        112 :                 *time = index-&gt;GetBlockTime();</span></a>
-<a name="256"><span class="lineNum">     256 </span>                :            :             }</a>
-<a name="257"><span class="lineNum">     257 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 325 times"> + </span>]:<span class="lineCov">        326 :             if (time_max) {</span></a>
-<a name="258"><span class="lineNum">     258 </span>                :<span class="lineCov">          1 :                 *time_max = index-&gt;GetBlockTimeMax();</span></a>
-<a name="259"><span class="lineNum">     259 </span>                :            :             }</a>
-<a name="260"><span class="lineNum">     260 </span>                :            :         }</a>
-<a name="261"><span class="lineNum">     261 </span>  [<span class="branchCov" title="Branch 0 was taken 213 times"> + </span><span class="branchCov" title="Branch 1 was taken 113 times"> + </span><span class="branchCov" title="Branch 2 was taken 104 times"> + </span><span class="branchCov" title="Branch 3 was taken 109 times"> + </span>]:<span class="lineCov">        326 :         if (block &amp;&amp; !ReadBlockFromDisk(*block, index, Params().GetConsensus())) {</span></a>
-<a name="262"><span class="lineNum">     262 </span>                :<span class="lineCov">        430 :             block-&gt;SetNull();</span></a>
-<a name="263"><span class="lineNum">     263 </span>                :            :         }</a>
-<a name="264"><span class="lineNum">     264 </span>                :            :         return true;</a>
-<a name="265"><span class="lineNum">     265 </span>                :            :     }</a>
-<a name="266"><span class="lineNum">     266 </span>                :<span class="lineNoCov">          0 :     void findCoins(std::map&lt;COutPoint, Coin&gt;&amp; coins) override { return FindCoins(m_node, coins); }</span></a>
-<a name="267"><span class="lineNum">     267 </span>                :<span class="lineCov">        221 :     double guessVerificationProgress(const uint256&amp; block_hash) override</span></a>
-<a name="268"><span class="lineNum">     268 </span>                :            :     {</a>
-<a name="269"><span class="lineNum">     269 </span>                :<span class="lineCov">        221 :         LOCK(cs_main);</span></a>
-<a name="270"><span class="lineNum">     270 </span>  [<span class="branchCov" title="Branch 0 was taken 221 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 221 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">        442 :         return GuessVerificationProgress(Params().TxData(), LookupBlockIndex(block_hash));</span></a>
+<a name="239"><span class="lineNum">     239 </span>                :            :         // std::move necessary on some compilers due to conversion from</a>
+<a name="240"><span class="lineNum">     240 </span>                :            :         // LockImpl to Lock pointer</a>
+<a name="241"><span class="lineNum">     241 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 368 times"> + </span>]:<span class="lineCov">        368 :         return std::move(result);</span></a>
+<a name="242"><span class="lineNum">     242 </span>                :            :     }</a>
+<a name="243"><span class="lineNum">     243 </span>                :<span class="lineCov">        326 :     bool findBlock(const uint256&amp; hash, CBlock* block, int64_t* time, int64_t* time_max) override</span></a>
+<a name="244"><span class="lineNum">     244 </span>                :            :     {</a>
+<a name="245"><span class="lineNum">     245 </span>                :<span class="lineCov">        326 :         CBlockIndex* index;</span></a>
+<a name="246"><span class="lineNum">     246 </span>                :<span class="lineCov">        326 :         {</span></a>
+<a name="247"><span class="lineNum">     247 </span>                :<span class="lineCov">        326 :             LOCK(cs_main);</span></a>
+<a name="248"><span class="lineNum">     248 </span>        [<span class="branchCov" title="Branch 0 was taken 326 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        326 :             index = LookupBlockIndex(hash);</span></a>
+<a name="249"><span class="lineNum">     249 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 326 times"> + </span>]:<span class="lineCov">        326 :             if (!index) {</span></a>
+<a name="250"><span class="lineNum">     250 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 return false;</span></a>
+<a name="251"><span class="lineNum">     251 </span>                :            :             }</a>
+<a name="252"><span class="lineNum">     252 </span>        [<span class="branchCov" title="Branch 0 was taken 112 times"> + </span><span class="branchCov" title="Branch 1 was taken 214 times"> + </span>]:<span class="lineCov">        326 :             if (time) {</span></a>
+<a name="253"><span class="lineNum">     253 </span>                :<span class="lineCov">        112 :                 *time = index-&gt;GetBlockTime();</span></a>
+<a name="254"><span class="lineNum">     254 </span>                :            :             }</a>
+<a name="255"><span class="lineNum">     255 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 325 times"> + </span>]:<span class="lineCov">        326 :             if (time_max) {</span></a>
+<a name="256"><span class="lineNum">     256 </span>                :<span class="lineCov">          1 :                 *time_max = index-&gt;GetBlockTimeMax();</span></a>
+<a name="257"><span class="lineNum">     257 </span>                :            :             }</a>
+<a name="258"><span class="lineNum">     258 </span>                :            :         }</a>
+<a name="259"><span class="lineNum">     259 </span>  [<span class="branchCov" title="Branch 0 was taken 213 times"> + </span><span class="branchCov" title="Branch 1 was taken 113 times"> + </span><span class="branchCov" title="Branch 2 was taken 104 times"> + </span><span class="branchCov" title="Branch 3 was taken 109 times"> + </span>]:<span class="lineCov">        326 :         if (block &amp;&amp; !ReadBlockFromDisk(*block, index, Params().GetConsensus())) {</span></a>
+<a name="260"><span class="lineNum">     260 </span>                :<span class="lineCov">        430 :             block-&gt;SetNull();</span></a>
+<a name="261"><span class="lineNum">     261 </span>                :            :         }</a>
+<a name="262"><span class="lineNum">     262 </span>                :            :         return true;</a>
+<a name="263"><span class="lineNum">     263 </span>                :            :     }</a>
+<a name="264"><span class="lineNum">     264 </span>                :<span class="lineNoCov">          0 :     void findCoins(std::map&lt;COutPoint, Coin&gt;&amp; coins) override { return FindCoins(m_node, coins); }</span></a>
+<a name="265"><span class="lineNum">     265 </span>                :<span class="lineCov">        221 :     double guessVerificationProgress(const uint256&amp; block_hash) override</span></a>
+<a name="266"><span class="lineNum">     266 </span>                :            :     {</a>
+<a name="267"><span class="lineNum">     267 </span>                :<span class="lineCov">        221 :         LOCK(cs_main);</span></a>
+<a name="268"><span class="lineNum">     268 </span>  [<span class="branchCov" title="Branch 0 was taken 221 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 221 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">        442 :         return GuessVerificationProgress(Params().TxData(), LookupBlockIndex(block_hash));</span></a>
 <span class="lineNum">         </span>   <span class="branchCov" title="Branch 4 was taken 221 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchCov" title="Branch 6 was taken 221 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
-<a name="271"><span class="lineNum">     271 </span>                :            :     }</a>
-<a name="272"><span class="lineNum">     272 </span>                :<span class="lineNoCov">          0 :     RBFTransactionState isRBFOptIn(const CTransaction&amp; tx) override</span></a>
-<a name="273"><span class="lineNum">     273 </span>                :            :     {</a>
-<a name="274"><span class="lineNum">     274 </span>                :<span class="lineNoCov">          0 :         LOCK(::mempool.cs);</span></a>
-<a name="275"><span class="lineNum">     275 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         return IsRBFOptIn(tx, ::mempool);</span></a>
-<a name="276"><span class="lineNum">     276 </span>                :            :     }</a>
-<a name="277"><span class="lineNum">     277 </span>                :<span class="lineNoCov">          0 :     bool hasDescendantsInMempool(const uint256&amp; txid) override</span></a>
-<a name="278"><span class="lineNum">     278 </span>                :            :     {</a>
-<a name="279"><span class="lineNum">     279 </span>                :<span class="lineNoCov">          0 :         LOCK(::mempool.cs);</span></a>
-<a name="280"><span class="lineNum">     280 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         auto it = ::mempool.GetIter(txid);</span></a>
-<a name="281"><span class="lineNum">     281 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :         return it &amp;&amp; (*it)-&gt;GetCountWithDescendants() &gt; 1;</span></a>
+<a name="269"><span class="lineNum">     269 </span>                :            :     }</a>
+<a name="270"><span class="lineNum">     270 </span>                :<span class="lineNoCov">          0 :     RBFTransactionState isRBFOptIn(const CTransaction&amp; tx) override</span></a>
+<a name="271"><span class="lineNum">     271 </span>                :            :     {</a>
+<a name="272"><span class="lineNum">     272 </span>                :<span class="lineNoCov">          0 :         LOCK(::mempool.cs);</span></a>
+<a name="273"><span class="lineNum">     273 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         return IsRBFOptIn(tx, ::mempool);</span></a>
+<a name="274"><span class="lineNum">     274 </span>                :            :     }</a>
+<a name="275"><span class="lineNum">     275 </span>                :<span class="lineNoCov">          0 :     bool hasDescendantsInMempool(const uint256&amp; txid) override</span></a>
+<a name="276"><span class="lineNum">     276 </span>                :            :     {</a>
+<a name="277"><span class="lineNum">     277 </span>                :<span class="lineNoCov">          0 :         LOCK(::mempool.cs);</span></a>
+<a name="278"><span class="lineNum">     278 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         auto it = ::mempool.GetIter(txid);</span></a>
+<a name="279"><span class="lineNum">     279 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :         return it &amp;&amp; (*it)-&gt;GetCountWithDescendants() &gt; 1;</span></a>
 <span class="lineNum">         </span>         <span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
-<a name="282"><span class="lineNum">     282 </span>                :            :     }</a>
-<a name="283"><span class="lineNum">     283 </span>                :<span class="lineNoCov">          0 :     bool broadcastTransaction(const CTransactionRef&amp; tx, std::string&amp; err_string, const CAmount&amp; max_tx_fee, bool relay) override</span></a>
-<a name="284"><span class="lineNum">     284 </span>                :            :     {</a>
-<a name="285"><span class="lineNum">     285 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         const TransactionError err = BroadcastTransaction(m_node, tx, err_string, max_tx_fee, relay, /*wait_callback*/ false);</span></a>
-<a name="286"><span class="lineNum">     286 </span>                :            :         // Chain clients only care about failures to accept the tx to the mempool. Disregard non-mempool related failures.</a>
-<a name="287"><span class="lineNum">     287 </span>                :            :         // Note: this will need to be updated if BroadcastTransactions() is updated to return other non-mempool failures</a>
-<a name="288"><span class="lineNum">     288 </span>                :            :         // that Chain clients do not need to know about.</a>
-<a name="289"><span class="lineNum">     289 </span>                :<span class="lineNoCov">          0 :         return TransactionError::OK == err;</span></a>
-<a name="290"><span class="lineNum">     290 </span>                :            :     }</a>
-<a name="291"><span class="lineNum">     291 </span>                :<span class="lineCov">          4 :     void getTransactionAncestry(const uint256&amp; txid, size_t&amp; ancestors, size_t&amp; descendants) override</span></a>
-<a name="292"><span class="lineNum">     292 </span>                :            :     {</a>
-<a name="293"><span class="lineNum">     293 </span>                :<span class="lineCov">          4 :         ::mempool.GetTransactionAncestry(txid, ancestors, descendants);</span></a>
-<a name="294"><span class="lineNum">     294 </span>                :<span class="lineCov">          4 :     }</span></a>
-<a name="295"><span class="lineNum">     295 </span>                :<span class="lineCov">          3 :     void getPackageLimits(unsigned int&amp; limit_ancestor_count, unsigned int&amp; limit_descendant_count) override</span></a>
-<a name="296"><span class="lineNum">     296 </span>                :            :     {</a>
-<a name="297"><span class="lineNum">     297 </span>  [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          3 :         limit_ancestor_count = gArgs.GetArg(&quot;-limitancestorcount&quot;, DEFAULT_ANCESTOR_LIMIT);</span></a>
-<a name="298"><span class="lineNum">     298 </span>  [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          3 :         limit_descendant_count = gArgs.GetArg(&quot;-limitdescendantcount&quot;, DEFAULT_DESCENDANT_LIMIT);</span></a>
-<a name="299"><span class="lineNum">     299 </span>                :<span class="lineCov">          3 :     }</span></a>
-<a name="300"><span class="lineNum">     300 </span>                :<span class="lineNoCov">          0 :     bool checkChainLimits(const CTransactionRef&amp; tx) override</span></a>
-<a name="301"><span class="lineNum">     301 </span>                :            :     {</a>
-<a name="302"><span class="lineNum">     302 </span>                :<span class="lineNoCov">          0 :         LockPoints lp;</span></a>
-<a name="303"><span class="lineNum">     303 </span>                :<span class="lineNoCov">          0 :         CTxMemPoolEntry entry(tx, 0, 0, 0, false, 0, lp);</span></a>
-<a name="304"><span class="lineNum">     304 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         CTxMemPool::setEntries ancestors;</span></a>
-<a name="305"><span class="lineNum">     305 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :         auto limit_ancestor_count = gArgs.GetArg(&quot;-limitancestorcount&quot;, DEFAULT_ANCESTOR_LIMIT);</span></a>
+<a name="280"><span class="lineNum">     280 </span>                :            :     }</a>
+<a name="281"><span class="lineNum">     281 </span>                :<span class="lineNoCov">          0 :     bool broadcastTransaction(const CTransactionRef&amp; tx,</span></a>
+<a name="282"><span class="lineNum">     282 </span>                :            :         const CAmount&amp; max_tx_fee,</a>
+<a name="283"><span class="lineNum">     283 </span>                :            :         bool relay,</a>
+<a name="284"><span class="lineNum">     284 </span>                :            :         std::string&amp; err_string) override</a>
+<a name="285"><span class="lineNum">     285 </span>                :            :     {</a>
+<a name="286"><span class="lineNum">     286 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         const TransactionError err = BroadcastTransaction(m_node, tx, err_string, max_tx_fee, relay, /*wait_callback*/ false);</span></a>
+<a name="287"><span class="lineNum">     287 </span>                :            :         // Chain clients only care about failures to accept the tx to the mempool. Disregard non-mempool related failures.</a>
+<a name="288"><span class="lineNum">     288 </span>                :            :         // Note: this will need to be updated if BroadcastTransactions() is updated to return other non-mempool failures</a>
+<a name="289"><span class="lineNum">     289 </span>                :            :         // that Chain clients do not need to know about.</a>
+<a name="290"><span class="lineNum">     290 </span>                :<span class="lineNoCov">          0 :         return TransactionError::OK == err;</span></a>
+<a name="291"><span class="lineNum">     291 </span>                :            :     }</a>
+<a name="292"><span class="lineNum">     292 </span>                :<span class="lineCov">          4 :     void getTransactionAncestry(const uint256&amp; txid, size_t&amp; ancestors, size_t&amp; descendants) override</span></a>
+<a name="293"><span class="lineNum">     293 </span>                :            :     {</a>
+<a name="294"><span class="lineNum">     294 </span>                :<span class="lineCov">          4 :         ::mempool.GetTransactionAncestry(txid, ancestors, descendants);</span></a>
+<a name="295"><span class="lineNum">     295 </span>                :<span class="lineCov">          4 :     }</span></a>
+<a name="296"><span class="lineNum">     296 </span>                :<span class="lineCov">          3 :     void getPackageLimits(unsigned int&amp; limit_ancestor_count, unsigned int&amp; limit_descendant_count) override</span></a>
+<a name="297"><span class="lineNum">     297 </span>                :            :     {</a>
+<a name="298"><span class="lineNum">     298 </span>  [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          3 :         limit_ancestor_count = gArgs.GetArg(&quot;-limitancestorcount&quot;, DEFAULT_ANCESTOR_LIMIT);</span></a>
+<a name="299"><span class="lineNum">     299 </span>  [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">          3 :         limit_descendant_count = gArgs.GetArg(&quot;-limitdescendantcount&quot;, DEFAULT_DESCENDANT_LIMIT);</span></a>
+<a name="300"><span class="lineNum">     300 </span>                :<span class="lineCov">          3 :     }</span></a>
+<a name="301"><span class="lineNum">     301 </span>                :<span class="lineNoCov">          0 :     bool checkChainLimits(const CTransactionRef&amp; tx) override</span></a>
+<a name="302"><span class="lineNum">     302 </span>                :            :     {</a>
+<a name="303"><span class="lineNum">     303 </span>                :<span class="lineNoCov">          0 :         LockPoints lp;</span></a>
+<a name="304"><span class="lineNum">     304 </span>                :<span class="lineNoCov">          0 :         CTxMemPoolEntry entry(tx, 0, 0, 0, false, 0, lp);</span></a>
+<a name="305"><span class="lineNum">     305 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         CTxMemPool::setEntries ancestors;</span></a>
+<a name="306"><span class="lineNum">     306 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :         auto limit_ancestor_count = gArgs.GetArg(&quot;-limitancestorcount&quot;, DEFAULT_ANCESTOR_LIMIT);</span></a>
 <span class="lineNum">         </span>         <span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
-<a name="306"><span class="lineNum">     306 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :         auto limit_ancestor_size = gArgs.GetArg(&quot;-limitancestorsize&quot;, DEFAULT_ANCESTOR_SIZE_LIMIT) * 1000;</span></a>
+<a name="307"><span class="lineNum">     307 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :         auto limit_ancestor_size = gArgs.GetArg(&quot;-limitancestorsize&quot;, DEFAULT_ANCESTOR_SIZE_LIMIT) * 1000;</span></a>
 <span class="lineNum">         </span>         <span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
-<a name="307"><span class="lineNum">     307 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :         auto limit_descendant_count = gArgs.GetArg(&quot;-limitdescendantcount&quot;, DEFAULT_DESCENDANT_LIMIT);</span></a>
+<a name="308"><span class="lineNum">     308 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :         auto limit_descendant_count = gArgs.GetArg(&quot;-limitdescendantcount&quot;, DEFAULT_DESCENDANT_LIMIT);</span></a>
 <span class="lineNum">         </span>         <span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
-<a name="308"><span class="lineNum">     308 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :         auto limit_descendant_size = gArgs.GetArg(&quot;-limitdescendantsize&quot;, DEFAULT_DESCENDANT_SIZE_LIMIT) * 1000;</span></a>
+<a name="309"><span class="lineNum">     309 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :         auto limit_descendant_size = gArgs.GetArg(&quot;-limitdescendantsize&quot;, DEFAULT_DESCENDANT_SIZE_LIMIT) * 1000;</span></a>
 <span class="lineNum">         </span>         <span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
-<a name="309"><span class="lineNum">     309 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         std::string unused_error_string;</span></a>
-<a name="310"><span class="lineNum">     310 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LOCK(::mempool.cs);</span></a>
-<a name="311"><span class="lineNum">     311 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         return ::mempool.CalculateMemPoolAncestors(entry, ancestors, limit_ancestor_count, limit_ancestor_size,</span></a>
-<a name="312"><span class="lineNum">     312 </span>                :<span class="lineNoCov">          0 :             limit_descendant_count, limit_descendant_size, unused_error_string);</span></a>
-<a name="313"><span class="lineNum">     313 </span>                :            :     }</a>
-<a name="314"><span class="lineNum">     314 </span>                :<span class="lineCov">        225 :     CFeeRate estimateSmartFee(int num_blocks, bool conservative, FeeCalculation* calc) override</span></a>
-<a name="315"><span class="lineNum">     315 </span>                :            :     {</a>
-<a name="316"><span class="lineNum">     316 </span>                :<span class="lineCov">        225 :         return ::feeEstimator.estimateSmartFee(num_blocks, calc, conservative);</span></a>
-<a name="317"><span class="lineNum">     317 </span>                :            :     }</a>
-<a name="318"><span class="lineNum">     318 </span>                :<span class="lineCov">        112 :     unsigned int estimateMaxBlocks() override</span></a>
-<a name="319"><span class="lineNum">     319 </span>                :            :     {</a>
-<a name="320"><span class="lineNum">     320 </span>                :<span class="lineCov">        112 :         return ::feeEstimator.HighestTargetTracked(FeeEstimateHorizon::LONG_HALFLIFE);</span></a>
-<a name="321"><span class="lineNum">     321 </span>                :            :     }</a>
-<a name="322"><span class="lineNum">     322 </span>                :<span class="lineNoCov">          0 :     CFeeRate mempoolMinFee() override</span></a>
-<a name="323"><span class="lineNum">     323 </span>                :            :     {</a>
-<a name="324"><span class="lineNum">     324 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         return ::mempool.GetMinFee(gArgs.GetArg(&quot;-maxmempool&quot;, DEFAULT_MAX_MEMPOOL_SIZE) * 1000000);</span></a>
-<a name="325"><span class="lineNum">     325 </span>                :            :     }</a>
-<a name="326"><span class="lineNum">     326 </span>                :<span class="lineNoCov">          0 :     CFeeRate relayMinFee() override { return ::minRelayTxFee; }</span></a>
-<a name="327"><span class="lineNum">     327 </span>                :<span class="lineNoCov">          0 :     CFeeRate relayIncrementalFee() override { return ::incrementalRelayFee; }</span></a>
-<a name="328"><span class="lineNum">     328 </span>                :<span class="lineCov">        114 :     CFeeRate relayDustFee() override { return ::dustRelayFee; }</span></a>
-<a name="329"><span class="lineNum">     329 </span>                :<span class="lineCov">          1 :     bool havePruned() override</span></a>
-<a name="330"><span class="lineNum">     330 </span>                :            :     {</a>
-<a name="331"><span class="lineNum">     331 </span>                :<span class="lineCov">          1 :         LOCK(cs_main);</span></a>
-<a name="332"><span class="lineNum">     332 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          1 :         return ::fHavePruned;</span></a>
-<a name="333"><span class="lineNum">     333 </span>                :            :     }</a>
-<a name="334"><span class="lineNum">     334 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :     bool isReadyToBroadcast() override { return !::fImporting &amp;&amp; !::fReindex &amp;&amp; !isInitialBlockDownload(); }</span></a>
+<a name="310"><span class="lineNum">     310 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         std::string unused_error_string;</span></a>
+<a name="311"><span class="lineNum">     311 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LOCK(::mempool.cs);</span></a>
+<a name="312"><span class="lineNum">     312 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         return ::mempool.CalculateMemPoolAncestors(entry, ancestors, limit_ancestor_count, limit_ancestor_size,</span></a>
+<a name="313"><span class="lineNum">     313 </span>                :<span class="lineNoCov">          0 :             limit_descendant_count, limit_descendant_size, unused_error_string);</span></a>
+<a name="314"><span class="lineNum">     314 </span>                :            :     }</a>
+<a name="315"><span class="lineNum">     315 </span>                :<span class="lineCov">        225 :     CFeeRate estimateSmartFee(int num_blocks, bool conservative, FeeCalculation* calc) override</span></a>
+<a name="316"><span class="lineNum">     316 </span>                :            :     {</a>
+<a name="317"><span class="lineNum">     317 </span>                :<span class="lineCov">        225 :         return ::feeEstimator.estimateSmartFee(num_blocks, calc, conservative);</span></a>
+<a name="318"><span class="lineNum">     318 </span>                :            :     }</a>
+<a name="319"><span class="lineNum">     319 </span>                :<span class="lineCov">        112 :     unsigned int estimateMaxBlocks() override</span></a>
+<a name="320"><span class="lineNum">     320 </span>                :            :     {</a>
+<a name="321"><span class="lineNum">     321 </span>                :<span class="lineCov">        112 :         return ::feeEstimator.HighestTargetTracked(FeeEstimateHorizon::LONG_HALFLIFE);</span></a>
+<a name="322"><span class="lineNum">     322 </span>                :            :     }</a>
+<a name="323"><span class="lineNum">     323 </span>                :<span class="lineNoCov">          0 :     CFeeRate mempoolMinFee() override</span></a>
+<a name="324"><span class="lineNum">     324 </span>                :            :     {</a>
+<a name="325"><span class="lineNum">     325 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         return ::mempool.GetMinFee(gArgs.GetArg(&quot;-maxmempool&quot;, DEFAULT_MAX_MEMPOOL_SIZE) * 1000000);</span></a>
+<a name="326"><span class="lineNum">     326 </span>                :            :     }</a>
+<a name="327"><span class="lineNum">     327 </span>                :<span class="lineNoCov">          0 :     CFeeRate relayMinFee() override { return ::minRelayTxFee; }</span></a>
+<a name="328"><span class="lineNum">     328 </span>                :<span class="lineNoCov">          0 :     CFeeRate relayIncrementalFee() override { return ::incrementalRelayFee; }</span></a>
+<a name="329"><span class="lineNum">     329 </span>                :<span class="lineCov">        114 :     CFeeRate relayDustFee() override { return ::dustRelayFee; }</span></a>
+<a name="330"><span class="lineNum">     330 </span>                :<span class="lineCov">          1 :     bool havePruned() override</span></a>
+<a name="331"><span class="lineNum">     331 </span>                :            :     {</a>
+<a name="332"><span class="lineNum">     332 </span>                :<span class="lineCov">          1 :         LOCK(cs_main);</span></a>
+<a name="333"><span class="lineNum">     333 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          1 :         return ::fHavePruned;</span></a>
+<a name="334"><span class="lineNum">     334 </span>                :            :     }</a>
+<a name="335"><span class="lineNum">     335 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :     bool isReadyToBroadcast() override { return !::fImporting &amp;&amp; !::fReindex &amp;&amp; !isInitialBlockDownload(); }</span></a>
 <span class="lineNum">         </span>         <span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
-<a name="335"><span class="lineNum">     335 </span>                :<span class="lineCov">          1 :     bool isInitialBlockDownload() override { return ::ChainstateActive().IsInitialBlockDownload(); }</span></a>
-<a name="336"><span class="lineNum">     336 </span>                :<span class="lineCov">        219 :     bool shutdownRequested() override { return ShutdownRequested(); }</span></a>
-<a name="337"><span class="lineNum">     337 </span>                :<span class="lineCov">     110105 :     int64_t getAdjustedTime() override { return GetAdjustedTime(); }</span></a>
-<a name="338"><span class="lineNum">     338 </span>                :<span class="lineCov">          4 :     void initMessage(const std::string&amp; message) override { ::uiInterface.InitMessage(message); }</span></a>
-<a name="339"><span class="lineNum">     339 </span>                :<span class="lineNoCov">          0 :     void initWarning(const std::string&amp; message) override { InitWarning(message); }</span></a>
-<a name="340"><span class="lineNum">     340 </span>                :<span class="lineCov">          3 :     void initError(const std::string&amp; message) override { InitError(message); }</span></a>
-<a name="341"><span class="lineNum">     341 </span>                :<span class="lineCov">         16 :     void showProgress(const std::string&amp; title, int progress, bool resume_possible) override</span></a>
-<a name="342"><span class="lineNum">     342 </span>                :            :     {</a>
-<a name="343"><span class="lineNum">     343 </span>                :<span class="lineCov">         16 :         ::uiInterface.ShowProgress(title, progress, resume_possible);</span></a>
-<a name="344"><span class="lineNum">     344 </span>                :<span class="lineCov">         16 :     }</span></a>
-<a name="345"><span class="lineNum">     345 </span>                :<span class="lineCov">          9 :     std::unique_ptr&lt;Handler&gt; handleNotifications(Notifications&amp; notifications) override</span></a>
-<a name="346"><span class="lineNum">     346 </span>                :            :     {</a>
-<a name="347"><span class="lineNum">     347 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 9 times"> + </span>]:<span class="lineCov">          9 :         return MakeUnique&lt;NotificationsHandlerImpl&gt;(*this, notifications);</span></a>
-<a name="348"><span class="lineNum">     348 </span>                :            :     }</a>
-<a name="349"><span class="lineNum">     349 </span>                :<span class="lineNoCov">          0 :     void waitForNotificationsIfTipChanged(const uint256&amp; old_tip) override</span></a>
-<a name="350"><span class="lineNum">     350 </span>                :            :     {</a>
-<a name="351"><span class="lineNum">     351 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!old_tip.IsNull()) {</span></a>
-<a name="352"><span class="lineNum">     352 </span>                :<span class="lineNoCov">          0 :             LOCK(::cs_main);</span></a>
-<a name="353"><span class="lineNum">     353 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :             if (old_tip == ::ChainActive().Tip()-&gt;GetBlockHash()) return;</span></a>
+<a name="336"><span class="lineNum">     336 </span>                :<span class="lineCov">          1 :     bool isInitialBlockDownload() override { return ::ChainstateActive().IsInitialBlockDownload(); }</span></a>
+<a name="337"><span class="lineNum">     337 </span>                :<span class="lineCov">        219 :     bool shutdownRequested() override { return ShutdownRequested(); }</span></a>
+<a name="338"><span class="lineNum">     338 </span>                :<span class="lineCov">     110105 :     int64_t getAdjustedTime() override { return GetAdjustedTime(); }</span></a>
+<a name="339"><span class="lineNum">     339 </span>                :<span class="lineCov">          4 :     void initMessage(const std::string&amp; message) override { ::uiInterface.InitMessage(message); }</span></a>
+<a name="340"><span class="lineNum">     340 </span>                :<span class="lineNoCov">          0 :     void initWarning(const std::string&amp; message) override { InitWarning(message); }</span></a>
+<a name="341"><span class="lineNum">     341 </span>                :<span class="lineCov">          3 :     void initError(const std::string&amp; message) override { InitError(message); }</span></a>
+<a name="342"><span class="lineNum">     342 </span>                :<span class="lineCov">         16 :     void showProgress(const std::string&amp; title, int progress, bool resume_possible) override</span></a>
+<a name="343"><span class="lineNum">     343 </span>                :            :     {</a>
+<a name="344"><span class="lineNum">     344 </span>                :<span class="lineCov">         16 :         ::uiInterface.ShowProgress(title, progress, resume_possible);</span></a>
+<a name="345"><span class="lineNum">     345 </span>                :<span class="lineCov">         16 :     }</span></a>
+<a name="346"><span class="lineNum">     346 </span>                :<span class="lineCov">          9 :     std::unique_ptr&lt;Handler&gt; handleNotifications(Notifications&amp; notifications) override</span></a>
+<a name="347"><span class="lineNum">     347 </span>                :            :     {</a>
+<a name="348"><span class="lineNum">     348 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 9 times"> + </span>]:<span class="lineCov">          9 :         return MakeUnique&lt;NotificationsHandlerImpl&gt;(*this, notifications);</span></a>
+<a name="349"><span class="lineNum">     349 </span>                :            :     }</a>
+<a name="350"><span class="lineNum">     350 </span>                :<span class="lineNoCov">          0 :     void waitForNotificationsIfTipChanged(const uint256&amp; old_tip) override</span></a>
+<a name="351"><span class="lineNum">     351 </span>                :            :     {</a>
+<a name="352"><span class="lineNum">     352 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!old_tip.IsNull()) {</span></a>
+<a name="353"><span class="lineNum">     353 </span>                :<span class="lineNoCov">          0 :             LOCK(::cs_main);</span></a>
+<a name="354"><span class="lineNum">     354 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineNoCov">          0 :             if (old_tip == ::ChainActive().Tip()-&gt;GetBlockHash()) return;</span></a>
 <span class="lineNum">         </span>   <span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
-<a name="354"><span class="lineNum">     354 </span>                :            :         }</a>
-<a name="355"><span class="lineNum">     355 </span>                :<span class="lineNoCov">          0 :         SyncWithValidationInterfaceQueue();</span></a>
-<a name="356"><span class="lineNum">     356 </span>                :            :     }</a>
-<a name="357"><span class="lineNum">     357 </span>                :<span class="lineCov">        504 :     std::unique_ptr&lt;Handler&gt; handleRpc(const CRPCCommand&amp; command) override</span></a>
-<a name="358"><span class="lineNum">     358 </span>                :            :     {</a>
-<a name="359"><span class="lineNum">     359 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 504 times"> + </span>]:<span class="lineCov">        504 :         return MakeUnique&lt;RpcHandlerImpl&gt;(command);</span></a>
-<a name="360"><span class="lineNum">     360 </span>                :            :     }</a>
-<a name="361"><span class="lineNum">     361 </span>                :<span class="lineNoCov">          0 :     bool rpcEnableDeprecated(const std::string&amp; method) override { return IsDeprecatedRPCEnabled(method); }</span></a>
-<a name="362"><span class="lineNum">     362 </span>                :<span class="lineNoCov">          0 :     void rpcRunLater(const std::string&amp; name, std::function&lt;void()&gt; fn, int64_t seconds) override</span></a>
-<a name="363"><span class="lineNum">     363 </span>                :            :     {</a>
-<a name="364"><span class="lineNum">     364 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         RPCRunLater(name, std::move(fn), seconds);</span></a>
-<a name="365"><span class="lineNum">     365 </span>                :<span class="lineNoCov">          0 :     }</span></a>
-<a name="366"><span class="lineNum">     366 </span>                :<span class="lineNoCov">          0 :     int rpcSerializationFlags() override { return RPCSerializationFlags(); }</span></a>
-<a name="367"><span class="lineNum">     367 </span>                :<span class="lineNoCov">          0 :     void requestMempoolTransactions(Notifications&amp; notifications) override</span></a>
-<a name="368"><span class="lineNum">     368 </span>                :            :     {</a>
-<a name="369"><span class="lineNum">     369 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LOCK2(::cs_main, ::mempool.cs);</span></a>
-<a name="370"><span class="lineNum">     370 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         for (const CTxMemPoolEntry&amp; entry : ::mempool.mapTx) {</span></a>
-<a name="371"><span class="lineNum">     371 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             notifications.TransactionAddedToMempool(entry.GetSharedTx());</span></a>
-<a name="372"><span class="lineNum">     372 </span>                :            :         }</a>
-<a name="373"><span class="lineNum">     373 </span>                :<span class="lineNoCov">          0 :     }</span></a>
-<a name="374"><span class="lineNum">     374 </span>                :            :     NodeContext&amp; m_node;</a>
-<a name="375"><span class="lineNum">     375 </span>                :            : };</a>
-<a name="376"><span class="lineNum">     376 </span>                :            : } // namespace</a>
-<a name="377"><span class="lineNum">     377 </span>                :            : </a>
-<a name="378"><span class="lineNum">     378 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 106 times"> + </span>]:<span class="lineCov">        106 : std::unique_ptr&lt;Chain&gt; MakeChain(NodeContext&amp; node) { return MakeUnique&lt;ChainImpl&gt;(node); }</span></a>
-<a name="379"><span class="lineNum">     379 </span>                :            : </a>
-<a name="380"><span class="lineNum">     380 </span>                :            : } // namespace interfaces</a>
+<a name="355"><span class="lineNum">     355 </span>                :            :         }</a>
+<a name="356"><span class="lineNum">     356 </span>                :<span class="lineNoCov">          0 :         SyncWithValidationInterfaceQueue();</span></a>
+<a name="357"><span class="lineNum">     357 </span>                :            :     }</a>
+<a name="358"><span class="lineNum">     358 </span>                :<span class="lineCov">        504 :     std::unique_ptr&lt;Handler&gt; handleRpc(const CRPCCommand&amp; command) override</span></a>
+<a name="359"><span class="lineNum">     359 </span>                :            :     {</a>
+<a name="360"><span class="lineNum">     360 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 504 times"> + </span>]:<span class="lineCov">        504 :         return MakeUnique&lt;RpcHandlerImpl&gt;(command);</span></a>
+<a name="361"><span class="lineNum">     361 </span>                :            :     }</a>
+<a name="362"><span class="lineNum">     362 </span>                :<span class="lineNoCov">          0 :     bool rpcEnableDeprecated(const std::string&amp; method) override { return IsDeprecatedRPCEnabled(method); }</span></a>
+<a name="363"><span class="lineNum">     363 </span>                :<span class="lineNoCov">          0 :     void rpcRunLater(const std::string&amp; name, std::function&lt;void()&gt; fn, int64_t seconds) override</span></a>
+<a name="364"><span class="lineNum">     364 </span>                :            :     {</a>
+<a name="365"><span class="lineNum">     365 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         RPCRunLater(name, std::move(fn), seconds);</span></a>
+<a name="366"><span class="lineNum">     366 </span>                :<span class="lineNoCov">          0 :     }</span></a>
+<a name="367"><span class="lineNum">     367 </span>                :<span class="lineNoCov">          0 :     int rpcSerializationFlags() override { return RPCSerializationFlags(); }</span></a>
+<a name="368"><span class="lineNum">     368 </span>                :<span class="lineNoCov">          0 :     void requestMempoolTransactions(Notifications&amp; notifications) override</span></a>
+<a name="369"><span class="lineNum">     369 </span>                :            :     {</a>
+<a name="370"><span class="lineNum">     370 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         LOCK2(::cs_main, ::mempool.cs);</span></a>
+<a name="371"><span class="lineNum">     371 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :         for (const CTxMemPoolEntry&amp; entry : ::mempool.mapTx) {</span></a>
+<a name="372"><span class="lineNum">     372 </span>  [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             notifications.transactionAddedToMempool(entry.GetSharedTx());</span></a>
+<a name="373"><span class="lineNum">     373 </span>                :            :         }</a>
+<a name="374"><span class="lineNum">     374 </span>                :<span class="lineNoCov">          0 :     }</span></a>
+<a name="375"><span class="lineNum">     375 </span>                :            :     NodeContext&amp; m_node;</a>
+<a name="376"><span class="lineNum">     376 </span>                :            : };</a>
+<a name="377"><span class="lineNum">     377 </span>                :            : } // namespace</a>
+<a name="378"><span class="lineNum">     378 </span>                :            : </a>
+<a name="379"><span class="lineNum">     379 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 106 times"> + </span>]:<span class="lineCov">        106 : std::unique_ptr&lt;Chain&gt; MakeChain(NodeContext&amp; node) { return MakeUnique&lt;ChainImpl&gt;(node); }</span></a>
+<a name="380"><span class="lineNum">     380 </span>                :            : </a>
+<a name="381"><span class="lineNum">     381 </span>                :            : } // namespace interfaces</a>
 </pre>
       </td>
     </tr>
