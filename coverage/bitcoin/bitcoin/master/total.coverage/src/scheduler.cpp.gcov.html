@@ -69,7 +69,7 @@
       <td>
 <pre class="sourceHeading">           Branch data     Line data    Source code</pre>
 <pre class="source">
-<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2015-2019 The Bitcoin Core developers</a>
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2015-2020 The Bitcoin Core developers</a>
 <a name="2"><span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying</a>
 <a name="3"><span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.</a>
 <a name="4"><span class="lineNum">       4 </span>                :            : </a>
@@ -80,128 +80,128 @@
 <a name="9"><span class="lineNum">       9 </span>                :            : #include &lt;assert.h&gt;</a>
 <a name="10"><span class="lineNum">      10 </span>                :            : #include &lt;utility&gt;</a>
 <a name="11"><span class="lineNum">      11 </span>                :            : </a>
-<a name="12"><span class="lineNum">      12 </span>                :<span class="lineCov">        544 : CScheduler::CScheduler()</span></a>
+<a name="12"><span class="lineNum">      12 </span>                :<span class="lineCov">        614 : CScheduler::CScheduler()</span></a>
 <a name="13"><span class="lineNum">      13 </span>                :            : {</a>
-<a name="14"><span class="lineNum">      14 </span>                :<span class="lineCov">        544 : }</span></a>
+<a name="14"><span class="lineNum">      14 </span>                :<span class="lineCov">        614 : }</span></a>
 <a name="15"><span class="lineNum">      15 </span>                :            : </a>
-<a name="16"><span class="lineNum">      16 </span>                :<span class="lineCov">        544 : CScheduler::~CScheduler()</span></a>
+<a name="16"><span class="lineNum">      16 </span>                :<span class="lineCov">        614 : CScheduler::~CScheduler()</span></a>
 <a name="17"><span class="lineNum">      17 </span>                :            : {</a>
-<a name="18"><span class="lineNum">      18 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 544 times"> + </span>]:<span class="lineCov">        544 :     assert(nThreadsServicingQueue == 0);</span></a>
-<a name="19"><span class="lineNum">      19 </span>  [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 542 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">        544 :     if (stopWhenEmpty) assert(taskQueue.empty());</span></a>
-<a name="20"><span class="lineNum">      20 </span>                :<span class="lineCov">        544 : }</span></a>
+<a name="18"><span class="lineNum">      18 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 614 times"> + </span>]:<span class="lineCov">        614 :     assert(nThreadsServicingQueue == 0);</span></a>
+<a name="19"><span class="lineNum">      19 </span>  [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 612 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 2 times"> + </span>]:<span class="lineCov">        614 :     if (stopWhenEmpty) assert(taskQueue.empty());</span></a>
+<a name="20"><span class="lineNum">      20 </span>                :<span class="lineCov">        614 : }</span></a>
 <a name="21"><span class="lineNum">      21 </span>                :            : </a>
 <a name="22"><span class="lineNum">      22 </span>                :            : </a>
-<a name="23"><span class="lineNum">      23 </span>                :<span class="lineCov">        557 : void CScheduler::serviceQueue()</span></a>
+<a name="23"><span class="lineNum">      23 </span>                :<span class="lineCov">        627 : void CScheduler::serviceQueue()</span></a>
 <a name="24"><span class="lineNum">      24 </span>                :            : {</a>
-<a name="25"><span class="lineNum">      25 </span>                :<span class="lineCov">        557 :     WAIT_LOCK(newTaskMutex, lock);</span></a>
-<a name="26"><span class="lineNum">      26 </span>                :<span class="lineCov">        557 :     ++nThreadsServicingQueue;</span></a>
+<a name="25"><span class="lineNum">      25 </span>                :<span class="lineCov">        627 :     WAIT_LOCK(newTaskMutex, lock);</span></a>
+<a name="26"><span class="lineNum">      26 </span>                :<span class="lineCov">        627 :     ++nThreadsServicingQueue;</span></a>
 <a name="27"><span class="lineNum">      27 </span>                :            : </a>
 <a name="28"><span class="lineNum">      28 </span>                :            :     // newTaskMutex is locked throughout this loop EXCEPT</a>
 <a name="29"><span class="lineNum">      29 </span>                :            :     // when the thread is waiting or when the user's function</a>
 <a name="30"><span class="lineNum">      30 </span>                :            :     // is called.</a>
-<a name="31"><span class="lineNum">      31 </span>                :<span class="lineCov">     279416 :     while (!shouldStop()) {</span></a>
-<a name="32"><span class="lineNum">      32 </span>                :<span class="lineCov">     139151 :         try {</span></a>
-<a name="33"><span class="lineNum">      33 </span>  [<span class="branchCov" title="Branch 0 was taken 11 times"> + </span><span class="branchCov" title="Branch 1 was taken 139140 times"> + </span><span class="branchCov" title="Branch 2 was taken 229 times"> + </span><span class="branchCov" title="Branch 3 was taken 138922 times"> + </span>]:<span class="lineCov">     139162 :             if (!shouldStop() &amp;&amp; taskQueue.empty()) {</span></a>
-<a name="34"><span class="lineNum">      34 </span>        [<span class="branchCov" title="Branch 0 was taken 229 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        229 :                 REVERSE_LOCK(lock);</span></a>
+<a name="31"><span class="lineNum">      31 </span>                :<span class="lineCov">     334778 :     while (!shouldStop()) {</span></a>
+<a name="32"><span class="lineNum">      32 </span>                :<span class="lineCov">     166762 :         try {</span></a>
+<a name="33"><span class="lineNum">      33 </span>  [<span class="branchCov" title="Branch 0 was taken 9 times"> + </span><span class="branchCov" title="Branch 1 was taken 166753 times"> + </span><span class="branchCov" title="Branch 2 was taken 200 times"> + </span><span class="branchCov" title="Branch 3 was taken 166562 times"> + </span>]:<span class="lineCov">     166771 :             if (!shouldStop() &amp;&amp; taskQueue.empty()) {</span></a>
+<a name="34"><span class="lineNum">      34 </span>        [<span class="branchCov" title="Branch 0 was taken 200 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        200 :                 REVERSE_LOCK(lock);</span></a>
 <a name="35"><span class="lineNum">      35 </span>                :            :             }</a>
-<a name="36"><span class="lineNum">      36 </span>  [<span class="branchCov" title="Branch 0 was taken 139374 times"> + </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span><span class="branchCov" title="Branch 2 was taken 227 times"> + </span><span class="branchCov" title="Branch 3 was taken 139144 times"> + </span>]:<span class="lineCov">     278749 :             while (!shouldStop() &amp;&amp; taskQueue.empty()) {</span></a>
+<a name="36"><span class="lineNum">      36 </span>  [<span class="branchCov" title="Branch 0 was taken 166959 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchCov" title="Branch 2 was taken 198 times"> + </span><span class="branchCov" title="Branch 3 was taken 166757 times"> + </span>]:<span class="lineCov">     333915 :             while (!shouldStop() &amp;&amp; taskQueue.empty()) {</span></a>
 <a name="37"><span class="lineNum">      37 </span>                :            :                 // Wait until there is something to do.</a>
-<a name="38"><span class="lineNum">      38 </span>                :<span class="lineCov">        227 :                 newTaskScheduled.wait(lock);</span></a>
+<a name="38"><span class="lineNum">      38 </span>                :<span class="lineCov">        198 :                 newTaskScheduled.wait(lock);</span></a>
 <a name="39"><span class="lineNum">      39 </span>                :            :             }</a>
 <a name="40"><span class="lineNum">      40 </span>                :            : </a>
 <a name="41"><span class="lineNum">      41 </span>                :            :             // Wait until either there is a new task, or until</a>
 <a name="42"><span class="lineNum">      42 </span>                :            :             // the time of the first item on the queue:</a>
 <a name="43"><span class="lineNum">      43 </span>                :            : </a>
-<a name="44"><span class="lineNum">      44 </span>  [<span class="branchCov" title="Branch 0 was taken 187542 times"> + </span><span class="branchCov" title="Branch 1 was taken 536 times"> + </span><span class="branchCov" title="Branch 2 was taken 187539 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     375617 :             while (!shouldStop() &amp;&amp; !taskQueue.empty()) {</span></a>
-<a name="45"><span class="lineNum">      45 </span>        [<span class="branchCov" title="Branch 0 was taken 187539 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     187539 :                 std::chrono::system_clock::time_point timeToWaitFor = taskQueue.begin()-&gt;first;</span></a>
-<a name="46"><span class="lineNum">      46 </span>  [<span class="branchCov" title="Branch 0 was taken 187539 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 48927 times"> + </span><span class="branchCov" title="Branch 3 was taken 138612 times"> + </span>]:<span class="lineCov">     187539 :                 if (newTaskScheduled.wait_until(lock, timeToWaitFor) == std::cv_status::timeout) {</span></a>
+<a name="44"><span class="lineNum">      44 </span>  [<span class="branchCov" title="Branch 0 was taken 227677 times"> + </span><span class="branchCov" title="Branch 1 was taken 604 times"> + </span><span class="branchCov" title="Branch 2 was taken 227673 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     455954 :             while (!shouldStop() &amp;&amp; !taskQueue.empty()) {</span></a>
+<a name="45"><span class="lineNum">      45 </span>        [<span class="branchCov" title="Branch 0 was taken 227673 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     227673 :                 std::chrono::system_clock::time_point timeToWaitFor = taskQueue.begin()-&gt;first;</span></a>
+<a name="46"><span class="lineNum">      46 </span>  [<span class="branchCov" title="Branch 0 was taken 227673 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 61519 times"> + </span><span class="branchCov" title="Branch 3 was taken 166154 times"> + </span>]:<span class="lineCov">     227673 :                 if (newTaskScheduled.wait_until(lock, timeToWaitFor) == std::cv_status::timeout) {</span></a>
 <a name="47"><span class="lineNum">      47 </span>                :            :                     break; // Exit loop after timeout, it means we reached the time of the event</a>
 <a name="48"><span class="lineNum">      48 </span>                :            :                 }</a>
 <a name="49"><span class="lineNum">      49 </span>                :            :             }</a>
 <a name="50"><span class="lineNum">      50 </span>                :            : </a>
 <a name="51"><span class="lineNum">      51 </span>                :            :             // If there are multiple threads, the queue can empty while we're waiting (another</a>
 <a name="52"><span class="lineNum">      52 </span>                :            :             // thread may service the task we were waiting on).</a>
-<a name="53"><span class="lineNum">      53 </span>  [<span class="branchCov" title="Branch 0 was taken 138610 times"> + </span><span class="branchCov" title="Branch 1 was taken 541 times"> + </span><span class="branchCov" title="Branch 2 was taken 138567 times"> + </span><span class="branchCov" title="Branch 3 was taken 32 times"> + </span>]:<span class="lineCov">     277750 :             if (shouldStop() || taskQueue.empty())</span></a>
-<a name="54"><span class="lineNum">      54 </span>                :<span class="lineCov">        584 :                 continue;</span></a>
+<a name="53"><span class="lineNum">      53 </span>  [<span class="branchCov" title="Branch 0 was taken 166156 times"> + </span><span class="branchCov" title="Branch 1 was taken 606 times"> + </span><span class="branchCov" title="Branch 2 was taken 166133 times"> + </span><span class="branchCov" title="Branch 3 was taken 10 times"> + </span>]:<span class="lineCov">     332905 :             if (shouldStop() || taskQueue.empty())</span></a>
+<a name="54"><span class="lineNum">      54 </span>                :<span class="lineCov">        629 :                 continue;</span></a>
 <a name="55"><span class="lineNum">      55 </span>                :            : </a>
-<a name="56"><span class="lineNum">      56 </span>  [<span class="branchCov" title="Branch 0 was taken 139166 times"> + </span><span class="branchCov" title="Branch 1 was taken 542 times"> + </span><span class="branchCov" title="Branch 2 was taken 138567 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     278275 :             Function f = taskQueue.begin()-&gt;second;</span></a>
-<a name="57"><span class="lineNum">      57 </span>                :<span class="lineCov">     138567 :             taskQueue.erase(taskQueue.begin());</span></a>
+<a name="56"><span class="lineNum">      56 </span>  [<span class="branchCov" title="Branch 0 was taken 166777 times"> + </span><span class="branchCov" title="Branch 1 was taken 612 times"> + </span><span class="branchCov" title="Branch 2 was taken 166133 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     333522 :             Function f = taskQueue.begin()-&gt;second;</span></a>
+<a name="57"><span class="lineNum">      57 </span>                :<span class="lineCov">     166133 :             taskQueue.erase(taskQueue.begin());</span></a>
 <a name="58"><span class="lineNum">      58 </span>                :            : </a>
-<a name="59"><span class="lineNum">      59 </span>                :<span class="lineCov">     138567 :             {</span></a>
+<a name="59"><span class="lineNum">      59 </span>                :<span class="lineCov">     166133 :             {</span></a>
 <a name="60"><span class="lineNum">      60 </span>                :            :                 // Unlock before calling f, so it can reschedule itself or another task</a>
 <a name="61"><span class="lineNum">      61 </span>                :            :                 // without deadlocking:</a>
-<a name="62"><span class="lineNum">      62 </span>  [<span class="branchCov" title="Branch 0 was taken 138567 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 138567 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     277134 :                 REVERSE_LOCK(lock);</span></a>
-<a name="63"><span class="lineNum">      63 </span>        [<span class="branchCov" title="Branch 0 was taken 138567 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     138567 :                 f();</span></a>
+<a name="62"><span class="lineNum">      62 </span>  [<span class="branchCov" title="Branch 0 was taken 166133 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 166133 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     332266 :                 REVERSE_LOCK(lock);</span></a>
+<a name="63"><span class="lineNum">      63 </span>        [<span class="branchCov" title="Branch 0 was taken 166133 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     166133 :                 f();</span></a>
 <a name="64"><span class="lineNum">      64 </span>                :            :             }</a>
 <a name="65"><span class="lineNum">      65 </span>                :<span class="lineNoCov">          0 :         } catch (...) {</span></a>
 <a name="66"><span class="lineNum">      66 </span>                :<span class="lineNoCov">          0 :             --nThreadsServicingQueue;</span></a>
 <a name="67"><span class="lineNum">      67 </span>                :<span class="lineNoCov">          0 :             throw;</span></a>
 <a name="68"><span class="lineNum">      68 </span>                :            :         }</a>
 <a name="69"><span class="lineNum">      69 </span>                :            :     }</a>
-<a name="70"><span class="lineNum">      70 </span>                :<span class="lineCov">        557 :     --nThreadsServicingQueue;</span></a>
-<a name="71"><span class="lineNum">      71 </span>        [<span class="branchCov" title="Branch 0 was taken 557 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        557 :     newTaskScheduled.notify_one();</span></a>
-<a name="72"><span class="lineNum">      72 </span>                :<span class="lineCov">        557 : }</span></a>
+<a name="70"><span class="lineNum">      70 </span>                :<span class="lineCov">        627 :     --nThreadsServicingQueue;</span></a>
+<a name="71"><span class="lineNum">      71 </span>        [<span class="branchCov" title="Branch 0 was taken 627 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        627 :     newTaskScheduled.notify_one();</span></a>
+<a name="72"><span class="lineNum">      72 </span>                :<span class="lineCov">        627 : }</span></a>
 <a name="73"><span class="lineNum">      73 </span>                :            : </a>
-<a name="74"><span class="lineNum">      74 </span>                :<span class="lineCov">        545 : void CScheduler::stop(bool drain)</span></a>
+<a name="74"><span class="lineNum">      74 </span>                :<span class="lineCov">        614 : void CScheduler::stop(bool drain)</span></a>
 <a name="75"><span class="lineNum">      75 </span>                :            : {</a>
-<a name="76"><span class="lineNum">      76 </span>                :<span class="lineCov">        545 :     {</span></a>
-<a name="77"><span class="lineNum">      77 </span>                :<span class="lineCov">        545 :         LOCK(newTaskMutex);</span></a>
-<a name="78"><span class="lineNum">      78 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 543 times"> + </span>]:<span class="lineCov">        545 :         if (drain)</span></a>
+<a name="76"><span class="lineNum">      76 </span>                :<span class="lineCov">        614 :     {</span></a>
+<a name="77"><span class="lineNum">      77 </span>                :<span class="lineCov">        614 :         LOCK(newTaskMutex);</span></a>
+<a name="78"><span class="lineNum">      78 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 612 times"> + </span>]:<span class="lineCov">        614 :         if (drain)</span></a>
 <a name="79"><span class="lineNum">      79 </span>                :<span class="lineCov">          2 :             stopWhenEmpty = true;</span></a>
 <a name="80"><span class="lineNum">      80 </span>                :            :         else</a>
-<a name="81"><span class="lineNum">      81 </span>                :<span class="lineCov">        543 :             stopRequested = true;</span></a>
+<a name="81"><span class="lineNum">      81 </span>                :<span class="lineCov">        612 :             stopRequested = true;</span></a>
 <a name="82"><span class="lineNum">      82 </span>                :            :     }</a>
-<a name="83"><span class="lineNum">      83 </span>                :<span class="lineCov">        545 :     newTaskScheduled.notify_all();</span></a>
-<a name="84"><span class="lineNum">      84 </span>                :<span class="lineCov">        545 : }</span></a>
+<a name="83"><span class="lineNum">      83 </span>                :<span class="lineCov">        614 :     newTaskScheduled.notify_all();</span></a>
+<a name="84"><span class="lineNum">      84 </span>                :<span class="lineCov">        614 : }</span></a>
 <a name="85"><span class="lineNum">      85 </span>                :            : </a>
-<a name="86"><span class="lineNum">      86 </span>                :<span class="lineCov">     142138 : void CScheduler::schedule(CScheduler::Function f, std::chrono::system_clock::time_point t)</span></a>
+<a name="86"><span class="lineNum">      86 </span>                :<span class="lineCov">     172642 : void CScheduler::schedule(CScheduler::Function f, std::chrono::system_clock::time_point t)</span></a>
 <a name="87"><span class="lineNum">      87 </span>                :            : {</a>
-<a name="88"><span class="lineNum">      88 </span>                :<span class="lineCov">     142138 :     {</span></a>
-<a name="89"><span class="lineNum">      89 </span>                :<span class="lineCov">     142138 :         LOCK(newTaskMutex);</span></a>
-<a name="90"><span class="lineNum">      90 </span>  [<span class="branchCov" title="Branch 0 was taken 142138 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 142138 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">     284276 :         taskQueue.insert(std::make_pair(t, f));</span></a>
-<span class="lineNum">         </span>   <span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 142138 times"> + </span><span class="branchCov" title="Branch 6 was taken 142138 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
+<a name="88"><span class="lineNum">      88 </span>                :<span class="lineCov">     172642 :     {</span></a>
+<a name="89"><span class="lineNum">      89 </span>                :<span class="lineCov">     172642 :         LOCK(newTaskMutex);</span></a>
+<a name="90"><span class="lineNum">      90 </span>  [<span class="branchCov" title="Branch 0 was taken 172642 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 172642 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">     345284 :         taskQueue.insert(std::make_pair(t, f));</span></a>
+<span class="lineNum">         </span>   <span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 172642 times"> + </span><span class="branchCov" title="Branch 6 was taken 172642 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span>]
 <a name="91"><span class="lineNum">      91 </span>                :            :     }</a>
-<a name="92"><span class="lineNum">      92 </span>                :<span class="lineCov">     142138 :     newTaskScheduled.notify_one();</span></a>
-<a name="93"><span class="lineNum">      93 </span>                :<span class="lineCov">     142138 : }</span></a>
+<a name="92"><span class="lineNum">      92 </span>                :<span class="lineCov">     172642 :     newTaskScheduled.notify_one();</span></a>
+<a name="93"><span class="lineNum">      93 </span>                :<span class="lineCov">     172642 : }</span></a>
 <a name="94"><span class="lineNum">      94 </span>                :            : </a>
-<a name="95"><span class="lineNum">      95 </span>                :<span class="lineCov">          1 : void CScheduler::MockForward(std::chrono::seconds delta_seconds)</span></a>
+<a name="95"><span class="lineNum">      95 </span>                :<span class="lineCov">          4 : void CScheduler::MockForward(std::chrono::seconds delta_seconds)</span></a>
 <a name="96"><span class="lineNum">      96 </span>                :            : {</a>
-<a name="97"><span class="lineNum">      97 </span>  [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 1 time"> + </span>]:<span class="lineCov">          1 :     assert(delta_seconds.count() &gt; 0 &amp;&amp; delta_seconds &lt; std::chrono::hours{1});</span></a>
+<a name="97"><span class="lineNum">      97 </span>  [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 4 times"> + </span>]:<span class="lineCov">          4 :     assert(delta_seconds.count() &gt; 0 &amp;&amp; delta_seconds &lt; std::chrono::hours{1});</span></a>
 <a name="98"><span class="lineNum">      98 </span>                :            : </a>
-<a name="99"><span class="lineNum">      99 </span>                :<span class="lineCov">          1 :     {</span></a>
-<a name="100"><span class="lineNum">     100 </span>                :<span class="lineCov">          1 :         LOCK(newTaskMutex);</span></a>
+<a name="99"><span class="lineNum">      99 </span>                :<span class="lineCov">          4 :     {</span></a>
+<a name="100"><span class="lineNum">     100 </span>                :<span class="lineCov">          4 :         LOCK(newTaskMutex);</span></a>
 <a name="101"><span class="lineNum">     101 </span>                :            : </a>
 <a name="102"><span class="lineNum">     102 </span>                :            :         // use temp_queue to maintain updated schedule</a>
-<a name="103"><span class="lineNum">     103 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          2 :         std::multimap&lt;std::chrono::system_clock::time_point, Function&gt; temp_queue;</span></a>
+<a name="103"><span class="lineNum">     103 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          8 :         std::multimap&lt;std::chrono::system_clock::time_point, Function&gt; temp_queue;</span></a>
 <a name="104"><span class="lineNum">     104 </span>                :            : </a>
-<a name="105"><span class="lineNum">     105 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          4 :         for (const auto&amp; element : taskQueue) {</span></a>
-<a name="106"><span class="lineNum">     106 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          3 :             temp_queue.emplace_hint(temp_queue.cend(), element.first - delta_seconds, element.second);</span></a>
+<a name="105"><span class="lineNum">     105 </span>        [<span class="branchCov" title="Branch 0 was taken 22 times"> + </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">         26 :         for (const auto&amp; element : taskQueue) {</span></a>
+<a name="106"><span class="lineNum">     106 </span>        [<span class="branchCov" title="Branch 0 was taken 22 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">         22 :             temp_queue.emplace_hint(temp_queue.cend(), element.first - delta_seconds, element.second);</span></a>
 <a name="107"><span class="lineNum">     107 </span>                :            :         }</a>
 <a name="108"><span class="lineNum">     108 </span>                :            : </a>
 <a name="109"><span class="lineNum">     109 </span>                :            :         // point taskQueue to temp_queue</a>
-<a name="110"><span class="lineNum">     110 </span>                :<span class="lineCov">          1 :         taskQueue = std::move(temp_queue);</span></a>
+<a name="110"><span class="lineNum">     110 </span>                :<span class="lineCov">          4 :         taskQueue = std::move(temp_queue);</span></a>
 <a name="111"><span class="lineNum">     111 </span>                :            :     }</a>
 <a name="112"><span class="lineNum">     112 </span>                :            : </a>
 <a name="113"><span class="lineNum">     113 </span>                :            :     // notify that the taskQueue needs to be processed</a>
-<a name="114"><span class="lineNum">     114 </span>                :<span class="lineCov">          1 :     newTaskScheduled.notify_one();</span></a>
-<a name="115"><span class="lineNum">     115 </span>                :<span class="lineCov">          1 : }</span></a>
+<a name="114"><span class="lineNum">     114 </span>                :<span class="lineCov">          4 :     newTaskScheduled.notify_one();</span></a>
+<a name="115"><span class="lineNum">     115 </span>                :<span class="lineCov">          4 : }</span></a>
 <a name="116"><span class="lineNum">     116 </span>                :            : </a>
-<a name="117"><span class="lineNum">     117 </span>                :<span class="lineCov">      10011 : static void Repeat(CScheduler&amp; s, CScheduler::Function f, std::chrono::milliseconds delta)</span></a>
+<a name="117"><span class="lineNum">     117 </span>                :<span class="lineCov">      13184 : static void Repeat(CScheduler&amp; s, CScheduler::Function f, std::chrono::milliseconds delta)</span></a>
 <a name="118"><span class="lineNum">     118 </span>                :            : {</a>
-<a name="119"><span class="lineNum">     119 </span>                :<span class="lineCov">      10011 :     f();</span></a>
-<a name="120"><span class="lineNum">     120 </span>  [<span class="branchCov" title="Branch 0 was taken 29418 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 19407 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">     117057 :     s.scheduleFromNow([=, &amp;s] { Repeat(s, f, delta); }, delta);</span></a>
-<span class="lineNum">         </span><span class="branchCov" title="Branch 4 was taken 10011 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchCov" title="Branch 6 was taken 10011 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span> 
-<span class="lineNum">         </span>   <span class="branchCov" title="Branch 9 was taken 10011 times"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span><span class="branchCov" title="Branch 12 was taken 9396 times"> + </span> 
+<a name="119"><span class="lineNum">     119 </span>                :<span class="lineCov">      13184 :     f();</span></a>
+<a name="120"><span class="lineNum">     120 </span>  [<span class="branchCov" title="Branch 0 was taken 38791 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 25607 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">     154391 :     s.scheduleFromNow([=, &amp;s] { Repeat(s, f, delta); }, delta);</span></a>
+<span class="lineNum">         </span><span class="branchCov" title="Branch 4 was taken 13184 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchCov" title="Branch 6 was taken 13184 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span> 
+<span class="lineNum">         </span>   <span class="branchCov" title="Branch 9 was taken 13184 times"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span><span class="branchCov" title="Branch 12 was taken 12417 times"> + </span> 
 <span class="lineNum">         </span>            <span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
-<a name="121"><span class="lineNum">     121 </span>                :<span class="lineCov">      10011 : }</span></a>
+<a name="121"><span class="lineNum">     121 </span>                :<span class="lineCov">      13184 : }</span></a>
 <a name="122"><span class="lineNum">     122 </span>                :            : </a>
-<a name="123"><span class="lineNum">     123 </span>                :<span class="lineCov">       2645 : void CScheduler::scheduleEvery(CScheduler::Function f, std::chrono::milliseconds delta)</span></a>
+<a name="123"><span class="lineNum">     123 </span>                :<span class="lineCov">       3041 : void CScheduler::scheduleEvery(CScheduler::Function f, std::chrono::milliseconds delta)</span></a>
 <a name="124"><span class="lineNum">     124 </span>                :            : {</a>
-<a name="125"><span class="lineNum">     125 </span>  [<span class="branchCov" title="Branch 0 was taken 5905 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 3260 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">      21590 :     scheduleFromNow([=] { Repeat(*this, f, delta); }, delta);</span></a>
-<span class="lineNum">         </span><span class="branchCov" title="Branch 4 was taken 2645 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchCov" title="Branch 6 was taken 2645 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span> 
-<span class="lineNum">         </span>   <span class="branchCov" title="Branch 9 was taken 2645 times"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span><span class="branchCov" title="Branch 12 was taken 615 times"> + </span> 
+<a name="125"><span class="lineNum">     125 </span>  [<span class="branchCov" title="Branch 0 was taken 6859 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 3818 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span> :<span class="lineCov">      25152 :     scheduleFromNow([=] { Repeat(*this, f, delta); }, delta);</span></a>
+<span class="lineNum">         </span><span class="branchCov" title="Branch 4 was taken 3041 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span><span class="branchCov" title="Branch 6 was taken 3041 times"> + </span><span class="branchNoCov" title="Branch 7 was not taken"> - </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span> 
+<span class="lineNum">         </span>   <span class="branchCov" title="Branch 9 was taken 3041 times"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span><span class="branchCov" title="Branch 12 was taken 767 times"> + </span> 
 <span class="lineNum">         </span>            <span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
-<a name="126"><span class="lineNum">     126 </span>                :<span class="lineCov">       2645 : }</span></a>
+<a name="126"><span class="lineNum">     126 </span>                :<span class="lineCov">       3041 : }</span></a>
 <a name="127"><span class="lineNum">     127 </span>                :            : </a>
 <a name="128"><span class="lineNum">     128 </span>                :<span class="lineCov">          4 : size_t CScheduler::getQueueInfo(std::chrono::system_clock::time_point &amp;first,</span></a>
 <a name="129"><span class="lineNum">     129 </span>                :            :                              std::chrono::system_clock::time_point &amp;last) const</a>
@@ -215,76 +215,76 @@
 <a name="137"><span class="lineNum">     137 </span>        [<span class="branchCov" title="Branch 0 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">          4 :     return result;</span></a>
 <a name="138"><span class="lineNum">     138 </span>                :            : }</a>
 <a name="139"><span class="lineNum">     139 </span>                :            : </a>
-<a name="140"><span class="lineNum">     140 </span>                :<span class="lineCov">        541 : bool CScheduler::AreThreadsServicingQueue() const {</span></a>
-<a name="141"><span class="lineNum">     141 </span>                :<span class="lineCov">        541 :     LOCK(newTaskMutex);</span></a>
-<a name="142"><span class="lineNum">     142 </span>        [<span class="branchCov" title="Branch 0 was taken 541 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        541 :     return nThreadsServicingQueue;</span></a>
+<a name="140"><span class="lineNum">     140 </span>                :<span class="lineCov">        611 : bool CScheduler::AreThreadsServicingQueue() const {</span></a>
+<a name="141"><span class="lineNum">     141 </span>                :<span class="lineCov">        611 :     LOCK(newTaskMutex);</span></a>
+<a name="142"><span class="lineNum">     142 </span>        [<span class="branchCov" title="Branch 0 was taken 611 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        611 :     return nThreadsServicingQueue;</span></a>
 <a name="143"><span class="lineNum">     143 </span>                :            : }</a>
 <a name="144"><span class="lineNum">     144 </span>                :            : </a>
 <a name="145"><span class="lineNum">     145 </span>                :            : </a>
-<a name="146"><span class="lineNum">     146 </span>                :<span class="lineCov">     198314 : void SingleThreadedSchedulerClient::MaybeScheduleProcessQueue() {</span></a>
-<a name="147"><span class="lineNum">     147 </span>                :<span class="lineCov">     198314 :     {</span></a>
-<a name="148"><span class="lineNum">     148 </span>                :<span class="lineCov">     198314 :         LOCK(m_cs_callbacks_pending);</span></a>
+<a name="146"><span class="lineNum">     146 </span>                :<span class="lineCov">     232954 : void SingleThreadedSchedulerClient::MaybeScheduleProcessQueue() {</span></a>
+<a name="147"><span class="lineNum">     147 </span>                :<span class="lineCov">     232954 :     {</span></a>
+<a name="148"><span class="lineNum">     148 </span>                :<span class="lineCov">     232954 :         LOCK(m_cs_callbacks_pending);</span></a>
 <a name="149"><span class="lineNum">     149 </span>                :            :         // Try to avoid scheduling too many copies here, but if we</a>
 <a name="150"><span class="lineNum">     150 </span>                :            :         // accidentally have two ProcessQueue's scheduled at once its</a>
 <a name="151"><span class="lineNum">     151 </span>                :            :         // not a big deal.</a>
-<a name="152"><span class="lineNum">     152 </span>        [<span class="branchCov" title="Branch 0 was taken 176990 times"> + </span><span class="branchCov" title="Branch 1 was taken 21324 times"> + </span>]:<span class="lineCov">     198314 :         if (m_are_callbacks_running) return;</span></a>
-<a name="153"><span class="lineNum">     153 </span>        [<span class="branchCov" title="Branch 0 was taken 129078 times"> + </span><span class="branchCov" title="Branch 1 was taken 47912 times"> + </span>]:<span class="lineCov">     176990 :         if (m_callbacks_pending.empty()) return;</span></a>
+<a name="152"><span class="lineNum">     152 </span>        [<span class="branchCov" title="Branch 0 was taken 215511 times"> + </span><span class="branchCov" title="Branch 1 was taken 17443 times"> + </span>]:<span class="lineCov">     232954 :         if (m_are_callbacks_running) return;</span></a>
+<a name="153"><span class="lineNum">     153 </span>        [<span class="branchCov" title="Branch 0 was taken 155414 times"> + </span><span class="branchCov" title="Branch 1 was taken 60097 times"> + </span>]:<span class="lineCov">     215511 :         if (m_callbacks_pending.empty()) return;</span></a>
 <a name="154"><span class="lineNum">     154 </span>                :            :     }</a>
-<a name="155"><span class="lineNum">     155 </span>        [<span class="branchCov" title="Branch 0 was taken 129078 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     327392 :     m_pscheduler-&gt;schedule(std::bind(&amp;SingleThreadedSchedulerClient::ProcessQueue, this), std::chrono::system_clock::now());</span></a>
+<a name="155"><span class="lineNum">     155 </span>        [<span class="branchCov" title="Branch 0 was taken 155414 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     388368 :     m_pscheduler-&gt;schedule(std::bind(&amp;SingleThreadedSchedulerClient::ProcessQueue, this), std::chrono::system_clock::now());</span></a>
 <a name="156"><span class="lineNum">     156 </span>                :            : }</a>
 <a name="157"><span class="lineNum">     157 </span>                :            : </a>
-<a name="158"><span class="lineNum">     158 </span>                :<span class="lineCov">     128696 : void SingleThreadedSchedulerClient::ProcessQueue() {</span></a>
-<a name="159"><span class="lineNum">     159 </span>        [<span class="branchCov" title="Branch 0 was taken 128696 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     257392 :     std::function&lt;void ()&gt; callback;</span></a>
-<a name="160"><span class="lineNum">     160 </span>                :<span class="lineCov">     128696 :     {</span></a>
-<a name="161"><span class="lineNum">     161 </span>        [<span class="branchCov" title="Branch 0 was taken 128696 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     128696 :         LOCK(m_cs_callbacks_pending);</span></a>
-<a name="162"><span class="lineNum">     162 </span>  [<span class="branchCov" title="Branch 0 was taken 128695 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 29753 times"> + </span>]:<span class="lineCov">     158449 :         if (m_are_callbacks_running) return;</span></a>
-<a name="163"><span class="lineNum">     163 </span>        [<span class="branchCov" title="Branch 0 was taken 98943 times"> + </span><span class="branchCov" title="Branch 1 was taken 29752 times"> + </span>]:<span class="lineCov">     128695 :         if (m_callbacks_pending.empty()) return;</span></a>
-<a name="164"><span class="lineNum">     164 </span>                :<span class="lineCov">      98943 :         m_are_callbacks_running = true;</span></a>
+<a name="158"><span class="lineNum">     158 </span>                :<span class="lineCov">     153603 : void SingleThreadedSchedulerClient::ProcessQueue() {</span></a>
+<a name="159"><span class="lineNum">     159 </span>        [<span class="branchCov" title="Branch 0 was taken 153603 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     307206 :     std::function&lt;void ()&gt; callback;</span></a>
+<a name="160"><span class="lineNum">     160 </span>                :<span class="lineCov">     153603 :     {</span></a>
+<a name="161"><span class="lineNum">     161 </span>        [<span class="branchCov" title="Branch 0 was taken 153603 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     153603 :         LOCK(m_cs_callbacks_pending);</span></a>
+<a name="162"><span class="lineNum">     162 </span>  [<span class="branchCov" title="Branch 0 was taken 153602 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 37373 times"> + </span>]:<span class="lineCov">     190976 :         if (m_are_callbacks_running) return;</span></a>
+<a name="163"><span class="lineNum">     163 </span>        [<span class="branchCov" title="Branch 0 was taken 116230 times"> + </span><span class="branchCov" title="Branch 1 was taken 37372 times"> + </span>]:<span class="lineCov">     153602 :         if (m_callbacks_pending.empty()) return;</span></a>
+<a name="164"><span class="lineNum">     164 </span>                :<span class="lineCov">     116230 :         m_are_callbacks_running = true;</span></a>
 <a name="165"><span class="lineNum">     165 </span>                :            : </a>
-<a name="166"><span class="lineNum">     166 </span>                :<span class="lineCov">      98943 :         callback = std::move(m_callbacks_pending.front());</span></a>
-<a name="167"><span class="lineNum">     167 </span>        [<span class="branchCov" title="Branch 0 was taken 98943 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      98943 :         m_callbacks_pending.pop_front();</span></a>
+<a name="166"><span class="lineNum">     166 </span>                :<span class="lineCov">     116230 :         callback = std::move(m_callbacks_pending.front());</span></a>
+<a name="167"><span class="lineNum">     167 </span>        [<span class="branchCov" title="Branch 0 was taken 116230 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     116230 :         m_callbacks_pending.pop_front();</span></a>
 <a name="168"><span class="lineNum">     168 </span>                :            :     }</a>
 <a name="169"><span class="lineNum">     169 </span>                :            : </a>
 <a name="170"><span class="lineNum">     170 </span>                :            :     // RAII the setting of fCallbacksRunning and calling MaybeScheduleProcessQueue</a>
 <a name="171"><span class="lineNum">     171 </span>                :            :     // to ensure both happen safely even if callback() throws.</a>
-<a name="172"><span class="lineNum">     172 </span>                :<span class="lineCov">      98943 :     struct RAIICallbacksRunning {</span></a>
+<a name="172"><span class="lineNum">     172 </span>                :<span class="lineCov">     116230 :     struct RAIICallbacksRunning {</span></a>
 <a name="173"><span class="lineNum">     173 </span>                :            :         SingleThreadedSchedulerClient* instance;</a>
-<a name="174"><span class="lineNum">     174 </span>                :<span class="lineCov">      98943 :         explicit RAIICallbacksRunning(SingleThreadedSchedulerClient* _instance) : instance(_instance) {}</span></a>
-<a name="175"><span class="lineNum">     175 </span>                :<span class="lineCov">     197886 :         ~RAIICallbacksRunning() {</span></a>
-<a name="176"><span class="lineNum">     176 </span>                :<span class="lineCov">      98943 :             {</span></a>
-<a name="177"><span class="lineNum">     177 </span>                :<span class="lineCov">      98943 :                 LOCK(instance-&gt;m_cs_callbacks_pending);</span></a>
-<a name="178"><span class="lineNum">     178 </span>        [<span class="branchCov" title="Branch 0 was taken 98943 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      98943 :                 instance-&gt;m_are_callbacks_running = false;</span></a>
+<a name="174"><span class="lineNum">     174 </span>                :<span class="lineCov">     116230 :         explicit RAIICallbacksRunning(SingleThreadedSchedulerClient* _instance) : instance(_instance) {}</span></a>
+<a name="175"><span class="lineNum">     175 </span>                :<span class="lineCov">     232460 :         ~RAIICallbacksRunning() {</span></a>
+<a name="176"><span class="lineNum">     176 </span>                :<span class="lineCov">     116230 :             {</span></a>
+<a name="177"><span class="lineNum">     177 </span>                :<span class="lineCov">     116230 :                 LOCK(instance-&gt;m_cs_callbacks_pending);</span></a>
+<a name="178"><span class="lineNum">     178 </span>        [<span class="branchCov" title="Branch 0 was taken 116230 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     116230 :                 instance-&gt;m_are_callbacks_running = false;</span></a>
 <a name="179"><span class="lineNum">     179 </span>                :            :             }</a>
-<a name="180"><span class="lineNum">     180 </span>                :<span class="lineCov">      98943 :             instance-&gt;MaybeScheduleProcessQueue();</span></a>
-<a name="181"><span class="lineNum">     181 </span>                :<span class="lineCov">      98943 :         }</span></a>
-<a name="182"><span class="lineNum">     182 </span>        [<span class="branchCov" title="Branch 0 was taken 98943 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      98943 :     } raiicallbacksrunning(this);</span></a>
+<a name="180"><span class="lineNum">     180 </span>                :<span class="lineCov">     116230 :             instance-&gt;MaybeScheduleProcessQueue();</span></a>
+<a name="181"><span class="lineNum">     181 </span>                :<span class="lineCov">     116230 :         }</span></a>
+<a name="182"><span class="lineNum">     182 </span>        [<span class="branchCov" title="Branch 0 was taken 116230 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     116230 :     } raiicallbacksrunning(this);</span></a>
 <a name="183"><span class="lineNum">     183 </span>                :            : </a>
-<a name="184"><span class="lineNum">     184 </span>        [<span class="branchCov" title="Branch 0 was taken 98943 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      98943 :     callback();</span></a>
+<a name="184"><span class="lineNum">     184 </span>        [<span class="branchCov" title="Branch 0 was taken 116230 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     116230 :     callback();</span></a>
 <a name="185"><span class="lineNum">     185 </span>                :            : }</a>
 <a name="186"><span class="lineNum">     186 </span>                :            : </a>
-<a name="187"><span class="lineNum">     187 </span>                :<span class="lineCov">      99371 : void SingleThreadedSchedulerClient::AddToProcessQueue(std::function&lt;void ()&gt; func) {</span></a>
-<a name="188"><span class="lineNum">     188 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 99371 times"> + </span>]:<span class="lineCov">      99371 :     assert(m_pscheduler);</span></a>
+<a name="187"><span class="lineNum">     187 </span>                :<span class="lineCov">     116724 : void SingleThreadedSchedulerClient::AddToProcessQueue(std::function&lt;void ()&gt; func) {</span></a>
+<a name="188"><span class="lineNum">     188 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 116724 times"> + </span>]:<span class="lineCov">     116724 :     assert(m_pscheduler);</span></a>
 <a name="189"><span class="lineNum">     189 </span>                :            : </a>
-<a name="190"><span class="lineNum">     190 </span>                :<span class="lineCov">      99371 :     {</span></a>
-<a name="191"><span class="lineNum">     191 </span>                :<span class="lineCov">      99371 :         LOCK(m_cs_callbacks_pending);</span></a>
-<a name="192"><span class="lineNum">     192 </span>  [<span class="branchCov" title="Branch 0 was taken 99371 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 99371 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     198742 :         m_callbacks_pending.emplace_back(std::move(func));</span></a>
+<a name="190"><span class="lineNum">     190 </span>                :<span class="lineCov">     116724 :     {</span></a>
+<a name="191"><span class="lineNum">     191 </span>                :<span class="lineCov">     116724 :         LOCK(m_cs_callbacks_pending);</span></a>
+<a name="192"><span class="lineNum">     192 </span>  [<span class="branchCov" title="Branch 0 was taken 116724 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span><span class="branchCov" title="Branch 2 was taken 116724 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">     233448 :         m_callbacks_pending.emplace_back(std::move(func));</span></a>
 <a name="193"><span class="lineNum">     193 </span>                :            :     }</a>
-<a name="194"><span class="lineNum">     194 </span>                :<span class="lineCov">      99371 :     MaybeScheduleProcessQueue();</span></a>
-<a name="195"><span class="lineNum">     195 </span>                :<span class="lineCov">      99371 : }</span></a>
+<a name="194"><span class="lineNum">     194 </span>                :<span class="lineCov">     116724 :     MaybeScheduleProcessQueue();</span></a>
+<a name="195"><span class="lineNum">     195 </span>                :<span class="lineCov">     116724 : }</span></a>
 <a name="196"><span class="lineNum">     196 </span>                :            : </a>
-<a name="197"><span class="lineNum">     197 </span>                :<span class="lineCov">        541 : void SingleThreadedSchedulerClient::EmptyQueue() {</span></a>
-<a name="198"><span class="lineNum">     198 </span>        [<span class="branchCov" title="Branch 0 was taken 541 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        541 :     assert(!m_pscheduler-&gt;AreThreadsServicingQueue());</span></a>
+<a name="197"><span class="lineNum">     197 </span>                :<span class="lineCov">        611 : void SingleThreadedSchedulerClient::EmptyQueue() {</span></a>
+<a name="198"><span class="lineNum">     198 </span>        [<span class="branchCov" title="Branch 0 was taken 611 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        611 :     assert(!m_pscheduler-&gt;AreThreadsServicingQueue());</span></a>
 <a name="199"><span class="lineNum">     199 </span>                :            :     bool should_continue = true;</a>
-<a name="200"><span class="lineNum">     200 </span>                :<span class="lineCov">       1084 :     while (should_continue) {</span></a>
-<a name="201"><span class="lineNum">     201 </span>                :<span class="lineCov">        543 :         ProcessQueue();</span></a>
-<a name="202"><span class="lineNum">     202 </span>        [<span class="branchCov" title="Branch 0 was taken 543 times"> + </span><span class="branchCov" title="Branch 1 was taken 541 times"> + </span>]:<span class="lineCov">       1627 :         LOCK(m_cs_callbacks_pending);</span></a>
-<a name="203"><span class="lineNum">     203 </span>        [<span class="branchCov" title="Branch 0 was taken 543 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        543 :         should_continue = !m_callbacks_pending.empty();</span></a>
+<a name="200"><span class="lineNum">     200 </span>                :<span class="lineCov">       1671 :     while (should_continue) {</span></a>
+<a name="201"><span class="lineNum">     201 </span>                :<span class="lineCov">       1060 :         ProcessQueue();</span></a>
+<a name="202"><span class="lineNum">     202 </span>        [<span class="branchCov" title="Branch 0 was taken 1060 times"> + </span><span class="branchCov" title="Branch 1 was taken 611 times"> + </span>]:<span class="lineCov">       2731 :         LOCK(m_cs_callbacks_pending);</span></a>
+<a name="203"><span class="lineNum">     203 </span>        [<span class="branchCov" title="Branch 0 was taken 1060 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       1060 :         should_continue = !m_callbacks_pending.empty();</span></a>
 <a name="204"><span class="lineNum">     204 </span>                :            :     }</a>
-<a name="205"><span class="lineNum">     205 </span>                :<span class="lineCov">        541 : }</span></a>
+<a name="205"><span class="lineNum">     205 </span>                :<span class="lineCov">        611 : }</span></a>
 <a name="206"><span class="lineNum">     206 </span>                :            : </a>
-<a name="207"><span class="lineNum">     207 </span>                :<span class="lineCov">      47650 : size_t SingleThreadedSchedulerClient::CallbacksPending() {</span></a>
-<a name="208"><span class="lineNum">     208 </span>                :<span class="lineCov">      47650 :     LOCK(m_cs_callbacks_pending);</span></a>
-<a name="209"><span class="lineNum">     209 </span>        [<span class="branchCov" title="Branch 0 was taken 47650 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      47650 :     return m_callbacks_pending.size();</span></a>
+<a name="207"><span class="lineNum">     207 </span>                :<span class="lineCov">      57424 : size_t SingleThreadedSchedulerClient::CallbacksPending() {</span></a>
+<a name="208"><span class="lineNum">     208 </span>                :<span class="lineCov">      57424 :     LOCK(m_cs_callbacks_pending);</span></a>
+<a name="209"><span class="lineNum">     209 </span>        [<span class="branchCov" title="Branch 0 was taken 57424 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      57424 :     return m_callbacks_pending.size();</span></a>
 <a name="210"><span class="lineNum">     210 </span>                :            : }</a>
 </pre>
       </td>
